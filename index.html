@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trade App</title>
+    <meta name="description" content="Trade App" />
+
+    <base href="/" />
+
+    <style>
+      :root {
+        --toolbar-height: 64px;
+        --color-main: #3b3b3b;
+        --color-secondary: #7ac0af;
+        --color-alternative: #efefef;
+        --color-action__hover: #f1f8f7;
+      }
+
+      body {
+        font-size: 14px;
+        line-height: 1.5;
+        font-style: normal;
+        font-weight: 400;
+        margin: 0;
+        color: var(--color-main);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-attachment: fixed;
+        font-family: "SatoshiVariable", sans-serif;
+        background: radial-gradient(
+            89.2% 89.2% at 50.07% 87.94%,
+            rgb(0, 138, 105) 0%,
+            rgb(38, 47, 49) 88.52%
+          ),
+          rgb(44, 51, 53);
+      }
+
+      @font-face {
+        font-family: "SatoshiVariable";
+        src: url("assets/font/Satoshi-Variable.ttf") format("truetype");
+        font-display: auto;
+        font-weight: 100 900;
+      } ;
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="app"></div>
+    <script type="module" src="./out/index.js"></script>
+  </body>
+</html>
