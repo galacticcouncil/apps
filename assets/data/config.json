@@ -1,0 +1,11 @@
+{
+  "chains": [
+    {"name": "Basilisk", "rpc": "wss://rpc.basilisk.cloud"},
+    {"name": "Basilisk-Devnet", "rpc": "wss://rpc01.hydration.dev"},
+    {
+      "name": "Basilisk-Rococo",
+      "rpc": "wss://rococo-basilisk-rpc.hydration.dev"
+    },
+    {"name": "HydraDX", "rpc": "wss://rpc.hydradx.cloud"}
+  ]
+}
