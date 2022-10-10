@@ -6,9 +6,9 @@ import { baseStyles } from './styles/base.css';
 
 @customElement('ui-asset-price')
 export class AssetPrice extends LitElement {
-  @property({ type: String }) inputAsset = 'BSX';
-  @property({ type: String }) outputAsset = 'aUSD';
-  @property({ type: String }) outputBalance = '121343434';
+  @property({ type: String }) inputAsset = null;
+  @property({ type: String }) outputAsset = null;
+  @property({ type: String }) outputBalance = null;
 
   static styles = [
     baseStyles,

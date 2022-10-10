@@ -1,4 +1,4 @@
-import { LitElement, html, css, PropertyDeclarations } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import './AssetInput';
@@ -8,7 +8,8 @@ import './AssetSelector';
 export class AssetTransfer extends LitElement {
   @property({ type: String }) id = '';
   @property({ type: String }) title = '';
-  @property({ type: Number }) balance = 0;
+  @property({ type: String }) balance = 0;
+  @property({ type: String }) amount = 0;
   @property({ type: String }) asset = '';
 
   static styles = [
@@ -78,7 +79,7 @@ export class AssetTransfer extends LitElement {
       </div>
       <div class="asset">
         <ui-asset-selector id=${this.id} .asset=${this.asset}></ui-asset-selector>
-        <ui-asset-input id=${this.id} .asset=${this.asset}></ui-asset-input>
+        <ui-asset-input id=${this.id} .asset=${this.asset} .amount=${this.amount}></ui-asset-input>
       </div>
     `;
   }

@@ -30,7 +30,10 @@ export class Trade extends LitElement {
   @state() trade = {
     assets: [],
     assetIn: null,
+    amountIn: 0,
     assetOut: null,
+    amountOut: 0,
+    spotPrice: { in: null, out: null, price: '0' },
   };
 
   changeScreen(active: TradeScreen, detail: any) {
@@ -42,6 +45,7 @@ export class Trade extends LitElement {
     const assetOut = this.trade.assetOut;
 
     this.trade = {
+      ...this.trade,
       assets: this.trade.assets,
       assetIn: assetOut,
       assetOut: assetIn,
@@ -49,20 +53,68 @@ export class Trade extends LitElement {
     console.log('Switching ' + assetIn.symbol + ' for ' + assetOut.symbol);
   }
 
-  changeAsset(changeDetail: any, asset: any) {
+  changeAssetIn(changeDetail: any, asset: any) {
     if (changeDetail.id == 'assetIn') {
       this.trade = {
         ...this.trade,
         assetIn: asset,
       };
+      console.log('Changing ' + changeDetail.asset + ' for ' + asset.symbol);
     }
+  }
+
+  changeAssetOut(changeDetail: any, asset: any) {
     if (changeDetail.id == 'assetOut') {
       this.trade = {
         ...this.trade,
         assetOut: asset,
       };
+      console.log('Changing ' + changeDetail.asset + ' for ' + asset.symbol);
     }
-    console.log('Changing ' + changeDetail.asset + ' for ' + asset.symbol);
+  }
+
+  async calculateBestSell(amountIn: string) {
+    const bestSell = await this.db.state.router.getBestSell(this.trade.assetIn.id, this.trade.assetOut.id, amountIn);
+    const bestSellHuman = bestSell.toHuman();
+
+    this.trade = {
+      ...this.trade,
+      amountOut: bestSellHuman.amountOut,
+      spotPrice: {
+        in: this.trade.assetIn.symbol,
+        out: this.trade.assetOut.symbol,
+        price: bestSellHuman.spotPrice,
+      },
+    };
+    console.log(bestSellHuman);
+  }
+
+  async calculateBestBuy(amountOut: string) {
+    const bestBuy = await this.db.state.router.getBestBuy(this.trade.assetIn.id, this.trade.assetOut.id, amountOut);
+    const bestBuyHuman = bestBuy.toHuman();
+
+    this.trade = {
+      ...this.trade,
+      amountIn: bestBuyHuman.amountIn,
+      spotPrice: {
+        in: this.trade.assetOut.symbol,
+        out: this.trade.assetIn.symbol,
+        price: bestBuyHuman.spotPrice,
+      },
+    };
+    console.log(bestBuyHuman);
+  }
+
+  async updateAmountIn(updateDetail: any) {
+    if (updateDetail.id == 'assetIn') {
+      this.calculateBestSell(updateDetail.value);
+    }
+  }
+
+  async updateAmountOut(updateDetail: any) {
+    if (updateDetail.id == 'assetOut') {
+      this.calculateBestBuy(updateDetail.value);
+    }
   }
 
   async updated() {
@@ -74,10 +126,15 @@ export class Trade extends LitElement {
 
       const assetIn = systemAsset;
       const assetOut = systemAssetPairs[0];
+      const spotPrice = await this.db.state.router.getBestSpotPrice(assetIn.id, assetOut.id);
+      const spotPriceHuman = spotPrice.amount.shiftedBy(-1 * spotPrice.decimals).toString();
+
       this.trade = {
+        ...this.trade,
         assets: assets,
         assetIn: assetIn,
         assetOut: assetOut,
+        spotPrice: { in: assetIn.symbol, out: assetOut.symbol, price: spotPriceHuman },
       };
       readyCursor.reset(true);
     }
@@ -94,7 +151,8 @@ export class Trade extends LitElement {
       .assets=${this.trade.assets}
       @back-clicked=${(e: CustomEvent) => this.changeScreen(TradeScreen.TradeTokens, e.detail)}
       @asset-clicked=${(e: CustomEvent) => {
-        this.changeAsset(detail, e.detail);
+        this.changeAssetIn(detail, e.detail);
+        this.changeAssetOut(detail, e.detail);
         this.changeScreen(TradeScreen.TradeTokens, null);
       }}
     ></app-select-token>`;
@@ -103,9 +161,13 @@ export class Trade extends LitElement {
   tradeTokensTenplate() {
     return html`<app-trade-tokens
       .assetIn=${this.trade.assetIn?.symbol}
+      .amountIn=${this.trade.amountIn}
       .assetOut=${this.trade.assetOut?.symbol}
+      .amountOut=${this.trade.amountOut}
+      .spotPrice=${this.trade.spotPrice}
       @asset-input-changed=${(e: CustomEvent) => {
-        console.log(e.detail);
+        this.updateAmountIn(e.detail);
+        this.updateAmountOut(e.detail);
       }}
       @asset-selector-clicked=${(e: CustomEvent) => {
         this.changeScreen(TradeScreen.SelectToken, e.detail);

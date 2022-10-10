@@ -1,9 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { DatabaseController } from '../../db.ctrl';
-import { apiCursor, Api } from '../../db';
-
 import { baseStyles } from '../../base.css';
 
 import '../../component/AssetTransfer';
@@ -16,10 +13,11 @@ import '../../component/Button';
 
 @customElement('app-trade-tokens')
 export class TradeTokens extends LitElement {
-  private db = new DatabaseController<Api>(this, apiCursor);
-
   @property({ type: String }) assetIn = null;
+  @property({ type: String }) amountIn = 0;
   @property({ type: String }) assetOut = null;
+  @property({ type: String }) amountOut = 0;
+  @property({ attribute: false }) spotPrice = null;
 
   static styles = [
     baseStyles,
@@ -172,19 +170,29 @@ export class TradeTokens extends LitElement {
           </ui-icon-button>
         </div>
         <div class="transfer">
-          <ui-asset-transfer id="assetIn" title="Pay with" .asset=${this.assetIn}></ui-asset-transfer>
+          <ui-asset-transfer
+            id="assetIn"
+            title="Pay with"
+            .asset=${this.assetIn}
+            .amount=${this.amountIn}
+          ></ui-asset-transfer>
           <div class="switch">
             <div class="divider"></div>
             <ui-asset-switch class="switch-button"> </ui-asset-switch>
             <ui-asset-price
-              .inputAsset=${this.assetIn}
-              .outputAsset=${this.assetOut}
-              .outputBalance=${'1234'}
+              .inputAsset=${this.spotPrice?.in}
+              .outputAsset=${this.spotPrice?.out}
+              .outputBalance=${this.spotPrice?.price}
               class="switch-price"
             >
             </ui-asset-price>
           </div>
-          <ui-asset-transfer id="assetOut" title="You get" .asset=${this.assetOut}></ui-asset-transfer>
+          <ui-asset-transfer
+            id="assetOut"
+            title="You get"
+            .asset=${this.assetOut}
+            .amount=${this.amountOut}
+          ></ui-asset-transfer>
         </div>
         <div class="info">
           <div class="row">
