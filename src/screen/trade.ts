@@ -28,11 +28,12 @@ export class Trade extends LitElement {
   };
 
   @state() trade = {
+    inputAsset: null,
     assets: [],
     assetIn: null,
-    amountIn: 0,
+    amountIn: '0',
     assetOut: null,
-    amountOut: 0,
+    amountOut: '0',
     spotPrice: { in: null, out: null, price: '0' },
   };
 
@@ -40,80 +41,101 @@ export class Trade extends LitElement {
     this.screen = { active: active, detail: detail };
   }
 
-  switchAssets() {
-    const assetIn = this.trade.assetIn;
-    const assetOut = this.trade.assetOut;
-
-    this.trade = {
-      ...this.trade,
-      assets: this.trade.assets,
-      assetIn: assetOut,
-      assetOut: assetIn,
-    };
-    console.log('Switching ' + assetIn.symbol + ' for ' + assetOut.symbol);
-  }
-
-  changeAssetIn(changeDetail: any, asset: any) {
-    if (changeDetail.id == 'assetIn') {
-      this.trade = {
-        ...this.trade,
-        assetIn: asset,
-      };
-      console.log('Changing ' + changeDetail.asset + ' for ' + asset.symbol);
-    }
-  }
-
-  changeAssetOut(changeDetail: any, asset: any) {
-    if (changeDetail.id == 'assetOut') {
-      this.trade = {
-        ...this.trade,
-        assetOut: asset,
-      };
-      console.log('Changing ' + changeDetail.asset + ' for ' + asset.symbol);
-    }
-  }
-
-  async calculateBestSell(amountIn: string) {
-    const bestSell = await this.db.state.router.getBestSell(this.trade.assetIn.id, this.trade.assetOut.id, amountIn);
+  async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
+    const bestSell = await this.db.state.router.getBestSell(assetIn.id, assetOut.id, amountIn);
     const bestSellHuman = bestSell.toHuman();
 
     this.trade = {
       ...this.trade,
+      inputAsset: assetIn.symbol,
+      assetIn: assetIn,
+      amountIn: amountIn,
+      assetOut: assetOut,
       amountOut: bestSellHuman.amountOut,
       spotPrice: {
-        in: this.trade.assetIn.symbol,
-        out: this.trade.assetOut.symbol,
+        in: assetIn.symbol,
+        out: assetOut.symbol,
         price: bestSellHuman.spotPrice,
       },
     };
     console.log(bestSellHuman);
   }
 
-  async calculateBestBuy(amountOut: string) {
-    const bestBuy = await this.db.state.router.getBestBuy(this.trade.assetIn.id, this.trade.assetOut.id, amountOut);
+  async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
+    const bestBuy = await this.db.state.router.getBestBuy(assetIn.id, assetOut.id, amountOut);
     const bestBuyHuman = bestBuy.toHuman();
 
     this.trade = {
       ...this.trade,
+      inputAsset: assetOut.symbol,
+      assetIn: assetIn,
       amountIn: bestBuyHuman.amountIn,
+      assetOut: assetOut,
+      amountOut: amountOut,
       spotPrice: {
-        in: this.trade.assetOut.symbol,
-        out: this.trade.assetIn.symbol,
+        in: assetOut.symbol,
+        out: assetIn.symbol,
         price: bestBuyHuman.spotPrice,
       },
     };
     console.log(bestBuyHuman);
   }
 
-  async updateAmountIn(updateDetail: any) {
-    if (updateDetail.id == 'assetIn') {
-      this.calculateBestSell(updateDetail.value);
+  switchAndReCalculateSell(assetIn: PoolAsset, assetOut: PoolAsset) {
+    if (assetIn.symbol == this.trade.inputAsset) {
+      this.calculateBestSell(assetIn, assetOut, this.trade.amountOut);
     }
   }
 
-  async updateAmountOut(updateDetail: any) {
+  switchAndReCalculateBuy(assetIn: PoolAsset, assetOut: PoolAsset) {
+    if (assetOut.symbol == this.trade.inputAsset) {
+      this.calculateBestBuy(assetIn, assetOut, this.trade.amountIn);
+    }
+  }
+
+  switchAssets() {
+    const assetIn = this.trade.assetOut;
+    const assetOut = this.trade.assetIn;
+
+    this.switchAndReCalculateSell(assetIn, assetOut);
+    this.switchAndReCalculateBuy(assetIn, assetOut);
+  }
+
+  changeAssetIn(changeDetail: any, asset: any) {
+    if (changeDetail.id == 'assetIn') {
+      const assetIn = asset;
+      const assetOut = this.trade.assetOut;
+
+      if (changeDetail.asset == this.trade.inputAsset) {
+        this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
+      } else {
+        this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
+      }
+    }
+  }
+
+  changeAssetOut(changeDetail: any, asset: any) {
+    if (changeDetail.id == 'assetOut') {
+      const assetIn = this.trade.assetIn;
+      const assetOut = asset;
+
+      if (changeDetail.asset == this.trade.inputAsset) {
+        this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
+      } else {
+        this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
+      }
+    }
+  }
+
+  updateAmountIn(updateDetail: any) {
+    if (updateDetail.id == 'assetIn') {
+      this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, updateDetail.value);
+    }
+  }
+
+  updateAmountOut(updateDetail: any) {
     if (updateDetail.id == 'assetOut') {
-      this.calculateBestBuy(updateDetail.value);
+      this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, updateDetail.value);
     }
   }
 
