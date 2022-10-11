@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { debounce } from 'ts-debounce';
 
 import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
@@ -9,6 +10,13 @@ export class AssetInput extends LitElement {
   @property({ type: String }) id = null;
   @property({ type: String }) amount = '0';
   @property({ type: String }) asset = null;
+
+  private _inputHandler = null;
+
+  constructor() {
+    super();
+    this._inputHandler = debounce(this.onInputChanged, 300);
+  }
 
   static styles = [
     baseStyles,
@@ -90,6 +98,9 @@ export class AssetInput extends LitElement {
 
   onInputChange(e: any) {
     this.amount = e.target.value;
+  }
+
+  onInputChanged() {
     const options = {
       bubbles: true,
       composed: true,
@@ -105,7 +116,16 @@ export class AssetInput extends LitElement {
   render() {
     return html`<div class="asset-root" @click=${this.onWrapperClick}>
       <span class="asset-field">
-        <input id="asset" type="number" class="asset-input" .value=${this.amount} @input=${this.onInputChange} />
+        <input
+          id="asset"
+          type="number"
+          class="asset-input"
+          .value=${this.amount}
+          @input=${(e: any) => {
+            this.onInputChange(e);
+            this._inputHandler();
+          }}
+        />
         <span class="asset-unit">${this.asset}</span>
       </span>
       <span class="usd">≈ 1234 USD</span>
