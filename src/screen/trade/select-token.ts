@@ -14,6 +14,7 @@ import { PoolAsset } from '@galacticcouncil/sdk';
 @customElement('app-select-token')
 export class SelectToken extends LitElement {
   @property({ attribute: false }) assets = [];
+  @property({ type: String }) query = '';
 
   static styles = [
     baseStyles,
@@ -51,12 +52,20 @@ export class SelectToken extends LitElement {
     `,
   ];
 
+  updateSearch(searchDetail: any) {
+    this.query = searchDetail.value;
+  }
+
   onBackClick(e: any) {
     const options = {
       bubbles: true,
       composed: true,
     };
     this.dispatchEvent(new CustomEvent('back-clicked', options));
+  }
+
+  filterAssets(query: string) {
+    return this.assets.filter((a) => a.symbol.toLowerCase().includes(query.toLowerCase()));
   }
 
   render() {
@@ -68,9 +77,13 @@ export class SelectToken extends LitElement {
         <span>Select token</span>
         <span></span>
       </div>
-      <ui-search-bar class="search" .placeholder=${'Search by name'}></ui-search-bar>
+      <ui-search-bar
+        class="search"
+        .placeholder=${'Search by name'}
+        @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
+      ></ui-search-bar>
       <ui-asset-list>
-        ${this.assets.map((asset: PoolAsset) => {
+        ${this.filterAssets(this.query).map((asset: PoolAsset) => {
           return html` <ui-asset-list-item .asset=${asset}></ui-asset-list-item> `;
         })}
       </ui-asset-list>

@@ -74,6 +74,11 @@ export class SearchBar extends LitElement {
     `,
   ];
 
+  async firstUpdated() {
+    const input = this.shadowRoot.querySelector('input');
+    input.setAttribute('placeholder', this.placeholder);
+  }
+
   onInputChange(e: any) {
     this.value = e.target.value;
     const options = {
@@ -88,7 +93,7 @@ export class SearchBar extends LitElement {
     return html`
       <div class="search-root">
         <img height="24" width="24" src="assets/img/icon/magnifier.svg" />
-        <input type="text" .value="${this.value}" @input=${this.onInputChange} placeholder=${this.placeholder} />
+        <input type="text" .value="${this.value}" @input=${this.onInputChange} />
       </div>
     `;
   }
