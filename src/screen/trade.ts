@@ -1,14 +1,20 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
+
+import { baseStyles } from '../base.css';
 
 import { DatabaseController } from '../db.ctrl';
 import { apiCursor, Api, readyCursor } from '../db';
 
+import '../component/paper';
+
 import './trade/select-token';
 import './trade/settings';
 import './trade/trade-tokens';
-import { PoolAsset } from '@galacticcouncil/sdk';
+import './trade/trade-tokens';
+
+import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
 enum TradeScreen {
   Settings,
@@ -28,17 +34,45 @@ export class Trade extends LitElement {
   };
 
   @state() trade = {
-    inputAsset: null,
+    type: TradeType.Sell,
     assets: [],
+    active: null,
     assetIn: null,
     amountIn: '0',
+    amountInUsd: '0',
     assetOut: null,
     amountOut: '0',
-    spotPrice: { in: null, out: null, price: '0' },
+    amountOutUsd: '0',
+    spotPrice: '0',
   };
+
+  static styles = [
+    baseStyles,
+    css`
+      :host {
+        display: block;
+        max-width: 595px;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+      }
+
+      ui-paper {
+        height: 650px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+    `,
+  ];
 
   changeScreen(active: TradeScreen, detail: any) {
     this.screen = { active: active, detail: detail };
+  }
+
+  async calculateSpotPrice(assetInId: string, assetOutId: string) {
+    const spotPrice = await this.db.state.router.getBestSpotPrice(assetInId, assetOutId);
+    return spotPrice.amount.shiftedBy(-1 * spotPrice.decimals).toString();
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
@@ -47,16 +81,10 @@ export class Trade extends LitElement {
 
     this.trade = {
       ...this.trade,
-      inputAsset: assetIn.symbol,
+      active: assetIn.symbol,
       assetIn: assetIn,
-      amountIn: amountIn,
       assetOut: assetOut,
-      amountOut: bestSellHuman.amountOut,
-      spotPrice: {
-        in: assetIn.symbol,
-        out: assetOut.symbol,
-        price: bestSellHuman.spotPrice,
-      },
+      ...bestSellHuman,
     };
     console.log(bestSellHuman);
   }
@@ -67,28 +95,22 @@ export class Trade extends LitElement {
 
     this.trade = {
       ...this.trade,
-      inputAsset: assetOut.symbol,
+      active: assetOut.symbol,
       assetIn: assetIn,
-      amountIn: bestBuyHuman.amountIn,
       assetOut: assetOut,
-      amountOut: amountOut,
-      spotPrice: {
-        in: assetOut.symbol,
-        out: assetIn.symbol,
-        price: bestBuyHuman.spotPrice,
-      },
+      ...bestBuyHuman,
     };
     console.log(bestBuyHuman);
   }
 
   switchAndReCalculateSell(assetIn: PoolAsset, assetOut: PoolAsset) {
-    if (assetIn.symbol == this.trade.inputAsset) {
+    if (assetIn.symbol == this.trade.active) {
       this.calculateBestSell(assetIn, assetOut, this.trade.amountOut);
     }
   }
 
   switchAndReCalculateBuy(assetIn: PoolAsset, assetOut: PoolAsset) {
-    if (assetOut.symbol == this.trade.inputAsset) {
+    if (assetOut.symbol == this.trade.active) {
       this.calculateBestBuy(assetIn, assetOut, this.trade.amountIn);
     }
   }
@@ -106,7 +128,7 @@ export class Trade extends LitElement {
       const assetIn = asset;
       const assetOut = this.trade.assetOut;
 
-      if (changeDetail.asset == this.trade.inputAsset) {
+      if (changeDetail.asset == this.trade.active) {
         this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
       } else {
         this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
@@ -119,7 +141,7 @@ export class Trade extends LitElement {
       const assetIn = this.trade.assetIn;
       const assetOut = asset;
 
-      if (changeDetail.asset == this.trade.inputAsset) {
+      if (changeDetail.asset == this.trade.active) {
         this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
       } else {
         this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
@@ -148,15 +170,14 @@ export class Trade extends LitElement {
 
       const assetIn = systemAsset;
       const assetOut = systemAssetPairs[0];
-      const spotPrice = await this.db.state.router.getBestSpotPrice(assetIn.id, assetOut.id);
-      const spotPriceHuman = spotPrice.amount.shiftedBy(-1 * spotPrice.decimals).toString();
+      const spotPrice = await this.calculateSpotPrice(assetIn.id, assetOut.id);
 
       this.trade = {
         ...this.trade,
         assets: assets,
         assetIn: assetIn,
         assetOut: assetOut,
-        spotPrice: { in: assetIn.symbol, out: assetOut.symbol, price: spotPriceHuman },
+        spotPrice: spotPrice,
       };
       readyCursor.reset(true);
     }
@@ -187,6 +208,7 @@ export class Trade extends LitElement {
       .assetOut=${this.trade.assetOut?.symbol}
       .amountOut=${this.trade.amountOut}
       .spotPrice=${this.trade.spotPrice}
+      .tradeType=${this.trade.type}
       @asset-input-changed=${(e: CustomEvent) => {
         this.updateAmountIn(e.detail);
         this.updateAmountOut(e.detail);
@@ -201,14 +223,16 @@ export class Trade extends LitElement {
 
   render() {
     return html`
-      ${choose(
-        this.screen.active,
-        [
-          [TradeScreen.Settings, () => this.settingsTenplate()],
-          [TradeScreen.SelectToken, () => this.selectTokenTenplate(this.screen.detail)],
-        ],
-        () => this.tradeTokensTenplate()
-      )}
+      <ui-paper>
+        ${choose(
+          this.screen.active,
+          [
+            [TradeScreen.Settings, () => this.settingsTenplate()],
+            [TradeScreen.SelectToken, () => this.selectTokenTenplate(this.screen.detail)],
+          ],
+          () => this.tradeTokensTenplate()
+        )}
+      </ui-paper>
     `;
   }
 }

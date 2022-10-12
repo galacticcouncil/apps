@@ -9,6 +9,7 @@ import { baseStyles } from './styles/base.css';
 export class AssetInput extends LitElement {
   @property({ type: String }) id = null;
   @property({ type: String }) amount = '0';
+  @property({ type: String }) amountUsd = '0';
   @property({ type: String }) asset = null;
 
   private _inputHandler = null;
@@ -128,7 +129,7 @@ export class AssetInput extends LitElement {
         />
         <span class="asset-unit">${this.asset}</span>
       </span>
-      <span class="usd">≈ 1234 USD</span>
+      <span class="usd">≈ ${this.amountUsd} USD</span>
     </div> `;
   }
 }

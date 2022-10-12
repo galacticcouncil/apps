@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { choose } from 'lit/directives/choose.js';
 
 import { baseStyles } from '../../base.css';
 
@@ -11,13 +12,16 @@ import '../../component/Paper';
 import '../../component/IconButton';
 import '../../component/Button';
 
+import { TradeType } from '@galacticcouncil/sdk';
+
 @customElement('app-trade-tokens')
 export class TradeTokens extends LitElement {
   @property({ type: String }) assetIn = null;
-  @property({ type: String }) amountIn = 0;
+  @property({ type: String }) amountIn = '0';
   @property({ type: String }) assetOut = null;
-  @property({ type: String }) amountOut = 0;
-  @property({ attribute: false }) spotPrice = null;
+  @property({ type: String }) amountOut = '0';
+  @property({ type: String }) spotPrice = '0';
+  @property({ attribute: false }) tradeType = TradeType.Sell;
 
   static styles = [
     baseStyles,
@@ -25,10 +29,7 @@ export class TradeTokens extends LitElement {
       :host {
         display: flex;
         flex-direction: column;
-        max-width: 595px;
-        margin-left: auto;
-        margin-right: auto;
-        position: relative;
+        height: 100%;
       }
 
       .header {
@@ -126,23 +127,6 @@ export class TradeTokens extends LitElement {
         color: var(--hex-white);
       }
 
-      .info .more {
-        display: flex;
-        align-items: center;
-        text-align: center;
-        justify-content: center;
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 22px;
-        color: var(--hex-primary-300);
-        cursor: pointer;
-        padding: 10px 0;
-      }
-
-      .info .more > img {
-        margin-left: 4px;
-      }
-
       .confirm {
         display: flex;
         padding: 22px 28px;
@@ -161,62 +145,60 @@ export class TradeTokens extends LitElement {
 
   render() {
     return html`
-      <ui-paper>
-        <div class="header">
-          <h1>Trade Tokens</h1>
+      <div class="header">
+        <h1>Trade Tokens</h1>
+        <span class="grow"></span>
+        <ui-icon-button @click=${this.onSettingsClick}>
+          <img src="assets/img/icon/settings.svg" alt="settings" />
+        </ui-icon-button>
+      </div>
+      <div class="transfer">
+        <ui-asset-transfer
+          id="assetIn"
+          title="Pay with"
+          .asset=${this.assetIn}
+          .amount=${this.amountIn}
+        ></ui-asset-transfer>
+        <div class="switch">
+          <div class="divider"></div>
+          <ui-asset-switch class="switch-button"> </ui-asset-switch>
+          <ui-asset-price
+            .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
+            .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
+            .outputBalance=${this.spotPrice}
+            class="switch-price"
+          >
+          </ui-asset-price>
+        </div>
+        <ui-asset-transfer
+          id="assetOut"
+          title="You get"
+          .asset=${this.assetOut}
+          .amount=${this.amountOut}
+        ></ui-asset-transfer>
+      </div>
+      <div class="info">
+        <div class="row">
+          ${choose(this.tradeType, [
+            [TradeType.Sell, () => html` <span class="label">Minimum received after slippage:</span>`],
+            [TradeType.Buy, () => html` <span class="label">Maximum sent after slippage:</span>`],
+          ])}
           <span class="grow"></span>
-          <ui-icon-button @click=${this.onSettingsClick}>
-            <img src="assets/img/icon/settings.svg" alt="settings" />
-          </ui-icon-button>
+          <span class="value">124343 ${this.assetOut} </span>
         </div>
-        <div class="transfer">
-          <ui-asset-transfer
-            id="assetIn"
-            title="Pay with"
-            .asset=${this.assetIn}
-            .amount=${this.amountIn}
-          ></ui-asset-transfer>
-          <div class="switch">
-            <div class="divider"></div>
-            <ui-asset-switch class="switch-button"> </ui-asset-switch>
-            <ui-asset-price
-              .inputAsset=${this.spotPrice?.in}
-              .outputAsset=${this.spotPrice?.out}
-              .outputBalance=${this.spotPrice?.price}
-              class="switch-price"
-            >
-            </ui-asset-price>
-          </div>
-          <ui-asset-transfer
-            id="assetOut"
-            title="You get"
-            .asset=${this.assetOut}
-            .amount=${this.amountOut}
-          ></ui-asset-transfer>
+        <div class="row">
+          <span class="label">Trade Fee:</span>
+          <span class="grow"></span>
+          <span class="value">124343 ${this.assetOut}</span>
         </div>
-        <div class="info">
-          <div class="row">
-            <span class="label">Minimal amount after slippage:</span>
-            <span class="grow"></span>
-            <span class="value">124343 ${this.assetOut} </span>
-          </div>
-          <div class="row">
-            <span class="label">Total fees:</span>
-            <span class="grow"></span>
-            <span class="value">124343 ${this.assetOut}</span>
-          </div>
-          <div class="row">
-            <span class="label">Trade fees:</span>
-            <span class="grow"></span>
-            <span class="value">124343 ${this.assetOut}</span>
-          </div>
-          <span class="more">
-            <span>More Details</span>
-            <img src="assets/img/icon/dropdown.svg" alt="more" />
-          </span>
+        <div class="row">
+          <span class="label">Transaction Fee:</span>
+          <span class="grow"></span>
+          <span class="value">124343 ${this.assetOut}</span>
         </div>
-        <ui-button class="confirm" variant="primary" fullWidth>Confirm Swap</ui-button>
-      </ui-paper>
+      </div>
+      <div class="grow"></div>
+      <ui-button class="confirm" variant="primary" size="small" fullWidth>Confirm Swap</ui-button>
     `;
   }
 }
