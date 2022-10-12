@@ -10,10 +10,20 @@ import '../../component/Switch';
 import '../../component/ToggleButton';
 import '../../component/ToggleButtonGroup';
 
+const DEFAULT_SLIPPAGE = '0.5';
+const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
+
 @customElement('app-settings')
 export class Settings extends LitElement {
-  @property({ type: Number }) slippage = '0.5';
-  @state() inputSlippage = null;
+  private readonly predefinedSlippage: Set<string>;
+
+  @property({ type: Number }) slippage = DEFAULT_SLIPPAGE;
+  @state() customSlippage = null;
+
+  constructor() {
+    super();
+    this.predefinedSlippage = new Set(SLIPPAGE_OPTS);
+  }
 
   static styles = [
     baseStyles,
@@ -102,9 +112,28 @@ export class Settings extends LitElement {
     `,
   ];
 
-  changeSlippage(slippage: string, input: string) {
-    this.slippage = slippage;
-    this.inputSlippage = input;
+  async firstUpdated() {
+    const slippage = window.localStorage.getItem('trade.settings.slippage');
+    if (slippage) {
+      this.slippage = slippage;
+      if (!this.predefinedSlippage.has(slippage)) {
+        this.customSlippage = slippage;
+      }
+    }
+  }
+
+  changeSlippage(changeDetails: any) {
+    this.slippage = changeDetails.value;
+    this.customSlippage = null;
+    window.localStorage.setItem('trade.settings.slippage', changeDetails.value);
+  }
+
+  changeSlippageCustom(changeDetails: any) {
+    if (changeDetails.valid) {
+      this.slippage = changeDetails.value;
+      this.customSlippage = changeDetails.value;
+      window.localStorage.setItem('trade.settings.slippage', changeDetails.value);
+    }
   }
 
   onBackClick(e: any) {
@@ -132,33 +161,30 @@ export class Settings extends LitElement {
         </div>
         <ui-toggle-button-group
           selected=${this.slippage}
-          @toggle-button-clicked=${(e: CustomEvent) => this.changeSlippage(e.detail.value, null)}
-          @input-changed=${(e: CustomEvent) => this.changeSlippage(e.detail.value, e.detail.value)}
+          @toggle-button-clicked=${(e: CustomEvent) => this.changeSlippage(e.detail)}
+          @input-changed=${(e: CustomEvent) => this.changeSlippageCustom(e.detail)}
         >
-          <ui-toggle-button value="0.1">0.1%</ui-toggle-button>
-          <ui-toggle-button value="0.5">0.5%</ui-toggle-button>
-          <ui-toggle-button value="1">1%</ui-toggle-button>
-          <ui-toggle-button value="3">3%</ui-toggle-button>
+          ${SLIPPAGE_OPTS.map((s: string) => html` <ui-toggle-button value=${s}>${s}%</ui-toggle-button> `)}
+
           <ui-input
             class="slippage-input"
             .type=${'number'}
-            .value=${this.inputSlippage}
+            .value=${this.customSlippage}
             .min=${0}
             .max=${100}
             .placeholder=${'Custom'}
           ></ui-input>
         </ui-toggle-button-group>
         <div class="desc">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vel augue tincidunt, tincidunt dolor aliquam,
-          viverra justo. Morbi fringilla enim mauris, a posuere velit efficitur nec. Maecenas dignissim neque vitae ex
-          vestibulum finibus.
+          The deviation of the final acceptable price from the spot price caused by protocol fee, price impact (depends
+          on trade & pool size) and change in price between announcing the transaction and processing it.
         </div>
       </div>
       <div class="grow"></div>
-      <div class="actions">
+      <!-- <div class="actions">
         <ui-button variant="secondary">Back</ui-button>
         <ui-button variant="primary">Save & Close</ui-button>
-      </div>
+      </div> -->
     `;
   }
 }
