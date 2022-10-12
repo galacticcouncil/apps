@@ -1,14 +1,15 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { PoolAsset } from '@galacticcouncil/sdk';
-
 import { baseStyles } from '../../base.css';
 
 import '../../component/AssetList';
 import '../../component/AssetListItem';
 import '../../component/IconButton';
 import '../../component/Paper';
+import '../../component/SearchBar';
+
+import { PoolAsset } from '@galacticcouncil/sdk';
 
 @customElement('app-select-token')
 export class SelectToken extends LitElement {
@@ -20,10 +21,7 @@ export class SelectToken extends LitElement {
       :host {
         display: flex;
         flex-direction: column;
-        max-width: 595px;
-        margin-left: auto;
-        margin-right: auto;
-        position: relative;
+        height: 100%;
       }
 
       .header {
@@ -45,6 +43,11 @@ export class SelectToken extends LitElement {
         position: absolute;
         left: 20px;
       }
+
+      .search {
+        padding: 0 28px;
+        box-sizing: border-box;
+      }
     `,
   ];
 
@@ -58,20 +61,19 @@ export class SelectToken extends LitElement {
 
   render() {
     return html`
-      <ui-paper>
-        <div class="header">
-          <ui-icon-button class="back" @click=${this.onBackClick}>
-            <img src="assets/img/icon/back.svg" alt="settings" />
-          </ui-icon-button>
-          <span>Select token</span>
-          <span></span>
-        </div>
-        <ui-asset-list>
-          ${this.assets.map((asset: PoolAsset) => {
-            return html` <ui-asset-list-item .asset=${asset}></ui-asset-list-item> `;
-          })}
-        </ui-asset-list>
-      </ui-paper>
+      <div class="header">
+        <ui-icon-button class="back" @click=${this.onBackClick}>
+          <img src="assets/img/icon/back.svg" alt="settings" />
+        </ui-icon-button>
+        <span>Select token</span>
+        <span></span>
+      </div>
+      <ui-search-bar class="search" .placeholder=${'Search by name'}></ui-search-bar>
+      <ui-asset-list>
+        ${this.assets.map((asset: PoolAsset) => {
+          return html` <ui-asset-list-item .asset=${asset}></ui-asset-list-item> `;
+        })}
+      </ui-asset-list>
     `;
   }
 }
