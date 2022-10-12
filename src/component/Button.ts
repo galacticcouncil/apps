@@ -46,6 +46,26 @@ export class Button extends LitElement {
         transition: 0.2s ease-in-out;
       }
 
+      :host([variant='secondary']) .button-root {
+        background: rgba(var(--rgb-primary-450), 0.12);
+        color: var(--hex-primary-400);
+      }
+
+      :host([variant='secondary']) .button-root:hover {
+        background: var(--hex-primary-300);
+        background: rgba(var(--rgb-primary-450), 0.3);
+      }
+
+      :host([variant='transparent']) .button-root {
+        color: var(--hex-white);
+        background: transparent;
+      }
+
+      :host([variant='transparent']) .button-root:hover {
+        background: var(--hex-background-gray-700);
+        transition: 0.2s ease-in-out;
+      }
+
       :host([variant='max']) .button-root {
         color: #fff;
         background: rgba(var(--rgb-white), 0.06);
