@@ -198,7 +198,7 @@ export class TradeTokens extends LitElement {
         </div>
       </div>
       <div class="grow"></div>
-      <ui-button class="confirm" variant="primary" size="small" fullWidth>Confirm Swap</ui-button>
+      <ui-button class="confirm" variant="primary" fullWidth>Confirm Swap</ui-button>
     `;
   }
 }
