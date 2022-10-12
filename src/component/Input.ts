@@ -96,6 +96,14 @@ export class Input extends LitElement {
         border: 1px solid var(--hex-primary-300);
       }
 
+      .input-root[error] {
+        border: 1px solid var(--hex-red-300);
+      }
+
+      .input-root[error]:focus-within {
+        border: 1px solid var(--hex-red-300);
+      }
+
       .input-root:hover {
         background: rgba(var(--rgb-white), 0.12);
       }
@@ -105,28 +113,37 @@ export class Input extends LitElement {
   async firstUpdated() {
     const input = this.shadowRoot.querySelector('input');
     input.setAttribute('type', this.type);
+    input.setAttribute('placeholder', this.placeholder);
+    input.setAttribute('min', this.min);
+    input.setAttribute('max', this.max);
+  }
+
+  async updated() {
+    const inputRoot = this.shadowRoot.querySelector('.input-root');
+    const input = this.shadowRoot.querySelector('input');
+    if (input.reportValidity()) {
+      inputRoot.removeAttribute('error');
+    } else {
+      inputRoot.setAttribute('error', '');
+    }
   }
 
   onInputChange(e: any) {
+    const input = this.shadowRoot.querySelector('input');
     this.value = e.target.value;
     const options = {
       bubbles: true,
       composed: true,
-      detail: { value: this.value },
+      detail: { value: this.value, valid: input.reportValidity() },
     };
     this.dispatchEvent(new CustomEvent('input-changed', options));
   }
 
   render() {
+    console.log('upda');
     return html`
       <div class="input-root">
-        <input
-          placeholder=${this.placeholder}
-          .value=${this.value}
-          @input=${(e: any) => {
-            this.onInputChange(e);
-          }}
-        />
+        <input .value=${this.value} @input=${(e: any) => this.onInputChange(e)} />
       </div>
     `;
   }

@@ -23,7 +23,7 @@ export class AssetListItem extends LitElement {
         gap: 6px;
         background-color: transparent;
         width: 100%;
-        height: 70px;
+        height: 56px;
         cursor: pointer;
       }
 
