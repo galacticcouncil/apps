@@ -74,7 +74,7 @@ export class AssetInput extends LitElement {
         background: none;
         border: none;
         color: var(--hex-white);
-        font-size: 18px;
+        font-size: 16px;
         line-height: 24px;
         text-align: right;
         font-weight: 700;
@@ -84,7 +84,7 @@ export class AssetInput extends LitElement {
       .asset-unit {
         color: var(--hex-white);
         font-weight: 700;
-        font-size: 18px;
+        font-size: 16px;
         line-height: 24px;
       }
 
