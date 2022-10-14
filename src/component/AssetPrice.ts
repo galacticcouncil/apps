@@ -1,14 +1,18 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 
 import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
+
+import './CircularProgress';
 
 @customElement('ui-asset-price')
 export class AssetPrice extends LitElement {
   @property({ type: String }) inputAsset = null;
   @property({ type: String }) outputAsset = null;
   @property({ type: String }) outputBalance = null;
+  @property({ type: Boolean }) loading = false;
 
   static styles = [
     baseStyles,
@@ -39,18 +43,34 @@ export class AssetPrice extends LitElement {
       .entry {
         color: var(--hex-primary-300);
       }
+
+      .progress {
+        position: relative;
+        margin-left: 8px;
+      }
+
+      .progress-text {
+        margin-left: 6px;
+      }
     `,
   ];
 
   render() {
     return html`
-      <div class="chip-root">
-        <span>Price:</span>
-        <span class="entry">1 ${this.inputAsset}</span>
-        <span>=</span>
-        <span>${this.outputBalance} </span>
-        <span>${this.outputAsset}</span>
-      </div>
+      ${when(
+        this.loading,
+        () => html`<div class="chip-root">
+          <span class="progress"> <ui-circular-progress size="small" progress="true"></ui-circular-progress> </span>
+          <span class="progress-text">Fetching the best price...</span>
+        </div>`,
+        () => html` <div class="chip-root">
+          <span>Price:</span>
+          <span class="entry">1 ${this.inputAsset}</span>
+          <span>=</span>
+          <span>${this.outputBalance} </span>
+          <span>${this.outputAsset}</span>
+        </div>`
+      )}
     `;
   }
 }
