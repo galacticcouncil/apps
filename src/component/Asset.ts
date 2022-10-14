@@ -10,6 +10,7 @@ const KNOWN_ASSETS = new Map(
     BSX: 'Basilisk',
     KSM: 'Kusama',
     PHA: 'Phala',
+    TNKR: 'Tinkernet',
   })
 );
 
