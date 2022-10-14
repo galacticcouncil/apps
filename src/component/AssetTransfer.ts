@@ -63,7 +63,7 @@ export class AssetTransfer extends LitElement {
       }
 
       .asset > *:last-child {
-        margin-left: 33px;
+        margin-left: 23px;
       }
     `,
   ];
