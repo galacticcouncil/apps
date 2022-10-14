@@ -140,7 +140,6 @@ export class Input extends LitElement {
   }
 
   render() {
-    console.log('upda');
     return html`
       <div class="input-root">
         <input .value=${this.value} @input=${(e: any) => this.onInputChange(e)} />

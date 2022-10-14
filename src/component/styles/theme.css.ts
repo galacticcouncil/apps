@@ -75,6 +75,7 @@ export const themeStyles = css`
     --hex-poison-green: #192022;
     --hex-dark-green: #1d2d26;
     --hex-dark-gray: #1a171b;
+    --hex-primary-success: #4fffb0;
     --hex-graph-gradient-0: #4fffb0;
     --hex-graph-gradient-50: #b3ff8f;
     --hex-graph-gradient-100: #ff984e;

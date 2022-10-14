@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
+import { when } from 'lit/directives/when.js';
 
 import { baseStyles } from '../../base.css';
 
@@ -11,17 +12,25 @@ import '../../component/Divider';
 import '../../component/Paper';
 import '../../component/IconButton';
 import '../../component/Button';
+import '../../component/Skeleton';
 
 import { TradeType } from '@galacticcouncil/sdk';
 
 @customElement('app-trade-tokens')
 export class TradeTokens extends LitElement {
+  @property({ attribute: false }) assets = new Map([]);
+  @property({ attribute: false }) tradeType = TradeType.Sell;
+  @property({ type: Boolean }) calculating = false;
   @property({ type: String }) assetIn = null;
   @property({ type: String }) amountIn = '0';
   @property({ type: String }) assetOut = null;
   @property({ type: String }) amountOut = '0';
   @property({ type: String }) spotPrice = '0';
-  @property({ attribute: false }) tradeType = TradeType.Sell;
+  @property({ type: String }) afterSlippage = '0';
+  @property({ type: String }) tradeFee = '0';
+  @property({ type: String }) tradeFeePct = '0';
+  @property({ type: String }) transactionFee = '-';
+  @property({ attribute: false }) swaps = [];
 
   static styles = [
     baseStyles,
@@ -100,6 +109,7 @@ export class TradeTokens extends LitElement {
         align-items: center;
         height: 30px;
         position: relative;
+        gap: 5px;
       }
 
       .info .row:not(:last-child):after {
@@ -119,12 +129,31 @@ export class TradeTokens extends LitElement {
         color: var(--hex-neutral-gray-300);
       }
 
+      .info .route-label {
+        background: var(--gradient-label);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 22px;
+        text-align: center;
+      }
+
+      .info .route-icon {
+        margin-left: 12px;
+      }
+
       .info .value {
         font-weight: 500;
         font-size: 14px;
         line-height: 22px;
         text-align: center;
         color: var(--hex-white);
+      }
+
+      .info .value + .highlight {
+        color: var(--hex-primary-success);
       }
 
       .confirm {
@@ -143,7 +172,66 @@ export class TradeTokens extends LitElement {
     this.dispatchEvent(new CustomEvent('settings-clicked', options));
   }
 
+  infoSlippageTemplate(assetSymbol: string) {
+    return html` ${choose(this.tradeType, [
+        [TradeType.Sell, () => html` <span class="label">Minimum received after slippage:</span>`],
+        [TradeType.Buy, () => html` <span class="label">Maximum sent after slippage:</span>`],
+      ])}
+      <span class="grow"></span>
+      ${when(
+        this.calculating,
+        () => html`<ui-skeleton progress .width=${'150px'} .height=${'14px'}></ui-skeleton>`,
+        () => html`<span class="value">${this.afterSlippage} ${assetSymbol} </span>`
+      )}`;
+  }
+
+  infoTradeFeeTemplate(assetSymbol: string) {
+    return html` <span class="label">Trade Fee:</span>
+      <span class="grow"></span>
+      ${when(
+        this.calculating,
+        () => html`<ui-skeleton progress .width=${'80px'} .height=${'14px'}></ui-skeleton>`,
+        () => html`<span class="value">${this.tradeFee} ${assetSymbol}</span>
+          <span class="value highlight">(${this.tradeFeePct}%)</span>`
+      )}`;
+  }
+
+  infoTransactionFeeTemplate() {
+    return html` <span class="label">Transaction Fee:</span>
+      <span class="grow"></span>
+      ${when(
+        this.calculating,
+        () => html`<ui-skeleton progress .width=${'80px'} .height=${'14px'}></ui-skeleton>`,
+        () => html`<span class="value">${this.transactionFee}</span>`
+      )}`;
+  }
+
+  bestRouteTemplate() {
+    return html` <span class="value">${this.assetIn}</span>
+      ${this.swaps.map(
+        (swap: any) =>
+          html`
+            <img src="assets/img/icon/arrow-right.svg" alt="next" />
+            <span class="value">${this.assets.get(swap.assetOut)}</span>
+          `
+      )}
+      <img class="route-icon" src="assets/img/icon/route.svg" alt="route" />`;
+  }
+
+  infoBestRouteTemplate() {
+    return html`
+      <span class="route-label">Best Route</span>
+      <span class="grow"></span>
+      ${when(
+        this.calculating,
+        () => html`<ui-skeleton progress .width=${'130px'} .height=${'14px'}></ui-skeleton>`,
+        () => this.bestRouteTemplate()
+      )}
+    `;
+  }
+
   render() {
+    const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn;
     return html`
       <div class="header">
         <h1>Trade Tokens</h1>
@@ -166,6 +254,7 @@ export class TradeTokens extends LitElement {
             .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
             .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
             .outputBalance=${this.spotPrice}
+            .loading=${this.calculating}
             class="switch-price"
           >
           </ui-asset-price>
@@ -177,26 +266,17 @@ export class TradeTokens extends LitElement {
           .amount=${this.amountOut}
         ></ui-asset-transfer>
       </div>
-      <div class="info">
-        <div class="row">
-          ${choose(this.tradeType, [
-            [TradeType.Sell, () => html` <span class="label">Minimum received after slippage:</span>`],
-            [TradeType.Buy, () => html` <span class="label">Maximum sent after slippage:</span>`],
-          ])}
-          <span class="grow"></span>
-          <span class="value">124343 ${this.assetOut} </span>
-        </div>
-        <div class="row">
-          <span class="label">Trade Fee:</span>
-          <span class="grow"></span>
-          <span class="value">124343 ${this.assetOut}</span>
-        </div>
-        <div class="row">
-          <span class="label">Transaction Fee:</span>
-          <span class="grow"></span>
-          <span class="value">124343 ${this.assetOut}</span>
-        </div>
-      </div>
+      ${when(
+        this.swaps.length > 0,
+        () => html`
+          <div class="info">
+            <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
+            <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
+            <div class="row">${this.infoTransactionFeeTemplate()}</div>
+            <div class="row">${this.infoBestRouteTemplate()}</div>
+          </div>
+        `
+      )}
       <div class="grow"></div>
       <ui-button class="confirm" variant="primary" fullWidth>Confirm Swap</ui-button>
     `;

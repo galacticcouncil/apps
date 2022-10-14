@@ -31,7 +31,7 @@ async function loadOnReady(api: ApiPromise): Promise<TradeRouter> {
 
   console.log(`Chain: ${systemChain} (${systemChainType.toString()})`);
   const poolService = new PolkadotApiPoolService(api);
-  return new TradeRouter(poolService, { includeOnly: [PoolType.XYK] });
+  return new TradeRouter(poolService, { includeOnly: [] });
 }
 
 export async function createApi(apiUrl: string, onError: (error: unknown) => void) {
