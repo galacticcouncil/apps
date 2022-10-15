@@ -47,10 +47,10 @@ export class Trade extends LitElement {
     afterSlippage: '0',
     transactionFee: '-',
     assetIn: null,
-    amountIn: '0',
+    amountIn: null,
     amountInUsd: '0',
     assetOut: null,
-    amountOut: '0',
+    amountOut: null,
     amountOutUsd: '0',
     spotPrice: '0',
     swaps: [],
@@ -126,7 +126,6 @@ export class Trade extends LitElement {
   }
 
   async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
-    this.setProgress();
     const bestBuy = await this.db.state.router.getBestBuy(assetIn.id, assetOut.id, amountOut);
     const bestBuyHuman = bestBuy.toHuman();
     const assetInDecimals = bestBuy.swaps[0].assetInDecimals;
@@ -153,24 +152,36 @@ export class Trade extends LitElement {
     console.log(bestBuyHuman);
   }
 
-  switchAndReCalculateSell(assetIn: PoolAsset, assetOut: PoolAsset) {
-    if (assetIn.symbol == this.assets.active) {
-      this.calculateBestSell(assetIn, assetOut, this.trade.amountOut);
-    }
+  switchAndReCalculateSell() {
+    this.trade = {
+      ...this.trade,
+      calculating: true,
+      assetIn: this.trade.assetOut,
+      assetOut: this.trade.assetIn,
+      amountIn: this.trade.amountOut,
+      amountOut: null,
+    };
+    this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, this.trade.amountIn);
   }
 
-  switchAndReCalculateBuy(assetIn: PoolAsset, assetOut: PoolAsset) {
-    if (assetOut.symbol == this.assets.active) {
-      this.calculateBestBuy(assetIn, assetOut, this.trade.amountIn);
-    }
+  switchAndReCalculateBuy() {
+    this.trade = {
+      ...this.trade,
+      calculating: true,
+      assetIn: this.trade.assetOut,
+      assetOut: this.trade.assetIn,
+      amountIn: null,
+      amountOut: this.trade.amountIn,
+    };
+    this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, this.trade.amountOut);
   }
 
   switchAssets() {
-    const assetIn = this.trade.assetOut;
-    const assetOut = this.trade.assetIn;
-
-    this.switchAndReCalculateSell(assetIn, assetOut);
-    this.switchAndReCalculateBuy(assetIn, assetOut);
+    if (this.trade.assetOut.symbol == this.assets.active) {
+      this.switchAndReCalculateSell();
+    } else if (this.trade.assetIn.symbol == this.assets.active) {
+      this.switchAndReCalculateBuy();
+    }
   }
 
   changeAssetIn(changeDetail: any, asset: any) {
@@ -179,8 +190,20 @@ export class Trade extends LitElement {
       const assetOut = this.trade.assetOut;
 
       if (changeDetail.asset == this.assets.active) {
+        this.trade = {
+          ...this.trade,
+          calculating: true,
+          assetIn: asset,
+          amountOut: null,
+        };
         this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
       } else {
+        this.trade = {
+          ...this.trade,
+          calculating: true,
+          assetIn: asset,
+          amountIn: null,
+        };
         this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
       }
     }
@@ -192,8 +215,20 @@ export class Trade extends LitElement {
       const assetOut = asset;
 
       if (changeDetail.asset == this.assets.active) {
+        this.trade = {
+          ...this.trade,
+          calculating: true,
+          assetOut: asset,
+          amountIn: null,
+        };
         this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
       } else {
+        this.trade = {
+          ...this.trade,
+          calculating: true,
+          assetOut: asset,
+          amountOut: null,
+        };
         this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
       }
     }
@@ -201,12 +236,22 @@ export class Trade extends LitElement {
 
   updateAmountIn(updateDetail: any) {
     if (updateDetail.id == 'assetIn') {
+      this.trade = {
+        ...this.trade,
+        calculating: true,
+        amountOut: null,
+      };
       this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, updateDetail.value);
     }
   }
 
   updateAmountOut(updateDetail: any) {
     if (updateDetail.id == 'assetOut') {
+      this.trade = {
+        ...this.trade,
+        calculating: true,
+        amountIn: null,
+      };
       this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, updateDetail.value);
     }
   }
