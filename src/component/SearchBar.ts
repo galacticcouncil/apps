@@ -6,8 +6,8 @@ import { baseStyles } from './styles/base.css';
 
 @customElement('ui-search-bar')
 export class SearchBar extends LitElement {
-  @property({ attribute: false }) value = null;
-  @property({ attribute: false }) placeholder = null;
+  @property({ type: String }) value = null;
+  @property({ type: String }) placeholder = null;
 
   static styles = [
     baseStyles,

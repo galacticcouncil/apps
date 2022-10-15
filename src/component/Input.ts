@@ -4,29 +4,13 @@ import { customElement, property } from 'lit/decorators.js';
 import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
 
-const InputType = {
-  /**
-   * Defines a one-line text input field:
-   * @public
-   * @type {Text}
-   */
-  Text: 'text',
-
-  /**
-   * Defines a numeric input field.
-   * @public
-   * @type {Number}
-   */
-  Number: 'number',
-};
-
 @customElement('ui-input')
 export class Input extends LitElement {
-  @property({ attribute: false }) type = InputType.Text;
-  @property({ attribute: false }) value = null;
-  @property({ attribute: false }) placeholder = null;
-  @property({ attribute: false }) min = null;
-  @property({ attribute: false }) max = null;
+  @property({ type: String }) type = 'text';
+  @property({ type: String }) value = null;
+  @property({ type: String }) placeholder = null;
+  @property({ type: String }) min = null;
+  @property({ type: String }) max = null;
 
   static styles = [
     baseStyles,

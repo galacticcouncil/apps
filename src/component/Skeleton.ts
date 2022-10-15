@@ -6,8 +6,8 @@ import { baseStyles } from './styles/base.css';
 
 @customElement('ui-skeleton')
 export class Skeleton extends LitElement {
-  @property({ attribute: false }) width = null;
-  @property({ attribute: false }) height = null;
+  @property({ type: String }) width = null;
+  @property({ type: String }) height = null;
 
   static styles = [
     baseStyles,

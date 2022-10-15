@@ -79,7 +79,7 @@ export class SelectToken extends LitElement {
       </div>
       <ui-search-bar
         class="search"
-        .placeholder=${'Search by name'}
+        placeholder="Search by name"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></ui-search-bar>
       <ui-asset-list>

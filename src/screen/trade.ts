@@ -98,7 +98,6 @@ export class Trade extends LitElement {
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
-    this.setProgress();
     const bestSell = await this.db.state.router.getBestSell(assetIn.id, assetOut.id, amountIn);
     const bestSellHuman = bestSell.toHuman();
     const assetOutDecimals = bestSell.swaps[bestSell.swaps.length - 1].assetOutDecimals;

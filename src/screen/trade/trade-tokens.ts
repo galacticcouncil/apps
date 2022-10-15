@@ -19,7 +19,7 @@ import { TradeType } from '@galacticcouncil/sdk';
 @customElement('app-trade-tokens')
 export class TradeTokens extends LitElement {
   @property({ attribute: false }) assets = new Map([]);
-  @property({ attribute: false }) tradeType = TradeType.Sell;
+  @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) calculating = false;
   @property({ type: String }) assetIn = null;
   @property({ type: String }) amountIn = '0';
@@ -180,7 +180,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.calculating,
-        () => html`<ui-skeleton progress .width=${'150px'} .height=${'14px'}></ui-skeleton>`,
+        () => html`<ui-skeleton progress width="150px" height="14px"></ui-skeleton>`,
         () => html`<span class="value">${this.afterSlippage} ${assetSymbol} </span>`
       )}`;
   }
@@ -190,7 +190,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.calculating,
-        () => html`<ui-skeleton progress .width=${'80px'} .height=${'14px'}></ui-skeleton>`,
+        () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
         () => html`<span class="value">${this.tradeFee} ${assetSymbol}</span>
           <span class="value highlight">(${this.tradeFeePct}%)</span>`
       )}`;
@@ -201,7 +201,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.calculating,
-        () => html`<ui-skeleton progress .width=${'80px'} .height=${'14px'}></ui-skeleton>`,
+        () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
         () => html`<span class="value">${this.transactionFee}</span>`
       )}`;
   }
@@ -224,7 +224,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.calculating,
-        () => html`<ui-skeleton progress .width=${'130px'} .height=${'14px'}></ui-skeleton>`,
+        () => html`<ui-skeleton progress width="130px" height="14px"></ui-skeleton>`,
         () => this.bestRouteTemplate()
       )}
     `;

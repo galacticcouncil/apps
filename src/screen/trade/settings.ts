@@ -168,11 +168,11 @@ export class Settings extends LitElement {
 
           <ui-input
             class="slippage-input"
-            .type=${'number'}
-            .value=${this.customSlippage}
-            .min=${0}
-            .max=${100}
-            .placeholder=${'Custom'}
+            type="number"
+            value=${this.customSlippage}
+            min="0"
+            max="100"
+            placeholder="Custom"
           ></ui-input>
         </ui-toggle-button-group>
         <div class="desc">
