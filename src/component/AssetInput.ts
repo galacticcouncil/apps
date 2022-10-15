@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { debounce } from 'ts-debounce';
 
 import { themeStyles } from './styles/theme.css';
@@ -8,7 +9,7 @@ import { baseStyles } from './styles/base.css';
 @customElement('ui-asset-input')
 export class AssetInput extends LitElement {
   @property({ type: String }) id = null;
-  @property({ type: String }) amount = '0';
+  @property({ type: String }) amount = null;
   @property({ type: String }) amountUsd = '0';
   @property({ type: String }) asset = null;
 
@@ -37,6 +38,27 @@ export class AssetInput extends LitElement {
       /* Remove arrows - Firefox */
       input[type='number'] {
         -moz-appearance: textfield;
+      }
+
+      input:placeholder-shown + .asset-unit {
+        color: #c7c7cd;
+      }
+
+      /* Placeholder color */
+      ::-webkit-input-placeholder {
+        color: #c7c7cd;
+      }
+
+      ::-moz-placeholder {
+        color: #c7c7cd;
+      }
+
+      ::-ms-placeholder {
+        color: #c7c7cd;
+      }
+
+      ::placeholder {
+        color: #c7c7cd;
       }
 
       .asset-root {
@@ -121,6 +143,7 @@ export class AssetInput extends LitElement {
           id="asset"
           type="number"
           class="asset-input"
+          placeholder="0"
           .value=${this.amount}
           @input=${(e: any) => {
             this.onInputChange(e);
