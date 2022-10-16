@@ -12,10 +12,17 @@
     <style>
       :root {
         --toolbar-height: 64px;
-        --color-main: #3b3b3b;
-        --color-secondary: #7ac0af;
-        --color-alternative: #efefef;
-        --color-action__hover: #f1f8f7;
+        --gradient-background: radial-gradient(
+            89.2% 89.2% at 50.07% 87.94%,
+            rgb(0, 138, 105) 0%,
+            rgb(38, 47, 49) 88.52%
+          ),
+          rgb(44, 51, 53);
+      }
+
+      html,
+      body {
+        height: 100%;
       }
 
       body {
@@ -24,22 +31,16 @@
         font-style: normal;
         font-weight: 400;
         margin: 0;
-        color: var(--color-main);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         background-attachment: fixed;
-        font-family: "SatoshiVariable", sans-serif;
-        background: radial-gradient(
-            89.2% 89.2% at 50.07% 87.94%,
-            rgb(0, 138, 105) 0%,
-            rgb(38, 47, 49) 88.52%
-          ),
-          rgb(44, 51, 53);
+        font-family: 'SatoshiVariable', sans-serif;
+        background: var(--gradient-background);
       }
 
       @font-face {
-        font-family: "SatoshiVariable";
-        src: url("assets/font/Satoshi-Variable.ttf") format("truetype");
+        font-family: 'SatoshiVariable';
+        src: url('assets/font/Satoshi-Variable.ttf') format('truetype');
         font-display: auto;
         font-weight: 100 900;
       } ;
