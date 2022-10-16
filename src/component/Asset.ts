@@ -29,7 +29,7 @@ export class Asset extends LitElement {
         padding: 0 6px;
         gap: 6px;
         background-color: transparent;
-        min-width: 130px;
+        min-width: 120px;
         height: 52px;
         border-radius: 8px;
         cursor: pointer;

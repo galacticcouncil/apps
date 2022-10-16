@@ -140,6 +140,7 @@ export class AssetInput extends LitElement {
     return html`<div class="asset-root" @click=${this.onWrapperClick}>
       <span class="asset-field">
         <input
+          ?disabled=${!this.asset}
           id="asset"
           type="number"
           class="asset-input"
