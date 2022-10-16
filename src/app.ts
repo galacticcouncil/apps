@@ -18,8 +18,11 @@ export class App extends LitElement {
 
     main {
       width: 100%;
-      height: calc(100vh - var(--toolbar-height));
-      background: var(--gradient-background);
+    }
+
+    footer {
+      padding: 64px 32px;
+      text-align: center;
     }
 
     .loading {
@@ -40,7 +43,7 @@ export class App extends LitElement {
           <main>
             <slot></slot>
           </main>
-          <footer></footer>
+          <footer>Latest block:</footer>
         `,
         () => html`
           <div class="loading">

@@ -25,7 +25,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) amountIn = '0';
   @property({ type: String }) assetOut = null;
   @property({ type: String }) amountOut = '0';
-  @property({ type: String }) spotPrice = '0';
+  @property({ type: String }) spotPrice = null;
   @property({ type: String }) afterSlippage = '0';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
@@ -250,14 +250,19 @@ export class TradeTokens extends LitElement {
         <div class="switch">
           <div class="divider"></div>
           <ui-asset-switch class="switch-button"> </ui-asset-switch>
-          <ui-asset-price
-            .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
-            .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
-            .outputBalance=${this.spotPrice}
-            .loading=${this.calculating}
-            class="switch-price"
-          >
-          </ui-asset-price>
+          ${when(
+            this.spotPrice || this.calculating,
+            () => html`
+              <ui-asset-price
+                .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
+                .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
+                .outputBalance=${this.spotPrice}
+                .loading=${this.calculating}
+                class="switch-price"
+              >
+              </ui-asset-price>
+            `
+          )}
         </div>
         <ui-asset-transfer
           id="assetOut"

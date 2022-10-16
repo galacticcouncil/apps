@@ -6,11 +6,11 @@ import './AssetSelector';
 
 @customElement('ui-asset-transfer')
 export class AssetTransfer extends LitElement {
-  @property({ type: String }) id = '';
-  @property({ type: String }) title = '';
+  @property({ type: String }) id = null;
+  @property({ type: String }) title = null;
   @property({ type: String }) balance = 0;
   @property({ type: String }) amount = 0;
-  @property({ type: String }) asset = '';
+  @property({ type: String }) asset = null;
 
   static styles = [
     css`
@@ -79,7 +79,12 @@ export class AssetTransfer extends LitElement {
       </div>
       <div class="asset">
         <ui-asset-selector id=${this.id} .asset=${this.asset}></ui-asset-selector>
-        <ui-asset-input id=${this.id} .asset=${this.asset} .amount=${this.amount}></ui-asset-input>
+        <ui-asset-input
+          ?disabled=${this.asset == null}
+          id=${this.id}
+          .asset=${this.asset}
+          .amount=${this.amount}
+        ></ui-asset-input>
       </div>
     `;
   }

@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import type { ChainType } from '@polkadot/types/interfaces';
-import { TradeRouter, PolkadotApiPoolService, PoolType } from '@galacticcouncil/sdk';
+import { TradeRouter, PolkadotApiPoolService } from '@galacticcouncil/sdk';
 import { apiCursor } from '../db';
 
 interface ChainData {
