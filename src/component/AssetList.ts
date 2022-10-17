@@ -29,6 +29,11 @@ export class AssetList extends LitElement {
         border-bottom: 1px solid var(--hex-background-gray-800);
       }
 
+      .subheader {
+        background-color: rgba(var(--rgb-white), 0.03);
+        padding: 6px 50px;
+      }
+
       ::slotted(*) {
         border-bottom: 1px solid var(--hex-background-gray-800);
         display: block;
@@ -43,7 +48,12 @@ export class AssetList extends LitElement {
           <span>ASSET</span>
           <span>BALANCE</span>
         </div>
+        <slot name="selected"></slot>
         <slot></slot>
+        <div class="list-header subheader">
+          <span>ASSETS WITHOUT PAIR/POOL</span>
+        </div>
+        <slot name="disabled"></slot>
       </div>
     `;
   }

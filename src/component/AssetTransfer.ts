@@ -79,12 +79,7 @@ export class AssetTransfer extends LitElement {
       </div>
       <div class="asset">
         <ui-asset-selector id=${this.id} .asset=${this.asset}></ui-asset-selector>
-        <ui-asset-input
-          ?disabled=${this.asset == null}
-          id=${this.id}
-          .asset=${this.asset}
-          .amount=${this.amount}
-        ></ui-asset-input>
+        <ui-asset-input id=${this.id} .asset=${this.asset} .amount=${this.amount}></ui-asset-input>
       </div>
     `;
   }

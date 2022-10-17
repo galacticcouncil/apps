@@ -10,11 +10,22 @@ import './Asset';
 export class AssetListItem extends LitElement {
   @property({ attribute: false }) asset = null;
   @property({ type: String }) balance = null;
+  @property({ type: Boolean }) disabled = false;
 
   static styles = [
     baseStyles,
     themeStyles,
     css`
+      :host([disabled]) {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      :host([selected]) {
+        background-color: rgba(var(--rgb-primary-450), 0.12);
+        pointer-events: none;
+      }
+
       button {
         display: flex;
         flex-direction: row;
@@ -50,7 +61,7 @@ export class AssetListItem extends LitElement {
   }
 
   render() {
-    return html` <button @click=${this.onAssetClick}>
+    return html` <button @click=${this.onAssetClick} ?disabled=${this.disabled}>
       <ui-asset .asset=${this.asset.symbol}></ui-asset>
       <span class="grow"></span>
       <span class="balance">${this.balance || 0} ${this.asset.symbol}</span>

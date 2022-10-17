@@ -6,7 +6,8 @@ import { baseStyles } from '../base.css';
 
 import { DatabaseController } from '../db.ctrl';
 import { apiCursor, Api, readyCursor } from '../db';
-import { getSellInfo, getBuyInfo } from '../client/router';
+import { getSellInfo, getBuyInfo, pairsById, assetsById } from '../utils/router';
+import { SYSTEM_ASSET_ID } from '../utils/chain';
 
 import '../component/paper';
 
@@ -15,7 +16,7 @@ import './trade/settings';
 import './trade/trade-tokens';
 import './trade/trade-tokens';
 
-import { BigNumber, bnum, PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
 enum TradeScreen {
   Settings,
@@ -23,24 +24,50 @@ enum TradeScreen {
   TradeTokens,
 }
 
-const SYSTEM_ASSET_ID = '0';
+type ScreenState = {
+  active: TradeScreen;
+  detail: any;
+};
+
+type AssetsState = {
+  active: String;
+  list: PoolAsset[];
+  map: Map<string, PoolAsset>;
+  pairs: Map<string, PoolAsset[]>;
+};
+
+type TradeState = {
+  calculating: boolean;
+  type: TradeType;
+  afterSlippage: string;
+  transactionFee: string;
+  assetIn: PoolAsset;
+  amountIn: string;
+  amountInUsd: string;
+  assetOut: PoolAsset;
+  amountOut: string;
+  amountOutUsd: string;
+  spotPrice: string;
+  swaps: [];
+};
 
 @customElement('app-trade')
 export class Trade extends LitElement {
   private db = new DatabaseController<Api>(this, apiCursor);
 
-  @state() screen = {
+  @state() screen: ScreenState = {
     active: TradeScreen.TradeTokens,
     detail: null,
   };
 
-  @state() assets = {
+  @state() assets: AssetsState = {
     active: null,
     list: [],
-    map: {},
+    map: new Map([]),
+    pairs: new Map([]),
   };
 
-  @state() trade = {
+  @state() trade: TradeState = {
     calculating: false,
     type: TradeType.Sell,
     afterSlippage: '0',
@@ -79,7 +106,7 @@ export class Trade extends LitElement {
   }
 
   isSwapSelected(): boolean {
-    return this.trade.assetIn && this.trade.assetOut;
+    return this.trade.assetIn != null && this.trade.assetOut != null;
   }
 
   isSwapEmpty(): boolean {
@@ -88,17 +115,6 @@ export class Trade extends LitElement {
 
   isEmptyAmount(amount: string): boolean {
     return amount == '' || amount == '0';
-  }
-
-  async calculateSpotPrice(assetInId: string, assetOutId: string) {
-    const spotPrice = await this.db.state.router.getBestSpotPrice(assetInId, assetOutId);
-    return spotPrice.amount.shiftedBy(-1 * spotPrice.decimals).toString();
-  }
-
-  calculateSlippage(amount: BigNumber) {
-    const slippagePct = window.localStorage.getItem('trade.settings.slippage');
-    const slippage = amount.div(bnum('100')).multipliedBy(slippagePct);
-    return slippage.decimalPlaces(0, 1);
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
@@ -180,6 +196,7 @@ export class Trade extends LitElement {
       const assetIn = asset;
       const assetOut = this.trade.assetOut;
 
+      // Change asset without recalculation if amount not set or pair not specified
       if (assetOut == null || this.isSwapEmpty()) {
         this.trade = {
           ...this.trade,
@@ -213,6 +230,7 @@ export class Trade extends LitElement {
       const assetIn = this.trade.assetIn;
       const assetOut = asset;
 
+      // Change asset without recalculation if amount not set or pair not specified
       if (assetIn == null || this.isSwapEmpty()) {
         this.trade = {
           ...this.trade,
@@ -242,8 +260,8 @@ export class Trade extends LitElement {
   }
 
   updateAmountIn(updateDetail: any) {
-    console.log(updateDetail);
     if (updateDetail.id == 'assetIn') {
+      // Wipe the trade on input clear
       if (this.isEmptyAmount(updateDetail.value)) {
         this.trade = {
           ...this.trade,
@@ -270,6 +288,7 @@ export class Trade extends LitElement {
 
   updateAmountOut(updateDetail: any) {
     if (updateDetail.id == 'assetOut') {
+      // Wipe the trade on input clear
       if (this.isEmptyAmount(updateDetail.value)) {
         this.trade = {
           ...this.trade,
@@ -299,19 +318,20 @@ export class Trade extends LitElement {
       console.log('Initialization...');
       const router = this.db.state.router;
       const assets = await router.getAllAssets();
-      const assetIn = assets.filter((a: PoolAsset) => a.id == SYSTEM_ASSET_ID)[0];
-      this.trade = {
-        ...this.trade,
-        assetIn: assetIn,
-      };
+      const pairs: [string, PoolAsset[]][] = await Promise.all(
+        assets.map(async (asset: PoolAsset) => [asset.id, await router.getAssetPairs(asset.id)])
+      );
 
-      const assetMap = new Map<string, string>(assets.map((i) => [i.id, i.symbol]));
       this.assets = {
         ...this.assets,
         list: assets,
-        map: assetMap,
+        map: assetsById(assets),
+        pairs: pairsById(pairs),
       };
+
+      this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
       readyCursor.reset(true);
+      console.log('Done ✅');
     }
   }
 
@@ -324,6 +344,10 @@ export class Trade extends LitElement {
   selectTokenTenplate(detail: any) {
     return html`<app-select-token
       .assets=${this.assets.list}
+      .pairs=${this.assets.pairs}
+      .assetIn=${this.trade.assetIn?.symbol}
+      .assetOut=${this.trade.assetOut?.symbol}
+      .change=${detail}
       @back-clicked=${(e: CustomEvent) => this.changeScreen(TradeScreen.TradeTokens, e.detail)}
       @asset-clicked=${(e: CustomEvent) => {
         this.changeAssetIn(detail, e.detail);

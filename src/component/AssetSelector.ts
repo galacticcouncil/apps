@@ -80,7 +80,7 @@ export class AssetSelector extends LitElement {
           <img src="assets/img/icon/dropdown.svg" alt="dropdown" />
         </ui-asset>`,
         () => html` <span class="select">
-          <span> Select token </span>
+          <span> Select asset </span>
           <img src="assets/img/icon/dropdown.svg" alt="dropdown" />
         </span>`
       )}

@@ -13,7 +13,11 @@ import { PoolAsset } from '@galacticcouncil/sdk';
 
 @customElement('app-select-token')
 export class SelectToken extends LitElement {
-  @property({ attribute: false }) assets = [];
+  @property({ attribute: false }) assets: PoolAsset[] = [];
+  @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
+  @property({ type: String }) assetIn = null;
+  @property({ type: String }) assetOut = null;
+  @property({ attribute: false }) change = null;
   @property({ type: String }) query = '';
 
   static styles = [
@@ -68,6 +72,30 @@ export class SelectToken extends LitElement {
     return this.assets.filter((a) => a.symbol.toLowerCase().includes(query.toLowerCase()));
   }
 
+  isDisabled(asset: PoolAsset): boolean {
+    if (this.change.id == 'assetIn') {
+      return this.assetOut == asset.symbol;
+    } else if (this.change.id == 'assetOut') {
+      return this.assetIn == asset.symbol;
+    } else {
+      return false;
+    }
+  }
+
+  isSelected(asset: PoolAsset): boolean {
+    return this.change.asset == asset.symbol;
+  }
+
+  getSlot(asset: PoolAsset): string {
+    if (this.isSelected(asset)) {
+      return 'selected';
+    } else if (this.isDisabled(asset)) {
+      return 'disabled';
+    } else {
+      return null;
+    }
+  }
+
   render() {
     return html`
       <div class="header">
@@ -84,7 +112,14 @@ export class SelectToken extends LitElement {
       ></ui-search-bar>
       <ui-asset-list>
         ${this.filterAssets(this.query).map((asset: PoolAsset) => {
-          return html` <ui-asset-list-item .asset=${asset}></ui-asset-list-item> `;
+          return html`
+            <ui-asset-list-item
+              slot=${this.getSlot(asset)}
+              ?disabled=${this.isDisabled(asset)}
+              ?selected=${this.isSelected(asset)}
+              .asset=${asset}
+            ></ui-asset-list-item>
+          `;
         })}
       </ui-asset-list>
     `;

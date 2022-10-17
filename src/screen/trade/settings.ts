@@ -3,6 +3,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import { baseStyles } from '../../base.css';
 
+import { DEFAULT_SLIPPAGE } from '../../utils/router';
+
 import '../../component/Button';
 import '../../component/IconButton';
 import '../../component/Input';
@@ -10,7 +12,6 @@ import '../../component/Switch';
 import '../../component/ToggleButton';
 import '../../component/ToggleButtonGroup';
 
-const DEFAULT_SLIPPAGE = '0.5';
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('app-settings')
@@ -18,7 +19,7 @@ export class Settings extends LitElement {
   private readonly predefinedSlippage: Set<string>;
 
   @property({ type: Number }) slippage = DEFAULT_SLIPPAGE;
-  @state() customSlippage = null;
+  @state() customSlippage: String = null;
 
   constructor() {
     super();
@@ -181,10 +182,6 @@ export class Settings extends LitElement {
         </div>
       </div>
       <div class="grow"></div>
-      <!-- <div class="actions">
-        <ui-button variant="secondary">Back</ui-button>
-        <ui-button variant="primary">Save & Close</ui-button>
-      </div> -->
     `;
   }
 }

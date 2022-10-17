@@ -14,11 +14,11 @@ import '../../component/IconButton';
 import '../../component/Button';
 import '../../component/Skeleton';
 
-import { TradeType } from '@galacticcouncil/sdk';
+import { PoolAsset, Swap, TradeType } from '@galacticcouncil/sdk';
 
 @customElement('app-trade-tokens')
 export class TradeTokens extends LitElement {
-  @property({ attribute: false }) assets = new Map([]);
+  @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) calculating = false;
   @property({ type: String }) assetIn = null;
@@ -30,7 +30,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) transactionFee = '-';
-  @property({ attribute: false }) swaps = [];
+  @property({ attribute: false }) swaps: Swap[] = [];
 
   static styles = [
     baseStyles,
@@ -212,7 +212,7 @@ export class TradeTokens extends LitElement {
         (swap: any) =>
           html`
             <img src="assets/img/icon/arrow-right.svg" alt="next" />
-            <span class="value">${this.assets.get(swap.assetOut)}</span>
+            <span class="value">${this.assets.get(swap.assetOut).symbol}</span>
           `
       )}
       <img class="route-icon" src="assets/img/icon/route.svg" alt="route" />`;
