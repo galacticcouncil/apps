@@ -1,8 +1,6 @@
 import { Router } from '@vaadin/router';
 import { createApi } from './client/api';
 
-import { locationCursor } from './db';
-
 /* Screens */
 import './screen/trade';
 import './screen/not-found';
@@ -15,7 +13,7 @@ const routes = [
     component: 'app-root',
     children: [
       {
-        path: '',
+        path: '/trade',
         component: 'app-trade',
       },
     ],
@@ -30,11 +28,5 @@ const outlet = document.getElementById('app');
 const router = new Router(outlet);
 router.setRoutes(routes);
 //createApi('wss://rpc01.hydration.dev', () => {});
-
 //createApi('wss://rococo-basilisk-rpc.hydration.dev', () => {});
-
 createApi('wss://rpc.basilisk.cloud', () => {});
-
-window.addEventListener('vaadin-router-location-changed', (e) => {
-  locationCursor.reset(e.detail.location);
-});
