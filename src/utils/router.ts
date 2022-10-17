@@ -1,15 +1,26 @@
-import { BigNumber, bnum, Trade } from '@galacticcouncil/sdk';
+import { BigNumber, bnum, PoolAsset, Trade } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
+export const DEFAULT_SLIPPAGE = '0.5';
+
 function calculateSlippage(amount: BigNumber): BigNumber {
-  const slippagePct = window.localStorage.getItem('trade.settings.slippage') || '0.5';
+  const slippagePct = window.localStorage.getItem('trade.settings.slippage') || DEFAULT_SLIPPAGE;
   const slippage = amount.div(bnum('100')).multipliedBy(slippagePct);
   return slippage.decimalPlaces(0, 1);
 }
 
-export async function calculateSpotPrice(assetInId: string, assetOutId: string) {
-  const spotPrice = await this.db.state.router.getBestSpotPrice(assetInId, assetOutId);
-  return spotPrice.amount.shiftedBy(-1 * spotPrice.decimals).toString();
+function formatAmount(amount: BigNumber, decimals: number) {
+  return amount.shiftedBy(-1 * decimals).toString();
+}
+
+export function pairsById(pairs: [string, PoolAsset[]][]): Map<string, PoolAsset[]> {
+  const result = new Map<string, PoolAsset[]>();
+  pairs.forEach((pair: [string, PoolAsset[]]) => result.set(pair[0], pair[1]));
+  return result;
+}
+
+export function assetsById(assets: PoolAsset[]): Map<string, PoolAsset> {
+  return new Map<string, PoolAsset>(assets.map((i) => [i.id, i]));
 }
 
 export async function getSellInfo(sell: Trade, account: string) {
@@ -17,7 +28,7 @@ export async function getSellInfo(sell: Trade, account: string) {
 
   const slippage = calculateSlippage(sell.amountOut);
   const minAmountOut = sell.amountOut.minus(slippage);
-  const minAmountOutHuman = minAmountOut.shiftedBy(-1 * assetOutDecimals).toString();
+  const minAmountOutHuman = formatAmount(minAmountOut, assetOutDecimals);
 
   const transaction = sell.toTx(minAmountOut);
   const transactionExtrinsic = transaction.get<SubmittableExtrinsic>();
@@ -34,7 +45,7 @@ export async function getBuyInfo(buy: Trade, account: string) {
 
   const slippage = calculateSlippage(buy.amountIn);
   const maxAmountIn = buy.amountIn.plus(slippage);
-  const maxAmountInHuman = maxAmountIn.shiftedBy(-1 * assetInDecimals).toString();
+  const maxAmountInHuman = formatAmount(maxAmountIn, assetInDecimals);
 
   const transaction = buy.toTx(maxAmountIn);
   const transactionExtrinsic = transaction.get<SubmittableExtrinsic>();
