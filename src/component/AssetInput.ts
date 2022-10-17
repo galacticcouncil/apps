@@ -145,7 +145,7 @@ export class AssetInput extends LitElement {
           type="number"
           class="asset-input"
           placeholder="0"
-          .value=${this.amount}
+          .value=${this.asset ? this.amount : null}
           @input=${(e: any) => {
             this.onInputChange(e);
             this._inputHandler();

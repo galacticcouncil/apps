@@ -27,8 +27,7 @@ async function retrieve(api: ApiPromise): Promise<ChainData> {
 }
 
 async function loadOnReady(api: ApiPromise): Promise<TradeRouter> {
-  const { systemChain, systemChainType, systemName, systemVersion } = await retrieve(api);
-
+  const { systemChain, systemChainType } = await retrieve(api);
   console.log(`Chain: ${systemChain} (${systemChainType.toString()})`);
   const poolService = new PolkadotApiPoolService(api);
   return new TradeRouter(poolService, { includeOnly: [] });
