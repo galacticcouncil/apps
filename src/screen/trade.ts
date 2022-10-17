@@ -176,7 +176,7 @@ export class Trade extends LitElement {
   }
 
   switchAssets() {
-    if (!this.isSwapSelected()) {
+    if (!this.isSwapSelected() || this.isSwapEmpty()) {
       this.trade = {
         ...this.trade,
         assetIn: this.trade.assetOut,
@@ -313,10 +313,29 @@ export class Trade extends LitElement {
     }
   }
 
+  syncTrade() {
+    if (!this.isSwapSelected() || this.isSwapEmpty()) {
+      return;
+    } else if (this.trade.assetIn.symbol == this.assets.active) {
+      this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, this.trade.amountIn);
+    } else if (this.trade.assetOut.symbol == this.assets.active) {
+      this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, this.trade.amountOut);
+    }
+  }
+
+  async blockUpdated() {
+    const api = this.db.state.promise;
+    await api.rpc.chain.subscribeNewHeads((lastHeader) => {
+      console.log('Current block: ' + lastHeader.number.toString());
+      //this.syncTrade();
+    });
+  }
+
   async updated() {
     if (this.db.state && !readyCursor.deref()) {
       console.log('Initialization...');
       const router = this.db.state.router;
+
       const assets = await router.getAllAssets();
       const pairs: [string, PoolAsset[]][] = await Promise.all(
         assets.map(async (asset: PoolAsset) => [asset.id, await router.getAssetPairs(asset.id)])
@@ -332,6 +351,7 @@ export class Trade extends LitElement {
       this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
       readyCursor.reset(true);
       console.log('Done ✅');
+      this.blockUpdated();
     }
   }
 

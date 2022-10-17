@@ -14,7 +14,7 @@ import '../../component/IconButton';
 import '../../component/Button';
 import '../../component/Skeleton';
 
-import { PoolAsset, Swap, TradeType } from '@galacticcouncil/sdk';
+import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
 @customElement('app-trade-tokens')
 export class TradeTokens extends LitElement {
@@ -30,7 +30,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) transactionFee = '-';
-  @property({ attribute: false }) swaps: Swap[] = [];
+  @property({ attribute: false }) swaps: [] = [];
 
   static styles = [
     baseStyles,
