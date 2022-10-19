@@ -1,7 +1,7 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import type { ChainType } from '@polkadot/types/interfaces';
-import { TradeRouter, PolkadotApiPoolService } from '@galacticcouncil/sdk';
-import { apiCursor } from '../db';
+import { TradeRouter, PolkadotApiPoolService, PoolType } from '@galacticcouncil/sdk';
+import { apiCursor } from './db';
 
 interface ChainData {
   systemChain: string;
@@ -30,7 +30,7 @@ async function loadOnReady(api: ApiPromise): Promise<TradeRouter> {
   const { systemChain, systemChainType } = await retrieve(api);
   console.log(`Chain: ${systemChain} (${systemChainType.toString()})`);
   const poolService = new PolkadotApiPoolService(api);
-  return new TradeRouter(poolService, { includeOnly: [] });
+  return new TradeRouter(poolService, { includeOnly: [PoolType.XYK] });
 }
 
 export async function createApi(apiUrl: string, onError: (error: unknown) => void) {
