@@ -5,11 +5,15 @@ import { choose } from 'lit/directives/choose.js';
 import { baseStyles } from '../base.css';
 
 import { DatabaseController } from '../db.ctrl';
-import { apiCursor, Api, readyCursor } from '../db';
-import { getSellInfo, getBuyInfo, pairsById, assetsById } from '../utils/router';
-import { SYSTEM_ASSET_ID } from '../utils/chain';
+import { Api, apiCursor, readyCursor, settingsCursor, accountCursor } from '../db';
 
-import '../component/paper';
+import { formatAmount } from '../utils/amount';
+import { pairsById, assetsById } from '../utils/assets';
+import { SYSTEM_ASSET_ID } from '../utils/chain';
+import { getMinAmountOut, getMaxAmountIn } from '../utils/slippage';
+import { getTransactionFee } from '../utils/transaction';
+
+import '../component/Paper';
 
 import './trade/select-token';
 import './trade/settings';
@@ -17,6 +21,8 @@ import './trade/trade-tokens';
 import './trade/trade-tokens';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
+
+import { getWalletBySource } from '@talismn/connect-wallets';
 
 enum TradeScreen {
   Settings,
@@ -53,7 +59,7 @@ type TradeState = {
 
 @customElement('app-trade')
 export class Trade extends LitElement {
-  private db = new DatabaseController<Api>(this, apiCursor);
+  private api = new DatabaseController<Api>(this, apiCursor);
 
   @state() screen: ScreenState = {
     active: TradeScreen.TradeTokens,
@@ -71,7 +77,7 @@ export class Trade extends LitElement {
     calculating: false,
     type: TradeType.Sell,
     afterSlippage: '0',
-    transactionFee: '0',
+    transactionFee: '-',
     assetIn: null,
     amountIn: null,
     amountInUsd: '0',
@@ -118,36 +124,63 @@ export class Trade extends LitElement {
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
-    const bestSell = await this.db.state.router.getBestSell(assetIn.id, assetOut.id, amountIn);
-    const bestSellInfo = await getSellInfo(bestSell, 'bXn8P59QmseUpCWTw4rf46bBL1VFP48qmvKSoUJefVMTKR9Jp');
+    const bestSell = await apiCursor.deref().router.getBestSell(assetIn.id, assetOut.id, amountIn);
     const bestSellHuman = bestSell.toHuman();
+    const slippage = settingsCursor.deref().slippage;
+    const minAmountOut = getMinAmountOut(bestSell, slippage);
+    const minAmountOutHuman = formatAmount(minAmountOut.amount, minAmountOut.decimals);
+    const transaction = bestSell.toTx(minAmountOut.amount);
+
+    const account = accountCursor.deref();
+    let transactionFee = '-';
+    if (account) {
+      transactionFee = await getTransactionFee(transaction, account.address);
+    }
+
+    // const wallet = getWalletBySource('polkadot-js');
+    // await wallet.enable('blabla');
+    // console.log(wallet);
+    // console.log(await wallet.getAccounts());
+
+    // console.log('Spevak:');
+    // console.log(wallet.signer);
 
     this.trade = {
       ...this.trade,
       calculating: false,
       assetIn: assetIn,
       assetOut: assetOut,
-      ...bestSellInfo,
+      afterSlippage: minAmountOutHuman,
+      transactionFee: transactionFee,
       ...bestSellHuman,
     };
-    this.assets.active = assetIn.symbol;
     console.log(bestSellHuman);
   }
 
   async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
-    const bestBuy = await this.db.state.router.getBestBuy(assetIn.id, assetOut.id, amountOut);
-    const bestBuyInfo = await getBuyInfo(bestBuy, 'bXn8P59QmseUpCWTw4rf46bBL1VFP48qmvKSoUJefVMTKR9Jp');
+    const bestBuy = await apiCursor.deref().router.getBestBuy(assetIn.id, assetOut.id, amountOut);
     const bestBuyHuman = bestBuy.toHuman();
+    const slippage = settingsCursor.deref().slippage;
+    const maxAmountIn = getMaxAmountIn(bestBuy, slippage);
+    const maxAmountInHuman = formatAmount(maxAmountIn.amount, maxAmountIn.decimals);
+
+    const transaction = bestBuy.toTx(maxAmountIn.amount);
+
+    const account = accountCursor.deref();
+    let transactionFee = '-';
+    if (account) {
+      transactionFee = await getTransactionFee(transaction, account.address);
+    }
 
     this.trade = {
       ...this.trade,
       calculating: false,
       assetIn: assetIn,
       assetOut: assetOut,
-      ...bestBuyInfo,
+      afterSlippage: maxAmountInHuman,
+      transactionFee: transactionFee,
       ...bestBuyHuman,
     };
-    this.assets.active = assetOut.symbol;
     console.log(bestBuyHuman);
   }
 
@@ -281,7 +314,6 @@ export class Trade extends LitElement {
         this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, updateDetail.value);
       } else {
         this.trade.amountIn = updateDetail.value;
-        this.assets.active = updateDetail.asset;
       }
     }
   }
@@ -308,7 +340,6 @@ export class Trade extends LitElement {
         this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, updateDetail.value);
       } else {
         this.trade.amountOut = updateDetail.value;
-        this.assets.active = updateDetail.asset;
       }
     }
   }
@@ -323,35 +354,38 @@ export class Trade extends LitElement {
     }
   }
 
-  async blockUpdated() {
-    const api = this.db.state.promise;
+  async init() {
+    const router = apiCursor.deref().router;
+    const assets = await router.getAllAssets();
+    const pairs: [string, PoolAsset[]][] = await Promise.all(
+      assets.map(async (asset: PoolAsset) => [asset.id, await router.getAssetPairs(asset.id)])
+    );
+
+    this.assets = {
+      ...this.assets,
+      list: assets,
+      map: assetsById(assets),
+      pairs: pairsById(pairs),
+    };
+
+    this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
+    readyCursor.reset(true);
+  }
+
+  async subscribe() {
+    const api = apiCursor.deref().promise;
     await api.rpc.chain.subscribeNewHeads((lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
-      //this.syncTrade();
+      // this.syncTrade();
     });
   }
 
   async updated() {
-    if (this.db.state && !readyCursor.deref()) {
+    if (this.api.state && !readyCursor.deref()) {
       console.log('Initialization...');
-      const router = this.db.state.router;
-
-      const assets = await router.getAllAssets();
-      const pairs: [string, PoolAsset[]][] = await Promise.all(
-        assets.map(async (asset: PoolAsset) => [asset.id, await router.getAssetPairs(asset.id)])
-      );
-
-      this.assets = {
-        ...this.assets,
-        list: assets,
-        map: assetsById(assets),
-        pairs: pairsById(pairs),
-      };
-
-      this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
-      readyCursor.reset(true);
+      await this.init();
+      await this.subscribe();
       console.log('Done ✅');
-      this.blockUpdated();
     }
   }
 
@@ -391,6 +425,7 @@ export class Trade extends LitElement {
       .swaps=${this.trade.swaps}
       .calculating=${this.trade.calculating}
       @asset-input-changed=${(e: CustomEvent) => {
+        this.assets.active = e.detail.asset;
         this.updateAmountIn(e.detail);
         this.updateAmountOut(e.detail);
       }}

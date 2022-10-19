@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import { baseStyles } from '../../base.css';
 
-import { DEFAULT_SLIPPAGE } from '../../utils/router';
+import { settingsCursor } from '../../db';
 
 import '../../component/Button';
 import '../../component/IconButton';
@@ -16,14 +16,21 @@ const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('app-settings')
 export class Settings extends LitElement {
-  private readonly predefinedSlippage: Set<string>;
-
-  @property({ type: Number }) slippage = DEFAULT_SLIPPAGE;
+  @property({ type: Number }) slippage = null;
   @state() customSlippage: String = null;
 
   constructor() {
     super();
-    this.predefinedSlippage = new Set(SLIPPAGE_OPTS);
+    this.initSlippage();
+  }
+
+  private initSlippage() {
+    const slippageOpts = new Set(SLIPPAGE_OPTS);
+    const slippage = settingsCursor.deref().slippage;
+    this.slippage = slippage;
+    if (!slippageOpts.has(slippage)) {
+      this.customSlippage = slippage;
+    }
   }
 
   static styles = [
@@ -113,27 +120,17 @@ export class Settings extends LitElement {
     `,
   ];
 
-  async firstUpdated() {
-    const slippage = window.localStorage.getItem('trade.settings.slippage');
-    if (slippage) {
-      this.slippage = slippage;
-      if (!this.predefinedSlippage.has(slippage)) {
-        this.customSlippage = slippage;
-      }
-    }
-  }
-
   changeSlippage(changeDetails: any) {
     this.slippage = changeDetails.value;
     this.customSlippage = null;
-    window.localStorage.setItem('trade.settings.slippage', changeDetails.value);
+    settingsCursor.resetIn(['slippage'], changeDetails.value);
   }
 
   changeSlippageCustom(changeDetails: any) {
     if (changeDetails.valid) {
       this.slippage = changeDetails.value;
       this.customSlippage = changeDetails.value;
-      window.localStorage.setItem('trade.settings.slippage', changeDetails.value);
+      settingsCursor.resetIn(['slippage'], changeDetails.value);
     }
   }
 
@@ -166,7 +163,6 @@ export class Settings extends LitElement {
           @input-changed=${(e: CustomEvent) => this.changeSlippageCustom(e.detail)}
         >
           ${SLIPPAGE_OPTS.map((s: string) => html` <ui-toggle-button value=${s}>${s}%</ui-toggle-button> `)}
-
           <ui-input
             class="slippage-input"
             type="number"
@@ -181,7 +177,6 @@ export class Settings extends LitElement {
           on trade & pool size) and change in price between announcing the transaction and processing it.
         </div>
       </div>
-      <div class="grow"></div>
     `;
   }
 }

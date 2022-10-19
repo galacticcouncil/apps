@@ -9,7 +9,7 @@ import './component/BusyIndicator';
 
 @customElement('app-root')
 export class App extends LitElement {
-  private db = new DatabaseController<Boolean>(this, readyCursor);
+  private ready = new DatabaseController<Boolean>(this, readyCursor);
 
   static styles = css`
     header {
@@ -18,11 +18,6 @@ export class App extends LitElement {
 
     main {
       width: 100%;
-    }
-
-    footer {
-      padding: 64px 32px;
-      text-align: center;
     }
 
     .loading {
@@ -34,24 +29,28 @@ export class App extends LitElement {
     }
   `;
 
+  loadingTemplate() {
+    return html`
+      <div class="loading">
+        <ui-busy-indicator size="large">
+          <span>Initializing connection</span>
+        </ui-busy-indicator>
+      </div>
+    `;
+  }
+
   render() {
     return html`
       ${when(
-        this.db.state,
+        this.ready.state,
         () => html`
           <header></header>
           <main>
             <slot></slot>
           </main>
-          <footer>Latest block:</footer>
+          <footer></footer>
         `,
-        () => html`
-          <div class="loading">
-            <ui-busy-indicator size="large">
-              <span>Initializing connection</span>
-            </ui-busy-indicator>
-          </div>
-        `
+        () => this.loadingTemplate()
       )}
     `;
   }

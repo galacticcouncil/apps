@@ -1,5 +1,5 @@
 import { Router } from '@vaadin/router';
-import { createApi } from './client/api';
+import { createApi } from './api';
 
 /* Screens */
 import './screen/trade';
@@ -13,7 +13,7 @@ const routes = [
     component: 'app-root',
     children: [
       {
-        path: '/trade',
+        path: '',
         component: 'app-trade',
       },
     ],
