@@ -7,10 +7,10 @@ import { getObj, setObj } from './storage';
 
 const DEFAULT_SLIPPAGE = '0.5';
 
-export interface Api {
-  promise: ApiPromise;
+export interface Chain {
+  api: ApiPromise;
   router: TradeRouter;
-  node: string;
+  url: string;
 }
 
 export interface Settings {
@@ -24,7 +24,7 @@ export interface Account {
 }
 
 export interface State {
-  api: Api;
+  chain: Chain;
   ready: Boolean;
   transaction: Transaction;
   settings: Settings;
@@ -32,15 +32,15 @@ export interface State {
 }
 
 export const db = defAtom<State>({
-  api: null,
+  chain: null,
   ready: false,
   transaction: null,
   settings: null,
   account: null,
 });
 
-// Cursors
-export const apiCursor = defCursor(db, ['api']);
+// Cursors (Direct & Immutable access to a nested value)
+export const chainCursor = defCursor(db, ['chain']);
 export const readyCursor = defCursor(db, ['ready']);
 export const transactionCursor = defCursor(db, ['transaction']);
 export const settingsCursor = defCursor(db, ['settings']);
@@ -70,7 +70,7 @@ settingsCursor.resetIn(['slippage'], storedSettings?.slippage || DEFAULT_SLIPPAG
  */
 function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
   cursor.addWatch(watchId, (id, prev, curr) => {
-    console.log(`${id}: ${prev} -> ${curr}`);
+    console.log(`${id}: ${JSON.stringify(prev)} -> ${JSON.stringify(curr)}`);
     setObj(key, curr);
   });
 }
@@ -78,3 +78,4 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
 // Update storage on state change
 addWatch(transactionCursor, TRANSACTION_KEY, 'transaction-update');
 addWatch(settingsCursor, SETTINGS_KEY, 'settings-update');
+addWatch(accountCursor, ACCOUNT_KEY, 'account-update');
