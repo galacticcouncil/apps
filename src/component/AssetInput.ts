@@ -1,6 +1,5 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
 import { debounce } from 'ts-debounce';
 
 import { themeStyles } from './styles/theme.css';

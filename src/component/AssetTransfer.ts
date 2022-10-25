@@ -8,8 +8,8 @@ import './AssetSelector';
 export class AssetTransfer extends LitElement {
   @property({ type: String }) id = null;
   @property({ type: String }) title = null;
-  @property({ type: String }) balance = 0;
-  @property({ type: String }) amount = 0;
+  @property({ type: String }) balance = null;
+  @property({ type: String }) amount = null;
   @property({ type: String }) asset = null;
 
   static styles = [
@@ -68,14 +68,32 @@ export class AssetTransfer extends LitElement {
     `,
   ];
 
+  onMaxClick(e: Event) {
+    this.amount = this.balance;
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { id: this.id, asset: this.asset, value: this.amount },
+    };
+    this.dispatchEvent(new CustomEvent('asset-input-changed', options));
+  }
+
   render() {
     return html`
       <div class="info">
         <span class="title">${this.title}</span>
         <span class="grow"></span>
         <span class="balance label">Your balance: &nbsp</span>
-        <span class="balance">${this.balance}</span>
-        <ui-button class="max" variant="max" size="micro" capitalize>Max</ui-button>
+        <span class="balance">${this.balance ? this.balance : '-'}</span>
+        <ui-button
+          class="max"
+          variant="max"
+          size="micro"
+          capitalize
+          ?disabled=${this.balance == null}
+          @click=${this.onMaxClick}
+          >Max</ui-button
+        >
       </div>
       <div class="asset">
         <ui-asset-selector id=${this.id} .asset=${this.asset}></ui-asset-selector>
