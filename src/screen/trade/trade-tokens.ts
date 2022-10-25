@@ -22,9 +22,11 @@ export class TradeTokens extends LitElement {
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) calculating = false;
   @property({ type: String }) assetIn = null;
-  @property({ type: String }) amountIn = '0';
+  @property({ type: String }) amountIn = null;
+  @property({ type: String }) balanceIn = null;
   @property({ type: String }) assetOut = null;
-  @property({ type: String }) amountOut = '0';
+  @property({ type: String }) amountOut = null;
+  @property({ type: String }) balanceOut = null;
   @property({ type: String }) spotPrice = null;
   @property({ type: String }) afterSlippage = '0';
   @property({ type: String }) tradeFee = '0';
@@ -172,6 +174,10 @@ export class TradeTokens extends LitElement {
     this.dispatchEvent(new CustomEvent('settings-clicked', options));
   }
 
+  onSwapClick(e: any) {
+    // TODO: Sign & Send
+  }
+
   infoSlippageTemplate(assetSymbol: string) {
     return html` ${choose(this.tradeType, [
         [TradeType.Sell, () => html` <span class="label">Minimum received after slippage:</span>`],
@@ -246,6 +252,7 @@ export class TradeTokens extends LitElement {
           title="Pay with"
           .asset=${this.assetIn}
           .amount=${this.amountIn}
+          .balance=${this.balanceIn}
         ></ui-asset-transfer>
         <div class="switch">
           <div class="divider"></div>
@@ -269,6 +276,7 @@ export class TradeTokens extends LitElement {
           title="You get"
           .asset=${this.assetOut}
           .amount=${this.amountOut}
+          .balance=${this.balanceOut}
         ></ui-asset-transfer>
       </div>
       ${when(
@@ -283,7 +291,7 @@ export class TradeTokens extends LitElement {
         `
       )}
       <div class="grow"></div>
-      <ui-button class="confirm" variant="primary" fullWidth>Confirm Swap</ui-button>
+      <ui-button class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}>Confirm Swap</ui-button>
     `;
   }
 }
