@@ -1,5 +1,5 @@
 import { Router } from '@vaadin/router';
-import { createApi } from './api';
+import { createApi } from './chain';
 
 /* Screens */
 import './screen/trade';
@@ -28,5 +28,5 @@ const outlet = document.getElementById('app');
 const router = new Router(outlet);
 router.setRoutes(routes);
 //createApi('wss://rpc01.hydration.dev', () => {});
-//createApi('wss://rococo-basilisk-rpc.hydration.dev', () => {});
-createApi('wss://rpc.basilisk.cloud', () => {});
+//createApi('wss://rpc.basilisk.cloud', () => {});
+createApi('wss://rococo-basilisk-rpc.hydration.dev', () => {});
