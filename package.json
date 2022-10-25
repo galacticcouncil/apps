@@ -7,13 +7,11 @@
   "scripts": {
     "build": "node ./esbuild.dev.mjs",
     "build:watch": "ESBUILD_WATCH=true node ./esbuild.dev.mjs",
-    "build:github": "BASE_HREF=/api-docs/ node ./esbuild.prod.mjs",
     "build:prod": "node ./esbuild.prod.mjs",
     "serve": "wds --node-resolve --watch --app-index index.html --open",
     "cleanup": "rimraf out && rimraf dist",
     "dev": "rimraf out & npm run build:watch & npm run serve",
     "copy:assets": "cp -R ./assets/ ./dist/assets/ && cp ./dist/index.html ./dist/404.html",
-    "package:github": "rimraf dist && npm run build:github && npm run copy:assets",
     "package:prod": "rimraf dist && npm run build:prod && npm run copy:assets"
   },
   "devDependencies": {
