@@ -6,10 +6,13 @@ export enum TradeScreen {
   TradeTokens,
 }
 
+export type AssetSelector = { id: string; asset: string };
+
 export type AssetsState = {
   active: string;
-  selector: { id: string; asset: string };
+  selector: AssetSelector;
   list: PoolAsset[];
+  balance: Map<string, Amount>;
   map: Map<string, PoolAsset>;
   pairs: Map<string, PoolAsset[]>;
 };
@@ -18,40 +21,43 @@ export const DEFAULT_ASSETS_STATE: AssetsState = {
   active: null,
   selector: null,
   list: [],
+  balance: new Map([]),
   map: new Map([]),
   pairs: new Map([]),
 };
 
 export type TradeState = {
-  calculating: boolean;
+  inProgress: boolean;
   type: TradeType;
-  afterSlippage: string;
-  transactionFee: string;
   assetIn: PoolAsset;
-  amountIn: string;
-  amountInUsd: string;
-  balanceIn: string;
   assetOut: PoolAsset;
+  amountIn: string;
   amountOut: string;
-  amountOutUsd: string;
+  balanceIn: string;
   balanceOut: string;
+  amountInUsd: string;
+  amountOutUsd: string;
   spotPrice: string;
+  afterSlippage: string;
+  priceImpactPct: string;
+  transactionFee: string;
   swaps: [];
 };
 
 export const DEFAULT_TRADE_STATE: TradeState = {
-  calculating: false,
+  inProgress: false,
   type: TradeType.Sell,
-  afterSlippage: '0',
-  transactionFee: '-',
   assetIn: null,
-  amountIn: null,
-  amountInUsd: '0',
-  balanceIn: null,
   assetOut: null,
+  amountIn: null,
   amountOut: null,
-  amountOutUsd: '0',
+  balanceIn: null,
   balanceOut: null,
+  amountInUsd: '0',
+  amountOutUsd: '0',
   spotPrice: null,
+  afterSlippage: '0',
+  priceImpactPct: '0',
+  transactionFee: '-',
   swaps: [],
 };

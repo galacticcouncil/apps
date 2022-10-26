@@ -10,6 +10,7 @@ import '../../component/Paper';
 import '../../component/SearchBar';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
+import { AssetSelector } from '../trade.d';
 
 @customElement('app-select-token')
 export class SelectToken extends LitElement {
@@ -17,7 +18,7 @@ export class SelectToken extends LitElement {
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
-  @property({ attribute: false }) change = null;
+  @property({ attribute: false }) selector: AssetSelector = null;
   @property({ type: String }) query = '';
 
   static styles = [
@@ -73,9 +74,9 @@ export class SelectToken extends LitElement {
   }
 
   isDisabled(asset: PoolAsset): boolean {
-    if (this.change.id == 'assetIn') {
+    if (this.selector.id == 'assetIn') {
       return this.assetOut == asset.symbol;
-    } else if (this.change.id == 'assetOut') {
+    } else if (this.selector.id == 'assetOut') {
       return this.assetIn == asset.symbol;
     } else {
       return false;
@@ -83,7 +84,7 @@ export class SelectToken extends LitElement {
   }
 
   isSelected(asset: PoolAsset): boolean {
-    return this.change.asset == asset.symbol;
+    return this.selector.asset == asset.symbol;
   }
 
   getSlot(asset: PoolAsset): string {

@@ -20,15 +20,16 @@ import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 export class TradeTokens extends LitElement {
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
-  @property({ type: Boolean }) calculating = false;
+  @property({ type: Boolean }) inProgress = false;
   @property({ type: String }) assetIn = null;
-  @property({ type: String }) amountIn = null;
-  @property({ type: String }) balanceIn = null;
   @property({ type: String }) assetOut = null;
+  @property({ type: String }) amountIn = null;
   @property({ type: String }) amountOut = null;
+  @property({ type: String }) balanceIn = null;
   @property({ type: String }) balanceOut = null;
   @property({ type: String }) spotPrice = null;
   @property({ type: String }) afterSlippage = '0';
+  @property({ type: String }) priceImpactPct = '0';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) transactionFee = '-';
@@ -185,9 +186,19 @@ export class TradeTokens extends LitElement {
       ])}
       <span class="grow"></span>
       ${when(
-        this.calculating,
+        this.inProgress,
         () => html`<ui-skeleton progress width="150px" height="14px"></ui-skeleton>`,
         () => html`<span class="value">${this.afterSlippage} ${assetSymbol} </span>`
+      )}`;
+  }
+
+  infoPriceImpactTemplate() {
+    return html` <span class="label">Price Impact:</span>
+      <span class="grow"></span>
+      ${when(
+        this.inProgress,
+        () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
+        () => html`<span class="value">${this.priceImpactPct}%</span>`
       )}`;
   }
 
@@ -195,7 +206,7 @@ export class TradeTokens extends LitElement {
     return html` <span class="label">Trade Fee:</span>
       <span class="grow"></span>
       ${when(
-        this.calculating,
+        this.inProgress,
         () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
         () => html`<span class="value">${this.tradeFee} ${assetSymbol}</span>
           <span class="value highlight">(${this.tradeFeePct}%)</span>`
@@ -206,7 +217,7 @@ export class TradeTokens extends LitElement {
     return html` <span class="label">Transaction Fee:</span>
       <span class="grow"></span>
       ${when(
-        this.calculating,
+        this.inProgress,
         () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
         () => html`<span class="value">${this.transactionFee}</span>`
       )}`;
@@ -229,7 +240,7 @@ export class TradeTokens extends LitElement {
       <span class="route-label">Best Route</span>
       <span class="grow"></span>
       ${when(
-        this.calculating,
+        this.inProgress,
         () => html`<ui-skeleton progress width="130px" height="14px"></ui-skeleton>`,
         () => this.bestRouteTemplate()
       )}
@@ -258,13 +269,13 @@ export class TradeTokens extends LitElement {
           <div class="divider"></div>
           <ui-asset-switch class="switch-button"> </ui-asset-switch>
           ${when(
-            this.spotPrice || this.calculating,
+            this.spotPrice || this.inProgress,
             () => html`
               <ui-asset-price
                 .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
                 .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
                 .outputBalance=${this.spotPrice}
-                .loading=${this.calculating}
+                .loading=${this.inProgress}
                 class="switch-price"
               >
               </ui-asset-price>
@@ -284,6 +295,7 @@ export class TradeTokens extends LitElement {
         () => html`
           <div class="info">
             <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
+            <div class="row">${this.infoPriceImpactTemplate()}</div>
             <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
             <div class="row">${this.infoTransactionFeeTemplate()}</div>
             <div class="row">${this.infoBestRouteTemplate()}</div>

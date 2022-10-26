@@ -8,11 +8,9 @@ import { DatabaseController } from '../db.ctrl';
 import { Chain, chainCursor, readyCursor, accountCursor, transactionCursor } from '../db';
 import { getPaymentInfo } from '../api/transaction';
 import { getBestSell, getBestBuy } from '../api/trade';
-
-import { getBalance } from '../api/asset';
+import { getAssetsBalance, getAssetsPairs } from '../api/asset';
 
 import { formatAmount } from '../utils/amount';
-import { pairsById, assetsById } from '../utils/assets';
 import { SYSTEM_ASSET_ID } from '../utils/chain';
 
 import '../component/Paper';
@@ -44,7 +42,7 @@ export class Trade extends LitElement {
       }
 
       ui-paper {
-        max-height: 650px;
+        max-height: 680px;
         width: 100%;
         display: block;
       }
@@ -71,7 +69,7 @@ export class Trade extends LitElement {
     const { trade, transaction, slippage } = await getBestSell(assetIn, assetOut, amountIn);
     this.trade = {
       ...this.trade,
-      calculating: false,
+      inProgress: false,
       assetIn: assetIn,
       assetOut: assetOut,
       afterSlippage: slippage,
@@ -85,7 +83,7 @@ export class Trade extends LitElement {
     const { trade, transaction, slippage } = await getBestBuy(assetIn, assetOut, amountOut);
     this.trade = {
       ...this.trade,
-      calculating: false,
+      inProgress: false,
       assetIn: assetIn,
       assetOut: assetOut,
       afterSlippage: slippage,
@@ -98,7 +96,7 @@ export class Trade extends LitElement {
   switchAndReCalculateSell() {
     this.trade = {
       ...this.trade,
-      calculating: true,
+      inProgress: true,
       assetIn: this.trade.assetOut,
       assetOut: this.trade.assetIn,
       balanceIn: this.trade.balanceOut,
@@ -112,7 +110,7 @@ export class Trade extends LitElement {
   switchAndReCalculateBuy() {
     this.trade = {
       ...this.trade,
-      calculating: true,
+      inProgress: true,
       assetIn: this.trade.assetOut,
       assetOut: this.trade.assetIn,
       balanceIn: this.trade.balanceOut,
@@ -141,25 +139,7 @@ export class Trade extends LitElement {
     }
   }
 
-  async updateBalances() {
-    const account = accountCursor.deref();
-    if (account == null) {
-      return;
-    }
-    const balances = await Promise.all([
-      await getBalance(account, this.trade.assetIn?.id),
-      await getBalance(account, this.trade.assetOut?.id),
-    ]);
-    const balanceIn = formatAmount(balances[0].amount, balances[0].decimals);
-    const balanceOut = formatAmount(balances[1].amount, balances[1].decimals);
-    this.trade = {
-      ...this.trade,
-      balanceIn: balanceIn,
-      balanceOut: balanceOut,
-    };
-  }
-
-  changeAssetIn(asset: PoolAsset) {
+  changeAssetIn(previous: string, asset: PoolAsset) {
     const assetIn = asset;
     const assetOut = this.trade.assetOut;
 
@@ -173,10 +153,12 @@ export class Trade extends LitElement {
       return;
     }
 
-    if (asset.symbol == this.assets.active) {
+    console.log(asset.symbol, this.assets.active);
+
+    if (previous == this.assets.active) {
       this.trade = {
         ...this.trade,
-        calculating: true,
+        inProgress: true,
         assetIn: asset,
         balanceIn: null,
         amountOut: null,
@@ -185,7 +167,7 @@ export class Trade extends LitElement {
     } else {
       this.trade = {
         ...this.trade,
-        calculating: true,
+        inProgress: true,
         assetIn: asset,
         balanceIn: null,
         amountIn: null,
@@ -194,7 +176,7 @@ export class Trade extends LitElement {
     }
   }
 
-  changeAssetOut(asset: PoolAsset) {
+  changeAssetOut(previous: string, asset: PoolAsset) {
     const assetIn = this.trade.assetIn;
     const assetOut = asset;
 
@@ -208,10 +190,10 @@ export class Trade extends LitElement {
       return;
     }
 
-    if (asset.symbol == this.assets.active) {
+    if (previous == this.assets.active) {
       this.trade = {
         ...this.trade,
-        calculating: true,
+        inProgress: true,
         assetOut: asset,
         balanceOut: null,
         amountIn: null,
@@ -220,7 +202,7 @@ export class Trade extends LitElement {
     } else {
       this.trade = {
         ...this.trade,
-        calculating: true,
+        inProgress: true,
         assetOut: asset,
         balanceOut: null,
         amountOut: null,
@@ -249,7 +231,7 @@ export class Trade extends LitElement {
     if (this.isSwapSelected()) {
       this.trade = {
         ...this.trade,
-        calculating: true,
+        inProgress: true,
         amountOut: null,
       };
       this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, amount);
@@ -268,7 +250,7 @@ export class Trade extends LitElement {
     if (this.isSwapSelected()) {
       this.trade = {
         ...this.trade,
-        calculating: true,
+        inProgress: true,
         amountIn: null,
       };
       this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, amount);
@@ -277,18 +259,35 @@ export class Trade extends LitElement {
     }
   }
 
+  async updateBalances() {
+    const balanceIn = this.assets.balance.get(this.trade.assetIn?.id);
+    const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
+    this.trade = {
+      ...this.trade,
+      balanceIn: balanceIn && formatAmount(balanceIn.amount, balanceIn.decimals),
+      balanceOut: balanceOut && formatAmount(balanceOut.amount, balanceOut.decimals),
+    };
+  }
+
+  async syncBalances() {
+    const account = accountCursor.deref();
+    if (account == null) {
+      return;
+    }
+    this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
+    this.updateBalances();
+  }
+
   async init() {
     const router = chainCursor.deref().router;
     const assets = await router.getAllAssets();
-    const pairs: [string, PoolAsset[]][] = await Promise.all(
-      assets.map(async (asset: PoolAsset) => [asset.id, await router.getAssetPairs(asset.id)])
-    );
+    const assetsPairs = await getAssetsPairs(assets);
 
     this.assets = {
       ...this.assets,
       list: assets,
-      map: assetsById(assets),
-      pairs: pairsById(pairs),
+      map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
+      pairs: assetsPairs,
     };
 
     this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
@@ -299,7 +298,7 @@ export class Trade extends LitElement {
     const api = chainCursor.deref().api;
     await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
-      this.updateBalances();
+      this.syncBalances();
       // TODO: Sync trade
     });
   }
@@ -325,11 +324,12 @@ export class Trade extends LitElement {
       .pairs=${this.assets.pairs}
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
-      .change=${this.assets.selector}
+      .selector=${this.assets.selector}
       @back-clicked=${(e: CustomEvent) => this.changeScreen(TradeScreen.TradeTokens)}
       @asset-clicked=${(e: CustomEvent) => {
-        this.assets.selector.id == 'assetIn' && this.changeAssetIn(e.detail);
-        this.assets.selector.id == 'assetOut' && this.changeAssetOut(e.detail);
+        const { id, asset } = this.assets.selector;
+        id == 'assetIn' && this.changeAssetIn(asset, e.detail);
+        id == 'assetOut' && this.changeAssetOut(asset, e.detail);
         this.updateBalances();
         this.changeScreen(TradeScreen.TradeTokens);
       }}
@@ -339,18 +339,19 @@ export class Trade extends LitElement {
   tradeTokensTenplate() {
     return html`<app-trade-tokens
       .assets=${this.assets.map}
+      .inProgress=${this.trade.inProgress}
+      .tradeType=${this.trade.type}
       .assetIn=${this.trade.assetIn?.symbol}
-      .amountIn=${this.trade.amountIn}
-      .balanceIn=${this.trade.balanceIn}
       .assetOut=${this.trade.assetOut?.symbol}
+      .amountIn=${this.trade.amountIn}
       .amountOut=${this.trade.amountOut}
+      .balanceIn=${this.trade.balanceIn}
       .balanceOut=${this.trade.balanceOut}
       .spotPrice=${this.trade.spotPrice}
-      .tradeType=${this.trade.type}
       .afterSlippage=${this.trade.afterSlippage}
+      .priceImpactPct=${this.trade.priceImpactPct}
       .transactionFee=${this.trade.transactionFee}
       .swaps=${this.trade.swaps}
-      .calculating=${this.trade.calculating}
       @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
         this.assets.active = asset;
         id == 'assetIn' && this.updateAmountIn(value);
@@ -366,6 +367,7 @@ export class Trade extends LitElement {
   }
 
   render() {
+    console.log(this.trade)
     return html`
       <ui-paper>
         ${choose(this.screen, [
