@@ -259,7 +259,7 @@ export class Trade extends LitElement {
     }
   }
 
-  async updateBalances() {
+  updateBalances() {
     const balanceIn = this.assets.balance.get(this.trade.assetIn?.id);
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
     this.trade = {
@@ -271,11 +271,21 @@ export class Trade extends LitElement {
 
   async syncBalances() {
     const account = accountCursor.deref();
-    if (account == null) {
-      return;
+    if (account) {
+      this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
+      this.updateBalances();
     }
-    this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
-    this.updateBalances();
+  }
+
+  async syncTransactionFee() {
+    const account = accountCursor.deref();
+    const transaction = transactionCursor.deref();
+
+    if (account && transaction) {
+      const { partialFee } = await getPaymentInfo(transaction, account);
+      this.trade.transactionFee = partialFee.toHuman();
+      this.requestUpdate();
+    }
   }
 
   async init() {
@@ -299,6 +309,7 @@ export class Trade extends LitElement {
     await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
+      this.syncTransactionFee();
       // TODO: Sync trade
     });
   }
@@ -313,9 +324,7 @@ export class Trade extends LitElement {
   }
 
   settingsTenplate() {
-    return html`<app-settings
-      @back-clicked=${(e: CustomEvent) => this.changeScreen(TradeScreen.TradeTokens)}
-    ></app-settings>`;
+    return html`<app-settings @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}></app-settings>`;
   }
 
   selectTokenTenplate() {
@@ -325,7 +334,7 @@ export class Trade extends LitElement {
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
       .selector=${this.assets.selector}
-      @back-clicked=${(e: CustomEvent) => this.changeScreen(TradeScreen.TradeTokens)}
+      @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
       @asset-clicked=${(e: CustomEvent) => {
         const { id, asset } = this.assets.selector;
         id == 'assetIn' && this.changeAssetIn(asset, e.detail);
@@ -350,6 +359,8 @@ export class Trade extends LitElement {
       .spotPrice=${this.trade.spotPrice}
       .afterSlippage=${this.trade.afterSlippage}
       .priceImpactPct=${this.trade.priceImpactPct}
+      .tradeFee=${this.trade.tradeFee}
+      .tradeFeePct=${this.trade.tradeFeePct}
       .transactionFee=${this.trade.transactionFee}
       .swaps=${this.trade.swaps}
       @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
@@ -367,7 +378,6 @@ export class Trade extends LitElement {
   }
 
   render() {
-    console.log(this.trade)
     return html`
       <ui-paper>
         ${choose(this.screen, [

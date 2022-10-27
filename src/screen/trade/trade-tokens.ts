@@ -32,7 +32,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) priceImpactPct = '0';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
-  @property({ type: String }) transactionFee = '-';
+  @property({ type: String }) transactionFee = null;
   @property({ attribute: false }) swaps: [] = [];
 
   static styles = [
@@ -219,7 +219,7 @@ export class TradeTokens extends LitElement {
       ${when(
         this.inProgress,
         () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
-        () => html`<span class="value">${this.transactionFee}</span>`
+        () => html`<span class="value">${this.transactionFee || '-'}</span>`
       )}`;
   }
 

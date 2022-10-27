@@ -40,6 +40,8 @@ export type TradeState = {
   spotPrice: string;
   afterSlippage: string;
   priceImpactPct: string;
+  tradeFee: string;
+  tradeFeePct: string;
   transactionFee: string;
   swaps: [];
 };
@@ -58,6 +60,8 @@ export const DEFAULT_TRADE_STATE: TradeState = {
   spotPrice: null,
   afterSlippage: '0',
   priceImpactPct: '0',
-  transactionFee: '-',
+  tradeFee: null,
+  tradeFeePct: '0',
+  transactionFee: null,
   swaps: [],
 };
