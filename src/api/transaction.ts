@@ -1,17 +1,17 @@
-import { getWalletBySource } from '@talismn/connect-wallets';
 import type { Transaction } from '@galacticcouncil/sdk';
-import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
-import type { ISubmittableResult } from '@polkadot/types/types';
-import type { Account } from '../db';
+import { getWalletBySource } from '@talismn/connect-wallets';
+import { Account, chainCursor } from '../db';
 
 export async function getPaymentInfo(transaction: Transaction, account: Account): Promise<RuntimeDispatchInfo> {
-  const transactionExtrinsic = transaction.get<SubmittableExtrinsic>();
+  const api = chainCursor.deref().api;
+  const transactionExtrinsic = api.tx(transaction.hex);
   return await transactionExtrinsic.paymentInfo(account.address);
 }
 
 export async function signAndSend(transaction: Transaction, account: Account) {
-  const transactionExtrinsic = transaction.get<SubmittableExtrinsic>();
+  const api = chainCursor.deref().api;
+  const transactionExtrinsic = api.tx(transaction.hex);
   const wallet = getWalletBySource(account.provider);
   await wallet.enable('test1');
 

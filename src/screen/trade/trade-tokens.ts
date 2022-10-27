@@ -176,7 +176,11 @@ export class TradeTokens extends LitElement {
   }
 
   onSwapClick(e: any) {
-    // TODO: Sign & Send
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('swap-clicked', options));
   }
 
   infoSlippageTemplate(assetSymbol: string) {

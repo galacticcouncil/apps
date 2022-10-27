@@ -6,7 +6,7 @@ import { baseStyles } from '../base.css';
 
 import { DatabaseController } from '../db.ctrl';
 import { Chain, chainCursor, readyCursor, accountCursor, transactionCursor } from '../db';
-import { getPaymentInfo } from '../api/transaction';
+import { getPaymentInfo, signAndSend } from '../api/transaction';
 import { getBestSell, getBestBuy } from '../api/trade';
 import { getAssetsBalance, getAssetsPairs } from '../api/asset';
 
@@ -153,8 +153,6 @@ export class Trade extends LitElement {
       return;
     }
 
-    console.log(asset.symbol, this.assets.active);
-
     if (previous == this.assets.active) {
       this.trade = {
         ...this.trade,
@@ -288,6 +286,14 @@ export class Trade extends LitElement {
     }
   }
 
+  async swap() {
+    const account = accountCursor.deref();
+    const transaction = transactionCursor.deref();
+    if (account && transaction) {
+      signAndSend(transaction, account);
+    }
+  }
+
   async init() {
     const router = chainCursor.deref().router;
     const assets = await router.getAllAssets();
@@ -373,7 +379,8 @@ export class Trade extends LitElement {
         this.changeScreen(TradeScreen.SelectToken);
       }}
       @asset-switch-clicked=${this.switchAssets}
-      @settings-clicked=${(e: CustomEvent) => this.changeScreen(TradeScreen.Settings)}
+      @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
+      @swap-clicked=${() => this.swap()}
     ></app-trade-tokens>`;
   }
 
