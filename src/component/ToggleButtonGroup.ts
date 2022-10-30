@@ -22,7 +22,7 @@ export class ToggleButtonGroup extends LitElement {
     `,
   ];
 
-  async updated() {
+  override async updated() {
     const slot = this.shadowRoot.querySelector('slot');
     const slt = slot.assignedElements();
     slt.forEach((item) => {

@@ -94,24 +94,6 @@ export class Input extends LitElement {
     `,
   ];
 
-  async firstUpdated() {
-    const input = this.shadowRoot.querySelector('input');
-    input.setAttribute('type', this.type);
-    input.setAttribute('placeholder', this.placeholder);
-    input.setAttribute('min', this.min);
-    input.setAttribute('max', this.max);
-  }
-
-  async updated() {
-    const inputRoot = this.shadowRoot.querySelector('.input-root');
-    const input = this.shadowRoot.querySelector('input');
-    if (input.reportValidity()) {
-      inputRoot.removeAttribute('error');
-    } else {
-      inputRoot.setAttribute('error', '');
-    }
-  }
-
   onInputChange(e: any) {
     const input = this.shadowRoot.querySelector('input');
     this.value = e.target.value;
@@ -121,6 +103,24 @@ export class Input extends LitElement {
       detail: { value: this.value, valid: input.reportValidity() },
     };
     this.dispatchEvent(new CustomEvent('input-changed', options));
+  }
+
+  override async firstUpdated() {
+    const input = this.shadowRoot.querySelector('input');
+    input.setAttribute('type', this.type);
+    input.setAttribute('placeholder', this.placeholder);
+    input.setAttribute('min', this.min);
+    input.setAttribute('max', this.max);
+  }
+
+  override async updated() {
+    const inputRoot = this.shadowRoot.querySelector('.input-root');
+    const input = this.shadowRoot.querySelector('input');
+    if (input.reportValidity()) {
+      inputRoot.removeAttribute('error');
+    } else {
+      inputRoot.setAttribute('error', '');
+    }
   }
 
   render() {

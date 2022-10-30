@@ -74,11 +74,6 @@ export class SearchBar extends LitElement {
     `,
   ];
 
-  async firstUpdated() {
-    const input = this.shadowRoot.querySelector('input');
-    input.setAttribute('placeholder', this.placeholder);
-  }
-
   onInputChange(e: any) {
     this.value = e.target.value;
     const options = {
@@ -87,6 +82,11 @@ export class SearchBar extends LitElement {
       detail: { value: this.value },
     };
     this.dispatchEvent(new CustomEvent('search-changed', options));
+  }
+
+  override async firstUpdated() {
+    const input = this.shadowRoot.querySelector('input');
+    input.setAttribute('placeholder', this.placeholder);
   }
 
   render() {

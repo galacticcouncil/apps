@@ -69,7 +69,7 @@ export class Skeleton extends LitElement {
     `,
   ];
 
-  async firstUpdated() {
+  override async firstUpdated() {
     const span = this.shadowRoot.querySelector('span');
     span.style.width = this.width;
     span.style.height = this.height;
