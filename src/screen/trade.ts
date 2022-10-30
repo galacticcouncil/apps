@@ -9,7 +9,6 @@ import { Chain, chainCursor, readyCursor, accountCursor, transactionCursor } fro
 import { getPaymentInfo, signAndSend } from '../api/transaction';
 import { getBestSell, getBestBuy } from '../api/trade';
 import { getAssetsBalance, getAssetsPairs } from '../api/asset';
-
 import { formatAmount } from '../utils/amount';
 import { SYSTEM_ASSET_ID } from '../utils/chain';
 
@@ -19,14 +18,27 @@ import './trade/select-token';
 import './trade/settings';
 import './trade/trade-tokens';
 
-import { TradeScreen, AssetsState, TradeState, DEFAULT_ASSETS_STATE, DEFAULT_TRADE_STATE } from './trade.d';
+import {
+  TradeScreen,
+  ScreenState,
+  AssetsState,
+  TradeState,
+  DEFAULT_SCREEN_STATE,
+  DEFAULT_ASSETS_STATE,
+  DEFAULT_TRADE_STATE,
+} from './trade.d';
 import { PoolAsset } from '@galacticcouncil/sdk';
 
 @customElement('app-trade')
 export class Trade extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
+  private ro = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      this.screen.height = entry.contentRect.height;
+    });
+  });
 
-  @state() screen: TradeScreen = TradeScreen.TradeTokens;
+  @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
   @state() assets: AssetsState = DEFAULT_ASSETS_STATE;
   @state() trade: TradeState = DEFAULT_TRADE_STATE;
 
@@ -42,16 +54,11 @@ export class Trade extends LitElement {
       }
 
       ui-paper {
-        max-height: 680px;
         width: 100%;
         display: block;
       }
     `,
   ];
-
-  changeScreen(active: TradeScreen) {
-    this.screen = active;
-  }
 
   isSwapSelected(): boolean {
     return this.trade.assetIn != null && this.trade.assetOut != null;
@@ -63,6 +70,11 @@ export class Trade extends LitElement {
 
   isEmptyAmount(amount: string): boolean {
     return amount == '' || amount == '0';
+  }
+
+  changeScreen(active: TradeScreen) {
+    this.screen.active = active;
+    this.requestUpdate();
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
@@ -316,11 +328,11 @@ export class Trade extends LitElement {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
       this.syncTransactionFee();
-      // TODO: Sync trade
+      // TODO: Sync trade info
     });
   }
 
-  async updated() {
+  override async updated() {
     if (this.chain.state && !readyCursor.deref()) {
       console.log('Initialization...');
       await this.init();
@@ -329,12 +341,26 @@ export class Trade extends LitElement {
     }
   }
 
+  override connectedCallback() {
+    super.connectedCallback();
+    this.ro.observe(this);
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.ro.unobserve(this);
+  }
+
   settingsTenplate() {
-    return html`<app-settings @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}></app-settings>`;
+    return html`<app-settings
+      style="height: ${this.screen.height}px"
+      @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
+    ></app-settings>`;
   }
 
   selectTokenTenplate() {
     return html`<app-select-token
+      style="height: ${this.screen.height}px"
       .assets=${this.assets.list}
       .pairs=${this.assets.pairs}
       .assetIn=${this.trade.assetIn?.symbol}
@@ -387,7 +413,7 @@ export class Trade extends LitElement {
   render() {
     return html`
       <ui-paper>
-        ${choose(this.screen, [
+        ${choose(this.screen.active, [
           [TradeScreen.TradeTokens, () => this.tradeTokensTenplate()],
           [TradeScreen.Settings, () => this.settingsTenplate()],
           [TradeScreen.SelectToken, () => this.selectTokenTenplate()],
