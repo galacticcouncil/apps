@@ -146,7 +146,7 @@ export class Settings extends LitElement {
     return html`
       <div class="header">
         <ui-icon-button class="back" @click=${this.onBackClick}>
-          <img src="assets/img/icon/back.svg" alt="settings" />
+          <img src="assets/img/icon/back.svg" alt="back" />
         </ui-icon-button>
         <span>Edit settings</span>
         <span></span>
