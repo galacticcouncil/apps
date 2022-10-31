@@ -29,22 +29,20 @@ export class Alert extends LitElement {
         color: rgb(255, 255, 255);
       }
 
-      ::slotted(*) {
-        font-weight: 500;
-        font-size: 12px;
-        line-height: 16px;
-        color: var(--hex-neutral-gray-100);
-      }
-
       img {
         margin-right: 12px;
       }
 
-      span {
+      span.message {
         width: 100%;
         padding: 8px 0;
         display: flex;
         flex-direction: column;
+
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 16px;
+        color: var(--hex-neutral-gray-100);
       }
 
       .progress {
@@ -106,7 +104,7 @@ export class Alert extends LitElement {
         this.variant != AlertVariant.default,
         () => html` <img class=${this.variant} src=${'assets/img/icon/' + this.variant + '.svg'} alt="alert" /> `
       )}
-      <span>
+      <span class="message">
         <slot></slot>
       </span>
     `;
