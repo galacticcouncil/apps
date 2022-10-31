@@ -38,6 +38,14 @@ export class App extends LitElement {
       flex-direction: column;
       justify-content: center;
     }
+
+    .time {
+      color: #acb2b5;
+    }
+
+    .notification {
+      margin-bottom: 10px;
+    }
   `;
 
   onNotificationClick() {
@@ -48,7 +56,9 @@ export class App extends LitElement {
   appendNewNotification({ id, timeout, variant, mssg, status }) {
     const toast = html`
       <ui-toast open timeout=${timeout} @click=${() => this.onNotificationClick()}>
-        <ui-alert variant=${variant}>${mssg} </ui-alert>
+        <ui-alert variant=${variant}>
+          <span> ${mssg} </span>
+        </ui-alert>
       </ui-toast>
     `;
     const notification = {
@@ -73,9 +83,9 @@ export class App extends LitElement {
 
   notificationTemplate(n: TradeNotification) {
     return html`
-      <ui-alert variant=${n.variant}>
+      <ui-alert class="notification" variant=${n.variant}>
         <span>${n.message}</span>
-        <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
+        <span class="time">${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
       </ui-alert>
     `;
   }
@@ -91,6 +101,7 @@ export class App extends LitElement {
           </main>
           <footer>${this.snacks}</footer>
           <ui-drawer>
+            <span slot="title">Recent Activities</span>
             ${[...this.notifications.values()]
               .filter((n: TradeNotification) => n.variant == AlertVariant.progress)
               .sort((t1, t2) => t2.timestamp - t1.timestamp)
