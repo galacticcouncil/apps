@@ -21,6 +21,7 @@ export class TradeTokens extends LitElement {
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) inProgress = false;
+  @property({ type: Boolean }) disabled = false;
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ type: String }) amountIn = null;
@@ -307,7 +308,9 @@ export class TradeTokens extends LitElement {
         `
       )}
       <div class="grow"></div>
-      <ui-button class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}>Confirm Swap</ui-button>
+      <ui-button ?disabled=${this.disabled} class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}
+        >Confirm Swap</ui-button
+      >
     `;
   }
 }
