@@ -11,8 +11,10 @@ import { getBestSell, getBestBuy } from '../api/trade';
 import { getAssetsBalance, getAssetsPairs } from '../api/asset';
 import { formatAmount } from '../utils/amount';
 import { SYSTEM_ASSET_ID } from '../utils/chain';
+import short from 'short-uuid';
 
 import '../component/Paper';
+import { AlertVariant } from '../component/Alert';
 
 import './trade/select-token';
 import './trade/settings';
@@ -298,11 +300,42 @@ export class Trade extends LitElement {
     }
   }
 
-  async swap() {
+  buildNotificationMessg(): string {
+    const t = this.trade;
+    return t.type + ' ' + t.amountIn + ' ' + t.assetIn.symbol + ' for ' + t.amountOut + ' ' + t.assetOut.symbol;
+  }
+
+  sendNotification(id: string, timeout: number, variant: AlertVariant, message: string, status: string) {
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { id: id, timeout: timeout, variant: variant, mssg: message, status: status },
+    };
+    this.dispatchEvent(new CustomEvent('trade-notification', options));
+  }
+
+  async swap(id: string, mssg: string) {
     const account = accountCursor.deref();
     const transaction = transactionCursor.deref();
     if (account && transaction) {
-      signAndSend(transaction, account);
+      signAndSend(
+        transaction,
+        account,
+        ({ status }) => {
+          const type = status.type.toLowerCase();
+          switch (type) {
+            case 'broadcast':
+              this.sendNotification(id, 6000, AlertVariant.progress, mssg, 'broadcasted');
+              break;
+            case 'finalized':
+              this.sendNotification(id, 6000, AlertVariant.success, mssg, 'done');
+              break;
+          }
+        },
+        (error) => {
+          this.sendNotification(id, 6000, AlertVariant.error, mssg, error.toString());
+        }
+      );
     }
   }
 
@@ -381,6 +414,7 @@ export class Trade extends LitElement {
     return html`<app-trade-tokens
       .assets=${this.assets.map}
       .inProgress=${this.trade.inProgress}
+      .disabled=${!this.isSwapSelected() || this.isSwapEmpty()}
       .tradeType=${this.trade.type}
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
@@ -406,7 +440,11 @@ export class Trade extends LitElement {
       }}
       @asset-switch-clicked=${this.switchAssets}
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
-      @swap-clicked=${() => this.swap()}
+      @swap-clicked=${() => {
+        const transactionId = short.generate();
+        const transactionMssg = this.buildNotificationMessg();
+        this.swap(transactionId, transactionMssg);
+      }}
     ></app-trade-tokens>`;
   }
 

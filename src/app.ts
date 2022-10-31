@@ -1,15 +1,26 @@
-import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { LitElement, html, css, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
+import { TradeNotification } from './notification';
 import { DatabaseController } from './db.ctrl';
 import { readyCursor } from './db';
 
+import humanizeDuration, { HumanizerOptions } from 'humanize-duration';
+
 import './component/BusyIndicator';
+import './component/Toast';
+import './component/Alert';
+import './component/Drawer';
+
+import { AlertVariant } from './component/Alert';
 
 @customElement('app-root')
 export class App extends LitElement {
   private ready = new DatabaseController<Boolean>(this, readyCursor);
+
+  @state() snacks: TemplateResult[] = [];
+  @state() notifications: Map<string, TradeNotification> = new Map([]);
 
   static styles = css`
     header {
@@ -29,6 +40,27 @@ export class App extends LitElement {
     }
   `;
 
+  onNotificationClick() {
+    const drawer = this.shadowRoot.querySelector('ui-drawer');
+    drawer.setAttribute('open', '');
+  }
+
+  appendNewNotification({ id, timeout, variant, mssg, status }) {
+    const toast = html`
+      <ui-toast open timeout=${timeout} @click=${() => this.onNotificationClick()}>
+        <ui-alert variant=${variant}>${mssg} </ui-alert>
+      </ui-toast>
+    `;
+    const notification = {
+      id: id,
+      timestamp: Date.now(),
+      message: mssg + ' ' + status,
+      variant: variant,
+    } as TradeNotification;
+    this.snacks = [...this.snacks, toast];
+    this.notifications.set(notification.id, notification);
+  }
+
   loadingTemplate() {
     return html`
       <div class="loading">
@@ -39,16 +71,36 @@ export class App extends LitElement {
     `;
   }
 
+  notificationTemplate(n: TradeNotification) {
+    return html`
+      <ui-alert variant=${n.variant}>
+        <span>${n.message}</span>
+        <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
+      </ui-alert>
+    `;
+  }
+
   render() {
+    console.log(this.notifications);
     return html`
       ${when(
         this.ready.state,
         () => html`
           <header></header>
-          <main>
+          <main @trade-notification=${(e: CustomEvent) => this.appendNewNotification(e.detail)}>
             <slot></slot>
           </main>
-          <footer></footer>
+          <footer>${this.snacks}</footer>
+          <ui-drawer>
+            ${[...this.notifications.values()]
+              .filter((n: TradeNotification) => n.variant == AlertVariant.progress)
+              .sort((t1, t2) => t2.timestamp - t1.timestamp)
+              .map((n: TradeNotification) => this.notificationTemplate(n))}
+            ${[...this.notifications.values()]
+              .filter((n: TradeNotification) => n.variant != AlertVariant.progress)
+              .sort((t1, t2) => t2.timestamp - t1.timestamp)
+              .map((n: TradeNotification) => this.notificationTemplate(n))}
+          </ui-drawer>
         `,
         () => this.loadingTemplate()
       )}
