@@ -60,7 +60,7 @@ export class Drawer extends LitElement {
       }
 
       .content {
-        overflow-y: scroll;
+        overflow-y: auto;
       }
 
       .open {
