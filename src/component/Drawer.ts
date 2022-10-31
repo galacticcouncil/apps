@@ -42,7 +42,6 @@ export class Drawer extends LitElement {
 
       ::slotted(*) {
         width: 100%;
-        margin-bottom: 10px;
         box-sizing: border-box;
       }
 
@@ -58,6 +57,10 @@ export class Drawer extends LitElement {
         font-size: 16px;
         color: var(--hex-neutral-gray-100);
         width: 100%;
+      }
+
+      .content {
+        overflow-y: scroll;
       }
 
       .open {
@@ -95,13 +98,15 @@ export class Drawer extends LitElement {
     return html`
       <div class=${classMap(classes)}>
         <div class="header">
-          <span>Recent Activities</span>
+          <slot name="title"></slot>
           <span class="grow"></span>
           <ui-icon-button @click=${() => this.shouldClose()}>
             <img src="assets/img/icon/close.svg" alt="close" />
           </ui-icon-button>
         </div>
-        <slot></slot>
+        <div class="content">
+          <slot></slot>
+        </div>
       </div>
     `;
   }
