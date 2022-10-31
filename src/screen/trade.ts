@@ -353,6 +353,11 @@ export class Trade extends LitElement {
 
     this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
     readyCursor.reset(true);
+    accountCursor.reset({
+      address: '5Gq8QQLvqCRhAqvnXubxMrbA4VUqt3pBNr8PQs1tbmQCGwdR',
+      provider: 'polkadot-js',
+      name: 'testcoco',
+    });
   }
 
   async subscribe() {

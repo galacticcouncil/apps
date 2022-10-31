@@ -81,7 +81,6 @@ export class App extends LitElement {
   }
 
   render() {
-    console.log(this.notifications);
     return html`
       ${when(
         this.ready.state,
