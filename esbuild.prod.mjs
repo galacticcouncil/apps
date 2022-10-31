@@ -23,7 +23,7 @@ esbuild.build({
   bundle: true,
   format: 'esm',
   platform: 'browser',
-  target: 'es2021',
+  target: 'esnext',
   preserveSymlinks: true,
   treeShaking: true,
   metafile: true,
