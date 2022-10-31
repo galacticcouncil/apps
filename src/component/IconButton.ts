@@ -11,8 +11,8 @@ export class IconButton extends LitElement {
     themeStyles,
     css`
       :host([size='small']) .icon-button-root {
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
       }
 
       :host(:not([size])) .icon-button-root,
