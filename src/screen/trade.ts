@@ -404,6 +404,7 @@ export class Trade extends LitElement {
       style="height: ${this.screen.height}px"
       .assets=${this.assets.list}
       .pairs=${this.assets.pairs}
+      .balances=${this.assets.balance}
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
       .selector=${this.assets.selector}

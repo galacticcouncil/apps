@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { baseStyles } from '../../base.css';
+import { formatAmount } from '../../utils/amount';
 
 import '../../component/AssetList';
 import '../../component/AssetListItem';
@@ -9,13 +10,14 @@ import '../../component/IconButton';
 import '../../component/Paper';
 import '../../component/SearchBar';
 
-import { PoolAsset } from '@galacticcouncil/sdk';
+import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 import { AssetSelector } from '../trade.d';
 
 @customElement('app-select-token')
 export class SelectToken extends LitElement {
   @property({ attribute: false }) assets: PoolAsset[] = [];
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
+  @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ attribute: false }) selector: AssetSelector = null;
@@ -119,12 +121,15 @@ export class SelectToken extends LitElement {
       ></ui-search-bar>
       <ui-asset-list>
         ${this.filterAssets(this.query).map((asset: PoolAsset) => {
+          const balance = this.balances.get(asset.id);
+          const balanceFormated = formatAmount(balance.amount, balance.decimals);
           return html`
             <ui-asset-list-item
               slot=${this.getSlot(asset)}
               ?disabled=${this.isDisabled(asset)}
               ?selected=${this.isSelected(asset)}
               .asset=${asset}
+              .balance=${balanceFormated}
             ></ui-asset-list-item>
           `;
         })}
