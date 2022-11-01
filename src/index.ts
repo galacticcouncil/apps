@@ -3,6 +3,7 @@ import { createApi } from './chain';
 
 /* Screens */
 import './screen/trade';
+import './screen/notification-center';
 import './screen/not-found';
 
 import './app';
@@ -14,7 +15,13 @@ const routes = [
     children: [
       {
         path: '',
-        component: 'app-trade',
+        component: 'app-notification-center',
+        children: [
+          {
+            path: '',
+            component: 'app-trade',
+          },
+        ],
       },
     ],
   },

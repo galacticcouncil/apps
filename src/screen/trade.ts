@@ -14,11 +14,11 @@ import { SYSTEM_ASSET_ID } from '../utils/chain';
 import short from 'short-uuid';
 
 import '../component/Paper';
-import { AlertVariant } from '../component/Alert';
 
 import './trade/select-token';
 import './trade/settings';
 import './trade/trade-tokens';
+import { Notification, NotificationType } from './notification-center';
 
 import {
   TradeScreen,
@@ -300,18 +300,18 @@ export class Trade extends LitElement {
     }
   }
 
-  buildNotificationMessg(): string {
+  buildNotificationMessage(): string {
     const t = this.trade;
     return t.type + ' ' + t.amountIn + ' ' + t.assetIn.symbol + ' for ' + t.amountOut + ' ' + t.assetOut.symbol;
   }
 
-  sendNotification(id: string, timeout: number, variant: AlertVariant, message: string, status: string) {
+  sendNotification(id: string, type: NotificationType, message: string, status: string) {
     const options = {
       bubbles: true,
       composed: true,
-      detail: { id: id, timeout: timeout, variant: variant, mssg: message, status: status },
+      detail: { id: id, timestamp: Date.now(), type: type, message: message + ' ' + status } as Notification,
     };
-    this.dispatchEvent(new CustomEvent('trade-notification', options));
+    this.dispatchEvent(new CustomEvent<Notification>('trade-notification', options));
   }
 
   async swap(id: string, mssg: string) {
@@ -325,15 +325,18 @@ export class Trade extends LitElement {
           const type = status.type.toLowerCase();
           switch (type) {
             case 'broadcast':
-              this.sendNotification(id, 6000, AlertVariant.progress, mssg, 'broadcasted');
+              this.sendNotification(id, NotificationType.progress, mssg, 'broadcasted');
               break;
             case 'finalized':
-              this.sendNotification(id, 6000, AlertVariant.success, mssg, 'done');
+              this.sendNotification(id, NotificationType.success, mssg, 'done');
+              break;
+            case 'inblock':
+              console.log(`Completed at block hash #${status.asInBlock.toString()}`);
               break;
           }
         },
         (error) => {
-          this.sendNotification(id, 6000, AlertVariant.error, mssg, error.toString());
+          this.sendNotification(id, NotificationType.error, mssg, error.toString());
         }
       );
     }
@@ -447,7 +450,7 @@ export class Trade extends LitElement {
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
       @swap-clicked=${() => {
         const transactionId = short.generate();
-        const transactionMssg = this.buildNotificationMessg();
+        const transactionMssg = this.buildNotificationMessage();
         this.swap(transactionId, transactionMssg);
       }}
     ></app-trade-tokens>`;
