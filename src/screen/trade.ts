@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 
@@ -300,21 +300,34 @@ export class Trade extends LitElement {
     }
   }
 
-  buildNotificationMessage(): string {
-    const t = this.trade;
-    return t.type + ' ' + t.amountIn + ' ' + t.assetIn.symbol + ' for ' + t.amountOut + ' ' + t.assetOut.symbol;
+  notificationMessage(t: TradeState, status: string): string {
+    return [t.type, t.amountIn, t.assetIn.symbol, 'for', t.amountOut, t.assetOut.symbol, status].join(' ');
   }
 
-  sendNotification(id: string, type: NotificationType, message: string, status: string) {
+  notificationTemplate(trade: TradeState, status: string): TemplateResult {
+    return html`
+      <span>${trade.type}</span>
+      <span class="highlight">${trade.amountIn}</span>
+      <span class="highlight">${trade.assetIn.symbol}</span>
+      <span>for</span>
+      <span class="highlight">${trade.amountOut}</span>
+      <span class="highlight">${trade.assetOut.symbol}</span>
+      <span>${status}</span>
+    `;
+  }
+
+  sendNotification(id: string, type: NotificationType, trade: TradeState, status: string) {
+    const message = this.notificationTemplate(trade, status);
+    //const message = this.notificationMessage(trade, status);
     const options = {
       bubbles: true,
       composed: true,
-      detail: { id: id, timestamp: Date.now(), type: type, message: message + ' ' + status } as Notification,
+      detail: { id: id, timestamp: Date.now(), type: type, message: message } as Notification,
     };
     this.dispatchEvent(new CustomEvent<Notification>('trade-notification', options));
   }
 
-  async swap(id: string, mssg: string) {
+  async swap(id: string, trade: TradeState) {
     const account = accountCursor.deref();
     const transaction = transactionCursor.deref();
     if (account && transaction) {
@@ -325,10 +338,10 @@ export class Trade extends LitElement {
           const type = status.type.toLowerCase();
           switch (type) {
             case 'broadcast':
-              this.sendNotification(id, NotificationType.progress, mssg, 'broadcasted');
+              this.sendNotification(id, NotificationType.progress, trade, 'broadcasted');
               break;
             case 'finalized':
-              this.sendNotification(id, NotificationType.success, mssg, 'done');
+              this.sendNotification(id, NotificationType.success, trade, 'done');
               break;
             case 'inblock':
               console.log(`Completed at block hash #${status.asInBlock.toString()}`);
@@ -336,7 +349,7 @@ export class Trade extends LitElement {
           }
         },
         (error) => {
-          this.sendNotification(id, NotificationType.error, mssg, error.toString());
+          this.sendNotification(id, NotificationType.error, trade, error.toString());
         }
       );
     }
@@ -451,8 +464,7 @@ export class Trade extends LitElement {
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
       @swap-clicked=${() => {
         const transactionId = short.generate();
-        const transactionMssg = this.buildNotificationMessage();
-        this.swap(transactionId, transactionMssg);
+        this.swap(transactionId, this.trade);
       }}
     ></app-trade-tokens>`;
   }

@@ -17,7 +17,7 @@ export enum NotificationType {
 export type Notification = {
   id: string;
   timestamp: number;
-  message: string;
+  message: string | TemplateResult;
   type: NotificationType;
 };
 
@@ -31,8 +31,17 @@ export class NotificationCenter extends LitElement {
       margin-bottom: 10px;
     }
 
-    .notification .time {
+    .time {
       color: #acb2b5;
+    }
+
+    .message {
+      color: var(--hex-neutral-gray-100);
+    }
+
+    .message .highlight {
+      font-weight: 600;
+      color: var(--hex-white);
     }
   `;
 
@@ -49,19 +58,24 @@ export class NotificationCenter extends LitElement {
   appendNewNotification(n: Notification) {
     const toast = html`
       <ui-toast open @click=${() => this.openDrawer()}>
-        <ui-alert variant=${n.type}>
-          <span> ${n.message} </span>
-        </ui-alert>
+        <ui-alert variant=${n.type}> ${this.notificationMessage(n.message)}</ui-alert>
       </ui-toast>
     `;
     this.snacks = [...this.snacks, toast];
     this.notifications.set(n.id, n);
   }
 
+  notificationMessage(message: string | TemplateResult) {
+    if (typeof message === 'string') {
+      return html` <span class="message">${message}</span> `;
+    }
+    return html` <span class="message">${message}</span> `;
+  }
+
   notificationTemplate(n: Notification) {
     return html`
       <ui-alert class="notification" variant=${n.type}>
-        <span>${n.message}</span>
+        ${this.notificationMessage(n.message)}
         <span class="time">${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
       </ui-alert>
     `;
