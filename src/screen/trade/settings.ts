@@ -69,18 +69,30 @@ export class Settings extends LitElement {
         font-size: 14px;
         line-height: 19px;
         color: #acb2b5;
-        padding: 0 28px;
+        padding: 0 14px;
         box-sizing: border-box;
         align-items: center;
         display: flex;
       }
 
+      @media (min-width: 768px) {
+        .section {
+          padding: 0 28px;
+        }
+      }
+
       .settings {
         display: flex;
         flex-direction: column;
-        padding: 14px 28px 28px 28px;
+        padding: 14px;
         gap: 14px;
         box-sizing: border-box;
+      }
+
+      @media (min-width: 768px) {
+        .settings {
+          padding: 14px 28px 28px 28px;
+        }
       }
 
       .settings .row {

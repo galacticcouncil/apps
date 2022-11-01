@@ -26,10 +26,8 @@ export class Asset extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: center;
-        padding: 0 6px;
         gap: 6px;
         background-color: transparent;
-        min-width: 120px;
         height: 52px;
         border-radius: 8px;
         cursor: pointer;
@@ -47,6 +45,7 @@ export class Asset extends LitElement {
         font-size: 12px;
         line-height: 14px;
         color: var(--hex-neutral-gray-400);
+        white-space: nowrap;
       }
 
       span.title {

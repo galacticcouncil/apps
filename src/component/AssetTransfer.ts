@@ -15,44 +15,73 @@ export class AssetTransfer extends LitElement {
   static styles = [
     css`
       :host {
-        display: flex;
-        flex-direction: column;
-        padding: 20px 23px;
-        gap: 10px;
+        display: grid;
         background: rgba(var(--rgb-primary-100), 0.06);
         border-radius: 12px;
         box-sizing: border-box;
+        padding: 14px;
+        row-gap: 5px;
       }
 
-      .info {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
+      :host > :nth-child(1) {
+        grid-area: 1 / 1 / 2 / 3;
       }
 
-      .info > .title {
+      :host > :nth-child(2) {
+        padding-top: 5px;
+        grid-area: 3 / 1 / 4 / 3;
+      }
+
+      :host > :nth-child(3) {
+        grid-area: 2 / 1 / 3 / 3;
+      }
+
+      @media (min-width: 768px) {
+        :host {
+          padding: 20px;
+          row-gap: 11px;
+        }
+
+        :host > :nth-child(1) {
+          grid-area: 1 / 1 / 2 / 2;
+        }
+
+        :host > :nth-child(2) {
+          padding-top: 0;
+          grid-area: 1 / 2 / 2 / 3;
+        }
+
+        :host > :nth-child(3) {
+          grid-area: 2 / 1 / 3 / 3;
+        }
+      }
+
+      .title {
         font-weight: 600;
         font-size: 16px;
         line-height: 22px;
         color: var(--hex-primary-200);
       }
 
-      .info > .balance {
+      .balance {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: end;
+      }
+
+      .balance > span {
         font-weight: 500;
         font-size: 12px;
         line-height: 16px;
         color: var(--hex-white);
       }
 
-      .info > .label {
+      .balance > span.label {
         color: rgba(var(--rgb-white), 0.7);
       }
 
-      .grow {
-        flex: 1;
-      }
-
-      .info > .max {
+      .max {
         margin-left: 5px;
       }
 
@@ -63,7 +92,13 @@ export class AssetTransfer extends LitElement {
       }
 
       .asset > *:last-child {
-        margin-left: 23px;
+        margin-left: 18px;
+      }
+
+      @media (min-width: 768px) {
+        .asset > *:last-child {
+          margin-left: 23px;
+        }
       }
     `,
   ];
@@ -80,11 +115,10 @@ export class AssetTransfer extends LitElement {
 
   render() {
     return html`
-      <div class="info">
-        <span class="title">${this.title}</span>
-        <span class="grow"></span>
-        <span class="balance label">Your balance: &nbsp</span>
-        <span class="balance">${this.balance ? this.balance : '-'}</span>
+      <span class="title">${this.title}</span>
+      <div class="balance">
+        <span class="label">Your balance: &nbsp</span>
+        <span>${this.balance ? this.balance : '-'}</span>
         <ui-button
           class="max"
           variant="max"

@@ -30,12 +30,18 @@ export class AssetListItem extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: center;
-        padding: 22px 28px;
+        padding: 22px 14px;
         gap: 6px;
         background-color: transparent;
         width: 100%;
         height: 56px;
         cursor: pointer;
+      }
+
+      @media (min-width: 768px) {
+        button {
+          padding: 22px 28px;
+        }
       }
 
       button:hover {

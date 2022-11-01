@@ -20,7 +20,7 @@ export class AssetList extends LitElement {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        padding: 6px 28px;
+        padding: 6px 14px;
         color: var(--hex-neutral-gray-300);
         font-style: normal;
         font-weight: 600;
@@ -29,9 +29,21 @@ export class AssetList extends LitElement {
         border-bottom: 1px solid var(--hex-background-gray-800);
       }
 
+      @media (min-width: 768px) {
+        .list-header {
+          padding: 6px 28px;
+        }
+      }
+
       .subheader {
         background-color: rgba(var(--rgb-white), 0.03);
-        padding: 6px 50px;
+        padding: 6px 36px;
+      }
+
+      @media (min-width: 768px) {
+        .subheader {
+          padding: 6px 50px;
+        }
       }
 
       ::slotted(*) {

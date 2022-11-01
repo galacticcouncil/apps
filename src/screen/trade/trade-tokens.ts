@@ -61,9 +61,15 @@ export class TradeTokens extends LitElement {
       .transfer {
         display: flex;
         flex-direction: column;
-        padding: 0 28px;
+        padding: 0 14px;
         gap: 14px;
         box-sizing: border-box;
+      }
+
+      @media (min-width: 768px) {
+        .transfer {
+          padding: 0 28px;
+        }
       }
 
       .transfer .divider {
@@ -104,16 +110,22 @@ export class TradeTokens extends LitElement {
         display: flex;
         flex-direction: column;
         margin-top: 10px;
-        padding: 0 38px;
+        padding: 0 24px;
         box-sizing: border-box;
+      }
+
+      @media (min-width: 768px) {
+        .info {
+          padding: 0 38px;
+        }
       }
 
       .info .row {
         display: flex;
         align-items: center;
-        height: 30px;
         position: relative;
         gap: 5px;
+        padding: 4px 0;
       }
 
       .info .row:not(:last-child):after {
@@ -129,7 +141,7 @@ export class TradeTokens extends LitElement {
         font-weight: 500;
         font-size: 14px;
         line-height: 22px;
-        text-align: center;
+        text-align: left;
         color: var(--hex-neutral-gray-300);
       }
 
@@ -152,7 +164,7 @@ export class TradeTokens extends LitElement {
         font-weight: 500;
         font-size: 14px;
         line-height: 22px;
-        text-align: center;
+        text-align: right;
         color: var(--hex-white);
       }
 
@@ -162,8 +174,14 @@ export class TradeTokens extends LitElement {
 
       .confirm {
         display: flex;
-        padding: 22px 28px;
+        padding: 22px 14px;
         box-sizing: border-box;
+      }
+
+      @media (min-width: 768px) {
+        .confirm {
+          padding: 22px 28px;
+        }
       }
     `,
   ];

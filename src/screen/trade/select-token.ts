@@ -51,8 +51,14 @@ export class SelectToken extends LitElement {
       }
 
       .search {
-        padding: 0 28px;
+        padding: 0 14px;
         box-sizing: border-box;
+      }
+
+      @media (min-width: 768px) {
+        .search {
+          padding: 0 28px;
+        }
       }
     `,
   ];

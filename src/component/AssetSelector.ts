@@ -34,7 +34,6 @@ export class AssetSelector extends LitElement {
         padding: 0 6px;
         gap: 6px;
         background-color: transparent;
-        width: 147px;
         height: 52px;
         border-radius: 8px;
         cursor: pointer;
@@ -55,6 +54,7 @@ export class AssetSelector extends LitElement {
         font-size: 16px;
         line-height: 100%;
         color: var(--hex-white);
+        white-space: nowrap;
       }
 
       .select img {
