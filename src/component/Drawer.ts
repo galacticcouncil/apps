@@ -18,7 +18,7 @@ export class Drawer extends LitElement {
         display: flex;
         flex-direction: column;
         z-index: 1401;
-        width: 400px;
+        width: 100%;
         top: 0;
         right: 0;
         bottom: 0;
@@ -35,9 +35,14 @@ export class Drawer extends LitElement {
         align-items: center;
         background: var(--hex-background-gray-900);
         box-shadow: 0px 0px 61px rgba(0, 0, 0, 0.36);
-        border-radius: 16px;
-        margin: 10px;
-        padding: 8px;
+      }
+
+      @media (min-width: 768px) {
+        .drawer {
+          width: 400px;
+          border-radius: 16px;
+          margin: 10px;
+        }
       }
 
       ::slotted(*) {
@@ -61,6 +66,9 @@ export class Drawer extends LitElement {
 
       .content {
         overflow-y: auto;
+        width: 100%;
+        padding: 0 8px;
+        box-sizing: border-box;
       }
 
       .open {

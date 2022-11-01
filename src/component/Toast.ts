@@ -28,8 +28,9 @@ export class Toast extends LitElement {
       :host {
         position: fixed;
         z-index: 1400;
-        bottom: 20px;
-        right: 20px;
+        bottom: 8px;
+        right: 8px;
+        left: 8px;
         height: 60px;
         display: flex;
         flex-direction: row;
@@ -39,6 +40,14 @@ export class Toast extends LitElement {
         background: var(--hex-background-gray-1000);
         color: white;
         min-width: 130px;
+      }
+
+      @media (min-width: 768px) {
+        :host {
+          bottom: 20px;
+          right: 20px;
+          left: auto;
+        }
       }
 
       :host(:not([open])) {
