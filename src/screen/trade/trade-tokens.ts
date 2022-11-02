@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import { baseStyles } from '../../base.css';
 
@@ -34,6 +35,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) transactionFee = null;
+  @property({ type: String }) error = null;
   @property({ attribute: false }) swaps: [] = [];
 
   static styles = [
@@ -99,19 +101,28 @@ export class TradeTokens extends LitElement {
         height: 100%;
       }
 
-      .transfer .switch-price {
+      .transfer .spot-price {
         position: absolute;
         right: 14px;
         background: #23282b;
         border-radius: 7px;
+        display: none;
+      }
+
+      .transfer .spot-price.show {
+        display: block;
       }
 
       .info {
-        display: flex;
+        display: none;
         flex-direction: column;
         margin-top: 10px;
         padding: 0 24px;
         box-sizing: border-box;
+      }
+
+      .info.show {
+        display: flex;
       }
 
       @media (min-width: 768px) {
@@ -170,6 +181,37 @@ export class TradeTokens extends LitElement {
 
       .info .value + .highlight {
         color: var(--hex-primary-success);
+      }
+
+      .error {
+        display: none;
+        flex-direction: row;
+        align-items: center;
+        margin: 12px 14px 0;
+        padding: 12px 14px;
+        background: rgba(var(--rgb-red-400), 0.3);
+        border-radius: 8px;
+      }
+
+      @media (min-width: 768px) {
+        .error {
+          margin: 12px 28px 0;
+        }
+      }
+
+      .error.show {
+        display: flex;
+      }
+
+      .error span {
+        color: var(--hex-white);
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .error img {
+        margin-right: 8px;
       }
 
       .confirm {
@@ -237,13 +279,15 @@ export class TradeTokens extends LitElement {
   }
 
   infoTransactionFeeTemplate() {
-    return html` <span class="label">Transaction Fee:</span>
+    return html`
+      <span class="label">Transaction Fee:</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
         () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
         () => html`<span class="value">${this.transactionFee || '-'}</span>`
-      )}`;
+      )}
+    `;
   }
 
   bestRouteTemplate() {
@@ -251,7 +295,7 @@ export class TradeTokens extends LitElement {
       ${this.swaps.map(
         (swap: any) =>
           html`
-            <img src="assets/img/icon/arrow-right.svg" alt="next" />
+            <img width="22px" src="assets/img/icon/arrow-right.svg" alt="next" />
             <span class="value">${this.assets.get(swap.assetOut).symbol}</span>
           `
       )}
@@ -272,6 +316,18 @@ export class TradeTokens extends LitElement {
 
   render() {
     const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn;
+    const infoClasses = {
+      info: true,
+      show: this.swaps.length > 0,
+    };
+    const spotPriceClasses = {
+      'spot-price': true,
+      show: this.spotPrice || this.inProgress,
+    };
+    const errorClasses = {
+      error: true,
+      show: this.error,
+    };
     return html`
       <div class="header">
         <h1>Trade Tokens</h1>
@@ -291,19 +347,14 @@ export class TradeTokens extends LitElement {
         <div class="switch">
           <div class="divider"></div>
           <ui-asset-switch class="switch-button"> </ui-asset-switch>
-          ${when(
-            this.spotPrice || this.inProgress,
-            () => html`
-              <ui-asset-price
-                .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
-                .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
-                .outputBalance=${this.spotPrice}
-                .loading=${this.inProgress}
-                class="switch-price"
-              >
-              </ui-asset-price>
-            `
-          )}
+          <ui-asset-price
+            class=${classMap(spotPriceClasses)}
+            .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
+            .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
+            .outputBalance=${this.spotPrice}
+            .loading=${this.inProgress}
+          >
+          </ui-asset-price>
         </div>
         <ui-asset-transfer
           id="assetOut"
@@ -313,18 +364,17 @@ export class TradeTokens extends LitElement {
           .balance=${this.balanceOut}
         ></ui-asset-transfer>
       </div>
-      ${when(
-        this.swaps.length > 0,
-        () => html`
-          <div class="info">
-            <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
-            <div class="row">${this.infoPriceImpactTemplate()}</div>
-            <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
-            <div class="row">${this.infoTransactionFeeTemplate()}</div>
-            <div class="row">${this.infoBestRouteTemplate()}</div>
-          </div>
-        `
-      )}
+      <div class=${classMap(infoClasses)}>
+        <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
+        <div class="row">${this.infoPriceImpactTemplate()}</div>
+        <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
+        <div class="row">${this.infoTransactionFeeTemplate()}</div>
+        <div class="row">${this.infoBestRouteTemplate()}</div>
+      </div>
+      <div class=${classMap(errorClasses)}>
+        <img src="assets/img/icon/error.svg" alt="error" />
+        <span> ${this.error} </span>
+      </div>
       <div class="grow"></div>
       <ui-button ?disabled=${this.disabled} class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}
         >Confirm Swap</ui-button

@@ -29,7 +29,7 @@ import {
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
 } from './trade.d';
-import { PoolAsset } from '@galacticcouncil/sdk';
+import { bnum, PoolAsset, scale } from '@galacticcouncil/sdk';
 
 @customElement('app-trade')
 export class Trade extends LitElement {
@@ -72,6 +72,10 @@ export class Trade extends LitElement {
 
   isEmptyAmount(amount: string): boolean {
     return amount == '' || amount == '0';
+  }
+
+  hasError(): boolean {
+    return this.trade.error != null;
   }
 
   changeScreen(active: TradeScreen) {
@@ -233,6 +237,16 @@ export class Trade extends LitElement {
     };
   }
 
+  validateEnoughBalance(amount: string, asset: PoolAsset) {
+    const assetBalance = this.assets.balance.get(asset.id);
+    const assetAmount = scale(bnum(amount), assetBalance.decimals);
+    if (assetAmount.gt(assetBalance.amount)) {
+      this.trade.error = 'Your trade is bigger than your balance';
+    } else {
+      this.trade.error = null;
+    }
+  }
+
   updateAmountIn(amount: string) {
     // Wipe the trade info on input clear
     if (this.isEmptyAmount(amount)) {
@@ -318,7 +332,6 @@ export class Trade extends LitElement {
 
   sendNotification(id: string, type: NotificationType, trade: TradeState, status: string) {
     const message = this.notificationTemplate(trade, status);
-    //const message = this.notificationMessage(trade, status);
     const options = {
       bubbles: true,
       composed: true,
@@ -369,6 +382,7 @@ export class Trade extends LitElement {
 
     this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
     readyCursor.reset(true);
+    // TODO: Remove once account selector(testing only)
     accountCursor.reset({
       address: 'bXmMqb3jBWToPPXf5RXWgRjFCk3eN9mM9Tqx8uj7MQ9vZ6HEx',
       provider: 'polkadot-js',
@@ -436,7 +450,7 @@ export class Trade extends LitElement {
     return html`<app-trade-tokens
       .assets=${this.assets.map}
       .inProgress=${this.trade.inProgress}
-      .disabled=${!this.isSwapSelected() || this.isSwapEmpty()}
+      .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError()}
       .tradeType=${this.trade.type}
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
@@ -450,11 +464,14 @@ export class Trade extends LitElement {
       .tradeFee=${this.trade.tradeFee}
       .tradeFeePct=${this.trade.tradeFeePct}
       .transactionFee=${this.trade.transactionFee}
+      .error=${this.trade.error}
       .swaps=${this.trade.swaps}
       @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
         this.assets.active = asset;
         id == 'assetIn' && this.updateAmountIn(value);
+        id == 'assetIn' && this.validateEnoughBalance(value, this.trade.assetIn);
         id == 'assetOut' && this.updateAmountOut(value);
+        id == 'assetOut' && this.validateEnoughBalance(value, this.trade.assetOut);
       }}
       @asset-selector-clicked=${({ detail }: CustomEvent) => {
         this.assets.selector = detail;
