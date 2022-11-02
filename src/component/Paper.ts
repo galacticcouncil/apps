@@ -1,14 +1,16 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
+import { themeStyles } from './styles/theme.css';
+import { fontStyles } from './styles/font.css';
 
 @customElement('ui-paper')
 export class Paper extends LitElement {
   static styles = [
     baseStyles,
     themeStyles,
+    fontStyles,
     css`
       :host {
         background: var(--gradient-paper);

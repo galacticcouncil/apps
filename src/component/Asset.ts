@@ -1,8 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
+import { themeStyles } from './styles/theme.css';
+import { fontStyles } from './styles/font.css';
 
 const KNOWN_ASSETS = new Map(
   Object.entries({
@@ -21,6 +22,7 @@ export class Asset extends LitElement {
   static styles = [
     baseStyles,
     themeStyles,
+    fontStyles,
     css`
       :host {
         display: flex;

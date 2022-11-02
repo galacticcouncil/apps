@@ -1,10 +1,9 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
-
-import './IconButton';
+import { themeStyles } from './styles/theme.css';
+import { fontStyles } from './styles/font.css';
 
 @customElement('ui-toast')
 export class Toast extends LitElement {
@@ -24,6 +23,7 @@ export class Toast extends LitElement {
   static styles = [
     baseStyles,
     themeStyles,
+    fontStyles,
     css`
       :host {
         position: fixed;

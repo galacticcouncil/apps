@@ -1,8 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
+import { themeStyles } from './styles/theme.css';
+import { fontStyles } from './styles/font.css';
 
 @customElement('ui-search-bar')
 export class SearchBar extends LitElement {
@@ -12,6 +13,7 @@ export class SearchBar extends LitElement {
   static styles = [
     baseStyles,
     themeStyles,
+    fontStyles,
     css`
       :host {
         width: 100%;

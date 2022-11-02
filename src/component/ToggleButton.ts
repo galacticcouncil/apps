@@ -1,8 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
+import { themeStyles } from './styles/theme.css';
+import { fontStyles } from './styles/font.css';
 
 @customElement('ui-toggle-button')
 export class ToggleButton extends LitElement {
@@ -11,6 +12,7 @@ export class ToggleButton extends LitElement {
   static styles = [
     baseStyles,
     themeStyles,
+    fontStyles,
     css`
       :host([size='small']) .toggle-button-root {
         width: 30px;

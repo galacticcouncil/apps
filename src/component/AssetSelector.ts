@@ -2,8 +2,9 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
-import { themeStyles } from './styles/theme.css';
 import { baseStyles } from './styles/base.css';
+import { themeStyles } from './styles/theme.css';
+import { fontStyles } from './styles/font.css';
 
 const KNOWN_ASSETS = new Map(
   Object.entries({
@@ -22,6 +23,7 @@ export class AssetSelector extends LitElement {
   static styles = [
     baseStyles,
     themeStyles,
+    fontStyles,
     css`
       :host {
         border-radius: 12px;
