@@ -15,6 +15,8 @@ import '../../component/IconButton';
 import '../../component/Button';
 import '../../component/Skeleton';
 
+import '../../component/icons/Icon';
+
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
 @customElement('app-trade-tokens')

@@ -1,57 +1,25 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
 
-import { DatabaseController } from './db.ctrl';
-import { readyCursor } from './db';
+import { createApi } from './chain';
 
-import './component/BusyIndicator';
+import './apps/trade';
+import './apps/notification-center';
+import './apps/root';
 
-@customElement('app-root')
+@customElement('gc-trade-app')
 export class App extends LitElement {
-  private ready = new DatabaseController<Boolean>(this, readyCursor);
-
-  static styles = css`
-    header {
-      height: var(--toolbar-height);
-    }
-
-    main {
-      width: 100%;
-    }
-
-    .loading {
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-  `;
-
-  loadingTemplate() {
-    return html`
-      <div class="loading">
-        <ui-busy-indicator size="large">
-          <span>Initializing connection</span>
-        </ui-busy-indicator>
-      </div>
-    `;
+  override async firstUpdated() {
+    createApi('wss://rococo-basilisk-rpc.hydration.dev', () => {});
   }
 
   render() {
     return html`
-      ${when(
-        this.ready.state,
-        () => html`
-          <header></header>
-          <main>
-            <slot></slot>
-          </main>
-          <footer></footer>
-        `,
-        () => this.loadingTemplate()
-      )}
+      <app-root>
+        <app-notification-center>
+          <app-trade></app-trade>
+        </app-notification-center>
+      </app-root>
     `;
   }
 }

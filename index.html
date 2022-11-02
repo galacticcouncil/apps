@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Trade App</title>
     <meta name="description" content="Trade App" />
-
     <base href="/" />
 
     <style>
@@ -38,6 +37,14 @@
         background: var(--gradient-background);
       }
 
+      header {
+        height: var(--toolbar-height);
+      }
+      
+      main {
+        width: 100%;
+      }
+
       @font-face {
         font-family: 'SatoshiVariable';
         src: url('assets/font/Satoshi-Variable.ttf') format('truetype');
@@ -48,7 +55,11 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="app"></div>
+    <header></header>
+    <main>
+      <gc-trade-app></gc-trade-app>
+    </main>
+    <footer></footer>
     <script type="module" src="./out/index.js"></script>
   </body>
 </html>
