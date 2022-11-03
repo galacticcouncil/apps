@@ -2,6 +2,7 @@ import { html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
+
 @customElement('ui-paper')
 export class Paper extends UIGCElement {
   static styles = [

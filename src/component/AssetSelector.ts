@@ -4,6 +4,8 @@ import { when } from 'lit/directives/when.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
+import './icons/Dropdown';
+
 const KNOWN_ASSETS = new Map(
   Object.entries({
     aUSD: 'Acala USD',
@@ -43,6 +45,7 @@ export class AssetSelector extends UIGCElement {
 
       .select {
         display: flex;
+        align-items: center;
         padding: 0 6px;
         gap: 6px;
       }
@@ -75,11 +78,11 @@ export class AssetSelector extends UIGCElement {
       ${when(
         this.asset,
         () => html` <ui-asset .asset=${this.asset}>
-          <img src="assets/img/icon/dropdown.svg" alt="dropdown" />
+          <icon-dropdown></icon-dropdown>
         </ui-asset>`,
         () => html` <span class="select">
           <span> Select asset </span>
-          <img src="assets/img/icon/dropdown.svg" alt="dropdown" />
+          <icon-dropdown></icon-dropdown>
         </span>`
       )}
     </button>`;

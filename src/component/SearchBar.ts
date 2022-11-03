@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
+import './icons/Magnifier';
+
 @customElement('ui-search-bar')
 export class SearchBar extends UIGCElement {
   @property({ type: String }) value = null;
@@ -58,8 +60,9 @@ export class SearchBar extends UIGCElement {
         box-sizing: border-box;
       }
 
-      .search-root > img {
+      .search-root > icon-magnifier {
         margin-right: 8px;
+        width: 22px;
       }
 
       .search-root:focus-within {
@@ -90,7 +93,8 @@ export class SearchBar extends UIGCElement {
   render() {
     return html`
       <div class="search-root">
-        <img height="24" width="24" src="assets/img/icon/magnifier.svg" />
+        <!-- <img height="24" width="24" src="assets/img/icon/magnifier.svg" /> -->
+        <icon-magnifier></icon-magnifier>
         <input type="text" .value="${this.value}" @input=${this.onInputChange} />
       </div>
     `;

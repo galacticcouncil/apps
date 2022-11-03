@@ -1,8 +1,13 @@
 import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+import { choose } from 'lit/directives/choose.js';
 
 import { UIGCElement } from './base/UIGCElement';
+
+import './icons/Success';
+import './icons/Error';
+import './icons/Progress';
 
 export enum AlertVariant {
   success = 'success',
@@ -16,16 +21,18 @@ const VARIANTS: AlertVariant[] = [AlertVariant.success, AlertVariant.error, Aler
 @customElement('ui-alert')
 export class Alert extends UIGCElement {
   static styles = [
+    UIGCElement.styles,
     css`
       :host {
         background: var(--hex-background-gray-1000);
         border-radius: 12px;
         display: flex;
+        align-items: center;
         padding: 8px 14px;
         color: rgb(255, 255, 255);
       }
 
-      img {
+      .icon {
         margin-right: 12px;
       }
 
@@ -39,28 +46,6 @@ export class Alert extends UIGCElement {
         font-size: 12px;
         line-height: 16px;
         color: var(--hex-neutral-gray-100);
-      }
-
-      .progress {
-        display: inline-block;
-        color: var(--hex-primary-300);
-        -webkit-animation: animation-rotate 1.4s linear infinite;
-        animation: animation-rotate 1.4s linear infinite;
-      }
-
-      @keyframes animation-rotate {
-        0% {
-          -webkit-transform: rotate(0deg);
-          -moz-transform: rotate(0deg);
-          -ms-transform: rotate(0deg);
-          transform: rotate(0deg);
-        }
-        100% {
-          -webkit-transform: rotate(360deg);
-          -moz-transform: rotate(360deg);
-          -ms-transform: rotate(360deg);
-          transform: rotate(360deg);
-        }
       }
     `,
   ];
@@ -98,7 +83,13 @@ export class Alert extends UIGCElement {
     return html`
       ${when(
         this.variant != AlertVariant.default,
-        () => html` <img class=${this.variant} src=${'assets/img/icon/' + this.variant + '.svg'} alt="alert" /> `
+        () => html`
+          ${choose(this.variant, [
+            [AlertVariant.success, () => html`<icon-success class="icon"></icon-success>`],
+            [AlertVariant.error, () => html`<icon-error class="icon"></icon-error>`],
+            [AlertVariant.progress, () => html`<icon-progress class="icon"></icon-progress>`],
+          ])}
+        `
       )}
       <span class="message">
         <slot></slot>

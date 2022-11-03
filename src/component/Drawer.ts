@@ -4,6 +4,8 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
+import './icons/Close';
+
 @customElement('ui-drawer')
 export class Drawer extends UIGCElement {
   @property({ type: Boolean, reflect: true }) open = false;
@@ -107,7 +109,7 @@ export class Drawer extends UIGCElement {
           <slot name="title"></slot>
           <span class="grow"></span>
           <ui-icon-button @click=${() => this.shouldClose()}>
-            <img src="assets/img/icon/close.svg" alt="close" />
+            <icon-close></icon-close>
           </ui-icon-button>
         </div>
         <div class="content">

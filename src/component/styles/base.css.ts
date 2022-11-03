@@ -120,42 +120,6 @@ export const baseStyles = css`
     line-height: inherit;
   }
 
-  /* Typography */
-
-  h1 {
-    font-size: 24px;
-    font-weight: 600;
-  }
-
-  h2 {
-    font-size: 22px;
-    font-weight: 600;
-  }
-
-  h3 {
-    font-size: 18px;
-  }
-
-  /* Scrolls */
-
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: var(--lightestgrey);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: transparent url(assets/img/scrollbar.svg) no-repeat;
-    background-position: bottom;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-
   /* Display */
 
   .hidden {

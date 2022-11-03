@@ -197,7 +197,7 @@ export const baseStyles = css`
 
   /* Scrolls */
 
-  ::-webkit-scrollbar {
+  /* ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
@@ -213,7 +213,7 @@ export const baseStyles = css`
 
   ::-webkit-scrollbar-thumb:hover {
     background: #555;
-  }
+  } */
 
   /* Button */
 

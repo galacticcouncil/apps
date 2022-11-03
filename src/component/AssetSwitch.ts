@@ -3,6 +3,8 @@ import { customElement } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
+import './icons/Switch';
+
 @customElement('ui-asset-switch')
 export class AssetSwitch extends UIGCElement {
   static styles = [
@@ -35,7 +37,7 @@ export class AssetSwitch extends UIGCElement {
   render() {
     return html`
       <div class="switch-root" @click=${this.onSwitchClick}>
-        <img src="assets/img/icon/switch.svg" alt="switch" />
+        <icon-switch></icon-switch>
       </div>
     `;
   }

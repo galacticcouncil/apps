@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
+import './icons/Close';
+
 @customElement('ui-toast')
 export class Toast extends UIGCElement {
   @property({ type: Boolean, reflect: true }) open = false;
@@ -69,6 +71,10 @@ export class Toast extends UIGCElement {
         height: 24px;
         border-radius: 50%;
         background: var(--hex-background-gray-800);
+      }
+
+      .close icon-close {
+        width: 7px;
       }
 
       .close:hover {
@@ -171,7 +177,7 @@ export class Toast extends UIGCElement {
             this.shouldClose();
           }}
         >
-          <img width="7px" src="assets/img/icon/close.svg" alt="close" />
+          <icon-close></icon-close>
         </button>
       </div>
     `;
