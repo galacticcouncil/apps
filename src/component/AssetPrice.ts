@@ -1,24 +1,20 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 import './CircularProgress';
 
 @customElement('ui-asset-price')
-export class AssetPrice extends LitElement {
+export class AssetPrice extends UIGCElement {
   @property({ type: String }) inputAsset = null;
   @property({ type: String }) outputAsset = null;
   @property({ type: String }) outputBalance = null;
   @property({ type: Boolean }) loading = false;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       .chip-root {
         display: flex;

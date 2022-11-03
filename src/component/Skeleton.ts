@@ -1,19 +1,15 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-skeleton')
-export class Skeleton extends LitElement {
+export class Skeleton extends UIGCElement {
   @property({ type: String }) width = null;
   @property({ type: String }) height = null;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host([circle]) span {
         width: 40px;

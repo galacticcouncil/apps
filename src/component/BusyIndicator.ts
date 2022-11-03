@@ -1,16 +1,12 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-busy-indicator')
-export class BusyIndicator extends LitElement {
+export class BusyIndicator extends UIGCElement {
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host {
         color: var(--hex-white);

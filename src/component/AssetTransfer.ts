@@ -1,11 +1,13 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
+import { UIGCElement } from './base/UIGCElement';
 
 import './AssetInput';
 import './AssetSelector';
 
 @customElement('ui-asset-transfer')
-export class AssetTransfer extends LitElement {
+export class AssetTransfer extends UIGCElement {
   @property({ type: String }) id = null;
   @property({ type: String }) title = null;
   @property({ type: String }) balance = null;
@@ -13,6 +15,7 @@ export class AssetTransfer extends LitElement {
   @property({ type: String }) asset = null;
 
   static styles = [
+    UIGCElement.styles,
     css`
       :host {
         display: grid;

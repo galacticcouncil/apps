@@ -1,8 +1,10 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
+import { UIGCElement } from './base/UIGCElement';
+
 @customElement('ui-circular-progress')
-export class CircularProgress extends LitElement {
+export class CircularProgress extends UIGCElement {
   @property({ type: Boolean }) progress = false;
 
   static styles = css`

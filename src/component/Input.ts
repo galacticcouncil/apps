@@ -1,12 +1,10 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-input')
-export class Input extends LitElement {
+export class Input extends UIGCElement {
   @property({ type: String }) type = 'text';
   @property({ type: String }) value = null;
   @property({ type: String }) placeholder = null;
@@ -14,9 +12,7 @@ export class Input extends LitElement {
   @property({ type: String }) max = null;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host {
         width: 100%;

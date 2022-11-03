@@ -1,16 +1,12 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-icon-button')
-export class IconButton extends LitElement {
+export class IconButton extends UIGCElement {
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host([size='small']) .icon-button-root {
         width: 24px;

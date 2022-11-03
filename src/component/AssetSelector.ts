@@ -1,10 +1,8 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 const KNOWN_ASSETS = new Map(
   Object.entries({
@@ -16,14 +14,12 @@ const KNOWN_ASSETS = new Map(
 );
 
 @customElement('ui-asset-selector')
-export class AssetSelector extends LitElement {
+export class AssetSelector extends UIGCElement {
   @property({ type: String }) id = null;
   @property({ type: String }) asset = null;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host {
         border-radius: 12px;

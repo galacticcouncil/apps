@@ -1,18 +1,14 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-switch')
-export class Switch extends LitElement {
+export class Switch extends UIGCElement {
   @property({ type: String }) value = null;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host([size='small']) .switch-root {
         width: 46px;

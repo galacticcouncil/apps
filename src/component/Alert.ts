@@ -1,10 +1,8 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 export enum AlertVariant {
   success = 'success',
@@ -16,11 +14,8 @@ export enum AlertVariant {
 const VARIANTS: AlertVariant[] = [AlertVariant.success, AlertVariant.error, AlertVariant.progress];
 
 @customElement('ui-alert')
-export class Alert extends LitElement {
+export class Alert extends UIGCElement {
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
     css`
       :host {
         background: var(--hex-background-gray-1000);

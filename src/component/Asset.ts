@@ -1,9 +1,7 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 const KNOWN_ASSETS = new Map(
   Object.entries({
@@ -16,13 +14,11 @@ const KNOWN_ASSETS = new Map(
 );
 
 @customElement('ui-asset')
-export class Asset extends LitElement {
+export class Asset extends UIGCElement {
   @property({ type: String }) asset = null;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host {
         display: flex;

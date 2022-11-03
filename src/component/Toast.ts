@@ -1,12 +1,10 @@
-import { LitElement, html, css, PropertyValues } from 'lit';
+import { html, css, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-toast')
-export class Toast extends LitElement {
+export class Toast extends UIGCElement {
   @property({ type: Boolean, reflect: true }) open = false;
 
   /**
@@ -21,9 +19,7 @@ export class Toast extends LitElement {
   @property({ type: Number }) timeout = 6000;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host {
         position: fixed;

@@ -10,7 +10,9 @@ export const fontStyles = css`
     -moz-osx-font-smoothing: grayscale;
     font-family: 'SatoshiVariable', sans-serif;
   }
+`;
 
+export const fontFace = css`
   @font-face {
     font-family: 'SatoshiVariable';
     src: url('assets/font/Satoshi-Variable.ttf') format('truetype');

@@ -15,11 +15,11 @@ export class App extends LitElement {
 
   render() {
     return html`
-      <app-root>
-        <app-notification-center>
+      <app-notification-center>
+        <app-root>
           <app-trade></app-trade>
-        </app-notification-center>
-      </app-root>
+        </app-root>
+      </app-notification-center>
     `;
   }
 }

@@ -1,22 +1,18 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
+import { UIGCElement } from './base/UIGCElement';
 
 import './Asset';
 
 @customElement('ui-asset-list-item')
-export class AssetListItem extends LitElement {
+export class AssetListItem extends UIGCElement {
   @property({ attribute: false }) asset = null;
   @property({ type: String }) balance = null;
   @property({ type: Boolean }) disabled = false;
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host([disabled]) {
         opacity: 0.6;

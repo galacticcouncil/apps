@@ -1,13 +1,11 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
+import { UIGCElement } from './base/UIGCElement';
 import { debounce } from 'ts-debounce';
 
-import { baseStyles } from './styles/base.css';
-import { themeStyles } from './styles/theme.css';
-import { fontStyles } from './styles/font.css';
-
 @customElement('ui-asset-input')
-export class AssetInput extends LitElement {
+export class AssetInput extends UIGCElement {
   @property({ type: String }) id = null;
   @property({ type: String }) amount = null;
   @property({ type: String }) amountUsd = '0';
@@ -21,9 +19,7 @@ export class AssetInput extends LitElement {
   }
 
   static styles = [
-    baseStyles,
-    themeStyles,
-    fontStyles,
+    UIGCElement.styles,
     css`
       :host {
         width: 100%;
