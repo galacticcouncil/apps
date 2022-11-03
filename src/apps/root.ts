@@ -13,30 +13,45 @@ export class Root extends LitElement {
 
   static styles = css`
     .loading {
-      width: 100%;
-      height: 100vh;
       display: none;
       flex-direction: column;
       justify-content: center;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -100px;
+      margin-left: -100px;
+      width: 200px;
+      height: 200px;
     }
 
     .loading.show {
       display: flex;
     }
+
+    .app.hide {
+      display: none;
+    }
   `;
 
   render() {
-    const classes = {
+    const loadingClasses = {
       loading: true,
       show: !this.ready.state,
     };
+    const appClasses = {
+      app: true,
+      hide: !this.ready.state,
+    };
     return html`
-      <div class=${classMap(classes)}>
+      <div class=${classMap(loadingClasses)}>
         <ui-busy-indicator size="large">
           <span>Initializing connection</span>
         </ui-busy-indicator>
       </div>
-      <slot></slot>
+      <div class=${classMap(appClasses)}>
+        <slot></slot>
+      </div>
     `;
   }
 }
