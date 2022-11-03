@@ -18,6 +18,7 @@ import '../../component/Skeleton';
 import '../../component/icons/Settings';
 import '../../component/icons/Route';
 import '../../component/icons/ChevronRight';
+import '../../component/icons/Error';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
@@ -222,7 +223,7 @@ export class TradeTokens extends LitElement {
         line-height: 16px;
       }
 
-      .error img {
+      .error icon-error {
         margin-right: 8px;
       }
 
@@ -386,7 +387,7 @@ export class TradeTokens extends LitElement {
         <div class="row">${this.infoBestRouteTemplate()}</div>
       </div>
       <div class=${classMap(errorClasses)}>
-        <img src="assets/img/icon/error.svg" alt="error" />
+        <icon-error></icon-error>
         <span> ${this.error} </span>
       </div>
       <div class="grow"></div>
