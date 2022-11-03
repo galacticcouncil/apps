@@ -15,7 +15,9 @@ import '../../component/IconButton';
 import '../../component/Button';
 import '../../component/Skeleton';
 
-import '../../component/icons/Icon';
+import '../../component/icons/Settings';
+import '../../component/icons/Route';
+import '../../component/icons/ChevronRight';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
@@ -185,6 +187,14 @@ export class TradeTokens extends LitElement {
         color: var(--hex-primary-success);
       }
 
+      .info icon-chevron-right {
+        width: 22px;
+      }
+
+      .info icon-route {
+        margin-left: 12px;
+      }
+
       .error {
         display: none;
         flex-direction: row;
@@ -293,15 +303,17 @@ export class TradeTokens extends LitElement {
   }
 
   bestRouteTemplate() {
-    return html` <span class="value">${this.assetIn}</span>
+    return html`
+      <span class="value">${this.assetIn}</span>
       ${this.swaps.map(
         (swap: any) =>
           html`
-            <img width="22px" src="assets/img/icon/arrow-right.svg" alt="next" />
+            <icon-chevron-right></icon-chevron-right>
             <span class="value">${this.assets.get(swap.assetOut).symbol}</span>
           `
       )}
-      <img class="route-icon" src="assets/img/icon/route.svg" alt="route" />`;
+      <icon-route></icon-route>
+    `;
   }
 
   infoBestRouteTemplate() {
@@ -335,7 +347,7 @@ export class TradeTokens extends LitElement {
         <h1>Trade Tokens</h1>
         <span class="grow"></span>
         <ui-icon-button @click=${this.onSettingsClick}>
-          <img src="assets/img/icon/settings.svg" alt="settings" />
+          <icon-settings></icon-settings>
         </ui-icon-button>
       </div>
       <div class="transfer">

@@ -10,6 +10,8 @@ import '../../component/IconButton';
 import '../../component/Paper';
 import '../../component/SearchBar';
 
+import '../../component/icons/Back';
+
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 import { AssetSelector } from '../trade.d';
 
@@ -108,9 +110,7 @@ export class SelectToken extends LitElement {
   render() {
     return html`
       <div class="header">
-        <ui-icon-button class="back" @click=${this.onBackClick}>
-          <img src="assets/img/icon/back.svg" alt="back" />
-        </ui-icon-button>
+        <ui-icon-button class="back" @click=${this.onBackClick}> <icon-back></icon-back> </ui-icon-button>
         <span>Select token</span>
         <span></span>
       </div>

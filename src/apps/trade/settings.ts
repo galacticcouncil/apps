@@ -12,6 +12,8 @@ import '../../component/Switch';
 import '../../component/ToggleButton';
 import '../../component/ToggleButtonGroup';
 
+import '../../component/icons/Back';
+
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('app-settings')
@@ -157,9 +159,7 @@ export class Settings extends LitElement {
   render() {
     return html`
       <div class="header">
-        <ui-icon-button class="back" @click=${this.onBackClick}>
-          <img src="assets/img/icon/back.svg" alt="back" />
-        </ui-icon-button>
+        <ui-icon-button class="back" @click=${this.onBackClick}> <icon-back></icon-back> </ui-icon-button>
         <span>Edit settings</span>
         <span></span>
       </div>
