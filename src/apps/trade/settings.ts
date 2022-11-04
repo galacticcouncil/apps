@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-import { baseStyles } from '../../base.css';
+import { baseStyles } from '../base.css';
 
 import { settingsCursor } from '../../db';
 

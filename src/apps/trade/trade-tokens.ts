@@ -4,7 +4,7 @@ import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { baseStyles } from '../../base.css';
+import { baseStyles } from '../base.css';
 
 import '../../component/AssetTransfer';
 import '../../component/AssetPrice';

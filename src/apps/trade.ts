@@ -2,7 +2,7 @@ import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from './base.css';
 
 import { DatabaseController } from '../db.ctrl';
 import { Chain, chainCursor, readyCursor, accountCursor, transactionCursor } from '../db';
