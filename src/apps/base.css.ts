@@ -167,20 +167,6 @@ export const baseStyles = css`
     }
   }
 
-  /* Section */
-
-  section {
-    padding-top: 75px;
-  }
-
-  @media (min-width: 768px) {
-    section > div {
-      margin-left: 8.33333%;
-      flex: 0 0 83.33333%;
-      max-width: 83.33333%;
-    }
-  }
-
   h1 {
     font-size: 24px;
     font-weight: 600;
@@ -214,91 +200,4 @@ export const baseStyles = css`
   ::-webkit-scrollbar-thumb:hover {
     background: #555;
   } */
-
-  /* Button */
-
-  .btn {
-    position: relative;
-  }
-
-  .btn button {
-    align-items: center;
-    justify-content: center;
-    height: 24px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding-left: 15px;
-    padding-right: 15px;
-    background-color: var(--color-secondary);
-    color: #fff;
-  }
-
-  .btn button:hover {
-    cursor: pointer;
-    color: #444;
-  }
-
-  .btn button:disabled,
-  .btn button[disabled] {
-    color: rgba(0, 0, 0, 0.26);
-    background-image: none;
-    background-color: rgba(122, 192, 175, 0.5);
-    cursor: default;
-  }
-
-  .goto > a {
-    display: inline-flex;
-    position: relative;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    height: 30px;
-    font-size: 13px;
-    line-height: 18px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--color-main);
-  }
-
-  .goto:hover > a {
-    color: var(--color-secondary);
-  }
-
-  .goto > a > .goto-img {
-    background-image: url(assets/img/icon/chevron-right.svg);
-    height: 24px;
-    width: 24px;
-    margin-right: 8px;
-  }
-
-  .goto:hover > a > .goto-img {
-    background-image: url(assets/img/icon/chevron-right-alt.svg);
-  }
-
-  .form-field__input,
-  .form-field__select,
-  .form-field__textarea {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    width: 100%;
-    display: block;
-    background: none;
-    border: 0;
-    outline: none;
-    transition: box-shadow 0.25s ease;
-    border-radius: 0;
-    padding: 6px 0;
-    color: #404040;
-    box-shadow: 0 1px 0 #dedede;
-    font-size: 19px;
-    line-height: 1.5;
-  }
-
-  .form-field__input:focus,
-  .form-field__select:focus,
-  .form-field__textarea:focus {
-    box-shadow: 0 3px 0 #000;
-  }
 `;
