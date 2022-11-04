@@ -58,7 +58,7 @@ export class AssetSelector extends UIGCElement {
         white-space: nowrap;
       }
 
-      .select img {
+      .select icon-dropdown {
         margin-top: 3px;
       }
     `,
