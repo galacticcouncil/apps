@@ -29,7 +29,7 @@ import {
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
 } from './trade.d';
-import { bnum, PoolAsset, scale } from '@galacticcouncil/sdk';
+import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
 
 @customElement('app-trade')
 export class Trade extends LitElement {
@@ -94,6 +94,7 @@ export class Trade extends LitElement {
       ...trade,
     };
     transactionCursor.reset(transaction);
+    this.validateTrade(TradeType.Sell);
     console.log(trade);
   }
 
@@ -108,6 +109,7 @@ export class Trade extends LitElement {
       ...trade,
     };
     transactionCursor.reset(transaction);
+    this.validateTrade(TradeType.Buy);
     console.log(trade);
   }
 
@@ -241,9 +243,33 @@ export class Trade extends LitElement {
     const assetBalance = this.assets.balance.get(asset.id);
     const assetAmount = scale(bnum(amount), assetBalance.decimals);
     if (assetAmount.gt(assetBalance.amount)) {
-      this.trade.error = 'Your trade is bigger than your balance';
+      this.trade.error['balance'] = 'Your trade is bigger than your balance';
     } else {
-      this.trade.error = null;
+      delete this.trade.error['balance'];
+    }
+  }
+
+  translateTradeError(error: string): string {
+    switch (error) {
+      case 'InsufficientTradingAmount':
+        return 'Minimal trade limit is not reached';
+      case 'MaxOutRatioExceeded':
+        return 'Maximal pool trade limit is reached, please split your trade';
+      case 'MaxInRatioExceeded':
+        return 'Maximal pool trade limit is reached, please split your trade';
+    }
+  }
+
+  validateTrade(type: TradeType) {
+    if (this.trade.swaps.length === 0) {
+      return;
+    }
+    const swaps = type == TradeType.Buy ? this.trade.swaps.reverse() : this.trade.swaps;
+    const swapWithError: any = swaps.find((swap: any) => swap.errors.length > 0);
+    if (swapWithError) {
+      this.trade.error['trade'] = this.translateTradeError(swapWithError.errors[0]);
+    } else {
+      delete this.trade.error['trade'];
     }
   }
 

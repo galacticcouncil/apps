@@ -54,7 +54,7 @@ export type TradeState = {
   tradeFeePct: string;
   transactionFee: string;
   swaps: [];
-  error: string;
+  error: {};
 };
 
 export const DEFAULT_TRADE_STATE: TradeState = {
@@ -75,5 +75,5 @@ export const DEFAULT_TRADE_STATE: TradeState = {
   tradeFeePct: '0',
   transactionFee: null,
   swaps: [],
-  error: null,
+  error: {},
 };

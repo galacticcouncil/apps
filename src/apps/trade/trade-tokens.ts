@@ -40,7 +40,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) transactionFee = null;
-  @property({ type: String }) error = null;
+  @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
 
   static styles = [
@@ -190,6 +190,7 @@ export class TradeTokens extends LitElement {
 
       .info icon-chevron-right {
         width: 22px;
+        height: 22px;
       }
 
       .info icon-route {
@@ -341,7 +342,7 @@ export class TradeTokens extends LitElement {
     };
     const errorClasses = {
       error: true,
-      show: this.error,
+      show: Object.keys(this.error).length > 0,
     };
     return html`
       <div class="header">
@@ -388,7 +389,7 @@ export class TradeTokens extends LitElement {
       </div>
       <div class=${classMap(errorClasses)}>
         <icon-error></icon-error>
-        <span> ${this.error} </span>
+        <span> ${this.error['balance'] || this.error['trade']} </span>
       </div>
       <div class="grow"></div>
       <ui-button ?disabled=${this.disabled} class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}
