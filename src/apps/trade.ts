@@ -75,7 +75,7 @@ export class Trade extends LitElement {
   }
 
   hasError(): boolean {
-    return this.trade.error != null;
+    return Object.keys(this.trade.error).length > 0;
   }
 
   changeScreen(active: TradeScreen) {
