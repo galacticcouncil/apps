@@ -1,4 +1,4 @@
-import { PoolAsset, TradeType, Transaction } from '@galacticcouncil/sdk';
+import { Amount, PoolAsset, TradeType, Transaction } from '@galacticcouncil/sdk';
 
 export enum TradeScreen {
   Settings,

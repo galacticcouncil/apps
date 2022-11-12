@@ -1,24 +1,25 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 
-import { baseStyles } from './base.css';
+import { baseStyles } from '../base.css';
 
-import { DatabaseController } from '../db.ctrl';
-import { Chain, chainCursor, readyCursor, accountCursor, transactionCursor } from '../db';
-import { getPaymentInfo, signAndSend } from '../api/transaction';
-import { getBestSell, getBestBuy } from '../api/trade';
-import { getAssetsBalance, getAssetsPairs } from '../api/asset';
-import { formatAmount } from '../utils/amount';
-import { SYSTEM_ASSET_ID } from '../utils/chain';
+import { DatabaseController } from '../../db.ctrl';
+import { Chain, chainCursor, readyCursor, accountCursor, transactionCursor } from '../../db';
+import { getPaymentInfo, signAndSend } from '../../api/transaction';
+import { getBestSell, getBestBuy } from '../../api/trade';
+import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
+import { formatAmount } from '../../utils/amount';
+import { SYSTEM_ASSET_ID } from '../../utils/chain';
+
 import short from 'short-uuid';
+import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
 
-import '../component/Paper';
+import '../../component/Paper';
 
-import './trade/select-token';
-import './trade/settings';
-import './trade/trade-tokens';
-import { Notification, NotificationType } from './notification-center';
+import './select-token';
+import './settings';
+import './trade-tokens';
 
 import {
   TradeScreen,
@@ -28,8 +29,8 @@ import {
   DEFAULT_SCREEN_STATE,
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
-} from './trade.d';
-import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
+} from './types';
+import { Notification, NotificationType } from '../notification/types';
 
 @customElement('app-trade')
 export class Trade extends LitElement {
@@ -181,6 +182,7 @@ export class Trade extends LitElement {
         balanceIn: null,
         amountOut: null,
       };
+      this.assets.active = assetIn.symbol;
       this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
     } else {
       this.trade = {
@@ -216,6 +218,7 @@ export class Trade extends LitElement {
         balanceOut: null,
         amountIn: null,
       };
+      this.assets.active = assetOut.symbol;
       this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
     } else {
       this.trade = {
@@ -356,17 +359,17 @@ export class Trade extends LitElement {
     `;
   }
 
-  sendNotification(id: string, type: NotificationType, trade: TradeState, status: string) {
+  updateTxStatus(id: string, type: NotificationType, trade: TradeState, status: string) {
     const message = this.notificationTemplate(trade, status);
     const options = {
       bubbles: true,
       composed: true,
-      detail: { id: id, timestamp: Date.now(), type: type, message: message } as Notification,
+      detail: { id: id, timestamp: Date.now(), type: type, message: message, toast: true } as Notification,
     };
-    this.dispatchEvent(new CustomEvent<Notification>('trade-notification', options));
+    this.dispatchEvent(new CustomEvent<Notification>('gc:tx:' + status, options));
   }
 
-  async swap(id: string, trade: TradeState) {
+  async swap(processingId: string, trade: TradeState) {
     const account = accountCursor.deref();
     const transaction = transactionCursor.deref();
     if (account && transaction) {
@@ -377,18 +380,16 @@ export class Trade extends LitElement {
           const type = status.type.toLowerCase();
           switch (type) {
             case 'broadcast':
-              this.sendNotification(id, NotificationType.progress, trade, 'broadcasted');
-              break;
-            case 'finalized':
-              this.sendNotification(id, NotificationType.success, trade, 'done');
+              this.updateTxStatus(processingId, NotificationType.progress, trade, 'broadcasted');
               break;
             case 'inblock':
+              this.updateTxStatus(processingId, NotificationType.success, trade, 'submitted');
               console.log(`Completed at block hash #${status.asInBlock.toString()}`);
               break;
           }
         },
         (error) => {
-          this.sendNotification(id, NotificationType.error, trade, error.toString());
+          this.updateTxStatus(processingId, NotificationType.error, trade, 'failed');
         }
       );
     }
@@ -506,8 +507,8 @@ export class Trade extends LitElement {
       @asset-switch-clicked=${this.switchAssets}
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
       @swap-clicked=${() => {
-        const transactionId = short.generate();
-        this.swap(transactionId, this.trade);
+        const processingId = short.generate();
+        this.swap(processingId, this.trade);
       }}
     ></app-trade-tokens>`;
   }

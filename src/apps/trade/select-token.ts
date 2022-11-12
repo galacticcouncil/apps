@@ -13,7 +13,7 @@ import '../../component/SearchBar';
 import '../../component/icons/Back';
 
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
-import { AssetSelector } from '../trade.d';
+import { AssetSelector } from './types';
 
 @customElement('app-select-token')
 export class SelectToken extends LitElement {
@@ -122,7 +122,7 @@ export class SelectToken extends LitElement {
       <ui-asset-list>
         ${this.filterAssets(this.query).map((asset: PoolAsset) => {
           const balance = this.balances.get(asset.id);
-          const balanceFormated = formatAmount(balance.amount, balance.decimals);
+          const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
           return html`
             <ui-asset-list-item
               slot=${this.getSlot(asset)}

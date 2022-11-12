@@ -4,8 +4,8 @@ import { customElement } from 'lit/decorators.js';
 import { createApi } from './chain';
 
 import './apps/trade';
-import './apps/notification-center';
-import './apps/root';
+import './apps/notification';
+import './apps/transaction';
 
 @customElement('gc-trade-app')
 export class App extends LitElement {
@@ -16,9 +16,9 @@ export class App extends LitElement {
   render() {
     return html`
       <app-notification-center>
-        <app-root>
-          <app-trade></app-trade>
-        </app-root>
+        <app-transaction-center>
+          <app-trade> </app-trade>
+        </app-transaction-center>
       </app-notification-center>
     `;
   }

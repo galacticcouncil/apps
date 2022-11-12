@@ -3,23 +3,11 @@ import { customElement, state } from 'lit/decorators.js';
 
 import humanizeDuration, { HumanizerOptions } from 'humanize-duration';
 
-import '../component/Toast';
-import '../component/Alert';
-import '../component/Drawer';
+import '../../component/Toast';
+import '../../component/Alert';
+import '../../component/Drawer';
 
-export enum NotificationType {
-  success = 'success',
-  error = 'error',
-  progress = 'progress',
-  default = '',
-}
-
-export type Notification = {
-  id: string;
-  timestamp: number;
-  message: string | TemplateResult;
-  type: NotificationType;
-};
+import { Notification, NotificationType } from './types';
 
 @customElement('app-notification-center')
 export class NotificationCenter extends LitElement {
@@ -47,7 +35,7 @@ export class NotificationCenter extends LitElement {
 
   constructor() {
     super();
-    this.addEventListener('trade-notification', (e: CustomEvent<Notification>) => this.appendNewNotification(e.detail));
+    this.addEventListener('gc:notification', (e: CustomEvent<Notification>) => this.appendNewNotification(e.detail));
   }
 
   openDrawer() {
@@ -56,12 +44,14 @@ export class NotificationCenter extends LitElement {
   }
 
   appendNewNotification(n: Notification) {
-    const toast = html`
-      <ui-toast open @click=${() => this.openDrawer()}>
-        <ui-alert variant=${n.type}> ${this.notificationMessage(n.message)}</ui-alert>
-      </ui-toast>
-    `;
-    this.snacks = [...this.snacks, toast];
+    if (n.toast) {
+      const toast = html`
+        <ui-toast open timeout="6000" @click=${() => this.openDrawer()}>
+          <ui-alert variant=${n.type}> ${this.notificationMessage(n.message)}</ui-alert>
+        </ui-toast>
+      `;
+      this.snacks = [...this.snacks, toast];
+    }
     this.notifications.set(n.id, n);
   }
 
