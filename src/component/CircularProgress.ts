@@ -5,31 +5,51 @@ import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-circular-progress')
 export class CircularProgress extends UIGCElement {
-  @property({ type: Boolean }) progress = false;
+  @property({ type: String }) width = null;
+  @property({ type: String }) height = null;
 
   static styles = css`
-    :host([size='small']) .progress-indeterminate {
+    :host {
+      --spinner-width: 3px;
+    }
+
+    :host([size='small']) .progress-root {
       width: 14px;
       height: 14px;
-      margin-top: -7px;
     }
 
-    :host(:not([size])) .progress-indeterminate,
-    :host([size='medium']) .progress-indeterminate {
+    :host(:not([size])) .progress-root,
+    :host([size='medium']) .progress-root {
       width: 24px;
       height: 24px;
-      margin-top: -12px;
     }
 
-    .progress-indeterminate {
-      position: absolute;
-      display: inline-block;
-      color: var(--hex-primary-300);
-      -webkit-animation: animation-rotate 1.4s linear infinite;
-      animation: animation-rotate 1.4s linear infinite;
-      top: 50%;
-      left: 50%;
-      margin-left: -12px;
+    .progress-root {
+      display: block;
+      position: relative;
+      border-radius: 9999px;
+      -webkit-mask: radial-gradient(
+        farthest-side,
+        rgba(255, 255, 255, 0) calc(100% - var(--spinner-width)),
+        rgba(255, 255, 255, 1) calc(100% - var(--spinner-width) + 1px)
+      );
+      mask: radial-gradient(
+        farthest-side,
+        rgba(255, 255, 255, 0) calc(100% - var(--spinner-width)),
+        rgba(255, 255, 255, 1) calc(100% - var(--spinner-width) + 1px)
+      );
+      -webkit-animation: 0.6s linear 0s infinite normal none running animation-rotate;
+      animation: 0.6s linear 0s infinite normal none running animation-rotate;
+      overflow: hidden;
+      background: conic-gradient(
+        from 0deg,
+        rgb(82, 239, 158) 0deg,
+        rgb(82, 239, 158) 45deg,
+        rgb(252, 174, 49) 140deg,
+        rgb(247, 196, 94) 160deg,
+        rgba(105, 105, 119, 0) 220deg,
+        rgba(255, 181, 112, 0)
+      );
     }
 
     @keyframes animation-rotate {
@@ -46,57 +66,16 @@ export class CircularProgress extends UIGCElement {
         transform: rotate(360deg);
       }
     }
-
-    .progress-circle {
-      stroke-dasharray: 80px, 200px;
-      stroke-dashoffset: 0;
-      -webkit-animation: animation-stroke 1.4s ease-in-out infinite;
-      animation: animation-stroke 1.4s ease-in-out infinite;
-    }
-
-    @keyframes animation-stroke {
-      0% {
-        stroke-dasharray: 1px, 200px;
-        stroke-dashoffset: 0;
-      }
-
-      50% {
-        stroke-dasharray: 100px, 200px;
-        stroke-dashoffset: -15px;
-      }
-
-      100% {
-        stroke-dasharray: 100px, 200px;
-        stroke-dashoffset: -125px;
-      }
-    }
-
-    .hidden {
-      display: none;
-    }
   `;
 
+  override async firstUpdated() {
+    const progress = this.shadowRoot.querySelector('.progress-root');
+    if (this.width && this.height) {
+      progress.setAttribute('style', 'width:' + this.width + ';' + 'height:' + this.height);
+    }
+  }
+
   render() {
-    return html`
-      <span class=${this.progress ? 'progress-indeterminate' : 'hidden'}>
-        <svg viewBox="22 22 44 44">
-          <linearGradient id="linearColors" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="5%" stop-color="#F8C35D"></stop>
-            <stop offset="25%" stop-color="#FCAE33"></stop>
-            <stop offset="40%" stop-color="#54EF9F"></stop>
-            <stop offset="60%" stop-color="#54EF9F"></stop>
-          </linearGradient>
-          <circle
-            class="progress-circle"
-            stroke="url(#linearColors)"
-            cx="44"
-            cy="44"
-            r="20.2"
-            fill="none"
-            stroke-width="6.6"
-          ></circle>
-        </svg>
-      </span>
-    `;
+    return html` <span class="progress-root"></span> `;
   }
 }

@@ -44,7 +44,6 @@ export class AssetPrice extends UIGCElement {
 
       .progress {
         position: relative;
-        margin-left: 8px;
       }
 
       .progress-text {
@@ -58,7 +57,7 @@ export class AssetPrice extends UIGCElement {
       ${when(
         this.loading,
         () => html`<div class="chip-root">
-          <span class="progress"> <ui-circular-progress size="small" progress="true"></ui-circular-progress> </span>
+          <span class="progress"> <ui-circular-progress size="small"></ui-circular-progress> </span>
           <span class="progress-text">Fetching the best price...</span>
         </div>`,
         () => html` <div class="chip-root">
