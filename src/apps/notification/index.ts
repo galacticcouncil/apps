@@ -1,6 +1,8 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import { baseStyles } from '../base.css';
+
 import humanizeDuration, { HumanizerOptions } from 'humanize-duration';
 
 import '../../component/Toast';
@@ -11,27 +13,37 @@ import { Notification, NotificationType } from './types';
 
 @customElement('app-notification-center')
 export class NotificationCenter extends LitElement {
-  @state() snacks: TemplateResult[] = [];
+  @state() toasts: TemplateResult[] = [];
   @state() notifications: Map<string, Notification> = new Map([]);
 
-  static styles = css`
-    .notification {
-      margin-bottom: 10px;
-    }
+  static styles = [
+    baseStyles,
+    css`
+      .notification {
+        margin-bottom: 10px;
+      }
 
-    .time {
-      color: #acb2b5;
-    }
+      .secondary {
+        display: flex;
+        color: #acb2b5;
+      }
 
-    .message {
-      color: var(--hex-neutral-gray-100);
-    }
+      .message {
+        color: var(--hex-neutral-gray-100);
+      }
 
-    .message .highlight {
-      font-weight: 600;
-      color: var(--hex-white);
-    }
-  `;
+      .message .highlight {
+        font-weight: 600;
+        color: var(--hex-white);
+      }
+
+      @media (min-width: 768px) {
+        ui-toast {
+          width: 380px;
+        }
+      }
+    `,
+  ];
 
   constructor() {
     super();
@@ -45,12 +57,8 @@ export class NotificationCenter extends LitElement {
 
   appendNewNotification(n: Notification) {
     if (n.toast) {
-      const toast = html`
-        <ui-toast open timeout="6000" @click=${() => this.openDrawer()}>
-          <ui-alert variant=${n.type}> ${this.notificationMessage(n.message)}</ui-alert>
-        </ui-toast>
-      `;
-      this.snacks = [...this.snacks, toast];
+      const toast = this.toastTemplate(n);
+      this.toasts = [...this.toasts, toast];
     }
     this.notifications.set(n.id, n);
   }
@@ -65,15 +73,81 @@ export class NotificationCenter extends LitElement {
   notificationTemplate(n: Notification) {
     return html`
       <ui-alert class="notification" variant=${n.type}>
-        ${this.notificationMessage(n.message)}
-        <span class="time">${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
+        <span class="message">${n.message}</span>
+        <span class="secondary">
+          <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
+        </span>
       </ui-alert>
     `;
   }
 
+  toastTemplate(n: Notification) {
+    return html`
+      <ui-toast
+        open
+        id=${n.id}
+        timeout=${n.type === NotificationType.success ? 6000 : 0}
+        @click=${() => this.openDrawer()}
+      >
+        <ui-alert variant=${n.type}>
+          <span class="message">${n.message}</span>
+          <span class="secondary">
+            <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
+            <span class="grow"></span>
+            <span class="count"></span>
+          </span>
+        </ui-alert>
+      </ui-toast>
+    `;
+  }
+
+  removeToastFromDom(id: string): void {
+    const allToasts = this.shadowRoot.querySelectorAll('ui-toast');
+    allToasts.forEach((t: Element) => {
+      const value = t.getAttribute('id');
+      if (id === value) {
+        t.remove();
+      }
+    });
+  }
+
+  closeToast(id: string): void {
+    this.removeToastFromDom(id);
+    this.requestUpdate();
+  }
+
+  getToastCount(): number {
+    const toasts = new Set<string>([]);
+    const allToasts = this.shadowRoot.querySelectorAll('ui-toast');
+    allToasts.forEach((t: Element) => {
+      const value = t.getAttribute('id');
+      toasts.add(value);
+    });
+    return toasts.size;
+  }
+
+  async updated() {
+    const allToasts = this.shadowRoot.querySelectorAll('.count');
+    const toastNo = this.getToastCount();
+    if (toastNo > 1) {
+      allToasts.forEach((t: Element) => {
+        t.innerHTML = '1 of ' + toastNo.toString();
+      });
+    } else {
+      allToasts.forEach((t: Element) => {
+        t.innerHTML = null;
+      });
+    }
+  }
+
   render() {
     return html`
-      ${this.snacks}
+      <div
+        @closeable-closed=${(e: CustomEvent) => this.closeToast(e.detail.id)}
+        @toast-closed=${(e: CustomEvent) => this.closeToast(e.detail.id)}
+      >
+        ${this.toasts}
+      </div>
       <ui-drawer>
         <span slot="title">Recent Activities</span>
         ${[...this.notifications.values()]
