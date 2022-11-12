@@ -2,8 +2,8 @@ import { html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
-import { CloseableElement } from './base/closeableElement';
 import { UIGCElement } from './base/UIGCElement';
+import { CloseableElement } from './base/closeableElement';
 
 import './Progress';
 import './icons/Close';
@@ -47,6 +47,10 @@ export class Toast extends CloseableElement {
         min-width: 130px;
       }
 
+      .content {
+        width: 100%;
+      }
+
       slot[name='alert']::slotted(*) {
         padding: 0;
       }
@@ -87,7 +91,17 @@ export class Toast extends CloseableElement {
 
   onClose(e: Event) {
     e.stopPropagation();
-    this.shouldClose();
+    const applyDefault = this.dispatchEvent(
+      new CustomEvent('toast-closed', {
+        composed: true,
+        bubbles: true,
+        cancelable: true,
+        detail: { id: this.id },
+      })
+    );
+    if (applyDefault) {
+      this.close();
+    }
   }
 
   render() {

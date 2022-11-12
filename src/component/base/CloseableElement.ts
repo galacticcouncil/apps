@@ -4,6 +4,7 @@ import { UIGCElement } from './UIGCElement';
 
 export class CloseableElement extends UIGCElement {
   @property({ type: Boolean, reflect: true }) open = false;
+  @property({ type: String }) id = null;
 
   /**
    * Timeout represents the number of milliseconds from when the Toast was placed
@@ -57,11 +58,16 @@ export class CloseableElement extends UIGCElement {
   }
 
   protected shouldClose(): void {
+    if (this.timeout === 0) {
+      return;
+    }
+
     const applyDefault = this.dispatchEvent(
-      new CustomEvent('close', {
+      new CustomEvent('closeable-closed', {
         composed: true,
         bubbles: true,
         cancelable: true,
+        detail: { id: this.id },
       })
     );
     if (applyDefault) {

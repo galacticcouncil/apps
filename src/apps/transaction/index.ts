@@ -67,18 +67,18 @@ export class TransactionCenter extends LitElement {
 
   handleBroadcasted(n: Notification) {
     this.currentTx = n.id;
-    this.message = html` <ui-dialog>${this.broadcastTemplate()}</ui-dialog> `;
+    this.message = this.broadcastTemplate(n);
     this.sendNotification(n.id, NotificationType.progress, n.message, false);
   }
 
   handleError(n: Notification) {
-    this.message = html` <ui-dialog>${this.errorTemplate()}</ui-dialog> `;
+    this.message = this.errorTemplate(n);
     this.sendNotification(n.id, NotificationType.error, n.message, false);
   }
 
   handleSubmitted(n: Notification) {
     if (n.id == this.currentTx) {
-      this.message = html` <ui-dialog>${this.successTemplate()}</ui-dialog> `;
+      this.message = this.successTemplate(n);
       this.sendNotification(n.id, NotificationType.success, n.message, false);
     } else {
       this.sendNotification(n.id, NotificationType.success, n.message, true);
@@ -99,36 +99,47 @@ export class TransactionCenter extends LitElement {
     this.currentTx = null;
   }
 
-  broadcastTemplate() {
+  closeBroadcastDialog(n: Notification) {
+    this.closeDialog();
+    this.sendNotification(n.id, NotificationType.progress, n.message, true);
+  }
+
+  broadcastTemplate(n: Notification) {
     return html`
-      <ui-circular-progress class="icon" .width=${'135px'} .height=${'135px'}></ui-circular-progress>
-      <h1 class="ok">Submiting...</h1>
-      <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
-      <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
+      <ui-dialog open>
+        <ui-circular-progress class="icon" .width=${'135px'} .height=${'135px'}></ui-circular-progress>
+        <h1 class="ok">Submiting...</h1>
+        <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
+        <ui-button variant="secondary" @click=${() => this.closeBroadcastDialog(n)}>Close</ui-button>
+      </ui-dialog>
     `;
   }
 
-  successTemplate() {
+  successTemplate(n: Notification) {
     return html`
-      <icon-success class="icon"></icon-success>
-      <h1 class="ok">Submitted</h1>
-      <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
-      <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
+      <ui-dialog open timeout="6000">
+        <icon-success class="icon"></icon-success>
+        <h1 class="ok">Submitted</h1>
+        <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
+        <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
+      </ui-dialog>
     `;
   }
 
-  errorTemplate() {
+  errorTemplate(n: Notification) {
     return html`
-      <icon-error class="icon"></icon-error>
-      <h1 class="error">Failed to submit</h1>
-      <span>Unfortunatelly there was an issue while broadcasting your transaction. Please try again later.</span>
-      <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
+      <ui-dialog open>
+        <icon-error class="icon"></icon-error>
+        <h1 class="error">Failed to submit</h1>
+        <span>Unfortunatelly there was an issue while broadcasting your transaction. Please try again later.</span>
+        <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
+      </ui-dialog>
     `;
   }
 
   render() {
     return html`
-      ${this.message}
+      <div @closeable-closed=${(e: CustomEvent) => this.closeDialog()}>${this.message}</div>
       <slot></slot>
     `;
   }
