@@ -1,16 +1,9 @@
-import { html, css, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { BaseIcon } from './BaseIcon';
 
 @customElement('icon-route')
-export class RouteIcon extends LitElement {
-  static styles = [
-    css`
-      :host {
-        display: flex;
-      }
-    `,
-  ];
-
+export class RouteIcon extends BaseIcon {
   render() {
     return html`
       <svg width="22" height="14" viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg">

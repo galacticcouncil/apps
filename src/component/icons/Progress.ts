@@ -1,14 +1,12 @@
-import { html, css, LitElement } from 'lit';
+import { html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
+import { BaseIcon } from './BaseIcon';
+
 @customElement('icon-progress')
-export class ProgressIcon extends LitElement {
+export class ProgressIcon extends BaseIcon {
   static styles = [
     css`
-      :host {
-        display: flex;
-      }
-
       .progress {
         display: inline-block;
         color: var(--hex-primary-300);

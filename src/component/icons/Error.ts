@@ -8,6 +8,16 @@ export class ErrorIcon extends LitElement {
       :host {
         display: flex;
       }
+
+      :host([size='default']) svg {
+        width: 30px;
+        height: 29px;
+      }
+
+      :host(:not([size])) svg {
+        width: 100%;
+        height: 100%;
+      }
     `,
   ];
 

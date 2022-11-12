@@ -1,16 +1,9 @@
-import { html, css, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { BaseIcon } from './BaseIcon';
 
 @customElement('icon-switch')
-export class SwitchIcon extends LitElement {
-  static styles = [
-    css`
-      :host {
-        display: flex;
-      }
-    `,
-  ];
-
+export class SwitchIcon extends BaseIcon {
   render() {
     return html`
       <svg width="43" height="43" viewBox="0 0 43 43" fill="none" xmlns="http://www.w3.org/2000/svg">

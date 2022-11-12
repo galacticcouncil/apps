@@ -1,19 +1,13 @@
-import { html, css, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-@customElement('icon-success')
-export class SuccessIcon extends LitElement {
-  static styles = [
-    css`
-      :host {
-        display: flex;
-      }
-    `,
-  ];
+import { BaseIcon } from './BaseIcon';
 
+@customElement('icon-success')
+export class SuccessIcon extends BaseIcon {
   render() {
     return html`
-      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="29" viewBox="0 0 30 29" fill="none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="29px" viewBox="0 0 30 29" fill="none">
         <circle cx="14.9995" cy="14.145" r="14.0112" fill="url(#paint0_linear_13185_9479)" fill-opacity="0.3" />
         <path
           d="M10.4648 15.2601L13.8537 18.649L21.0081 11.1182"

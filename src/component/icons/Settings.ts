@@ -1,16 +1,10 @@
-import { html, css, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-@customElement('icon-settings')
-export class SettingsIcon extends LitElement {
-  static styles = [
-    css`
-      :host {
-        display: flex;
-      }
-    `,
-  ];
+import { BaseIcon } from './BaseIcon';
 
+@customElement('icon-settings')
+export class SettingsIcon extends BaseIcon {
   render() {
     return html`
       <svg width="41" height="42" viewBox="0 0 41 42" fill="none" xmlns="http://www.w3.org/2000/svg">

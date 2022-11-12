@@ -1,16 +1,10 @@
-import { html, css, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-@customElement('icon-dropdown')
-export class DropdownIcon extends LitElement {
-  static styles = [
-    css`
-      :host {
-        display: flex;
-      }
-    `,
-  ];
+import { BaseIcon } from './BaseIcon';
 
+@customElement('icon-dropdown')
+export class DropdownIcon extends BaseIcon {
   render() {
     return html`
       <svg width="13" height="8" viewBox="0 0 13 8" fill="none" xmlns="http://www.w3.org/2000/svg">
