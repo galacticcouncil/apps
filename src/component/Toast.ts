@@ -1,25 +1,15 @@
-import { html, css, PropertyValues } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { html, css } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 
+import { CloseableElement } from './base/closeableElement';
 import { UIGCElement } from './base/UIGCElement';
 
+import './Progress';
 import './icons/Close';
 
 @customElement('ui-toast')
-export class Toast extends UIGCElement {
-  @property({ type: Boolean, reflect: true }) open = false;
-
-  /**
-   * Timeout represents the number of milliseconds from when the Toast was placed
-   * on the page before it will automatically dismiss itself.
-   *
-   * Accessibility concerns require that a Toast is available for at least 6000ms
-   * before being dismissed. It is suggested that messages longer than 120 words
-   * should receive another 1000ms in their timeout for each additional 120 words
-   * in the message. E.G. 240 words = 7000ms, 360 words = 8000ms, etc.
-   */
-  @property({ type: Number }) timeout = 6000;
-
+export class Toast extends CloseableElement {
   static styles = [
     UIGCElement.styles,
     css`
@@ -29,15 +19,6 @@ export class Toast extends UIGCElement {
         bottom: 8px;
         right: 8px;
         left: 8px;
-        height: 60px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        box-sizing: border-box;
-        border-radius: 14px;
-        background: var(--hex-background-gray-1000);
-        color: white;
-        min-width: 130px;
       }
 
       @media (min-width: 768px) {
@@ -50,6 +31,20 @@ export class Toast extends UIGCElement {
 
       :host(:not([open])) {
         display: none;
+      }
+
+      :host .root {
+        overflow: hidden;
+        position: relative;
+        height: 60px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        box-sizing: border-box;
+        border-radius: 14px;
+        background: var(--hex-background-gray-1000);
+        color: white;
+        min-width: 130px;
       }
 
       slot[name='alert']::slotted(*) {
@@ -81,105 +76,32 @@ export class Toast extends UIGCElement {
         background: rgba(var(--rgb-background-gray-800), 0.5);
         cursor: pointer;
       }
+
+      ui-progress {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+      }
     `,
   ];
 
-  private countdownStart = 0;
-  private nextCount = -1;
-
-  private doCountdown = (time: number): void => {
-    if (!this.countdownStart) {
-      this.countdownStart = performance.now();
-    }
-    if (time - this.countdownStart > (this.timeout as number)) {
-      this.shouldClose();
-      this.countdownStart = 0;
-    } else {
-      this.countdown();
-    }
-  };
-
-  private countdown(): void {
-    cancelAnimationFrame(this.nextCount);
-    this.nextCount = requestAnimationFrame(this.doCountdown);
-  }
-
-  private holdCountdown(): void {
-    this.stopCountdown();
-    this.addEventListener('focusout', this.resumeCountdown);
-  }
-
-  private resumeCountdown(): void {
-    this.removeEventListener('focusout', this.holdCountdown);
-    this.countdown();
-  }
-
-  private startCountdown(): void {
-    this.countdown();
-    this.addEventListener('focusin', this.holdCountdown);
-  }
-
-  private stopCountdown(): void {
-    cancelAnimationFrame(this.nextCount);
-    this.countdownStart = 0;
-  }
-
-  private shouldClose(): void {
-    const applyDefault = this.dispatchEvent(
-      new CustomEvent('close', {
-        composed: true,
-        bubbles: true,
-        cancelable: true,
-      })
-    );
-    if (applyDefault) {
-      this.close();
-    }
-  }
-
-  public close(): void {
-    this.open = false;
-  }
-
-  override updated(changes: PropertyValues): void {
-    super.updated(changes);
-    if (changes.has('open')) {
-      if (this.open) {
-        if (this.timeout) {
-          this.startCountdown();
-        }
-      } else {
-        if (this.timeout) {
-          this.stopCountdown();
-        }
-      }
-    }
-    if (changes.has('timeout')) {
-      if (this.timeout !== null && this.open) {
-        this.startCountdown();
-      } else {
-        this.stopCountdown();
-      }
-    }
+  onClose(e: Event) {
+    e.stopPropagation();
+    this.shouldClose();
   }
 
   render() {
     return html`
-      <div class="content" role="alert">
-        <slot name="alert"></slot>
-        <slot></slot>
+      <div class="root">
+        <div class="content" role="alert">
+          <slot name="alert"></slot>
+          <slot></slot>
+        </div>
+        ${when(this.timeout, () => html` <ui-progress .duration=${this.timeout}></ui-progress> `)}
       </div>
-      <div class="action">
-        <button
-          class="close"
-          @click=${(e: Event) => {
-            e.stopPropagation();
-            this.shouldClose();
-          }}
-        >
-          <icon-close></icon-close>
-        </button>
-      </div>
+      <button class="close" @click=${this.onClose}>
+        <icon-close></icon-close>
+      </button>
     `;
   }
 }
