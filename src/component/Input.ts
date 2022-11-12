@@ -8,6 +8,7 @@ export class Input extends UIGCElement {
   @property({ type: String }) type = 'text';
   @property({ type: String }) value = null;
   @property({ type: String }) placeholder = null;
+  @property({ type: String }) step = null;
   @property({ type: String }) min = null;
   @property({ type: String }) max = null;
 
@@ -105,8 +106,10 @@ export class Input extends UIGCElement {
 
   override async firstUpdated() {
     const input = this.shadowRoot.querySelector('input');
+
     input.setAttribute('type', this.type);
     input.setAttribute('placeholder', this.placeholder);
+    input.setAttribute('step', this.step);
     input.setAttribute('min', this.min);
     input.setAttribute('max', this.max);
   }
