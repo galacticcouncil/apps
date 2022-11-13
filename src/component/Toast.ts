@@ -3,7 +3,7 @@ import { customElement } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
 import { UIGCElement } from './base/UIGCElement';
-import { CloseableElement } from './base/closeableElement';
+import { CloseableElement } from './base/CloseableElement';
 
 import './Progress';
 import './icons/Close';
