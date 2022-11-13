@@ -48,10 +48,6 @@ export class TransactionCenter extends LitElement {
 
       .icon {
         padding-top: 50px;
-      }
-
-      icon-success,
-      icon-error {
         width: 135px;
         height: 135px;
       }
@@ -107,7 +103,7 @@ export class TransactionCenter extends LitElement {
   broadcastTemplate(n: Notification) {
     return html`
       <ui-dialog open>
-        <ui-circular-progress class="icon" .width=${'135px'} .height=${'135px'}></ui-circular-progress>
+        <ui-circular-progress class="icon"></ui-circular-progress>
         <h1 class="ok">Submiting...</h1>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
         <ui-button variant="secondary" @click=${() => this.closeBroadcastDialog(n)}>Close</ui-button>
@@ -118,7 +114,7 @@ export class TransactionCenter extends LitElement {
   successTemplate(n: Notification) {
     return html`
       <ui-dialog open timeout="6000">
-        <icon-success class="icon"></icon-success>
+        <icon-success fit class="icon"></icon-success>
         <h1 class="ok">Submitted</h1>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
         <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
@@ -129,7 +125,7 @@ export class TransactionCenter extends LitElement {
   errorTemplate(n: Notification) {
     return html`
       <ui-dialog open>
-        <icon-error class="icon"></icon-error>
+        <icon-error fit class="icon"></icon-error>
         <h1 class="error">Failed to submit</h1>
         <span>Unfortunatelly there was an issue while broadcasting your transaction. Please try again later.</span>
         <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>

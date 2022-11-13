@@ -10,7 +10,6 @@ import '../../component/AssetTransfer';
 import '../../component/AssetPrice';
 import '../../component/AssetSwitch';
 import '../../component/Divider';
-import '../../component/Paper';
 import '../../component/IconButton';
 import '../../component/Button';
 import '../../component/Skeleton';

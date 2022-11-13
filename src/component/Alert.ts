@@ -7,7 +7,9 @@ import { UIGCElement } from './base/UIGCElement';
 
 import './icons/Success';
 import './icons/Error';
-import './icons/Progress';
+import './CircularProgress';
+
+// import './icons/Progress';
 
 export enum AlertVariant {
   success = 'success',
@@ -34,9 +36,16 @@ export class Alert extends UIGCElement {
 
       .icon {
         margin-right: 12px;
+        /* width: 30px;
+        height: 30px; */
       }
 
-      span.message {
+      ui-circular-progress {
+        width: 31px;
+        height: 28px;
+      }
+
+      div.message {
         width: 100%;
         padding: 8px 0;
         display: flex;
@@ -87,13 +96,16 @@ export class Alert extends UIGCElement {
           ${choose(this.variant, [
             [AlertVariant.success, () => html`<icon-success class="icon"></icon-success>`],
             [AlertVariant.error, () => html`<icon-error class="icon"></icon-error>`],
-            [AlertVariant.progress, () => html`<icon-progress class="icon"></icon-progress>`],
+            [
+              AlertVariant.progress,
+              () => html`<ui-circular-progress size="medium" class="icon"></ui-circular-progress>`,
+            ],
           ])}
         `
       )}
-      <span class="message">
+      <div class="message">
         <slot></slot>
-      </span>
+      </div>
     `;
   }
 }

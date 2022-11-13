@@ -1,13 +1,10 @@
 import { html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
 @customElement('ui-circular-progress')
 export class CircularProgress extends UIGCElement {
-  @property({ type: String }) width = null;
-  @property({ type: String }) height = null;
-
   static styles = css`
     :host {
       --spinner-width: 3px;
@@ -18,10 +15,14 @@ export class CircularProgress extends UIGCElement {
       height: 14px;
     }
 
-    :host(:not([size])) .progress-root,
     :host([size='medium']) .progress-root {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
+    }
+
+    :host(:not([size])) .progress-root {
+      width: 100%;
+      height: 100%;
     }
 
     .progress-root {
@@ -67,13 +68,6 @@ export class CircularProgress extends UIGCElement {
       }
     }
   `;
-
-  override async firstUpdated() {
-    const progress = this.shadowRoot.querySelector('.progress-root');
-    if (this.width && this.height) {
-      progress.setAttribute('style', 'width:' + this.width + ';' + 'height:' + this.height);
-    }
-  }
 
   render() {
     return html` <span class="progress-root"></span> `;

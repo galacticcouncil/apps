@@ -35,13 +35,6 @@ export class AssetList extends UIGCElement {
 
       .subheader {
         background-color: rgba(var(--rgb-white), 0.03);
-        padding: 6px 36px;
-      }
-
-      @media (min-width: 768px) {
-        .subheader {
-          padding: 6px 50px;
-        }
       }
 
       ::slotted(*) {

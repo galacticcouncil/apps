@@ -1,26 +1,10 @@
-import { html, css, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
+import { BaseIcon } from './BaseIcon';
+
 @customElement('icon-error')
-export class ErrorIcon extends LitElement {
-  static styles = [
-    css`
-      :host {
-        display: flex;
-      }
-
-      :host([size='default']) svg {
-        width: 30px;
-        height: 29px;
-      }
-
-      :host(:not([size])) svg {
-        width: 100%;
-        height: 100%;
-      }
-    `,
-  ];
-
+export class ErrorIcon extends BaseIcon {
   render() {
     return html`
       <svg xmlns="http://www.w3.org/2000/svg" width="30" height="29" viewBox="0 0 30 29" fill="none">
