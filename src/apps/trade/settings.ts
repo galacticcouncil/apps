@@ -181,7 +181,7 @@ export class Settings extends LitElement {
             value=${this.customSlippage}
             min="0"
             max="100"
-            step="0.01"
+            step="0.1"
             placeholder="Custom"
           ></ui-input>
         </ui-toggle-button-group>
