@@ -101,6 +101,12 @@ export class TradeTokens extends LitElement {
         background: var(--hex-poison-green);
       }
 
+      @media (min-width: 768px) {
+        .transfer .switch-button {
+          left: 36px;
+        }
+      }
+
       .transfer .switch-button > img {
         height: 100%;
       }
@@ -111,6 +117,12 @@ export class TradeTokens extends LitElement {
         background: #23282b;
         border-radius: 7px;
         display: none;
+      }
+
+      @media (min-width: 768px) {
+        .transfer .spot-price {
+          right: 36px;
+        }
       }
 
       .transfer .spot-price.show {
