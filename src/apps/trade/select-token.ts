@@ -1,5 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
+import { range } from 'lit/directives/range.js';
+import { map } from 'lit/directives/map.js';
 
 import { baseStyles } from '../base.css';
 import { formatAmount } from '../../utils/amount';
@@ -7,8 +10,8 @@ import { formatAmount } from '../../utils/amount';
 import '../../component/AssetList';
 import '../../component/AssetListItem';
 import '../../component/IconButton';
-import '../../component/Paper';
 import '../../component/SearchBar';
+import '../../component/Skeleton';
 
 import '../../component/icons/Back';
 
@@ -64,6 +67,20 @@ export class SelectToken extends LitElement {
           padding: 0 28px;
         }
       }
+
+      .loading {
+        align-items: center;
+        display: flex;
+        padding: 8px 28px;
+        gap: 6px;
+        border-bottom: 1px solid var(--hex-background-gray-800);
+      }
+
+      .loading > span.title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
     `,
   ];
 
@@ -107,6 +124,20 @@ export class SelectToken extends LitElement {
     }
   }
 
+  loadingTemplate() {
+    return html`
+      <div class="loading">
+        <ui-skeleton circle progress></ui-skeleton>
+        <span class="title">
+          <ui-skeleton progress width="40px" height="16px"></ui-skeleton>
+          <ui-skeleton progress width="50px" height="8px"></ui-skeleton>
+        </span>
+        <span class="grow"></span>
+        <ui-skeleton progress width="100px" height="16px"></ui-skeleton>
+      </div>
+    `;
+  }
+
   render() {
     return html`
       <div class="header">
@@ -119,21 +150,25 @@ export class SelectToken extends LitElement {
         placeholder="Search by name"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></ui-search-bar>
-      <ui-asset-list>
-        ${this.filterAssets(this.query).map((asset: PoolAsset) => {
-          const balance = this.balances.get(asset.id);
-          const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
-          return html`
-            <ui-asset-list-item
-              slot=${this.getSlot(asset)}
-              ?disabled=${this.isDisabled(asset)}
-              ?selected=${this.isSelected(asset)}
-              .asset=${asset}
-              .balance=${balanceFormated}
-            ></ui-asset-list-item>
-          `;
-        })}
-      </ui-asset-list>
+      ${when(
+        this.assets.length > 0,
+        () => html` <ui-asset-list>
+          ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
+            const balance = this.balances.get(asset.id);
+            const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
+            return html`
+              <ui-asset-list-item
+                slot=${this.getSlot(asset)}
+                ?disabled=${this.isDisabled(asset)}
+                ?selected=${this.isSelected(asset)}
+                .asset=${asset}
+                .balance=${balanceFormated}
+              ></ui-asset-list-item>
+            `;
+          })}
+        </ui-asset-list>`,
+        () => html` <ui-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </ui-asset-list> `
+      )}
     `;
   }
 }
