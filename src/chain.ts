@@ -42,7 +42,11 @@ export async function createApi(apiUrl: string, onError: (error: unknown) => voi
           })
           .catch(onError);
       });
+
+    return () => api.disconnect();
   } catch (error) {
     onError(error);
   }
+
+  return null;
 }

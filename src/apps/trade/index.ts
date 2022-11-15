@@ -41,6 +41,8 @@ export class Trade extends LitElement {
     });
   });
 
+  private disconnectSubscribeNewHeads: (() => void) | null = null;
+
   @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
   @state() assets: AssetsState = DEFAULT_ASSETS_STATE;
   @state() trade: TradeState = DEFAULT_TRADE_STATE;
@@ -409,21 +411,14 @@ export class Trade extends LitElement {
 
     this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
     readyCursor.reset(true);
-    // TODO: Remove once account selector(testing only)
-    accountCursor.reset({
-      address: 'bXmMqb3jBWToPPXf5RXWgRjFCk3eN9mM9Tqx8uj7MQ9vZ6HEx',
-      provider: 'polkadot-js',
-      name: 'testcoco',
-    });
   }
 
   async subscribe() {
     const api = chainCursor.deref().api;
-    await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
       this.syncTransactionFee();
-      // TODO: Sync trade info
     });
   }
 
@@ -444,6 +439,7 @@ export class Trade extends LitElement {
   override disconnectedCallback() {
     super.disconnectedCallback();
     this.ro.unobserve(this);
+    this.disconnectSubscribeNewHeads?.();
   }
 
   settingsTenplate() {

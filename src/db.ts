@@ -51,16 +51,6 @@ const ACCOUNT_KEY = 'trade.account';
 const SETTINGS_KEY = 'trade.settings';
 const TRANSACTION_KEY = 'trade.transaction';
 
-// Load storage values
-const storedAccount = getObj<Account>(ACCOUNT_KEY);
-const storedSettings = getObj<Settings>(SETTINGS_KEY);
-const storedTransaction = getObj<Transaction>(TRANSACTION_KEY);
-
-// Initialize state from storage
-accountCursor.reset(storedAccount);
-transactionCursor.reset(storedTransaction);
-settingsCursor.resetIn(['slippage'], storedSettings?.slippage || DEFAULT_SLIPPAGE);
-
 /**
  * Create watchdog to update storage on state change
  *
@@ -75,7 +65,49 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
   });
 }
 
-// Update storage on state change
-addWatch(transactionCursor, TRANSACTION_KEY, 'transaction-update');
-addWatch(settingsCursor, SETTINGS_KEY, 'settings-update');
-addWatch(accountCursor, ACCOUNT_KEY, 'account-update');
+/**
+ * Remove watchdog
+ *
+ * @param cursor - Database cursor
+ * @param watchId - Unique watch id
+ */
+function removeWatch<T>(cursor: Cursor<T>, watchId: string) {
+  cursor.removeWatch(watchId);
+}
+
+/**
+ * Initialized the storage with default values and merges them with
+ * local storage entries
+ *
+ * @returns cleanup callback
+ */
+export const initDb = () => {
+  db.reset({
+    chain: null,
+    ready: false,
+    transaction: null,
+    settings: null,
+    account: null,
+  });
+
+  // Load storage values
+  const storedAccount = getObj<Account>(ACCOUNT_KEY);
+  const storedSettings = getObj<Settings>(SETTINGS_KEY);
+  const storedTransaction = getObj<Transaction>(TRANSACTION_KEY);
+
+  // Initialize state from storage
+  accountCursor.reset(storedAccount);
+  transactionCursor.reset(storedTransaction);
+  settingsCursor.resetIn(['slippage'], storedSettings?.slippage || DEFAULT_SLIPPAGE);
+
+  // Update storage on state change
+  addWatch(transactionCursor, TRANSACTION_KEY, 'transaction-update');
+  addWatch(settingsCursor, SETTINGS_KEY, 'settings-update');
+  addWatch(accountCursor, ACCOUNT_KEY, 'account-update');
+
+  return () => {
+    removeWatch(transactionCursor, 'transaction-update');
+    removeWatch(settingsCursor, 'settings-update');
+    removeWatch(accountCursor, 'account-update');
+  };
+};

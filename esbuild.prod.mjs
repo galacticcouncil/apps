@@ -10,6 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const indexTemplate = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 
 const indexDOM = parse(indexTemplate);
 const script = indexDOM.getElementsByTagName('script')[0];
@@ -17,17 +18,22 @@ script.remove();
 
 fixTalismanEsm();
 
-esbuild.build({
+const common = {
   entryPoints: ['src/index.ts'],
-  entryNames: 'bundle-[hash]',
-  bundle: true,
-  format: 'esm',
-  platform: 'browser',
-  target: 'esnext',
   preserveSymlinks: true,
   treeShaking: true,
   metafile: true,
   minify: true,
+  bundle: true,
+  format: 'esm',
+  platform: 'browser',
+  target: 'esnext',
+};
+
+// Website bundle
+esbuild.build({
+  ...common,
+  entryNames: 'bundle-[hash]',
   outdir: 'dist/',
   plugins: [
     htmlPlugin({
@@ -41,4 +47,11 @@ esbuild.build({
       ],
     }),
   ],
+});
+
+// Library bundle
+esbuild.build({
+  ...common,
+  outfile: 'dist/index.esm.js',
+  external: Object.keys(packageJson.peerDependencies),
 });
