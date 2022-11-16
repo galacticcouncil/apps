@@ -1,23 +1,22 @@
 import { LitElement, html } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
+
+import { Account } from './db';
 
 import './apps/trade';
 import './apps/notification';
 import './apps/transaction';
 
 @customElement('gc-trade-spa')
-export class App extends LitElement {
+export class TradeSpa extends LitElement {
+  @property({ type: String }) apiAddress: string = null;
+  @property({ type: Object }) account: Account = null;
+
   render() {
     return html`
       <gc-notification-center>
         <gc-transaction-center>
-          <gc-trade-app
-            apiAddress="wss://rococo-basilisk-rpc.hydration.dev"
-            accountAddress="bXmMqb3jBWToPPXf5RXWgRjFCk3eN9mM9Tqx8uj7MQ9vZ6HEx"
-            accountProvider="polkadot-js"
-            accountName="testcoco"
-          >
-          </gc-trade-app>
+          <gc-trade-app .apiAddress=${this.apiAddress} .account=${this.account}> </gc-trade-app>
         </gc-transaction-center>
       </gc-notification-center>
     `;

@@ -420,7 +420,6 @@ export class TradeApp extends LitElement {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
       this.syncTransactionFee();
-      // TODO: Sync trade info
     });
   }
 
