@@ -17,31 +17,41 @@ async function initRouter(api: ApiPromise): Promise<TradeRouter> {
   return new TradeRouter(poolService, { includeOnly: [PoolType.XYK] });
 }
 
+function initApi(api: ApiPromise, onError: (error: unknown) => void) {
+  api
+    .on('connected', () => console.log('API connected'))
+    .on('disconnected', () => console.log('API disconnected'))
+    .on('error', () => console.log('API error'))
+    .on('ready', () => {
+      console.log('API ready');
+      info(api);
+      initRouter(api)
+        .then((router: TradeRouter) => {
+          console.log('Router ready');
+          chainCursor.reset({
+            api: api,
+            router: router,
+          });
+        })
+        .catch(onError);
+    });
+}
+
 export async function createApi(apiUrl: string, onError: (error: unknown) => void) {
   try {
     const provider = new WsProvider(apiUrl);
     const api = new ApiPromise({
       provider: provider,
     });
+    initApi(api, onError);
+  } catch (error) {
+    onError(error);
+  }
+}
 
-    api
-      .on('connected', () => console.log('API connected'))
-      .on('disconnected', () => console.log('API disconnected'))
-      .on('error', () => console.log('API error'))
-      .on('ready', () => {
-        console.log('API ready');
-        info(api);
-        initRouter(api)
-          .then((router: TradeRouter) => {
-            console.log('Router ready');
-            chainCursor.reset({
-              api: api,
-              router: router,
-              url: apiUrl,
-            });
-          })
-          .catch(onError);
-      });
+export async function useApi(api: ApiPromise, onError: (error: unknown) => void) {
+  try {
+    initApi(api, onError);
   } catch (error) {
     onError(error);
   }

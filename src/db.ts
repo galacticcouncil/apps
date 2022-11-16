@@ -10,7 +10,6 @@ const DEFAULT_SLIPPAGE = '0.5';
 export interface Chain {
   api: ApiPromise;
   router: TradeRouter;
-  url: string;
 }
 
 export interface Settings {
@@ -25,7 +24,6 @@ export interface Account {
 
 export interface State {
   chain: Chain;
-  ready: Boolean;
   transaction: Transaction;
   settings: Settings;
   account: Account;
@@ -33,7 +31,6 @@ export interface State {
 
 export const db = defAtom<State>({
   chain: null,
-  ready: false,
   transaction: null,
   settings: null,
   account: null,
@@ -41,7 +38,6 @@ export const db = defAtom<State>({
 
 // Cursors (Direct & Immutable access to a nested value)
 export const chainCursor = defCursor(db, ['chain']);
-export const readyCursor = defCursor(db, ['ready']);
 export const transactionCursor = defCursor(db, ['transaction']);
 export const settingsCursor = defCursor(db, ['settings']);
 export const accountCursor = defCursor(db, ['account']);
