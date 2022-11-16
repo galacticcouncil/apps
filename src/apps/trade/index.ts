@@ -49,7 +49,9 @@ export class TradeApp extends LitElement {
   @state() trade: TradeState = DEFAULT_TRADE_STATE;
 
   @property({ type: String }) apiAddress: string = null;
-  @property({ type: Object }) account: Account = null;
+  @property({ type: String }) accountAddress: string = null;
+  @property({ type: String }) accountProvider: string = null;
+  @property({ type: String }) accountName: string = null;
 
   static styles = [
     baseStyles,
@@ -431,9 +433,19 @@ export class TradeApp extends LitElement {
   }
 
   override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('account')) {
-      accountCursor.reset(this.account);
+    if (
+      changedProperties.has('accountAddress') ||
+      changedProperties.has('accountProvider') ||
+      changedProperties.has('accountName')
+    ) {
+      const { address, provider, name } = accountCursor.deref();
+      accountCursor.reset({
+        address: this.accountAddress ?? address,
+        provider: this.accountProvider ?? provider,
+        name: this.accountName ?? name,
+      } as Account);
     }
+
     super.update(changedProperties);
   }
 
