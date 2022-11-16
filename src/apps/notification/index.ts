@@ -11,10 +11,12 @@ import '../../component/Drawer';
 
 import { Notification, NotificationType } from './types';
 
-@customElement('app-notification-center')
+@customElement('gc-notification-center')
 export class NotificationCenter extends LitElement {
   @state() toasts: TemplateResult[] = [];
   @state() notifications: Map<string, Notification> = new Map([]);
+
+  private _handleNotification = (e: CustomEvent<Notification>) => this.appendNewNotification(e.detail);
 
   static styles = [
     baseStyles,
@@ -44,11 +46,6 @@ export class NotificationCenter extends LitElement {
       }
     `,
   ];
-
-  constructor() {
-    super();
-    this.addEventListener('gc:notification', (e: CustomEvent<Notification>) => this.appendNewNotification(e.detail));
-  }
 
   openDrawer() {
     const drawer = this.shadowRoot.querySelector('ui-drawer');
@@ -138,6 +135,16 @@ export class NotificationCenter extends LitElement {
         t.innerHTML = null;
       });
     }
+  }
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener('gc:notification', this._handleNotification);
+  }
+
+  override disconnectedCallback() {
+    this.removeEventListener('gc:notification', this._handleNotification);
+    super.disconnectedCallback();
   }
 
   render() {

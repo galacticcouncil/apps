@@ -1,11 +1,12 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 
 import { baseStyles } from '../base.css';
 
+import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
-import { Chain, chainCursor, readyCursor, accountCursor, transactionCursor } from '../../db';
+import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
 import { getPaymentInfo, signAndSend } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
@@ -32,18 +33,23 @@ import {
 } from './types';
 import { Notification, NotificationType } from '../notification/types';
 
-@customElement('app-trade')
-export class Trade extends LitElement {
+@customElement('gc-trade-app')
+export class TradeApp extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
+  private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       this.screen.height = entry.contentRect.height;
     });
   });
+  private disconnectSubscribeNewHeads: () => void = null;
 
   @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
   @state() assets: AssetsState = DEFAULT_ASSETS_STATE;
   @state() trade: TradeState = DEFAULT_TRADE_STATE;
+
+  @property({ type: String }) apiAddress: string = null;
+  @property({ type: Object }) account: Account = null;
 
   static styles = [
     baseStyles,
@@ -335,7 +341,6 @@ export class Trade extends LitElement {
   async syncTransactionFee() {
     const account = accountCursor.deref();
     const transaction = transactionCursor.deref();
-
     if (account && transaction) {
       const { partialFee } = await getPaymentInfo(transaction, account);
       this.trade.transactionFee = partialFee.toHuman();
@@ -406,20 +411,12 @@ export class Trade extends LitElement {
       map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
       pairs: assetsPairs,
     };
-
     this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
-    readyCursor.reset(true);
-    // TODO: Remove once account selector(testing only)
-    accountCursor.reset({
-      address: 'bXmMqb3jBWToPPXf5RXWgRjFCk3eN9mM9Tqx8uj7MQ9vZ6HEx',
-      provider: 'polkadot-js',
-      name: 'testcoco',
-    });
   }
 
   async subscribe() {
     const api = chainCursor.deref().api;
-    await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
       this.syncTransactionFee();
@@ -427,9 +424,24 @@ export class Trade extends LitElement {
     });
   }
 
+  override async firstUpdated() {
+    const chain = chainCursor.deref();
+    if (!chain) {
+      createApi(this.apiAddress, () => {});
+    }
+  }
+
+  override update(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('account')) {
+      accountCursor.reset(this.account);
+    }
+    super.update(changedProperties);
+  }
+
   override async updated() {
-    if (this.chain.state && !readyCursor.deref()) {
+    if (this.chain.state && !this.ready) {
       console.log('Initialization...');
+      this.ready = true;
       await this.init();
       await this.subscribe();
       console.log('Done ✅');
@@ -442,8 +454,9 @@ export class Trade extends LitElement {
   }
 
   override disconnectedCallback() {
-    super.disconnectedCallback();
     this.ro.unobserve(this);
+    this.disconnectSubscribeNewHeads?.();
+    super.disconnectedCallback();
   }
 
   settingsTenplate() {

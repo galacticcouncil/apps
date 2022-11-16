@@ -8,7 +8,7 @@ import '../../component/icons/Error';
 
 import { Notification, NotificationType } from '../notification/types';
 
-@customElement('app-transaction-center')
+@customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
   @state() message: TemplateResult = null;
   @state() currentTx: string = null;

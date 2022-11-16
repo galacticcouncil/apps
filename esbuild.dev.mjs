@@ -8,7 +8,7 @@ fixTalismanEsm();
  * See https://esbuild.github.io/content-types/#tsconfig-json
  */
 esbuild.build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/app.ts'],
   bundle: true,
   format: 'esm',
   platform: 'browser',

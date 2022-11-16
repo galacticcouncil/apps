@@ -43,9 +43,18 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <header></header>
     <main>
-      <gc-trade-app></gc-trade-app>
+      <!-- <gc-trade-spa></gc-trade-spa> -->
+      <gc-notification-center>
+        <gc-transaction-center>
+          <gc-trade-app
+            apiAddress="wss://rococo-basilisk-rpc.hydration.dev"
+            account='{"address":"bXmMqb3jBWToPPXf5RXWgRjFCk3eN9mM9Tqx8uj7MQ9vZ6HEx","provider":"polkadot-js","name":"testcoco"}'
+          >
+          </gc-trade-app>
+        </gc-transaction-center>
+      </gc-notification-center>
     </main>
     <footer></footer>
-    <script type="module" src="./out/index.js"></script>
+    <script type="module" src="./out/app.js"></script>
   </body>
 </html>
