@@ -438,11 +438,11 @@ export class TradeApp extends LitElement {
       changedProperties.has('accountProvider') ||
       changedProperties.has('accountName')
     ) {
-      const { address, provider, name } = accountCursor.deref();
+      const account = accountCursor.deref();
       accountCursor.reset({
-        address: this.accountAddress ?? address,
-        provider: this.accountProvider ?? provider,
-        name: this.accountName ?? name,
+        address: this.accountAddress ?? account?.address,
+        provider: this.accountProvider ?? account?.provider,
+        name: this.accountName ?? account?.name,
       } as Account);
     }
 
