@@ -1,17 +1,19 @@
 import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { choose } from 'lit/directives/choose.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
-const KNOWN_ASSETS = new Map(
-  Object.entries({
-    aUSD: 'Acala USD',
-    BSX: 'Basilisk',
-    KSM: 'Kusama',
-    PHA: 'Phala',
-    TNKR: 'Tinkernet',
-  })
-);
+import './logo/aUSD';
+import './logo/BSX';
+import './logo/KSM';
+import './logo/PHA';
+import './logo/TNKR';
+import './logo/unknown';
+
+import { AssetType, AssetTypes } from './types/AssetType';
+
+const KNOWN_ASSETS = AssetType.getMap(AssetTypes);
 
 @customElement('ui-asset')
 export class Asset extends UIGCElement {
@@ -53,15 +55,27 @@ export class Asset extends UIGCElement {
         align-items: flex-start;
         padding: 5px 0px;
       }
+
+      .logo {
+        width: 34px;
+        height: 34px;
+      }
     `,
   ];
 
   render() {
     const assetDesc = KNOWN_ASSETS.get(this.asset) || '--';
-    const assetLogo = KNOWN_ASSETS.get(this.asset)
-      ? 'assets/img/logo/' + this.asset + '.svg'
-      : 'assets/img/logo/unknown.svg';
-    return html` <img width="34" height="34" src=${assetLogo} alt=${this.asset} />
+    return html` ${choose(
+        this.asset,
+        [
+          ['aUSD', () => html`<logo-ausd class="logo" fit></logo-ausd>`],
+          ['BSX', () => html`<logo-bsx class="logo" fit></logo-bsx>`],
+          ['KSM', () => html`<logo-ksm class="logo" fit></logo-ksm>`],
+          ['PHA', () => html`<logo-pha class="logo" fit></logo-pha>`],
+          ['TNKR', () => html`<logo-tnkr class="logo" fit></logo-tnkr>`],
+        ],
+        () => html`<logo-unknown class="logo" fit></logo-unknown>`
+      )}
       <span class="title">
         <span class="code">${this.asset}</span>
         <span class="desc">${assetDesc}</span>

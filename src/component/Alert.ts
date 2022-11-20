@@ -9,8 +9,6 @@ import './icons/Success';
 import './icons/Error';
 import './CircularProgress';
 
-// import './icons/Progress';
-
 export enum AlertVariant {
   success = 'success',
   error = 'error',
