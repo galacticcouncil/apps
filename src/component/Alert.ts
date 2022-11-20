@@ -34,8 +34,6 @@ export class Alert extends UIGCElement {
 
       .icon {
         margin-right: 12px;
-        /* width: 30px;
-        height: 30px; */
       }
 
       ui-circular-progress {

@@ -4,7 +4,7 @@ import { createStyle, hasStyle } from '../utils/styles';
 
 import { baseStyles } from '../styles/base.css';
 import { themeStyles } from '../styles/theme.css';
-import { webkitStyles } from '../styles/root.css';
+import { webkitStyles } from '../styles/webkit.css';
 import { fontStyles, fontFace } from '../styles/font.css';
 
 export class UIGCElement extends LitElement {
