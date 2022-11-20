@@ -5,15 +5,6 @@ import { baseStyles } from '../base.css';
 
 import { settingsCursor } from '../../db';
 
-import '../../component/Button';
-import '../../component/IconButton';
-import '../../component/Input';
-import '../../component/Switch';
-import '../../component/ToggleButton';
-import '../../component/ToggleButtonGroup';
-
-import '../../component/icons/Back';
-
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('app-settings')

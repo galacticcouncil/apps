@@ -41,6 +41,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/sdk": "^0.0.1-beta.17",
+    "@galacticcouncil/ui": "1.0.0",
     "@polkadot/api": "^9.0.1",
     "@polkadot/extension-inject": "^0.44.6",
     "@talismn/connect-wallets": "^1.2.1"

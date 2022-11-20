@@ -1,4 +1,6 @@
-export { TradeSpa } from './app';
-export { TradeApp } from './apps/trade';
-export { NotificationCenter } from './apps/notification';
-export { TransactionCenter } from './apps/transaction';
+export { TradeApp } from './component/trade';
+export { NotificationCenter } from './component/notification';
+export { TransactionCenter } from './component/transaction';
+
+/* SPA */
+export { TradeSpa } from './spa/trade';

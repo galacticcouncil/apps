@@ -1,13 +1,10 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import humanizeDuration, { HumanizerOptions } from 'humanize-duration';
 
 import { baseStyles } from '../base.css';
 
-import humanizeDuration, { HumanizerOptions } from 'humanize-duration';
-
-import '../../component/Toast';
-import '../../component/Alert';
-import '../../component/Drawer';
+import '@galacticcouncil/ui';
 
 import { Notification, NotificationType } from './types';
 

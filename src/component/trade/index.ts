@@ -15,8 +15,7 @@ import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import short from 'short-uuid';
 import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
-
-import '../../component/Paper';
+import '@galacticcouncil/ui';
 
 import './select-token';
 import './settings';

@@ -7,14 +7,6 @@ import { map } from 'lit/directives/map.js';
 import { baseStyles } from '../base.css';
 import { formatAmount } from '../../utils/amount';
 
-import '../../component/AssetList';
-import '../../component/AssetListItem';
-import '../../component/IconButton';
-import '../../component/SearchBar';
-import '../../component/Skeleton';
-
-import '../../component/icons/Back';
-
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 import { AssetSelector } from './types';
 

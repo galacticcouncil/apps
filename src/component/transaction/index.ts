@@ -1,10 +1,7 @@
 import { html, css, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
-import '../../component/Dialog';
-import '../../component/CircularProgress';
-import '../../component/icons/Success';
-import '../../component/icons/Error';
+import '@galacticcouncil/ui';
 
 import { Notification, NotificationType } from '../notification/types';
 

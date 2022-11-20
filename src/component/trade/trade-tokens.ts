@@ -6,19 +6,6 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { baseStyles } from '../base.css';
 
-import '../../component/AssetTransfer';
-import '../../component/AssetPrice';
-import '../../component/AssetSwitch';
-import '../../component/Divider';
-import '../../component/IconButton';
-import '../../component/Button';
-import '../../component/Skeleton';
-
-import '../../component/icons/Settings';
-import '../../component/icons/Route';
-import '../../component/icons/ChevronRight';
-import '../../component/icons/Error';
-
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
 @customElement('app-trade-tokens')
