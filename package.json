@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "1.0.0",
+  "version": "0.0.3",
   "private": false,
   "description": "Trade SPA",
   "author": "Pavol Noha <pavol.noha@gmail.com>",
@@ -29,6 +29,8 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@galacticcouncil/ui": "1.0.0",
+    "@talismn/connect-wallets": "^1.2.1",
     "@lit/reactive-element": "^1.0.0",
     "@thi.ng/atom": "^5.1.3",
     "@vaadin/router": "^1.7.4",
@@ -41,9 +43,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/sdk": "^0.0.1-beta.17",
-    "@galacticcouncil/ui": "1.0.0",
     "@polkadot/api": "^9.0.1",
-    "@polkadot/extension-inject": "^0.44.6",
-    "@talismn/connect-wallets": "^1.2.1"
+    "@polkadot/extension-inject": "^0.44.6"
   }
 }
