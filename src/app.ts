@@ -1,5 +1,6 @@
 import { Router } from '@vaadin/router';
 
+import './root';
 import './screen/trade';
 
 const routes = [
