@@ -1,9 +1,9 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
+import short from 'short-uuid';
 
 import { baseStyles } from '../base.css';
-
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
@@ -13,9 +13,8 @@ import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
 import { formatAmount } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
-import short from 'short-uuid';
-import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
 import '@galacticcouncil/ui';
+import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
 
 import './select-token';
 import './settings';
@@ -63,7 +62,7 @@ export class TradeApp extends LitElement {
         position: relative;
       }
 
-      ui-paper {
+      uigc-paper {
         width: 100%;
         display: block;
       }
@@ -470,14 +469,14 @@ export class TradeApp extends LitElement {
   }
 
   settingsTenplate() {
-    return html`<app-settings
+    return html`<gc-trade-app-settings
       style="height: ${this.screen.height}px"
       @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
-    ></app-settings>`;
+    ></gc-trade-app-settings>`;
   }
 
   selectTokenTenplate() {
-    return html`<app-select-token
+    return html`<gc-trade-app-select
       style="height: ${this.screen.height}px"
       .assets=${this.assets.list}
       .pairs=${this.assets.pairs}
@@ -493,11 +492,11 @@ export class TradeApp extends LitElement {
         this.updateBalances();
         this.changeScreen(TradeScreen.TradeTokens);
       }}
-    ></app-select-token>`;
+    ></gc-trade-app-select>`;
   }
 
   tradeTokensTenplate() {
-    return html`<app-trade-tokens
+    return html`<gc-trade-app-main
       .assets=${this.assets.map}
       .inProgress=${this.trade.inProgress}
       .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError()}
@@ -533,18 +532,18 @@ export class TradeApp extends LitElement {
         const processingId = short.generate();
         this.swap(processingId, this.trade);
       }}
-    ></app-trade-tokens>`;
+    ></gc-trade-app-main>`;
   }
 
   render() {
     return html`
-      <ui-paper>
+      <uigc-paper>
         ${choose(this.screen.active, [
           [TradeScreen.TradeTokens, () => this.tradeTokensTenplate()],
           [TradeScreen.Settings, () => this.settingsTenplate()],
           [TradeScreen.SelectToken, () => this.selectTokenTenplate()],
         ])}
-      </ui-paper>
+      </uigc-paper>
     `;
   }
 }

@@ -8,7 +8,7 @@ import { baseStyles } from '../base.css';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
-@customElement('app-trade-tokens')
+@customElement('gc-trade-app-main')
 export class TradeTokens extends LitElement {
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
@@ -186,12 +186,12 @@ export class TradeTokens extends LitElement {
         color: var(--hex-primary-success);
       }
 
-      .info icon-chevron-right {
+      .info uigc-icon-chevron-right {
         width: 22px;
         height: 22px;
       }
 
-      .info icon-route {
+      .info uigc-icon-route {
         margin-left: 12px;
       }
 
@@ -222,7 +222,7 @@ export class TradeTokens extends LitElement {
         line-height: 16px;
       }
 
-      .error icon-error {
+      .error uigc-icon-error {
         margin-right: 8px;
       }
 
@@ -264,7 +264,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<ui-skeleton progress width="150px" height="14px"></ui-skeleton>`,
+        () => html`<uigc-skeleton progress width="150px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.afterSlippage} ${assetSymbol} </span>`
       )}`;
   }
@@ -274,7 +274,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
+        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.priceImpactPct}%</span>`
       )}`;
   }
@@ -284,7 +284,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
+        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.tradeFee} ${assetSymbol}</span>
           <span class="value highlight">(${this.tradeFeePct}%)</span>`
       )}`;
@@ -296,7 +296,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<ui-skeleton progress width="80px" height="14px"></ui-skeleton>`,
+        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.transactionFee || '-'}</span>`
       )}
     `;
@@ -308,11 +308,11 @@ export class TradeTokens extends LitElement {
       ${this.swaps.map(
         (swap: any) =>
           html`
-            <icon-chevron-right></icon-chevron-right>
+            <uigc-icon-chevron-right></uigc-icon-chevron-right>
             <span class="value">${this.assets.get(swap.assetOut).symbol}</span>
           `
       )}
-      <icon-route></icon-route>
+      <uigc-icon-route></uigc-icon-route>
     `;
   }
 
@@ -322,7 +322,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<ui-skeleton progress width="130px" height="14px"></ui-skeleton>`,
+        () => html`<uigc-skeleton progress width="130px" height="14px"></uigc-skeleton>`,
         () => this.bestRouteTemplate()
       )}
     `;
@@ -346,37 +346,37 @@ export class TradeTokens extends LitElement {
       <div class="header">
         <h1>Trade Tokens</h1>
         <span class="grow"></span>
-        <ui-icon-button @click=${this.onSettingsClick}>
-          <icon-settings></icon-settings>
-        </ui-icon-button>
+        <uigc-icon-button @click=${this.onSettingsClick}>
+          <uigc-icon-settings></uigc-icon-settings>
+        </uigc-icon-button>
       </div>
       <div class="transfer">
-        <ui-asset-transfer
+        <uigc-asset-transfer
           id="assetIn"
           title="Pay with"
           .asset=${this.assetIn}
           .amount=${this.amountIn}
           .balance=${this.balanceIn}
-        ></ui-asset-transfer>
+        ></uigc-asset-transfer>
         <div class="switch">
           <div class="divider"></div>
-          <ui-asset-switch class="switch-button"> </ui-asset-switch>
-          <ui-asset-price
+          <uigc-asset-switch class="switch-button"> </uigc-asset-switch>
+          <uigc-asset-price
             class=${classMap(spotPriceClasses)}
             .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
             .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
             .outputBalance=${this.spotPrice}
             .loading=${this.inProgress}
           >
-          </ui-asset-price>
+          </uigc-asset-price>
         </div>
-        <ui-asset-transfer
+        <uigc-asset-transfer
           id="assetOut"
           title="You get"
           .asset=${this.assetOut}
           .amount=${this.amountOut}
           .balance=${this.balanceOut}
-        ></ui-asset-transfer>
+        ></uigc-asset-transfer>
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
@@ -386,12 +386,12 @@ export class TradeTokens extends LitElement {
         <div class="row">${this.infoBestRouteTemplate()}</div>
       </div>
       <div class=${classMap(errorClasses)}>
-        <icon-error></icon-error>
+        <uigc-icon-error></uigc-icon-error>
         <span> ${this.error['balance'] || this.error['trade']} </span>
       </div>
       <div class="grow"></div>
-      <ui-button ?disabled=${this.disabled} class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}
-        >Confirm Swap</ui-button
+      <uigc-button ?disabled=${this.disabled} class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}
+        >Confirm Swap</uigc-button
       >
     `;
   }

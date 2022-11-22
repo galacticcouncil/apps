@@ -99,34 +99,34 @@ export class TransactionCenter extends LitElement {
 
   broadcastTemplate(n: Notification) {
     return html`
-      <ui-dialog open>
-        <ui-circular-progress class="icon"></ui-circular-progress>
+      <uigc-dialog open>
+        <uigc-circular-progress class="icon"></uigc-circular-progress>
         <h1 class="ok">Submiting...</h1>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
-        <ui-button variant="secondary" @click=${() => this.closeBroadcastDialog(n)}>Close</ui-button>
-      </ui-dialog>
+        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(n)}>Close</uigc-button>
+      </uigc-dialog>
     `;
   }
 
   successTemplate(n: Notification) {
     return html`
-      <ui-dialog open timeout="6000">
-        <icon-success fit class="icon"></icon-success>
+      <uigc-dialog open timeout="6000">
+        <uigc-icon-success fit class="icon"></uigc-icon-success>
         <h1 class="ok">Submitted</h1>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
-        <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
-      </ui-dialog>
+        <uigc-button variant="secondary" @click=${() => this.closeDialog()}>Close</uigc-button>
+      </uigc-dialog>
     `;
   }
 
   errorTemplate(n: Notification) {
     return html`
-      <ui-dialog open>
-        <icon-error fit class="icon"></icon-error>
+      <uigc-dialog open>
+        <uigc-icon-error fit class="icon"></uigc-icon-error>
         <h1 class="error">Failed to submit</h1>
         <span>Unfortunatelly there was an issue while broadcasting your transaction. Please try again later.</span>
-        <ui-button variant="secondary" @click=${() => this.closeDialog()}>Close</ui-button>
-      </ui-dialog>
+        <uigc-button variant="secondary" @click=${() => this.closeDialog()}>Close</uigc-button>
+      </uigc-dialog>
     `;
   }
 

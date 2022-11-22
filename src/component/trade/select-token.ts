@@ -5,12 +5,12 @@ import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
 import { baseStyles } from '../base.css';
+import { AssetSelector } from './types';
 import { formatAmount } from '../../utils/amount';
 
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
-import { AssetSelector } from './types';
 
-@customElement('app-select-token')
+@customElement('gc-trade-app-select')
 export class SelectToken extends LitElement {
   @property({ attribute: false }) assets: PoolAsset[] = [];
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
@@ -119,13 +119,13 @@ export class SelectToken extends LitElement {
   loadingTemplate() {
     return html`
       <div class="loading">
-        <ui-skeleton circle progress></ui-skeleton>
+        <uigc-skeleton circle progress></uigc-skeleton>
         <span class="title">
-          <ui-skeleton progress width="40px" height="16px"></ui-skeleton>
-          <ui-skeleton progress width="50px" height="8px"></ui-skeleton>
+          <uigc-skeleton progress width="40px" height="16px"></uigc-skeleton>
+          <uigc-skeleton progress width="50px" height="8px"></uigc-skeleton>
         </span>
         <span class="grow"></span>
-        <ui-skeleton progress width="100px" height="16px"></ui-skeleton>
+        <uigc-skeleton progress width="100px" height="16px"></uigc-skeleton>
       </div>
     `;
   }
@@ -133,33 +133,33 @@ export class SelectToken extends LitElement {
   render() {
     return html`
       <div class="header">
-        <ui-icon-button class="back" @click=${this.onBackClick}> <icon-back></icon-back> </ui-icon-button>
+        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
         <span>Select token</span>
         <span></span>
       </div>
-      <ui-search-bar
+      <uigc-search-bar
         class="search"
         placeholder="Search by name"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
-      ></ui-search-bar>
+      ></uigc-search-bar>
       ${when(
         this.assets.length > 0,
-        () => html` <ui-asset-list>
+        () => html` <uigc-asset-list>
           ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
             const balance = this.balances.get(asset.id);
             const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
             return html`
-              <ui-asset-list-item
+              <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
                 ?disabled=${this.isDisabled(asset)}
                 ?selected=${this.isSelected(asset)}
                 .asset=${asset}
                 .balance=${balanceFormated}
-              ></ui-asset-list-item>
+              ></uigc-asset-list-item>
             `;
           })}
-        </ui-asset-list>`,
-        () => html` <ui-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </ui-asset-list> `
+        </uigc-asset-list>`,
+        () => html` <uigc-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </uigc-asset-list> `
       )}
     `;
   }

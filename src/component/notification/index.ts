@@ -37,7 +37,7 @@ export class NotificationCenter extends LitElement {
       }
 
       @media (min-width: 768px) {
-        ui-toast {
+        uigc-toast {
           width: 380px;
         }
       }
@@ -45,7 +45,7 @@ export class NotificationCenter extends LitElement {
   ];
 
   openDrawer() {
-    const drawer = this.shadowRoot.querySelector('ui-drawer');
+    const drawer = this.shadowRoot.querySelector('uigc-drawer');
     drawer.setAttribute('open', '');
   }
 
@@ -66,37 +66,37 @@ export class NotificationCenter extends LitElement {
 
   notificationTemplate(n: Notification) {
     return html`
-      <ui-alert class="notification" variant=${n.type}>
+      <uigc-alert class="notification" variant=${n.type}>
         <span class="message">${n.message}</span>
         <span class="secondary">
           <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
         </span>
-      </ui-alert>
+      </uigc-alert>
     `;
   }
 
   toastTemplate(n: Notification) {
     return html`
-      <ui-toast
+      <uigc-toast
         open
         id=${n.id}
         timeout=${n.type === NotificationType.success ? 6000 : 0}
         @click=${() => this.openDrawer()}
       >
-        <ui-alert variant=${n.type}>
+        <uigc-alert variant=${n.type}>
           <span class="message">${n.message}</span>
           <span class="secondary">
             <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
             <span class="grow"></span>
             <span class="count"></span>
           </span>
-        </ui-alert>
-      </ui-toast>
+        </uigc-alert>
+      </uigc-toast>
     `;
   }
 
   removeToastFromDom(id: string): void {
-    const allToasts = this.shadowRoot.querySelectorAll('ui-toast');
+    const allToasts = this.shadowRoot.querySelectorAll('uigc-toast');
     allToasts.forEach((t: Element) => {
       const value = t.getAttribute('id');
       if (id === value) {
@@ -112,7 +112,7 @@ export class NotificationCenter extends LitElement {
 
   getToastCount(): number {
     const toasts = new Set<string>([]);
-    const allToasts = this.shadowRoot.querySelectorAll('ui-toast');
+    const allToasts = this.shadowRoot.querySelectorAll('uigc-toast');
     allToasts.forEach((t: Element) => {
       const value = t.getAttribute('id');
       toasts.add(value);
@@ -152,7 +152,7 @@ export class NotificationCenter extends LitElement {
       >
         ${this.toasts}
       </div>
-      <ui-drawer>
+      <uigc-drawer>
         <span slot="title">Recent Activities</span>
         ${[...this.notifications.values()]
           .filter((n: Notification) => n.type == NotificationType.progress)
@@ -162,7 +162,7 @@ export class NotificationCenter extends LitElement {
           .filter((n: Notification) => n.type != NotificationType.progress)
           .sort((t1, t2) => t2.timestamp - t1.timestamp)
           .map((n: Notification) => this.notificationTemplate(n))}
-      </ui-drawer>
+      </uigc-drawer>
       <slot></slot>
     `;
   }

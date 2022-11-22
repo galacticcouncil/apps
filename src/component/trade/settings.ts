@@ -2,12 +2,11 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
 import { baseStyles } from '../base.css';
-
 import { settingsCursor } from '../../db';
 
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
-@customElement('app-settings')
+@customElement('gc-trade-app-settings')
 export class Settings extends LitElement {
   @property({ type: Number }) slippage = null;
   @state() customSlippage: String = null;
@@ -150,7 +149,7 @@ export class Settings extends LitElement {
   render() {
     return html`
       <div class="header">
-        <ui-icon-button class="back" @click=${this.onBackClick}> <icon-back></icon-back> </ui-icon-button>
+        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
         <span>Edit settings</span>
         <span></span>
       </div>
@@ -158,15 +157,15 @@ export class Settings extends LitElement {
       <div class="settings">
         <div class="row">
           <span class="label">Enable Auto Trade Limit</span>
-          <ui-switch size="small" disabled></ui-switch>
+          <uigc-switch size="small" disabled></uigc-switch>
         </div>
-        <ui-toggle-button-group
+        <uigc-toggle-button-group
           selected=${this.slippage}
           @toggle-button-clicked=${(e: CustomEvent) => this.changeSlippage(e.detail)}
           @input-changed=${(e: CustomEvent) => this.changeSlippageCustom(e.detail)}
         >
-          ${SLIPPAGE_OPTS.map((s: string) => html` <ui-toggle-button value=${s}>${s}%</ui-toggle-button> `)}
-          <ui-input
+          ${SLIPPAGE_OPTS.map((s: string) => html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `)}
+          <uigc-input
             class="slippage-input"
             type="number"
             value=${this.customSlippage}
@@ -174,8 +173,8 @@ export class Settings extends LitElement {
             max="100"
             step="0.1"
             placeholder="Custom"
-          ></ui-input>
-        </ui-toggle-button-group>
+          ></uigc-input>
+        </uigc-toggle-button-group>
         <div class="desc">
           The deviation of the final acceptable price from the spot price caused by protocol fee, price impact (depends
           on trade & pool size) and change in price between announcing the transaction and processing it.
