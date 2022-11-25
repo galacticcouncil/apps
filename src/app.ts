@@ -2,6 +2,7 @@ import { Router } from '@vaadin/router';
 
 import './root';
 import './screen/trade';
+import './screen/xcm';
 
 const routes = [
   {
@@ -15,6 +16,10 @@ const routes = [
       {
         path: '/trade',
         component: 'gc-trade-screen',
+      },
+      {
+        path: '/xcm',
+        component: 'gc-xcm-screen',
       },
     ],
   },

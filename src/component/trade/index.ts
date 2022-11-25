@@ -7,7 +7,7 @@ import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
-import { getPaymentInfo, signAndSend } from '../../api/transaction';
+import { getPaymentInfo, signAndSendTx } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
 import { formatAmount } from '../../utils/amount';
@@ -378,7 +378,7 @@ export class TradeApp extends LitElement {
     const account = accountCursor.deref();
     const transaction = transactionCursor.deref();
     if (account && transaction) {
-      signAndSend(
+      signAndSendTx(
         transaction,
         account,
         ({ status }) => {
