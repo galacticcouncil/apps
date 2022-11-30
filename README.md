@@ -140,7 +140,7 @@ Standalone trade app with tx & notification center.
 
 ## Live [master]
 
-Visit https://beautiful-cheesecake-d57a60.netlify.app/
+Visit https://classy-sfogliatella-214c28.netlify.app
 
 ## Local Development and Build
 
