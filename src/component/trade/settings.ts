@@ -40,13 +40,7 @@ export class Settings extends LitElement {
         padding: 22px 28px;
         box-sizing: border-box;
         align-items: center;
-        line-height: 40px;
-      }
-
-      .header span {
-        color: var(--hex-neutral-gray-100);
-        font-weight: 500;
-        font-size: 16px;
+        height: 84px;
       }
 
       .header .back {
@@ -56,7 +50,7 @@ export class Settings extends LitElement {
 
       .section {
         height: 40px;
-        background: var(--hex-background-gray-1000);
+        background: var(--uigc-app-bg-section);
         font-weight: 500;
         font-size: 14px;
         line-height: 19px;
@@ -108,7 +102,7 @@ export class Settings extends LitElement {
         font-weight: 400;
         font-size: 14px;
         line-height: 150%;
-        color: #acb2b5;
+        color: var(--uigc-app-font-color__alternative);
       }
 
       .settings .slippage-input {
@@ -150,13 +144,13 @@ export class Settings extends LitElement {
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <span>Edit settings</span>
+        <uigc-typography variant="section">Edit settings</uigc-typography>
         <span></span>
       </div>
       <div class="section">Slippage</div>
       <div class="settings">
         <div class="row">
-          <span class="label">Enable Auto Trade Limit</span>
+          <span class="label">Allow auto slippage</span>
           <uigc-switch size="small" disabled></uigc-switch>
         </div>
         <uigc-toggle-button-group

@@ -35,13 +35,7 @@ export class SelectToken extends LitElement {
         padding: 22px 28px;
         box-sizing: border-box;
         align-items: center;
-        line-height: 40px;
-      }
-
-      .header span {
-        color: var(--hex-neutral-gray-100);
-        font-weight: 500;
-        font-size: 16px;
+        height: 84px;
       }
 
       .header .back {
@@ -134,7 +128,7 @@ export class SelectToken extends LitElement {
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <span>Select token</span>
+        <uigc-typography variant="section">Select token</uigc-typography>
         <span></span>
       </div>
       <uigc-search-bar

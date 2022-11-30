@@ -65,6 +65,7 @@ export class TradeApp extends LitElement {
       uigc-paper {
         width: 100%;
         display: block;
+        border-radius: var(--uigc-app-border-radius);
       }
     `,
   ];

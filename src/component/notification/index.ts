@@ -66,7 +66,7 @@ export class NotificationCenter extends LitElement {
 
   notificationTemplate(n: Notification) {
     return html`
-      <uigc-alert class="notification" variant=${n.type}>
+      <uigc-alert class="notification" variant=${n.type} drawer>
         <span class="message">${n.message}</span>
         <span class="secondary">
           <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>

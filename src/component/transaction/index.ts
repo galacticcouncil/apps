@@ -12,27 +12,13 @@ export class TransactionCenter extends LitElement {
 
   static styles = [
     css`
-      h1 {
-        font-weight: 600;
-        font-size: 24px;
-        line-height: 32px;
+      uigc-typography {
         margin-top: 20px;
         margin-bottom: 10px;
       }
 
-      h1.ok {
-        background: var(--gradient-label);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      h1.error {
-        color: var(--hex-red-400);
-      }
-
       span {
-        color: var(--hex-neutral-gray-200);
+        color: var(--uigc-app-font-color__alternative);
         font-weight: 400;
         font-size: 16px;
         line-height: 22px;
@@ -101,7 +87,7 @@ export class TransactionCenter extends LitElement {
     return html`
       <uigc-dialog open>
         <uigc-circular-progress class="icon"></uigc-circular-progress>
-        <h1 class="ok">Submiting...</h1>
+        <uigc-typography variant="title">Submitting...</uigc-typography>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
         <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(n)}>Close</uigc-button>
       </uigc-dialog>
@@ -111,8 +97,8 @@ export class TransactionCenter extends LitElement {
   successTemplate(n: Notification) {
     return html`
       <uigc-dialog open timeout="6000">
-        <uigc-icon-success fit class="icon"></uigc-icon-success>
-        <h1 class="ok">Submitted</h1>
+        <uigc-icon-success-alt fit class="icon"></uigc-icon-success-alt>
+        <uigc-typography variant="title">Submitted</uigc-typography>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
         <uigc-button variant="secondary" @click=${() => this.closeDialog()}>Close</uigc-button>
       </uigc-dialog>
@@ -122,8 +108,8 @@ export class TransactionCenter extends LitElement {
   errorTemplate(n: Notification) {
     return html`
       <uigc-dialog open>
-        <uigc-icon-error fit class="icon"></uigc-icon-error>
-        <h1 class="error">Failed to submit</h1>
+        <uigc-icon-error-alt fit class="icon"></uigc-icon-error-alt>
+        <uigc-typography variant="title" error>Failed to submit</uigc-typography>
         <span>Unfortunatelly there was an issue while broadcasting your transaction. Please try again later.</span>
         <uigc-button variant="secondary" @click=${() => this.closeDialog()}>Close</uigc-button>
       </uigc-dialog>

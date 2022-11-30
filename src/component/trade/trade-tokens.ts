@@ -42,13 +42,11 @@ export class TradeTokens extends LitElement {
         display: flex;
         padding: 22px 28px;
         box-sizing: border-box;
+        align-items: center;
       }
 
-      .header h1 {
-        background: var(--gradient-label);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+      .header uigc-typography {
+        margin-top: 5px;
       }
 
       .transfer {
@@ -90,7 +88,7 @@ export class TradeTokens extends LitElement {
 
       @media (min-width: 768px) {
         .transfer .switch-button {
-          left: 36px;
+          left: 28px;
         }
       }
 
@@ -108,7 +106,7 @@ export class TradeTokens extends LitElement {
 
       @media (min-width: 768px) {
         .transfer .spot-price {
-          right: 36px;
+          right: 28px;
         }
       }
 
@@ -156,11 +154,11 @@ export class TradeTokens extends LitElement {
         font-size: 14px;
         line-height: 22px;
         text-align: left;
-        color: var(--hex-neutral-gray-300);
+        color: var(--uigc-app-font-color__secondary);
       }
 
       .info .route-label {
-        background: var(--gradient-label);
+        background: var(--uigc-app-font-color__gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -183,7 +181,7 @@ export class TradeTokens extends LitElement {
       }
 
       .info .value + .highlight {
-        color: var(--hex-primary-success);
+        color: var(--uigc-app-font-color__primary);
       }
 
       .info uigc-icon-chevron-right {
@@ -201,8 +199,8 @@ export class TradeTokens extends LitElement {
         align-items: center;
         margin: 12px 14px 0;
         padding: 12px 14px;
-        background: rgba(var(--rgb-red-400), 0.3);
-        border-radius: 8px;
+        background: var(--uigc-app-bg-error);
+        border-radius: var(--uigc-app-border-radius-2);
       }
 
       @media (min-width: 768px) {
@@ -286,7 +284,7 @@ export class TradeTokens extends LitElement {
         this.inProgress,
         () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.tradeFee} ${assetSymbol}</span>
-          <span class="value highlight">(${this.tradeFeePct}%)</span>`
+          <span class="value highlight"> (${this.tradeFeePct}%) </span> `
       )}`;
   }
 
@@ -344,7 +342,7 @@ export class TradeTokens extends LitElement {
     };
     return html`
       <div class="header">
-        <h1>Trade Tokens</h1>
+        <uigc-typography variant="title">Trade Assets</uigc-typography>
         <span class="grow"></span>
         <uigc-icon-button @click=${this.onSettingsClick}>
           <uigc-icon-settings></uigc-icon-settings>
