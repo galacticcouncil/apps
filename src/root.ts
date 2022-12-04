@@ -1,11 +1,17 @@
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
 import './component/notification';
 import './component/transaction';
 
 @customElement('gc-root')
-export class Root extends LitElement {
+export class Root extends LitElement implements BeforeEnterObserver {
+  async onBeforeEnter(location: RouterLocation) {
+    const theme = new URLSearchParams(location.search).get('theme');
+    document.querySelector('html').setAttribute('theme', theme);
+  }
+
   render() {
     return html`
       <gc-notification-center>
