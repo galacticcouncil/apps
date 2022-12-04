@@ -35,7 +35,7 @@ export class SelectToken extends LitElement {
         padding: 22px 28px;
         box-sizing: border-box;
         align-items: center;
-        height: 84px;
+        min-height: 84px;
       }
 
       .header .back {
@@ -52,6 +52,11 @@ export class SelectToken extends LitElement {
         .search {
           padding: 0 28px;
         }
+      }
+
+      uigc-asset-list {
+        padding-top: 20px;
+        overflow-y: auto;
       }
 
       .loading {
