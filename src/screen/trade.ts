@@ -8,10 +8,10 @@ export class TradeScreen extends LitElement {
   render() {
     return html`
       <gc-trade-app
-        apiAddress="wss://rococo-basilisk-rpc.hydration.dev"
-        accountAddress="bXmMqb3jBWToPPXf5RXWgRjFCk3eN9mM9Tqx8uj7MQ9vZ6HEx"
+        apiAddress="wss://hydradx-devnet-rpc.play.hydration.cloud"
+        accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
         accountProvider="polkadot-js"
-        accountName="testcoco"
+        accountName="alice"
       ></gc-trade-app>
     `;
   }
