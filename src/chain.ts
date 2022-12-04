@@ -14,7 +14,7 @@ async function info(api: ApiPromise): Promise<void> {
 
 async function initRouter(api: ApiPromise): Promise<TradeRouter> {
   const poolService = new PolkadotApiPoolService(api);
-  return new TradeRouter(poolService, { includeOnly: [PoolType.XYK] });
+  return new TradeRouter(poolService, { includeOnly: [PoolType.Omni] });
 }
 
 function initApi(api: ApiPromise, onError: (error: unknown) => void) {
