@@ -20,8 +20,11 @@ export async function signAndSend(
   const transactionExtrinsic = api.tx(transaction.hex);
   const wallet = getWalletBySource(account.provider);
   await wallet.enable('test1');
+  const nextNonce = await api.rpc.system.accountNextIndex(account.address);
 
-  transactionExtrinsic.signAndSend(account.address, { signer: wallet.signer }, onStatusChange).catch((error: any) => {
-    onError(error);
-  });
+  transactionExtrinsic
+    .signAndSend(account.address, { signer: wallet.signer, nonce: nextNonce }, onStatusChange)
+    .catch((error: any) => {
+      onError(error);
+    });
 }
