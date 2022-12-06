@@ -16,7 +16,7 @@ layer with HydraDX & Basilisk chains.
 
 ### Notification Center
 
-Display app notifications (toast) and related history (drawer) based on underlying component event.
+Display app notifications (toast) and related history (drawer) based on slotted component event.
 
 #### API
 
@@ -53,7 +53,7 @@ export enum NotificationType {
 
 ### Transaction Center
 
-Display transaction status based on underlying component event.
+Display transaction status based on slotted component event.
 
 #### API
 
@@ -102,6 +102,7 @@ Bare trade app without tx & notification center.
   accountAddress="your_account_address"
   accountProvider="polkadot-js"
   accountName="your_account_name"
+  pools="XYK,LBP"
 ></gc-trade-app>
 ```
 
@@ -113,6 +114,7 @@ Bare trade app without tx & notification center.
 | accountAddress  | account address  | false    |
 | accountProvider | account provider | false    |
 | accountName     | account name     | false    |
+| pools           | list of pools    | false    |
 
 ### Trade Spa
 
@@ -126,6 +128,7 @@ Standalone trade app with tx & notification center.
   accountAddress="your_account_address"
   accountProvider="polkadot-js"
   accountName="your_account_name"
+  pools="XYK"
 ></gc-trade-spa>
 ```
 
@@ -137,6 +140,7 @@ Standalone trade app with tx & notification center.
 | accountAddress  | account address  | false    |
 | accountProvider | account provider | false    |
 | accountName     | account name     | false    |
+| pools           | list of pools    | false    |
 
 ## Live [master]
 
