@@ -14,7 +14,7 @@ import { formatAmount } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
-import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
+import { bnum, PoolAsset, PoolType, scale, TradeType } from '@galacticcouncil/sdk';
 
 import './select-token';
 import './settings';
@@ -50,6 +50,7 @@ export class TradeApp extends LitElement {
   @property({ type: String }) accountAddress: string = null;
   @property({ type: String }) accountProvider: string = null;
   @property({ type: String }) accountName: string = null;
+  @property({ type: String }) pools: string = null;
 
   static styles = [
     baseStyles,
@@ -425,9 +426,10 @@ export class TradeApp extends LitElement {
   }
 
   override async firstUpdated() {
+    const pools = this.pools ? this.pools.split(',') : [];
     const chain = chainCursor.deref();
     if (!chain) {
-      createApi(this.apiAddress, () => {});
+      createApi(this.apiAddress, pools as PoolType[], () => {});
     }
   }
 
