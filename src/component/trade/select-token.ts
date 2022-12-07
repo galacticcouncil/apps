@@ -6,7 +6,7 @@ import { map } from 'lit/directives/map.js';
 
 import { baseStyles } from '../base.css';
 import { AssetSelector } from './types';
-import { formatAmount } from '../../utils/amount';
+import { formatAmount, humanizeAmount } from '../../utils/amount';
 
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 
@@ -147,13 +147,14 @@ export class SelectToken extends LitElement {
           ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
             const balance = this.balances.get(asset.id);
             const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
+            const humanizedAmount = humanizeAmount(balanceFormated);
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
                 ?disabled=${this.isDisabled(asset)}
                 ?selected=${this.isSelected(asset)}
                 .asset=${asset}
-                .balance=${balanceFormated}
+                .balance=${humanizedAmount}
               ></uigc-asset-list-item>
             `;
           })}

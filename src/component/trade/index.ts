@@ -10,7 +10,7 @@ import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '.
 import { getPaymentInfo, signAndSend } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
-import { formatAmount } from '../../utils/amount';
+import { formatAmount, humanizeAmount } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
@@ -51,6 +51,8 @@ export class TradeApp extends LitElement {
   @property({ type: String }) accountProvider: string = null;
   @property({ type: String }) accountName: string = null;
   @property({ type: String }) pools: string = null;
+  @property({ type: String }) assetIn: string = null;
+  @property({ type: String }) assetOut: string = null;
 
   static styles = [
     baseStyles,
@@ -101,6 +103,7 @@ export class TradeApp extends LitElement {
       assetOut: assetOut,
       afterSlippage: slippage,
       ...trade,
+      amountOut: humanizeAmount(trade.amountOut, true),
     };
     transactionCursor.reset(transaction);
     this.validateTrade(TradeType.Sell);
@@ -116,6 +119,7 @@ export class TradeApp extends LitElement {
       assetOut: assetOut,
       afterSlippage: slippage,
       ...trade,
+      amountIn: humanizeAmount(trade.amountIn, true),
     };
     transactionCursor.reset(transaction);
     this.validateTrade(TradeType.Buy);
@@ -327,8 +331,8 @@ export class TradeApp extends LitElement {
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
     this.trade = {
       ...this.trade,
-      balanceIn: balanceIn && formatAmount(balanceIn.amount, balanceIn.decimals),
-      balanceOut: balanceOut && formatAmount(balanceOut.amount, balanceOut.decimals),
+      balanceIn: balanceIn && humanizeAmount(formatAmount(balanceIn.amount, balanceIn.decimals)),
+      balanceOut: balanceOut && humanizeAmount(formatAmount(balanceOut.amount, balanceOut.decimals)),
     };
   }
 
@@ -413,7 +417,21 @@ export class TradeApp extends LitElement {
       map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
       pairs: assetsPairs,
     };
-    this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
+    this.initAssets();
+  }
+
+  initAssets() {
+    if (this.assetIn == null && this.assetOut == null) {
+      this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
+      return;
+    }
+
+    if (this.assetIn) {
+      this.trade.assetIn = this.assets.map.get(this.assetIn);
+    }
+    if (this.assetOut) {
+      this.trade.assetOut = this.assets.map.get(this.assetOut);
+    }
   }
 
   async subscribe() {
@@ -446,7 +464,6 @@ export class TradeApp extends LitElement {
         name: this.accountName ?? account?.name,
       } as Account);
     }
-
     super.update(changedProperties);
   }
 

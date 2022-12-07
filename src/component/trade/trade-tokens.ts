@@ -5,6 +5,7 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { baseStyles } from '../base.css';
+import { humanizeAmount } from '../../utils/amount';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
@@ -263,7 +264,7 @@ export class TradeTokens extends LitElement {
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress width="150px" height="14px"></uigc-skeleton>`,
-        () => html`<span class="value">${this.afterSlippage} ${assetSymbol} </span>`
+        () => html`<span class="value">${humanizeAmount(this.afterSlippage)} ${assetSymbol} </span>`
       )}`;
   }
 
@@ -283,7 +284,7 @@ export class TradeTokens extends LitElement {
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
-        () => html`<span class="value">${this.tradeFee} ${assetSymbol}</span>
+        () => html`<span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
           <span class="value highlight"> (${this.tradeFeePct}%) </span> `
       )}`;
   }
@@ -363,7 +364,7 @@ export class TradeTokens extends LitElement {
             class=${classMap(spotPriceClasses)}
             .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
             .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
-            .outputBalance=${this.spotPrice}
+            .outputBalance=${humanizeAmount(this.spotPrice)}
             .loading=${this.inProgress}
           >
           </uigc-asset-price>
@@ -381,7 +382,10 @@ export class TradeTokens extends LitElement {
         <div class="row">${this.infoPriceImpactTemplate()}</div>
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
         <div class="row">${this.infoTransactionFeeTemplate()}</div>
-        <div class="row">${this.infoBestRouteTemplate()}</div>
+        ${when(
+          this.swaps.length > 1 && !this.inProgress,
+          () => html` <div class="row">${this.infoBestRouteTemplate()}</div>`
+        )}
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>
