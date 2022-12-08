@@ -324,6 +324,12 @@ export class TradeApp extends LitElement {
     }
   }
 
+  resetBalances() {
+    this.trade.balanceIn = null;
+    this.trade.balanceOut = null;
+    this.assets.balance = new Map([]);
+  }
+
   updateBalances() {
     const balanceIn = this.assets.balance.get(this.trade.assetIn?.id);
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
@@ -449,18 +455,23 @@ export class TradeApp extends LitElement {
     }
   }
 
+  private updateAccount() {
+    const account = accountCursor.deref();
+    accountCursor.reset({
+      address: this.accountAddress ?? account?.address,
+      provider: this.accountProvider ?? account?.provider,
+      name: this.accountName ?? account?.name,
+    } as Account);
+  }
+
   override update(changedProperties: Map<string, unknown>) {
     if (
       changedProperties.has('accountAddress') ||
       changedProperties.has('accountProvider') ||
       changedProperties.has('accountName')
     ) {
-      const account = accountCursor.deref();
-      accountCursor.reset({
-        address: this.accountAddress ?? account?.address,
-        provider: this.accountProvider ?? account?.provider,
-        name: this.accountName ?? account?.name,
-      } as Account);
+      this.updateAccount();
+      this.resetBalances();
     }
     super.update(changedProperties);
   }
