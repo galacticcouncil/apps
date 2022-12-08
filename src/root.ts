@@ -9,7 +9,7 @@ import './component/transaction';
 export class Root extends LitElement implements BeforeEnterObserver {
   async onBeforeEnter(location: RouterLocation) {
     const theme = new URLSearchParams(location.search).get('theme');
-    document.querySelector('html').setAttribute('theme', theme);
+    document.querySelector('html').setAttribute('theme', theme || 'hdx');
   }
 
   render() {
