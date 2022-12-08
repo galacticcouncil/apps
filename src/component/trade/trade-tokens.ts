@@ -65,7 +65,7 @@ export class TradeTokens extends LitElement {
       }
 
       .transfer .divider {
-        background: rgba(var(--rgb-primary-450), 0.12);
+        background: var(--uigc-divider-background);
         height: 1px;
         width: 100%;
         left: 0;
@@ -80,11 +80,14 @@ export class TradeTokens extends LitElement {
         width: 100%;
       }
 
+      .transfer uigc-asset-switch {
+        background: var(--uigc-asset-switch-background);
+      }
+
       .transfer .switch-button {
         position: absolute;
         left: 14px;
         border-radius: 50%;
-        background: var(--hex-poison-green);
       }
 
       @media (min-width: 768px) {
@@ -356,6 +359,7 @@ export class TradeTokens extends LitElement {
           .asset=${this.assetIn}
           .amount=${this.amountIn}
           .balance=${this.balanceIn}
+          .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
         <div class="switch">
           <div class="divider"></div>
@@ -375,6 +379,7 @@ export class TradeTokens extends LitElement {
           .asset=${this.assetOut}
           .amount=${this.amountOut}
           .balance=${this.balanceOut}
+          .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
       </div>
       <div class=${classMap(infoClasses)}>

@@ -10,7 +10,7 @@ import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '.
 import { getPaymentInfo, signAndSend } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
-import { formatAmount, humanizeAmount } from '../../utils/amount';
+import { formatAmount } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
@@ -103,7 +103,6 @@ export class TradeApp extends LitElement {
       assetOut: assetOut,
       afterSlippage: slippage,
       ...trade,
-      amountOut: humanizeAmount(trade.amountOut, true),
     };
     transactionCursor.reset(transaction);
     this.validateTrade(TradeType.Sell);
@@ -119,7 +118,6 @@ export class TradeApp extends LitElement {
       assetOut: assetOut,
       afterSlippage: slippage,
       ...trade,
-      amountIn: humanizeAmount(trade.amountIn, true),
     };
     transactionCursor.reset(transaction);
     this.validateTrade(TradeType.Buy);
@@ -331,8 +329,8 @@ export class TradeApp extends LitElement {
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
     this.trade = {
       ...this.trade,
-      balanceIn: balanceIn && humanizeAmount(formatAmount(balanceIn.amount, balanceIn.decimals)),
-      balanceOut: balanceOut && humanizeAmount(formatAmount(balanceOut.amount, balanceOut.decimals)),
+      balanceIn: balanceIn && formatAmount(balanceIn.amount, balanceIn.decimals),
+      balanceOut: balanceOut && formatAmount(balanceOut.amount, balanceOut.decimals),
     };
   }
 

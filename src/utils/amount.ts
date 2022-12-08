@@ -4,7 +4,7 @@ export function formatAmount(amount: BigNumber, decimals: number): string {
   return amount.shiftedBy(-1 * decimals).toString();
 }
 
-export function humanizeAmount(amount: string, input?: boolean): string {
+export function humanizeAmount(amount: string): string {
   const amountNo = Number(amount);
   let maxSignDigits: number = 4;
   if (amountNo > 1) {
@@ -12,8 +12,5 @@ export function humanizeAmount(amount: string, input?: boolean): string {
     maxSignDigits = maxSignDigits + intPartLen;
   }
   const formattedNo = new Intl.NumberFormat('en-US', { maximumSignificantDigits: maxSignDigits }).format(amountNo);
-  if (input) {
-    return formattedNo.replaceAll(',', '');
-  }
   return formattedNo.replaceAll(',', ' ');
 }
