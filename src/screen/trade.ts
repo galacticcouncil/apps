@@ -13,6 +13,7 @@ export class TradeScreen extends LitElement {
         accountProvider="polkadot-js"
         accountName="alice"
         pools="Omni"
+        stableCoinAssetId="2"
       ></gc-trade-app>
     `;
   }

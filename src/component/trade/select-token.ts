@@ -15,6 +15,7 @@ export class SelectToken extends LitElement {
   @property({ attribute: false }) assets: PoolAsset[] = [];
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
+  @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ attribute: false }) selector: AssetSelector = null;
@@ -87,6 +88,17 @@ export class SelectToken extends LitElement {
     this.dispatchEvent(new CustomEvent('back-clicked', options));
   }
 
+  calculateDollarPrice(asset: PoolAsset, amount: string) {
+    const usdPrice = this.usdPrice.get(asset.id);
+    if (usdPrice == null) {
+      return Number(amount).toFixed(2);
+    }
+    const usdPriceFormated = formatAmount(usdPrice.amount, usdPrice.decimals);
+    const amountNo = Number(amount);
+    const usdPriceNo = Number(usdPriceFormated);
+    return (amountNo * usdPriceNo).toFixed(2);
+  }
+
   filterAssets(query: string) {
     return this.assets.filter((a) => a.symbol.toLowerCase().includes(query.toLowerCase()));
   }
@@ -147,14 +159,15 @@ export class SelectToken extends LitElement {
           ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
             const balance = this.balances.get(asset.id);
             const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
-            const humanizedAmount = humanizeAmount(balanceFormated);
+            const dollarPrice = balanceFormated ? this.calculateDollarPrice(asset, balanceFormated) : null;
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
                 ?disabled=${this.isDisabled(asset)}
                 ?selected=${this.isSelected(asset)}
                 .asset=${asset}
-                .balance=${humanizedAmount}
+                .balance=${humanizeAmount(balanceFormated)}
+                .balanceUsd=${dollarPrice}
               ></uigc-asset-list-item>
             `;
           })}

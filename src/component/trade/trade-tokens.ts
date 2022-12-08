@@ -18,7 +18,9 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ type: String }) amountIn = null;
+  @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountOut = null;
+  @property({ type: String }) amountOutUsd = null;
   @property({ type: String }) balanceIn = null;
   @property({ type: String }) balanceOut = null;
   @property({ type: String }) spotPrice = null;
@@ -358,6 +360,7 @@ export class TradeTokens extends LitElement {
           title="Pay with"
           .asset=${this.assetIn}
           .amount=${this.amountIn}
+          .amountUsd=${this.amountInUsd}
           .balance=${this.balanceIn}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
@@ -378,6 +381,7 @@ export class TradeTokens extends LitElement {
           title="You get"
           .asset=${this.assetOut}
           .amount=${this.amountOut}
+          .amountUsd=${this.amountOutUsd}
           .balance=${this.balanceOut}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>

@@ -9,7 +9,7 @@ import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
 import { getPaymentInfo, signAndSend } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
-import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
+import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
 import { formatAmount } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
@@ -53,6 +53,7 @@ export class TradeApp extends LitElement {
   @property({ type: String }) pools: string = null;
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
+  @property({ type: String }) stableCoinAssetId: string = null;
 
   static styles = [
     baseStyles,
@@ -94,13 +95,29 @@ export class TradeApp extends LitElement {
     this.requestUpdate();
   }
 
+  private calculateDollarPrice(asset: PoolAsset, amount: string) {
+    if (this.stableCoinAssetId == asset.id) {
+      return Number(amount).toFixed(2);
+    }
+    const usdPrice = this.assets.usdPrice.get(asset.id);
+    const usdPriceFormated = formatAmount(usdPrice.amount, usdPrice.decimals);
+    const amountNo = Number(amount);
+    const usdPriceNo = Number(usdPriceFormated);
+    return (amountNo * usdPriceNo).toFixed(2);
+  }
+
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
     const { trade, transaction, slippage } = await getBestSell(assetIn, assetOut, amountIn);
+    const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
+    const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
+
     this.trade = {
       ...this.trade,
       inProgress: false,
       assetIn: assetIn,
+      amountInUsd: amountInUsd,
       assetOut: assetOut,
+      amountOutUsd: amountOutUsd,
       afterSlippage: slippage,
       ...trade,
     };
@@ -111,11 +128,16 @@ export class TradeApp extends LitElement {
 
   async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
     const { trade, transaction, slippage } = await getBestBuy(assetIn, assetOut, amountOut);
+    const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
+    const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
+
     this.trade = {
       ...this.trade,
       inProgress: false,
       assetIn: assetIn,
+      amountInUsd: amountInUsd,
       assetOut: assetOut,
+      amountOutUsd: amountOutUsd,
       afterSlippage: slippage,
       ...trade,
     };
@@ -242,16 +264,6 @@ export class TradeApp extends LitElement {
     }
   }
 
-  clearAmounts() {
-    this.trade = {
-      ...this.trade,
-      amountIn: null,
-      amountOut: null,
-      spotPrice: null,
-      swaps: [],
-    };
-  }
-
   validateEnoughBalance(amount: string, asset: PoolAsset) {
     const assetBalance = this.assets.balance.get(asset.id);
     const assetAmount = scale(bnum(amount), assetBalance.decimals);
@@ -286,10 +298,22 @@ export class TradeApp extends LitElement {
     }
   }
 
+  resetAmounts() {
+    this.trade = {
+      ...this.trade,
+      amountIn: null,
+      amountInUsd: null,
+      amountOut: null,
+      amountOutUsd: null,
+      spotPrice: null,
+      swaps: [],
+    };
+  }
+
   updateAmountIn(amount: string) {
     // Wipe the trade info on input clear
     if (this.isEmptyAmount(amount)) {
-      this.clearAmounts();
+      this.resetAmounts();
       return;
     }
 
@@ -308,7 +332,7 @@ export class TradeApp extends LitElement {
   updateAmountOut(amount: string) {
     // Wipe the trade info on input clear
     if (this.isEmptyAmount(amount)) {
-      this.clearAmounts();
+      this.resetAmounts();
       return;
     }
 
@@ -346,6 +370,10 @@ export class TradeApp extends LitElement {
       this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
       this.updateBalances();
     }
+  }
+
+  async syncDolarPrice() {
+    this.assets.usdPrice = await getAssetsDollarPrice(this.assets.list, this.stableCoinAssetId);
   }
 
   async syncTransactionFee() {
@@ -443,6 +471,7 @@ export class TradeApp extends LitElement {
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
+      this.syncDolarPrice();
       this.syncTransactionFee();
     });
   }
@@ -510,6 +539,7 @@ export class TradeApp extends LitElement {
       .assets=${this.assets.list}
       .pairs=${this.assets.pairs}
       .balances=${this.assets.balance}
+      .usdPrice=${this.assets.usdPrice}
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
       .selector=${this.assets.selector}
@@ -533,7 +563,9 @@ export class TradeApp extends LitElement {
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
       .amountIn=${this.trade.amountIn}
+      .amountInUsd=${this.trade.amountInUsd}
       .amountOut=${this.trade.amountOut}
+      .amountOutUsd=${this.trade.amountOutUsd}
       .balanceIn=${this.trade.balanceIn}
       .balanceOut=${this.trade.balanceOut}
       .spotPrice=${this.trade.spotPrice}
