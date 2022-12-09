@@ -6,7 +6,7 @@ import { map } from 'lit/directives/map.js';
 
 import { baseStyles } from '../base.css';
 import { AssetSelector } from './types';
-import { formatAmount, humanizeAmount } from '../../utils/amount';
+import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 
@@ -93,10 +93,7 @@ export class SelectToken extends LitElement {
     if (usdPrice == null) {
       return Number(amount).toFixed(2);
     }
-    const usdPriceFormated = formatAmount(usdPrice.amount, usdPrice.decimals);
-    const amountNo = Number(amount);
-    const usdPriceNo = Number(usdPriceFormated);
-    return (amountNo * usdPriceNo).toFixed(2);
+    return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
   filterAssets(query: string) {

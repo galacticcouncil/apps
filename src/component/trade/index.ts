@@ -7,10 +7,10 @@ import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
-import { getPaymentInfo, signAndSend } from '../../api/transaction';
+import { getFeePaymentAsset, getPaymentInfo, signAndSend } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
-import { formatAmount, humanizeAmount } from '../../utils/amount';
+import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
@@ -100,10 +100,7 @@ export class TradeApp extends LitElement {
       return Number(amount).toFixed(2);
     }
     const usdPrice = this.assets.usdPrice.get(asset.id);
-    const usdPriceFormated = formatAmount(usdPrice.amount, usdPrice.decimals);
-    const amountNo = Number(amount);
-    const usdPriceNo = Number(usdPriceFormated);
-    return (amountNo * usdPriceNo).toFixed(2);
+    return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
@@ -376,12 +373,27 @@ export class TradeApp extends LitElement {
     this.assets.usdPrice = await getAssetsDollarPrice(this.assets.list, this.stableCoinAssetId);
   }
 
+  async calculateTransactionFee(feeSystem: string, feeAssetId: string) {
+    if (feeAssetId == SYSTEM_ASSET_ID) {
+      return feeSystem;
+    }
+
+    const router = chainCursor.deref().router;
+    const feeSystemAmount = feeSystem.split(' ')[0];
+    const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
+    const feeAssetPrice = await router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAssetId);
+    const fee = multipleAmounts(feeSystemAmount, feeAssetPrice).toFixed(4);
+    return fee + ' ' + feeAssetSymbol;
+  }
+
   async syncTransactionFee() {
     const account = accountCursor.deref();
     const transaction = transactionCursor.deref();
     if (account && transaction) {
       const { partialFee } = await getPaymentInfo(transaction, account);
-      this.trade.transactionFee = partialFee.toHuman();
+      const feeAssetId = await getFeePaymentAsset(account);
+      const feeSystem = partialFee.toHuman();
+      this.trade.transactionFee = await this.calculateTransactionFee(feeSystem, feeAssetId);
       this.requestUpdate();
     }
   }

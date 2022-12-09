@@ -1,4 +1,4 @@
-import { BigNumber } from '@galacticcouncil/sdk';
+import { Amount, BigNumber } from '@galacticcouncil/sdk';
 
 export function formatAmount(amount: BigNumber, decimals: number): string {
   return amount.shiftedBy(-1 * decimals).toString();
@@ -13,4 +13,11 @@ export function humanizeAmount(amount: string): string {
   }
   const formattedNo = new Intl.NumberFormat('en-US', { maximumSignificantDigits: maxSignDigits }).format(amountNo);
   return formattedNo.replaceAll(',', ' ');
+}
+
+export function multipleAmounts(amountA: string, amountB: Amount) {
+  const formattedAmountB = formatAmount(amountB.amount, amountB.decimals);
+  const amounA = Number(amountA);
+  const amounB = Number(formattedAmountB);
+  return amounA * amounB;
 }
