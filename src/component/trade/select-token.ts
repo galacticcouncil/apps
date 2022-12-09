@@ -159,7 +159,7 @@ export class SelectToken extends LitElement {
           ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
             const balance = this.balances.get(asset.id);
             const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
-            const dollarPrice = balanceFormated ? this.calculateDollarPrice(asset, balanceFormated) : null;
+            const balanceUsd = balance ? this.calculateDollarPrice(asset, balanceFormated) : null;
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
@@ -167,7 +167,7 @@ export class SelectToken extends LitElement {
                 ?selected=${this.isSelected(asset)}
                 .asset=${asset}
                 .balance=${humanizeAmount(balanceFormated)}
-                .balanceUsd=${dollarPrice}
+                .balanceUsd=${balanceUsd}
               ></uigc-asset-list-item>
             `;
           })}

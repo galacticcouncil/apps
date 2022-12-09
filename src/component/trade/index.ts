@@ -10,7 +10,7 @@ import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '.
 import { getPaymentInfo, signAndSend } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
-import { formatAmount } from '../../utils/amount';
+import { formatAmount, humanizeAmount } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
@@ -387,16 +387,24 @@ export class TradeApp extends LitElement {
   }
 
   notificationMessage(t: TradeState, status: string): string {
-    return [t.type, t.amountIn, t.assetIn.symbol, 'for', t.amountOut, t.assetOut.symbol, status].join(' ');
+    return [
+      t.type,
+      humanizeAmount(t.amountIn),
+      t.assetIn.symbol,
+      'for',
+      humanizeAmount(t.amountOut),
+      t.assetOut.symbol,
+      status,
+    ].join(' ');
   }
 
   notificationTemplate(trade: TradeState, status: string): TemplateResult {
     return html`
       <span>${trade.type}</span>
-      <span class="highlight">${trade.amountIn}</span>
+      <span class="highlight">${humanizeAmount(trade.amountIn)}</span>
       <span class="highlight">${trade.assetIn.symbol}</span>
       <span>for</span>
-      <span class="highlight">${trade.amountOut}</span>
+      <span class="highlight">${humanizeAmount(trade.amountOut)}</span>
       <span class="highlight">${trade.assetOut.symbol}</span>
       <span>${status}</span>
     `;
