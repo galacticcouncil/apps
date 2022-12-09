@@ -3,11 +3,12 @@ import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
 import { Account, chainCursor } from '../db';
+import { SYSTEM_ASSET_ID } from '../utils/chain';
 
 export async function getFeePaymentAsset(account: Account): Promise<string> {
   const api = chainCursor.deref().api;
   const feeAsset = await api.query.multiTransactionPayment.accountCurrencyMap(account.address);
-  return feeAsset.toString();
+  return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
 }
 
 export async function getPaymentInfo(transaction: Transaction, account: Account): Promise<RuntimeDispatchInfo> {
