@@ -112,9 +112,9 @@ export class TradeApp extends LitElement {
       ...this.trade,
       inProgress: false,
       assetIn: assetIn,
-      amountInUsd: amountInUsd,
+      amountInUsd: humanizeAmount(amountInUsd),
       assetOut: assetOut,
-      amountOutUsd: amountOutUsd,
+      amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
       ...trade,
     };
@@ -132,9 +132,9 @@ export class TradeApp extends LitElement {
       ...this.trade,
       inProgress: false,
       assetIn: assetIn,
-      amountInUsd: amountInUsd,
+      amountInUsd: humanizeAmount(amountInUsd),
       assetOut: assetOut,
-      amountOutUsd: amountOutUsd,
+      amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
       ...trade,
     };

@@ -89,6 +89,10 @@ export class SelectToken extends LitElement {
   }
 
   calculateDollarPrice(asset: PoolAsset, amount: string) {
+    if (this.usdPrice.size == 0) {
+      return null;
+    }
+
     const usdPrice = this.usdPrice.get(asset.id);
     if (usdPrice == null) {
       return Number(amount).toFixed(2);
@@ -164,7 +168,7 @@ export class SelectToken extends LitElement {
                 ?selected=${this.isSelected(asset)}
                 .asset=${asset}
                 .balance=${humanizeAmount(balanceFormated)}
-                .balanceUsd=${balanceUsd}
+                .balanceUsd=${humanizeAmount(balanceUsd)}
               ></uigc-asset-list-item>
             `;
           })}
