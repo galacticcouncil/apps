@@ -125,7 +125,7 @@ export class Settings extends LitElement {
   }
 
   changeSlippageCustom(changeDetails: any) {
-    if (changeDetails.valid) {
+    if (changeDetails.valid && changeDetails.value.length > 0) {
       this.slippage = changeDetails.value;
       this.customSlippage = changeDetails.value;
       settingsCursor.resetIn(['slippage'], changeDetails.value);
@@ -138,6 +138,14 @@ export class Settings extends LitElement {
       composed: true,
     };
     this.dispatchEvent(new CustomEvent('back-clicked', options));
+  }
+
+  onFocusOut(e: any) {
+    const slippage = this.customSlippage;
+    const el = this.shadowRoot.getElementById('slippage');
+    if (slippage) {
+      el.setAttribute('value', slippage.toString());
+    }
   }
 
   render() {
@@ -160,13 +168,15 @@ export class Settings extends LitElement {
         >
           ${SLIPPAGE_OPTS.map((s: string) => html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `)}
           <uigc-input
+            id="slippage"
             class="slippage-input"
             type="number"
-            value=${this.customSlippage}
-            min="0"
+            .value=${this.customSlippage}
+            min="0.1"
             max="100"
             step="0.1"
             placeholder="Custom"
+            @focusout=${this.onFocusOut}
           ></uigc-input>
         </uigc-toggle-button-group>
         <div class="desc">
