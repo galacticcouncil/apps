@@ -108,6 +108,9 @@ export class TradeApp extends LitElement {
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
+    const tradeState = Object.assign({}, trade);
+    delete tradeState.amountIn; // Disable overriding of active asset amount (assetIn) if typing
+
     this.trade = {
       ...this.trade,
       inProgress: false,
@@ -116,7 +119,7 @@ export class TradeApp extends LitElement {
       assetOut: assetOut,
       amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
-      ...trade,
+      ...tradeState,
     };
     transactionCursor.reset(transaction);
     this.validateTrade(TradeType.Sell);
@@ -128,6 +131,9 @@ export class TradeApp extends LitElement {
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
+    const tradeState = Object.assign({}, trade);
+    delete tradeState.amountOut; // Disable overriding of active asset amount (assetOut) if typing
+
     this.trade = {
       ...this.trade,
       inProgress: false,
@@ -136,7 +142,7 @@ export class TradeApp extends LitElement {
       assetOut: assetOut,
       amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
-      ...trade,
+      ...tradeState,
     };
     transactionCursor.reset(transaction);
     this.validateTrade(TradeType.Buy);
@@ -303,6 +309,7 @@ export class TradeApp extends LitElement {
       amountOut: null,
       amountOutUsd: null,
       spotPrice: null,
+      error: [],
       swaps: [],
     };
   }
@@ -318,6 +325,7 @@ export class TradeApp extends LitElement {
       this.trade = {
         ...this.trade,
         inProgress: true,
+        amountIn: amount,
         amountOut: null,
       };
       this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, amount);
@@ -338,6 +346,7 @@ export class TradeApp extends LitElement {
         ...this.trade,
         inProgress: true,
         amountIn: null,
+        amountOut: amount,
       };
       this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, amount);
     } else {
