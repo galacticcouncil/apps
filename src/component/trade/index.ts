@@ -42,9 +42,9 @@ export class TradeApp extends LitElement {
   });
   private disconnectSubscribeNewHeads: () => void = null;
 
-  @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
-  @state() assets: AssetsState = DEFAULT_ASSETS_STATE;
-  @state() trade: TradeState = DEFAULT_TRADE_STATE;
+  @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
+  @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
+  @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
 
   @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) accountAddress: string = null;
