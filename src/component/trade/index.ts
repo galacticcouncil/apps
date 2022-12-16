@@ -124,6 +124,7 @@ export class TradeApp extends LitElement {
     };
     this.tx = transaction;
     this.validateTrade(TradeType.Sell);
+    this.validateEnoughBalance();
     console.log(trade);
   }
 
@@ -147,6 +148,7 @@ export class TradeApp extends LitElement {
     };
     this.tx = transaction;
     this.validateTrade(TradeType.Buy);
+    this.validateEnoughBalance();
     console.log(trade);
   }
 
@@ -268,14 +270,22 @@ export class TradeApp extends LitElement {
     }
   }
 
-  validateEnoughBalance(amount: string, asset: PoolAsset) {
-    const assetBalance = this.assets.balance.get(asset.id);
-    const assetAmount = scale(bnum(amount), assetBalance.decimals);
-    if (assetAmount.gt(assetBalance.amount)) {
+  validateEnoughBalance() {
+    const assetIn = this.trade.assetIn.id;
+    const ammountIn = this.trade.amountIn;
+
+    if (ammountIn == null) {
+      return;
+    }
+
+    const balanceIn = this.assets.balance.get(assetIn);
+    const amount = scale(bnum(ammountIn), balanceIn.decimals);
+    if (amount.gt(balanceIn.amount)) {
       this.trade.error['balance'] = 'Your trade is bigger than your balance';
     } else {
       delete this.trade.error['balance'];
     }
+    this.requestUpdate();
   }
 
   translateTradeError(error: string): string {
@@ -607,9 +617,8 @@ export class TradeApp extends LitElement {
       @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
         this.assets.active = asset;
         id == 'assetIn' && this.updateAmountIn(value);
-        id == 'assetIn' && this.validateEnoughBalance(value, this.trade.assetIn);
         id == 'assetOut' && this.updateAmountOut(value);
-        id == 'assetOut' && this.validateEnoughBalance(value, this.trade.assetOut);
+        this.validateEnoughBalance();
       }}
       @asset-selector-clicked=${({ detail }: CustomEvent) => {
         this.assets.selector = detail;
