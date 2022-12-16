@@ -29,7 +29,7 @@ import {
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
 } from './types';
-import { TransactionInfo } from '../transaction/types';
+import { TxInfo } from '../transaction/types';
 
 @customElement('gc-trade-app')
 export class TradeApp extends LitElement {
@@ -464,9 +464,9 @@ export class TradeApp extends LitElement {
     const options = {
       bubbles: true,
       composed: true,
-      detail: { account: account, transaction: transaction, notification: notification } as TransactionInfo,
+      detail: { account: account, transaction: transaction, notification: notification } as TxInfo,
     };
-    this.dispatchEvent(new CustomEvent<TransactionInfo>('gc:tx:new', options));
+    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:new', options));
   }
 
   async swap() {

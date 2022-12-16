@@ -7,14 +7,14 @@ import '@galacticcouncil/ui';
 import { signAndSend } from '../../api/transaction';
 import { infoRecord } from '../../utils/event';
 
-import { TransactionInfo, TransactionNotification } from './types';
+import { TxInfo, TxNotification } from './types';
 import { Notification, NotificationType } from '../notification/types';
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
   @state() message: TemplateResult = null;
 
-  private _handleTransaction = (e: CustomEvent<TransactionInfo>) => this.handleTx(short.generate(), e.detail);
+  private _handleTransaction = (e: CustomEvent<TxInfo>) => this.handleTx(short.generate(), e.detail);
 
   static styles = [
     css`
@@ -43,7 +43,7 @@ export class TransactionCenter extends LitElement {
     `,
   ];
 
-  handleTx(txId: string, txInfo: TransactionInfo) {
+  handleTx(txId: string, txInfo: TxInfo) {
     signAndSend(
       txInfo.transaction,
       txInfo.account,
@@ -67,17 +67,17 @@ export class TransactionCenter extends LitElement {
     );
   }
 
-  private handleBroadcasted(id: string, notification: TransactionNotification) {
+  private handleBroadcasted(id: string, notification: TxNotification) {
     this.message = this.broadcastTemplate(id, notification.processing);
     this.sendNotification(id, NotificationType.progress, notification.processing, false);
   }
 
-  private handleError(id: string, notification: TransactionNotification) {
+  private handleError(id: string, notification: TxNotification) {
     this.message = this.errorTemplate();
     this.sendNotification(id, NotificationType.error, notification.failure, false);
   }
 
-  private handleInBlock(id: string, notification: TransactionNotification, error: boolean) {
+  private handleInBlock(id: string, notification: TxNotification, error: boolean) {
     if (error) {
       this.sendNotification(id, NotificationType.error, notification.failure, true);
     } else {

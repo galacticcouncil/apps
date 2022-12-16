@@ -21,7 +21,7 @@ Display app notifications (toast) and related history (drawer) based on slotted 
 #### API
 
 ```js
-this.dispatchEvent(new CustomEvent() < Notification > ('gc:notification', message));
+this.dispatchEvent(new CustomEvent() < Notification > ('gc:notification:new', message));
 ```
 
 #### Types
@@ -35,7 +35,7 @@ this.dispatchEvent(new CustomEvent() < Notification > ('gc:notification', messag
 | toast     | whether to display toast |
 
 ```js
-export type Notification = {
+type Notification = {
   id: string,
   timestamp: number,
   message: string | TemplateResult,
@@ -43,7 +43,7 @@ export type Notification = {
   toast: boolean,
 };
 
-export enum NotificationType {
+enum NotificationType {
   success = 'success',
   error = 'error',
   progress = 'progress',
@@ -58,36 +58,29 @@ Display transaction status based on slotted component event.
 #### API
 
 ```js
-this.dispatchEvent(new CustomEvent() < Notification > ('gc:tx:broadcasted', message));
-this.dispatchEvent(new CustomEvent() < Notification > ('gc:tx:submitted', message));
-this.dispatchEvent(new CustomEvent() < Notification > ('gc:tx:failed', message));
+this.dispatchEvent(new CustomEvent() < TxInfo > ('gc:tx:new', message));
 ```
 
 #### Types
 
-| Attribute | Description              |
-| --------- | ------------------------ |
-| id        | unique notification id   |
-| timestamp | unix timestamp           |
-| message   | string or html template  |
-| type      | notification type        |
-| toast     | whether to display toast |
+| Attribute    | Description                       |
+| ------------ | --------------------------------- |
+| account      | User account (wallet)             |
+| transaction  | Transaction info (extrinsic, hex) |
+| notification | Notification center metadata      |
 
 ```js
-export type Notification = {
-  id: string,
-  timestamp: number,
-  message: string | TemplateResult,
-  type: NotificationType,
-  toast: boolean,
+type TxNotification = {
+  processing: string | TemplateResult,
+  success: string | TemplateResult,
+  failure: string | TemplateResult,
 };
 
-export enum NotificationType {
-  success = 'success',
-  error = 'error',
-  progress = 'progress',
-  default = '',
-}
+type TxInfo = {
+  account: Account,
+  transaction: Transaction,
+  notification: TxNotification,
+};
 ```
 
 ### Trade App
@@ -108,13 +101,16 @@ Bare trade app without tx & notification center.
 
 #### Properties
 
-| Property        | Description      | Required |
-| --------------- | ---------------- | -------- |
-| apiAddress      | chain ws address | true     |
-| accountAddress  | account address  | false    |
-| accountProvider | account provider | false    |
-| accountName     | account name     | false    |
-| pools           | list of pools    | false    |
+| Property          | Description      | Required |
+| ----------------- | ---------------- | -------- |
+| apiAddress        | chain ws address | true     |
+| stableCoinAssetId | stablecoin id    | true     |
+| accountAddress    | account address  | false    |
+| accountProvider   | account provider | false    |
+| accountName       | account name     | false    |
+| pools             | list of pools    | false    |
+| assetIn           | asset in id      | false    |
+| assetOut          | asset out id     | false    |
 
 ### Trade Spa
 
@@ -134,13 +130,16 @@ Standalone trade app with tx & notification center.
 
 #### Properties
 
-| Property        | Description      | Required |
-| --------------- | ---------------- | -------- |
-| apiAddress      | chain ws address | true     |
-| accountAddress  | account address  | false    |
-| accountProvider | account provider | false    |
-| accountName     | account name     | false    |
-| pools           | list of pools    | false    |
+| Property          | Description      | Required |
+| ----------------- | ---------------- | -------- |
+| apiAddress        | chain ws address | true     |
+| stableCoinAssetId | stablecoin id    | true     |
+| accountAddress    | account address  | false    |
+| accountProvider   | account provider | false    |
+| accountName       | account name     | false    |
+| pools             | list of pools    | false    |
+| assetIn           | asset in id      | false    |
+| assetOut          | asset out id     | false    |
 
 ## Live [master]
 
