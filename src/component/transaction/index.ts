@@ -1,14 +1,20 @@
 import { html, css, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
+import { signAndSend } from '../../api/transaction';
+import { infoRecord } from '../../utils/event';
+
+import { TransactionInfo, TransactionNotification } from './types';
 import { Notification, NotificationType } from '../notification/types';
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
   @state() message: TemplateResult = null;
-  @state() currentTx: string = null;
+
+  private _handleTransaction = (e: CustomEvent<TransactionInfo>) => this.handleTx(short.generate(), e.detail);
 
   static styles = [
     css`
@@ -37,30 +43,45 @@ export class TransactionCenter extends LitElement {
     `,
   ];
 
-  constructor() {
-    super();
-    this.addEventListener('gc:tx:broadcasted', (e: CustomEvent<Notification>) => this.handleBroadcasted(e.detail));
-    this.addEventListener('gc:tx:submitted', (e: CustomEvent<Notification>) => this.handleSubmitted(e.detail));
-    this.addEventListener('gc:tx:failed', (e: CustomEvent<Notification>) => this.handleError(e.detail));
+  handleTx(txId: string, txInfo: TransactionInfo) {
+    signAndSend(
+      txInfo.transaction,
+      txInfo.account,
+      ({ events, status }) => {
+        const type = status.type.toLowerCase();
+        switch (type) {
+          case 'broadcast':
+            this.handleBroadcasted(txId, txInfo.notification);
+            break;
+          case 'inblock':
+            console.log(`[${txId}] Completed at block hash #${status.asInBlock.toString()}`);
+            const { method } = infoRecord(events).event;
+            const hasError = 'ExtrinsicFailed' === method;
+            this.handleInBlock(txId, txInfo.notification, hasError);
+            break;
+        }
+      },
+      (_error) => {
+        this.handleError(txId, txInfo.notification);
+      }
+    );
   }
 
-  handleBroadcasted(n: Notification) {
-    this.currentTx = n.id;
-    this.message = this.broadcastTemplate(n);
-    this.sendNotification(n.id, NotificationType.progress, n.message, false);
+  private handleBroadcasted(id: string, notification: TransactionNotification) {
+    this.message = this.broadcastTemplate(id, notification.processing);
+    this.sendNotification(id, NotificationType.progress, notification.processing, false);
   }
 
-  handleError(n: Notification) {
-    this.message = this.errorTemplate(n);
-    this.sendNotification(n.id, NotificationType.error, n.message, false);
+  private handleError(id: string, notification: TransactionNotification) {
+    this.message = this.errorTemplate();
+    this.sendNotification(id, NotificationType.error, notification.failure, false);
   }
 
-  handleSubmitted(n: Notification) {
-    if (n.id == this.currentTx) {
-      this.message = this.successTemplate(n);
-      this.sendNotification(n.id, NotificationType.success, n.message, false);
+  private handleInBlock(id: string, notification: TransactionNotification, error: boolean) {
+    if (error) {
+      this.sendNotification(id, NotificationType.error, notification.failure, true);
     } else {
-      this.sendNotification(n.id, NotificationType.success, n.message, true);
+      this.sendNotification(id, NotificationType.success, notification.success, true);
     }
   }
 
@@ -68,44 +89,38 @@ export class TransactionCenter extends LitElement {
     const options = {
       bubbles: true,
       composed: true,
-      detail: { id: id, timestamp: Date.now(), type: type, message: message, toast: toast } as Notification,
+      detail: {
+        id: id,
+        timestamp: Date.now(),
+        type: type,
+        message: message,
+        toast: toast,
+      } as Notification,
     };
-    this.dispatchEvent(new CustomEvent<Notification>('gc:notification', options));
+    this.dispatchEvent(new CustomEvent<Notification>('gc:notification:new', options));
   }
 
   closeDialog() {
     this.message = null;
-    this.currentTx = null;
   }
 
-  closeBroadcastDialog(n: Notification) {
+  closeBroadcastDialog(id: string, message: string | TemplateResult) {
     this.closeDialog();
-    this.sendNotification(n.id, NotificationType.progress, n.message, true);
+    this.sendNotification(id, NotificationType.progress, message, true);
   }
 
-  broadcastTemplate(n: Notification) {
+  broadcastTemplate(id: string, message: string | TemplateResult) {
     return html`
-      <uigc-dialog open>
+      <uigc-dialog open timeout="6000" @closeable-closed=${() => this.closeBroadcastDialog(id, message)}>
         <uigc-circular-progress class="icon"></uigc-circular-progress>
-        <uigc-typography variant="title">Submitting...</uigc-typography>
-        <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
-        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(n)}>Close</uigc-button>
-      </uigc-dialog>
-    `;
-  }
-
-  successTemplate(n: Notification) {
-    return html`
-      <uigc-dialog open timeout="6000">
-        <uigc-icon-success-alt fit class="icon"></uigc-icon-success-alt>
         <uigc-typography variant="title">Submitted</uigc-typography>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
-        <uigc-button variant="secondary" @click=${() => this.closeDialog()}>Close</uigc-button>
+        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(id, message)}>Close</uigc-button>
       </uigc-dialog>
     `;
   }
 
-  errorTemplate(n: Notification) {
+  errorTemplate() {
     return html`
       <uigc-dialog open>
         <uigc-icon-error-alt fit class="icon"></uigc-icon-error-alt>
@@ -114,6 +129,16 @@ export class TransactionCenter extends LitElement {
         <uigc-button variant="secondary" @click=${() => this.closeDialog()}>Close</uigc-button>
       </uigc-dialog>
     `;
+  }
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener('gc:tx:new', this._handleTransaction);
+  }
+
+  override disconnectedCallback() {
+    this.removeEventListener('gc:tx:new', this._handleTransaction);
+    super.disconnectedCallback();
   }
 
   render() {

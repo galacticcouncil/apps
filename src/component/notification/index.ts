@@ -67,7 +67,7 @@ export class NotificationCenter extends LitElement {
   notificationTemplate(n: Notification) {
     return html`
       <uigc-alert class="notification" variant=${n.type} drawer>
-        <span class="message">${n.message}</span>
+        <span class="message">${n.message} ${n.status}</span>
         <span class="secondary">
           <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
         </span>
@@ -84,7 +84,7 @@ export class NotificationCenter extends LitElement {
         @click=${() => this.openDrawer()}
       >
         <uigc-alert variant=${n.type}>
-          <span class="message">${n.message}</span>
+          <span class="message">${n.message} ${n.status}</span>
           <span class="secondary">
             <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
             <span class="grow"></span>
@@ -136,11 +136,11 @@ export class NotificationCenter extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.addEventListener('gc:notification', this._handleNotification);
+    this.addEventListener('gc:notification:new', this._handleNotification);
   }
 
   override disconnectedCallback() {
-    this.removeEventListener('gc:notification', this._handleNotification);
+    this.removeEventListener('gc:notification:new', this._handleNotification);
     super.disconnectedCallback();
   }
 

@@ -1,20 +1,20 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
-import short from 'short-uuid';
+import { when } from 'lit/directives/when.js';
 
 import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
-import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
-import { getFeePaymentAsset, getPaymentInfo, signAndSend } from '../../api/transaction';
+import { Chain, chainCursor, Account, accountCursor } from '../../db';
+import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
-import { bnum, PoolAsset, PoolType, scale, TradeType } from '@galacticcouncil/sdk';
+import { bnum, PoolAsset, PoolType, scale, TradeType, Transaction } from '@galacticcouncil/sdk';
 
 import './select-token';
 import './settings';
@@ -29,7 +29,7 @@ import {
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
 } from './types';
-import { Notification, NotificationType } from '../notification/types';
+import { TransactionInfo } from '../transaction/types';
 
 @customElement('gc-trade-app')
 export class TradeApp extends LitElement {
@@ -40,6 +40,7 @@ export class TradeApp extends LitElement {
       this.screen.height = entry.contentRect.height;
     });
   });
+  private tx: Transaction = null;
   private disconnectSubscribeNewHeads: () => void = null;
 
   @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
@@ -121,7 +122,7 @@ export class TradeApp extends LitElement {
       afterSlippage: slippage,
       ...tradeState,
     };
-    transactionCursor.reset(transaction);
+    this.tx = transaction;
     this.validateTrade(TradeType.Sell);
     console.log(trade);
   }
@@ -144,7 +145,7 @@ export class TradeApp extends LitElement {
       afterSlippage: slippage,
       ...tradeState,
     };
-    transactionCursor.reset(transaction);
+    this.tx = transaction;
     this.validateTrade(TradeType.Buy);
     console.log(trade);
   }
@@ -397,9 +398,8 @@ export class TradeApp extends LitElement {
 
   async syncTransactionFee() {
     const account = accountCursor.deref();
-    const transaction = transactionCursor.deref();
-    if (account && transaction) {
-      const { partialFee } = await getPaymentInfo(transaction, account);
+    if (account && this.tx) {
+      const { partialFee } = await getPaymentInfo(this.tx, account);
       const feeAssetId = await getFeePaymentAsset(account);
       const feeSystem = partialFee.toHuman();
       this.trade.transactionFee = await this.calculateTransactionFee(feeSystem, feeAssetId);
@@ -408,62 +408,61 @@ export class TradeApp extends LitElement {
   }
 
   notificationMessage(t: TradeState, status: string): string {
+    const isSell: boolean = t.type == TradeType.Sell;
+    const amountIn = t.amountIn;
+    const assetIn = t.assetIn.symbol;
+    const amountOut = t.amountOut;
+    const assetOut = t.assetOut.symbol;
     return [
       t.type,
-      humanizeAmount(t.amountIn),
-      t.assetIn.symbol,
+      humanizeAmount(isSell ? amountIn : amountOut),
+      isSell ? assetIn : assetOut,
       'for',
-      humanizeAmount(t.amountOut),
-      t.assetOut.symbol,
+      humanizeAmount(isSell ? amountOut : amountIn),
+      isSell ? assetOut : assetIn,
       status,
     ].join(' ');
   }
 
   notificationTemplate(trade: TradeState, status: string): TemplateResult {
+    const isSell: boolean = trade.type == TradeType.Sell;
+    const amountIn = trade.amountIn;
+    const assetIn = trade.assetIn.symbol;
+    const amountOut = trade.amountOut;
+    const assetOut = trade.assetOut.symbol;
     return html`
-      <span>${trade.type}</span>
-      <span class="highlight">${humanizeAmount(trade.amountIn)}</span>
-      <span class="highlight">${trade.assetIn.symbol}</span>
+      ${when(
+        status,
+        () => html` <span>${trade.type}</span> `,
+        () => html` <span>You ${isSell ? 'sold' : 'bought'}</span> `
+      )}
+      <span class="highlight">${humanizeAmount(isSell ? amountIn : amountOut)}</span>
+      <span class="highlight">${isSell ? assetIn : assetOut}</span>
       <span>for</span>
-      <span class="highlight">${humanizeAmount(trade.amountOut)}</span>
-      <span class="highlight">${trade.assetOut.symbol}</span>
+      <span class="highlight">${humanizeAmount(isSell ? amountOut : amountIn)}</span>
+      <span class="highlight">${isSell ? assetOut : assetIn}</span>
       <span>${status}</span>
     `;
   }
 
-  updateTxStatus(id: string, type: NotificationType, trade: TradeState, status: string) {
-    const message = this.notificationTemplate(trade, status);
+  processTx(account: Account, transaction: Transaction, trade: TradeState) {
+    const notification = {
+      processing: this.notificationTemplate(trade, 'submitted'),
+      success: this.notificationTemplate(trade, null),
+      failure: this.notificationTemplate(trade, 'failed'),
+    };
     const options = {
       bubbles: true,
       composed: true,
-      detail: { id: id, timestamp: Date.now(), type: type, message: message, toast: true } as Notification,
+      detail: { account: account, transaction: transaction, notification: notification } as TransactionInfo,
     };
-    this.dispatchEvent(new CustomEvent<Notification>('gc:tx:' + status, options));
+    this.dispatchEvent(new CustomEvent<TransactionInfo>('gc:tx:new', options));
   }
 
-  async swap(processingId: string, trade: TradeState) {
+  async swap() {
     const account = accountCursor.deref();
-    const transaction = transactionCursor.deref();
-    if (account && transaction) {
-      signAndSend(
-        transaction,
-        account,
-        ({ status }) => {
-          const type = status.type.toLowerCase();
-          switch (type) {
-            case 'broadcast':
-              this.updateTxStatus(processingId, NotificationType.progress, trade, 'broadcasted');
-              break;
-            case 'inblock':
-              this.updateTxStatus(processingId, NotificationType.success, trade, 'submitted');
-              console.log(`Completed at block hash #${status.asInBlock.toString()}`);
-              break;
-          }
-        },
-        (error) => {
-          this.updateTxStatus(processingId, NotificationType.error, trade, 'failed');
-        }
-      );
+    if (account && this.tx) {
+      this.processTx(account, this.tx, this.trade);
     }
   }
 
@@ -618,10 +617,7 @@ export class TradeApp extends LitElement {
       }}
       @asset-switch-clicked=${this.switchAssets}
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
-      @swap-clicked=${() => {
-        const processingId = short.generate();
-        this.swap(processingId, this.trade);
-      }}
+      @swap-clicked=${() => this.swap()}
     ></gc-trade-app-main>`;
   }
 
