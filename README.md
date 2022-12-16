@@ -53,7 +53,7 @@ enum NotificationType {
 
 ### Transaction Center
 
-Display transaction status based on slotted component event. Dispatch transaction status to Notification center.
+Display transaction status based on slotted component event. Dispatch status to Notification center.
 
 #### API
 
