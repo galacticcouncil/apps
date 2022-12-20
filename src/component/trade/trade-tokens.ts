@@ -6,11 +6,15 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { baseStyles } from '../base.css';
 import { humanizeAmount } from '../../utils/amount';
+import { Account, accountCursor } from '../../db';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { DatabaseController } from '../../db.ctrl';
 
 @customElement('gc-trade-app-main')
 export class TradeTokens extends LitElement {
+  private account = new DatabaseController<Account>(this, accountCursor);
+
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) inProgress = false;
@@ -268,7 +272,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="150px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="150px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${humanizeAmount(this.afterSlippage)} ${assetSymbol} </span>`
       )}`;
   }
@@ -278,7 +282,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.priceImpactPct}%</span>`
       )}`;
   }
@@ -288,7 +292,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
           <span class="value highlight"> (${this.tradeFeePct}%) </span> `
       )}`;
@@ -300,7 +304,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.transactionFee || '-'}</span>`
       )}
     `;
@@ -401,8 +405,13 @@ export class TradeTokens extends LitElement {
         <span> ${this.error['balance'] || this.error['trade']} </span>
       </div>
       <div class="grow"></div>
-      <uigc-button ?disabled=${this.disabled} class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}
-        >Confirm Swap</uigc-button
+      <uigc-button
+        ?disabled=${this.disabled || !this.account.state}
+        class="confirm"
+        variant="primary"
+        fullWidth
+        @click=${this.onSwapClick}
+        >${this.account.state ? 'Confirm Swap' : 'Connect Wallet'}</uigc-button
       >
     `;
   }

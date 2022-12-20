@@ -133,11 +133,11 @@ export class SelectToken extends LitElement {
       <div class="loading">
         <uigc-skeleton circle progress></uigc-skeleton>
         <span class="title">
-          <uigc-skeleton progress width="40px" height="16px"></uigc-skeleton>
-          <uigc-skeleton progress width="50px" height="8px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="40px" height="16px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="50px" height="8px"></uigc-skeleton>
         </span>
         <span class="grow"></span>
-        <uigc-skeleton progress width="100px" height="16px"></uigc-skeleton>
+        <uigc-skeleton progress rectangle width="100px" height="16px"></uigc-skeleton>
       </div>
     `;
   }
