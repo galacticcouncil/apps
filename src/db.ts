@@ -5,7 +5,7 @@ import { defAtom } from '@thi.ng/atom/atom';
 import { defCursor } from '@thi.ng/atom/cursor';
 import { getObj, setObj } from './storage';
 
-const DEFAULT_SLIPPAGE = '0.5';
+export const DEFAULT_SLIPPAGE = '0.5';
 
 export interface Chain {
   api: ApiPromise;

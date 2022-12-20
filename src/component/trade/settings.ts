@@ -1,19 +1,25 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 
 import { baseStyles } from '../base.css';
-import { settingsCursor } from '../../db';
+import { settingsCursor, DEFAULT_SLIPPAGE } from '../../db';
+import { debounce } from 'ts-debounce';
+import IMask from 'imask';
 
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('gc-trade-app-settings')
 export class Settings extends LitElement {
-  @property({ type: Number }) slippage = null;
+  private _slippageHandler = null;
+  private _slippageMask = null;
+
+  @state() slippage: String = null;
   @state() customSlippage: String = null;
 
   constructor() {
     super();
     this.initSlippage();
+    this._slippageHandler = debounce(this.onSlippageChange, 300);
   }
 
   private initSlippage() {
@@ -107,6 +113,7 @@ export class Settings extends LitElement {
 
       .settings .slippage-input {
         margin-left: 8px;
+        text-align: right;
       }
 
       .actions {
@@ -121,15 +128,32 @@ export class Settings extends LitElement {
   changeSlippage(changeDetails: any) {
     this.slippage = changeDetails.value;
     this.customSlippage = null;
-    settingsCursor.resetIn(['slippage'], changeDetails.value);
   }
 
   changeSlippageCustom(changeDetails: any) {
-    if (changeDetails.valid && changeDetails.value.length > 0) {
-      this.slippage = changeDetails.value;
-      this.customSlippage = changeDetails.value;
-      settingsCursor.resetIn(['slippage'], changeDetails.value);
+    this.slippage = changeDetails.value;
+    this.customSlippage = changeDetails.value;
+  }
+
+  onSlippageChange() {
+    const value = this.customSlippage ? this._slippageMask.unmaskedValue : this.slippage;
+    const currentValue = settingsCursor.deref();
+    if (currentValue == value) {
+      return;
     }
+
+    if (value) {
+      settingsCursor.resetIn(['slippage'], value);
+    } else {
+      this.slippage = DEFAULT_SLIPPAGE;
+      settingsCursor.resetIn(['slippage'], DEFAULT_SLIPPAGE);
+    }
+
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('slippage-changed', options));
   }
 
   onBackClick(e: any) {
@@ -140,11 +164,36 @@ export class Settings extends LitElement {
     this.dispatchEvent(new CustomEvent('back-clicked', options));
   }
 
-  onFocusOut(e: any) {
-    const slippage = this.customSlippage;
-    const el = this.shadowRoot.getElementById('slippage');
-    if (slippage) {
-      el.setAttribute('value', slippage.toString());
+  override update(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('customSlippage') && this._slippageMask) {
+      if (this.customSlippage) {
+        this._slippageMask.unmaskedValue = this.customSlippage;
+      } else {
+        this._slippageMask.unmaskedValue = '';
+      }
+    }
+    super.update(changedProperties);
+  }
+
+  override async firstUpdated() {
+    const slippageInput = this.shadowRoot.getElementById('slippage');
+    this._slippageMask = IMask(slippageInput, {
+      mask: Number,
+      scale: 1,
+      signed: false,
+      padFractionalZeros: false,
+      normalizeZeros: true,
+      radix: '.',
+      mapToRadix: ['.'],
+      min: 0,
+      max: 100,
+    });
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._slippageMask) {
+      this._slippageMask.destroy();
     }
   }
 
@@ -163,20 +212,22 @@ export class Settings extends LitElement {
         </div>
         <uigc-toggle-button-group
           selected=${this.slippage}
-          @toggle-button-clicked=${(e: CustomEvent) => this.changeSlippage(e.detail)}
-          @input-changed=${(e: CustomEvent) => this.changeSlippageCustom(e.detail)}
+          @toggle-button-clicked=${(e: CustomEvent) => {
+            this.changeSlippage(e.detail);
+            this._slippageHandler();
+          }}
+          @input-changed=${(e: CustomEvent) => {
+            this.changeSlippageCustom(e.detail);
+            this._slippageHandler();
+          }}
         >
           ${SLIPPAGE_OPTS.map((s: string) => html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `)}
           <uigc-input
             id="slippage"
             class="slippage-input"
-            type="number"
-            .value=${this.customSlippage}
-            min="0.1"
-            max="100"
-            step="0.1"
+            type="text"
+            value=${this.customSlippage}
             placeholder="Custom"
-            @focusout=${this.onFocusOut}
           ></uigc-input>
         </uigc-toggle-button-group>
         <div class="desc">

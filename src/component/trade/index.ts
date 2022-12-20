@@ -34,13 +34,14 @@ import { TxInfo } from '../transaction/types';
 @customElement('gc-trade-app')
 export class TradeApp extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
+
+  private tx: Transaction = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       this.screen.height = entry.contentRect.height;
     });
   });
-  private tx: Transaction = null;
   private disconnectSubscribeNewHeads: () => void = null;
 
   @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
@@ -70,7 +71,13 @@ export class TradeApp extends LitElement {
       uigc-paper {
         width: 100%;
         display: block;
-        border-radius: var(--uigc-app-border-radius);
+        border-radius: none;
+      }
+
+      @media (min-width: 768px) {
+        uigc-paper {
+          border-radius: var(--uigc-app-border-radius);
+        }
       }
     `,
   ];
@@ -109,8 +116,9 @@ export class TradeApp extends LitElement {
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
+    // Disable overriding of active asset amount (assetIn) if typing
     const tradeState = Object.assign({}, trade);
-    delete tradeState.amountIn; // Disable overriding of active asset amount (assetIn) if typing
+    delete tradeState.amountIn;
 
     this.trade = {
       ...this.trade,
@@ -133,8 +141,9 @@ export class TradeApp extends LitElement {
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
+    // Disable overriding of active asset amount (assetOut) if typing
     const tradeState = Object.assign({}, trade);
-    delete tradeState.amountOut; // Disable overriding of active asset amount (assetOut) if typing
+    delete tradeState.amountOut;
 
     this.trade = {
       ...this.trade,
@@ -152,49 +161,46 @@ export class TradeApp extends LitElement {
     console.log(trade);
   }
 
-  switchAndReCalculateSell() {
-    this.trade = {
-      ...this.trade,
-      inProgress: true,
-      assetIn: this.trade.assetOut,
-      assetOut: this.trade.assetIn,
-      balanceIn: this.trade.balanceOut,
-      balanceOut: this.trade.balanceIn,
-      amountIn: this.trade.amountOut,
-      amountOut: null,
-    };
+  private recalculateBestSell() {
     this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, this.trade.amountIn);
   }
 
-  switchAndReCalculateBuy() {
+  private recalculateBestBuy() {
+    this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, this.trade.amountOut);
+  }
+
+  private recalculateTrade() {
+    if (!this.isSwapSelected() || this.isSwapEmpty()) {
+      return;
+    } else if (this.trade.assetIn.symbol == this.assets.active) {
+      this.recalculateBestSell();
+    } else if (this.trade.assetOut.symbol == this.assets.active) {
+      this.recalculateBestBuy();
+    }
+  }
+
+  private switchAssets(amountIn: string, amountOut: string, progress: boolean) {
     this.trade = {
       ...this.trade,
-      inProgress: true,
+      inProgress: progress,
       assetIn: this.trade.assetOut,
       assetOut: this.trade.assetIn,
       balanceIn: this.trade.balanceOut,
       balanceOut: this.trade.balanceIn,
-      amountIn: null,
-      amountOut: this.trade.amountIn,
+      amountIn: amountIn,
+      amountOut: amountOut,
     };
-    this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, this.trade.amountOut);
   }
 
-  switchAssets() {
+  switch() {
     if (!this.isSwapSelected() || this.isSwapEmpty()) {
-      this.trade = {
-        ...this.trade,
-        assetIn: this.trade.assetOut,
-        assetOut: this.trade.assetIn,
-        balanceIn: this.trade.balanceOut,
-        balanceOut: this.trade.balanceIn,
-        amountIn: this.trade.amountOut,
-        amountOut: this.trade.amountIn,
-      };
+      this.switchAssets(this.trade.amountOut, this.trade.amountIn, false);
     } else if (this.trade.assetOut.symbol == this.assets.active) {
-      this.switchAndReCalculateSell();
+      this.switchAssets(this.trade.amountOut, null, true);
+      this.recalculateBestSell();
     } else if (this.trade.assetIn.symbol == this.assets.active) {
-      this.switchAndReCalculateBuy();
+      this.switchAssets(null, this.trade.amountIn, true);
+      this.recalculateBestBuy();
     }
   }
 
@@ -271,10 +277,10 @@ export class TradeApp extends LitElement {
   }
 
   validateEnoughBalance() {
-    const assetIn = this.trade.assetIn.id;
+    const assetIn = this.trade.assetIn?.id;
     const ammountIn = this.trade.amountIn;
 
-    if (ammountIn == null) {
+    if (!assetIn || !ammountIn || !accountCursor.deref()) {
       return;
     }
 
@@ -312,7 +318,7 @@ export class TradeApp extends LitElement {
     }
   }
 
-  resetAmounts() {
+  private resetTrade() {
     this.trade = {
       ...this.trade,
       amountIn: null,
@@ -328,7 +334,7 @@ export class TradeApp extends LitElement {
   updateAmountIn(amount: string) {
     // Wipe the trade info on input clear
     if (this.isEmptyAmount(amount)) {
-      this.resetAmounts();
+      this.resetTrade();
       return;
     }
 
@@ -348,7 +354,7 @@ export class TradeApp extends LitElement {
   updateAmountOut(amount: string) {
     // Wipe the trade info on input clear
     if (this.isEmptyAmount(amount)) {
-      this.resetAmounts();
+      this.resetTrade();
       return;
     }
 
@@ -365,7 +371,7 @@ export class TradeApp extends LitElement {
     }
   }
 
-  resetBalances() {
+  private resetBalances() {
     this.trade.balanceIn = null;
     this.trade.balanceOut = null;
     this.assets.balance = new Map([]);
@@ -386,6 +392,7 @@ export class TradeApp extends LitElement {
     if (account) {
       this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
       this.updateBalances();
+      this.validateEnoughBalance();
     }
   }
 
@@ -476,6 +483,23 @@ export class TradeApp extends LitElement {
     }
   }
 
+  private updateAsset(asset: string, assetKey: string) {
+    if (asset) {
+      this.trade[assetKey] = this.assets.map.get(asset);
+    } else {
+      this.trade[assetKey] = null;
+    }
+  }
+
+  initAssets() {
+    if (!this.assetIn && !this.assetOut) {
+      this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
+      return;
+    }
+    this.updateAsset(this.assetIn, 'assetIn');
+    this.updateAsset(this.assetOut, 'assetOut');
+  }
+
   async init() {
     const router = chainCursor.deref().router;
     const assets = await router.getAllAssets();
@@ -488,20 +512,6 @@ export class TradeApp extends LitElement {
       pairs: assetsPairs,
     };
     this.initAssets();
-  }
-
-  initAssets() {
-    if (this.assetIn == null && this.assetOut == null) {
-      this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
-      return;
-    }
-
-    if (this.assetIn) {
-      this.trade.assetIn = this.assets.map.get(this.assetIn);
-    }
-    if (this.assetOut) {
-      this.trade.assetOut = this.assets.map.get(this.assetOut);
-    }
   }
 
   async subscribe() {
@@ -523,20 +533,20 @@ export class TradeApp extends LitElement {
   }
 
   private updateAccount() {
-    const account = accountCursor.deref();
-    accountCursor.reset({
-      address: this.accountAddress ?? account?.address,
-      provider: this.accountProvider ?? account?.provider,
-      name: this.accountName ?? account?.name,
-    } as Account);
+    if (this.accountAddress && this.accountProvider) {
+      accountCursor.reset({
+        address: this.accountAddress,
+        provider: this.accountProvider,
+        name: this.accountName,
+      } as Account);
+    } else {
+      accountCursor.reset(null);
+      this.resetTrade();
+    }
   }
 
   override update(changedProperties: Map<string, unknown>) {
-    if (
-      changedProperties.has('accountAddress') ||
-      changedProperties.has('accountProvider') ||
-      changedProperties.has('accountName')
-    ) {
+    if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
       this.updateAccount();
       this.resetBalances();
     }
@@ -556,6 +566,7 @@ export class TradeApp extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
     this.ro.observe(this);
+    this.resetTrade();
   }
 
   override disconnectedCallback() {
@@ -568,6 +579,7 @@ export class TradeApp extends LitElement {
     return html`<gc-trade-app-settings
       style="height: ${this.screen.height}px"
       @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
+      @slippage-changed=${() => this.recalculateTrade()}
     ></gc-trade-app-settings>`;
   }
 
@@ -624,7 +636,7 @@ export class TradeApp extends LitElement {
         this.assets.selector = detail;
         this.changeScreen(TradeScreen.SelectToken);
       }}
-      @asset-switch-clicked=${this.switchAssets}
+      @asset-switch-clicked=${this.switch}
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
       @swap-clicked=${() => this.swap()}
     ></gc-trade-app-main>`;
