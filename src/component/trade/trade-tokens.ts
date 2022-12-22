@@ -273,7 +273,10 @@ export class TradeTokens extends LitElement {
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress rectangle width="150px" height="14px"></uigc-skeleton>`,
-        () => html`<span class="value">${humanizeAmount(this.afterSlippage)} ${assetSymbol} </span>`
+        () =>
+          html`<span class="value"
+            >${this.afterSlippage ? humanizeAmount(this.afterSlippage) : '0'} ${assetSymbol}
+          </span>`
       )}`;
   }
 

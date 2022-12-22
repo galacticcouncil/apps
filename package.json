@@ -43,8 +43,8 @@
     "ts-debounce": "^4.0.0"
   },
   "peerDependencies": {
-    "@galacticcouncil/sdk": "^0.0.1-beta.20",
-    "@polkadot/api": "^9.0.1",
+    "@galacticcouncil/sdk": "^0.0.1",
+    "@polkadot/api": "^9.9.1",
     "@polkadot/extension-inject": "^0.44.6"
   }
 }
