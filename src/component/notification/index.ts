@@ -100,6 +100,7 @@ export class NotificationCenter extends LitElement {
     allToasts.forEach((t: Element) => {
       const value = t.getAttribute('id');
       if (id === value) {
+        t.removeAttribute('open');
         t.remove();
       }
     });
