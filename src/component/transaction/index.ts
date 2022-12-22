@@ -73,7 +73,7 @@ export class TransactionCenter extends LitElement {
   }
 
   private handleError(id: string, notification: TxNotification) {
-    this.message = this.errorTemplate();
+    this.message = this.errorTemplate(id);
     this.sendNotification(id, NotificationType.error, notification.failure, false);
   }
 
@@ -97,21 +97,34 @@ export class TransactionCenter extends LitElement {
         toast: toast,
       } as Notification,
     };
-    this.dispatchEvent(new CustomEvent<Notification>('gc:notification:new', options));
+    const notificationEvent = new CustomEvent<Notification>('gc:notification:new', options);
+    this.dispatchEvent(notificationEvent);
   }
 
-  closeDialog() {
+  closeDialogGracefully(id: string): void {
+    const dialog = this.shadowRoot.getElementById(id);
+    dialog.removeAttribute('open');
+    dialog.remove();
+  }
+
+  closeDialog(id: string) {
+    this.closeDialogGracefully(id);
     this.message = null;
   }
 
   closeBroadcastDialog(id: string, message: string | TemplateResult) {
-    this.closeDialog();
+    this.closeDialog(id);
     this.sendNotification(id, NotificationType.progress, message, true);
   }
 
   broadcastTemplate(id: string, message: string | TemplateResult) {
     return html`
-      <uigc-dialog open timeout="6000" @closeable-closed=${() => this.closeBroadcastDialog(id, message)}>
+      <uigc-dialog
+        open
+        id=${id}
+        timeout="6000"
+        @closeable-closed=${(e: CustomEvent) => this.closeBroadcastDialog(id, message)}
+      >
         <uigc-circular-progress class="icon"></uigc-circular-progress>
         <uigc-typography variant="title">Submitted</uigc-typography>
         <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
@@ -120,13 +133,13 @@ export class TransactionCenter extends LitElement {
     `;
   }
 
-  errorTemplate() {
+  errorTemplate(id: string) {
     return html`
-      <uigc-dialog open>
+      <uigc-dialog open id=${id}>
         <uigc-icon-error-alt fit class="icon"></uigc-icon-error-alt>
         <uigc-typography variant="title" error>Failed to submit</uigc-typography>
         <span>Unfortunatelly there was an issue while broadcasting your transaction. Please try again later.</span>
-        <uigc-button variant="secondary" @click=${() => this.closeDialog()}>Close</uigc-button>
+        <uigc-button variant="secondary" @click=${() => this.closeDialog(id)}>Close</uigc-button>
       </uigc-dialog>
     `;
   }
@@ -143,7 +156,7 @@ export class TransactionCenter extends LitElement {
 
   render() {
     return html`
-      <div @closeable-closed=${(e: CustomEvent) => this.closeDialog()}>${this.message}</div>
+      <div>${this.message}</div>
       <slot></slot>
     `;
   }
