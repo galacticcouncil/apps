@@ -12,12 +12,12 @@ async function info(api: ApiPromise): Promise<void> {
   console.log(`Chain: ${systemChain} (${systemChainType.toString()})`);
 }
 
-async function initRouter(api: ApiPromise): Promise<TradeRouter> {
+async function initRouter(api: ApiPromise, pools: PoolType[]): Promise<TradeRouter> {
   const poolService = new PolkadotApiPoolService(api);
-  return new TradeRouter(poolService, { includeOnly: [PoolType.XYK] });
+  return new TradeRouter(poolService, { includeOnly: pools });
 }
 
-function initApi(api: ApiPromise, onError: (error: unknown) => void) {
+function initApi(api: ApiPromise, pools: PoolType[], onError: (error: unknown) => void) {
   api
     .on('connected', () => console.log('API connected'))
     .on('disconnected', () => console.log('API disconnected'))
@@ -25,7 +25,7 @@ function initApi(api: ApiPromise, onError: (error: unknown) => void) {
     .on('ready', () => {
       console.log('API ready');
       info(api);
-      initRouter(api)
+      initRouter(api, pools)
         .then((router: TradeRouter) => {
           console.log('Router ready');
           chainCursor.reset({
@@ -37,21 +37,21 @@ function initApi(api: ApiPromise, onError: (error: unknown) => void) {
     });
 }
 
-export async function createApi(apiUrl: string, onError: (error: unknown) => void) {
+export async function createApi(apiUrl: string, pools: PoolType[], onError: (error: unknown) => void) {
   try {
     const provider = new WsProvider(apiUrl);
     const api = new ApiPromise({
       provider: provider,
     });
-    initApi(api, onError);
+    initApi(api, pools, onError);
   } catch (error) {
     onError(error);
   }
 }
 
-export async function useApi(api: ApiPromise, onError: (error: unknown) => void) {
+export async function useApi(api: ApiPromise, pools: PoolType[], onError: (error: unknown) => void) {
   try {
-    initApi(api, onError);
+    initApi(api, pools, onError);
   } catch (error) {
     onError(error);
   }

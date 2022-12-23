@@ -4,3 +4,7 @@ export { TransactionCenter } from './component/transaction';
 
 /* SPA */
 export { TradeSpa } from './spa/trade';
+
+/* Types */
+export * from './component/notification/types';
+export * from './component/transaction/types';

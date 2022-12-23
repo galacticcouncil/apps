@@ -22,18 +22,20 @@ export type AssetsState = {
   active: string;
   selector: AssetSelector;
   list: PoolAsset[];
-  balance: Map<string, Amount>;
   map: Map<string, PoolAsset>;
   pairs: Map<string, PoolAsset[]>;
+  balance: Map<string, Amount>;
+  usdPrice: Map<string, Amount>;
 };
 
 export const DEFAULT_ASSETS_STATE: AssetsState = {
   active: null,
   selector: null,
   list: [],
-  balance: new Map([]),
   map: new Map([]),
   pairs: new Map([]),
+  balance: new Map([]),
+  usdPrice: new Map([]),
 };
 
 export type TradeState = {
@@ -66,8 +68,8 @@ export const DEFAULT_TRADE_STATE: TradeState = {
   amountOut: null,
   balanceIn: null,
   balanceOut: null,
-  amountInUsd: '0',
-  amountOutUsd: '0',
+  amountInUsd: null,
+  amountOutUsd: null,
   spotPrice: null,
   afterSlippage: '0',
   priceImpactPct: '0',

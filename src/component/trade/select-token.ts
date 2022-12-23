@@ -6,7 +6,7 @@ import { map } from 'lit/directives/map.js';
 
 import { baseStyles } from '../base.css';
 import { AssetSelector } from './types';
-import { formatAmount } from '../../utils/amount';
+import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 
@@ -15,6 +15,7 @@ export class SelectToken extends LitElement {
   @property({ attribute: false }) assets: PoolAsset[] = [];
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
+  @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ attribute: false }) selector: AssetSelector = null;
@@ -35,13 +36,7 @@ export class SelectToken extends LitElement {
         padding: 22px 28px;
         box-sizing: border-box;
         align-items: center;
-        line-height: 40px;
-      }
-
-      .header span {
-        color: var(--hex-neutral-gray-100);
-        font-weight: 500;
-        font-size: 16px;
+        min-height: 84px;
       }
 
       .header .back {
@@ -58,6 +53,11 @@ export class SelectToken extends LitElement {
         .search {
           padding: 0 28px;
         }
+      }
+
+      uigc-asset-list {
+        padding-top: 20px;
+        overflow-y: auto;
       }
 
       .loading {
@@ -86,6 +86,18 @@ export class SelectToken extends LitElement {
       composed: true,
     };
     this.dispatchEvent(new CustomEvent('back-clicked', options));
+  }
+
+  calculateDollarPrice(asset: PoolAsset, amount: string) {
+    if (this.usdPrice.size == 0) {
+      return null;
+    }
+
+    const usdPrice = this.usdPrice.get(asset.id);
+    if (usdPrice == null) {
+      return Number(amount).toFixed(2);
+    }
+    return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
   filterAssets(query: string) {
@@ -121,11 +133,11 @@ export class SelectToken extends LitElement {
       <div class="loading">
         <uigc-skeleton circle progress></uigc-skeleton>
         <span class="title">
-          <uigc-skeleton progress width="40px" height="16px"></uigc-skeleton>
-          <uigc-skeleton progress width="50px" height="8px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="40px" height="16px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="50px" height="8px"></uigc-skeleton>
         </span>
         <span class="grow"></span>
-        <uigc-skeleton progress width="100px" height="16px"></uigc-skeleton>
+        <uigc-skeleton progress rectangle width="100px" height="16px"></uigc-skeleton>
       </div>
     `;
   }
@@ -134,7 +146,7 @@ export class SelectToken extends LitElement {
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <span>Select token</span>
+        <uigc-typography variant="section">Select token</uigc-typography>
         <span></span>
       </div>
       <uigc-search-bar
@@ -148,13 +160,15 @@ export class SelectToken extends LitElement {
           ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
             const balance = this.balances.get(asset.id);
             const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
+            const balanceUsd = balance ? this.calculateDollarPrice(asset, balanceFormated) : null;
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
                 ?disabled=${this.isDisabled(asset)}
                 ?selected=${this.isSelected(asset)}
                 .asset=${asset}
-                .balance=${balanceFormated}
+                .balance=${humanizeAmount(balanceFormated)}
+                .balanceUsd=${humanizeAmount(balanceUsd)}
               ></uigc-asset-list-item>
             `;
           })}

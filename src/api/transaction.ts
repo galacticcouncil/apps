@@ -4,6 +4,13 @@ import type { ISubmittableResult } from '@polkadot/types/types';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
 import { Account, chainCursor } from '../db';
+import { SYSTEM_ASSET_ID } from '../utils/chain';
+
+export async function getFeePaymentAsset(account: Account): Promise<string> {
+  const api = chainCursor.deref().api;
+  const feeAsset = await api.query.multiTransactionPayment.accountCurrencyMap(account.address);
+  return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
+}
 
 export async function getPaymentInfo(transaction: Transaction, account: Account): Promise<RuntimeDispatchInfo> {
   const api = chainCursor.deref().api;
@@ -11,7 +18,7 @@ export async function getPaymentInfo(transaction: Transaction, account: Account)
   return await transactionExtrinsic.paymentInfo(account.address);
 }
 
-export async function signAndSendTx(
+export async function signAndSend(
   transaction: Transaction,
   account: Account,
   onStatusChange: (status: ISubmittableResult) => void,
@@ -19,21 +26,15 @@ export async function signAndSendTx(
 ) {
   const api = chainCursor.deref().api;
   const transactionExtrinsic = api.tx(transaction.hex);
-  signAndSend(transactionExtrinsic, account, onStatusChange, onError);
-}
-
-export async function signAndSend(
-  extrinsic: SubmittableExtrinsic,
-  account: Account,
-  onStatusChange: (status: ISubmittableResult) => void,
-  onError: (error: unknown) => void
-) {
   const wallet = getWalletBySource(account.provider);
   await wallet.enable('test1');
-  console.log(extrinsic);
-  extrinsic.signAndSend(account.address, { signer: wallet.signer }, onStatusChange).catch((error: any) => {
-    onError(error);
-  });
+  const nextNonce = await api.rpc.system.accountNextIndex(account.address);
+
+  transactionExtrinsic
+    .signAndSend(account.address, { signer: wallet.signer, nonce: nextNonce }, onStatusChange)
+    .catch((error: any) => {
+      onError(error);
+    });
 }
 
 export async function signAndSendOb(

@@ -1,20 +1,20 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
-import short from 'short-uuid';
+import { when } from 'lit/directives/when.js';
 
 import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
-import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
-import { getPaymentInfo, signAndSendTx } from '../../api/transaction';
+import { Chain, chainCursor, Account, accountCursor } from '../../db';
+import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
-import { getAssetsBalance, getAssetsPairs } from '../../api/asset';
-import { formatAmount } from '../../utils/amount';
+import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
+import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
-import { bnum, PoolAsset, scale, TradeType } from '@galacticcouncil/sdk';
+import { bnum, PoolAsset, PoolType, scale, TradeType, Transaction } from '@galacticcouncil/sdk';
 
 import './select-token';
 import './settings';
@@ -29,11 +29,13 @@ import {
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
 } from './types';
-import { Notification, NotificationType } from '../notification/types';
+import { TxInfo } from '../transaction/types';
 
 @customElement('gc-trade-app')
 export class TradeApp extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
+
+  private tx: Transaction = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
@@ -42,14 +44,18 @@ export class TradeApp extends LitElement {
   });
   private disconnectSubscribeNewHeads: () => void = null;
 
-  @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
-  @state() assets: AssetsState = DEFAULT_ASSETS_STATE;
-  @state() trade: TradeState = DEFAULT_TRADE_STATE;
+  @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
+  @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
+  @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
 
   @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) accountAddress: string = null;
   @property({ type: String }) accountProvider: string = null;
   @property({ type: String }) accountName: string = null;
+  @property({ type: String }) pools: string = null;
+  @property({ type: String }) assetIn: string = null;
+  @property({ type: String }) assetOut: string = null;
+  @property({ type: String }) stableCoinAssetId: string = null;
 
   static styles = [
     baseStyles,
@@ -65,6 +71,13 @@ export class TradeApp extends LitElement {
       uigc-paper {
         width: 100%;
         display: block;
+        border-radius: none;
+      }
+
+      @media (min-width: 768px) {
+        uigc-paper {
+          border-radius: var(--uigc-app-border-radius);
+        }
       }
     `,
   ];
@@ -90,79 +103,104 @@ export class TradeApp extends LitElement {
     this.requestUpdate();
   }
 
+  private calculateDollarPrice(asset: PoolAsset, amount: string) {
+    if (this.stableCoinAssetId == asset.id) {
+      return Number(amount).toFixed(2);
+    }
+    const usdPrice = this.assets.usdPrice.get(asset.id);
+    return multipleAmounts(amount, usdPrice).toFixed(2);
+  }
+
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
     const { trade, transaction, slippage } = await getBestSell(assetIn, assetOut, amountIn);
+    const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
+    const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
+
+    // Disable overriding of active asset amount (assetIn) if typing
+    const tradeState = Object.assign({}, trade);
+    delete tradeState.amountIn;
+
     this.trade = {
       ...this.trade,
       inProgress: false,
       assetIn: assetIn,
+      amountInUsd: humanizeAmount(amountInUsd),
       assetOut: assetOut,
+      amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
-      ...trade,
+      ...tradeState,
     };
-    transactionCursor.reset(transaction);
+    this.tx = transaction;
     this.validateTrade(TradeType.Sell);
+    this.validateEnoughBalance();
     console.log(trade);
   }
 
   async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
     const { trade, transaction, slippage } = await getBestBuy(assetIn, assetOut, amountOut);
+    const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
+    const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
+
+    // Disable overriding of active asset amount (assetOut) if typing
+    const tradeState = Object.assign({}, trade);
+    delete tradeState.amountOut;
+
     this.trade = {
       ...this.trade,
       inProgress: false,
       assetIn: assetIn,
+      amountInUsd: humanizeAmount(amountInUsd),
       assetOut: assetOut,
+      amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
-      ...trade,
+      ...tradeState,
     };
-    transactionCursor.reset(transaction);
+    this.tx = transaction;
     this.validateTrade(TradeType.Buy);
+    this.validateEnoughBalance();
     console.log(trade);
   }
 
-  switchAndReCalculateSell() {
-    this.trade = {
-      ...this.trade,
-      inProgress: true,
-      assetIn: this.trade.assetOut,
-      assetOut: this.trade.assetIn,
-      balanceIn: this.trade.balanceOut,
-      balanceOut: this.trade.balanceIn,
-      amountIn: this.trade.amountOut,
-      amountOut: null,
-    };
+  private recalculateBestSell() {
     this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, this.trade.amountIn);
   }
 
-  switchAndReCalculateBuy() {
+  private recalculateBestBuy() {
+    this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, this.trade.amountOut);
+  }
+
+  private recalculateTrade() {
+    if (!this.isSwapSelected() || this.isSwapEmpty()) {
+      return;
+    } else if (this.trade.assetIn.symbol == this.assets.active) {
+      this.recalculateBestSell();
+    } else if (this.trade.assetOut.symbol == this.assets.active) {
+      this.recalculateBestBuy();
+    }
+  }
+
+  private switchAssets(amountIn: string, amountOut: string, progress: boolean) {
     this.trade = {
       ...this.trade,
-      inProgress: true,
+      inProgress: progress,
       assetIn: this.trade.assetOut,
       assetOut: this.trade.assetIn,
       balanceIn: this.trade.balanceOut,
       balanceOut: this.trade.balanceIn,
-      amountIn: null,
-      amountOut: this.trade.amountIn,
+      amountIn: amountIn,
+      amountOut: amountOut,
     };
-    this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, this.trade.amountOut);
   }
 
-  switchAssets() {
+  switch() {
     if (!this.isSwapSelected() || this.isSwapEmpty()) {
-      this.trade = {
-        ...this.trade,
-        assetIn: this.trade.assetOut,
-        assetOut: this.trade.assetIn,
-        balanceIn: this.trade.balanceOut,
-        balanceOut: this.trade.balanceIn,
-        amountIn: this.trade.amountOut,
-        amountOut: this.trade.amountIn,
-      };
+      this.switchAssets(this.trade.amountOut, this.trade.amountIn, false);
     } else if (this.trade.assetOut.symbol == this.assets.active) {
-      this.switchAndReCalculateSell();
+      this.switchAssets(this.trade.amountOut, null, true);
+      this.recalculateBestSell();
     } else if (this.trade.assetIn.symbol == this.assets.active) {
-      this.switchAndReCalculateBuy();
+      this.switchAssets(null, this.trade.amountIn, true);
+      this.recalculateBestBuy();
     }
   }
 
@@ -238,24 +276,22 @@ export class TradeApp extends LitElement {
     }
   }
 
-  clearAmounts() {
-    this.trade = {
-      ...this.trade,
-      amountIn: null,
-      amountOut: null,
-      spotPrice: null,
-      swaps: [],
-    };
-  }
+  validateEnoughBalance() {
+    const assetIn = this.trade.assetIn?.id;
+    const ammountIn = this.trade.amountIn;
 
-  validateEnoughBalance(amount: string, asset: PoolAsset) {
-    const assetBalance = this.assets.balance.get(asset.id);
-    const assetAmount = scale(bnum(amount), assetBalance.decimals);
-    if (assetAmount.gt(assetBalance.amount)) {
+    if (!assetIn || !ammountIn || !accountCursor.deref()) {
+      return;
+    }
+
+    const balanceIn = this.assets.balance.get(assetIn);
+    const amount = scale(bnum(ammountIn), balanceIn.decimals);
+    if (amount.gt(balanceIn.amount)) {
       this.trade.error['balance'] = 'Your trade is bigger than your balance';
     } else {
       delete this.trade.error['balance'];
     }
+    this.requestUpdate();
   }
 
   translateTradeError(error: string): string {
@@ -282,10 +318,23 @@ export class TradeApp extends LitElement {
     }
   }
 
+  private resetTrade() {
+    this.trade = {
+      ...this.trade,
+      amountIn: null,
+      amountInUsd: null,
+      amountOut: null,
+      amountOutUsd: null,
+      spotPrice: null,
+      error: [],
+      swaps: [],
+    };
+  }
+
   updateAmountIn(amount: string) {
     // Wipe the trade info on input clear
     if (this.isEmptyAmount(amount)) {
-      this.clearAmounts();
+      this.resetTrade();
       return;
     }
 
@@ -293,6 +342,7 @@ export class TradeApp extends LitElement {
       this.trade = {
         ...this.trade,
         inProgress: true,
+        amountIn: amount,
         amountOut: null,
       };
       this.calculateBestSell(this.trade.assetIn, this.trade.assetOut, amount);
@@ -304,7 +354,7 @@ export class TradeApp extends LitElement {
   updateAmountOut(amount: string) {
     // Wipe the trade info on input clear
     if (this.isEmptyAmount(amount)) {
-      this.clearAmounts();
+      this.resetTrade();
       return;
     }
 
@@ -313,11 +363,18 @@ export class TradeApp extends LitElement {
         ...this.trade,
         inProgress: true,
         amountIn: null,
+        amountOut: amount,
       };
       this.calculateBestBuy(this.trade.assetIn, this.trade.assetOut, amount);
     } else {
       this.trade.amountOut = amount;
     }
+  }
+
+  private resetBalances() {
+    this.trade.balanceIn = null;
+    this.trade.balanceOut = null;
+    this.assets.balance = new Map([]);
   }
 
   updateBalances() {
@@ -335,69 +392,112 @@ export class TradeApp extends LitElement {
     if (account) {
       this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
       this.updateBalances();
+      this.validateEnoughBalance();
     }
+  }
+
+  async syncDolarPrice() {
+    this.assets.usdPrice = await getAssetsDollarPrice(this.assets.list, this.stableCoinAssetId);
+  }
+
+  async calculateTransactionFee(feeSystem: string, feeAssetId: string) {
+    if (feeAssetId == SYSTEM_ASSET_ID) {
+      return feeSystem;
+    }
+
+    const router = chainCursor.deref().router;
+    const feeSystemAmount = feeSystem.split(' ')[0];
+    const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
+    const feeAssetPrice = await router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAssetId);
+    const fee = multipleAmounts(feeSystemAmount, feeAssetPrice).toFixed(4);
+    return fee + ' ' + feeAssetSymbol;
   }
 
   async syncTransactionFee() {
     const account = accountCursor.deref();
-    const transaction = transactionCursor.deref();
-    if (account && transaction) {
-      const { partialFee } = await getPaymentInfo(transaction, account);
-      this.trade.transactionFee = partialFee.toHuman();
+    if (account && this.tx) {
+      const { partialFee } = await getPaymentInfo(this.tx, account);
+      const feeAssetId = await getFeePaymentAsset(account);
+      const feeSystem = partialFee.toHuman();
+      this.trade.transactionFee = await this.calculateTransactionFee(feeSystem, feeAssetId);
       this.requestUpdate();
     }
   }
 
   notificationMessage(t: TradeState, status: string): string {
-    return [t.type, t.amountIn, t.assetIn.symbol, 'for', t.amountOut, t.assetOut.symbol, status].join(' ');
+    const isSell: boolean = t.type == TradeType.Sell;
+    const amountIn = t.amountIn;
+    const assetIn = t.assetIn.symbol;
+    const amountOut = t.amountOut;
+    const assetOut = t.assetOut.symbol;
+    return [
+      t.type,
+      humanizeAmount(isSell ? amountIn : amountOut),
+      isSell ? assetIn : assetOut,
+      'for',
+      humanizeAmount(isSell ? amountOut : amountIn),
+      isSell ? assetOut : assetIn,
+      status,
+    ].join(' ');
   }
 
   notificationTemplate(trade: TradeState, status: string): TemplateResult {
+    const isSell: boolean = trade.type == TradeType.Sell;
+    const amountIn = trade.amountIn;
+    const assetIn = trade.assetIn.symbol;
+    const amountOut = trade.amountOut;
+    const assetOut = trade.assetOut.symbol;
     return html`
-      <span>${trade.type}</span>
-      <span class="highlight">${trade.amountIn}</span>
-      <span class="highlight">${trade.assetIn.symbol}</span>
+      ${when(
+        status,
+        () => html` <span>${trade.type}</span> `,
+        () => html` <span>You ${isSell ? 'sold' : 'bought'}</span> `
+      )}
+      <span class="highlight">${humanizeAmount(isSell ? amountIn : amountOut)}</span>
+      <span class="highlight">${isSell ? assetIn : assetOut}</span>
       <span>for</span>
-      <span class="highlight">${trade.amountOut}</span>
-      <span class="highlight">${trade.assetOut.symbol}</span>
+      <span class="highlight">${humanizeAmount(isSell ? amountOut : amountIn)}</span>
+      <span class="highlight">${isSell ? assetOut : assetIn}</span>
       <span>${status}</span>
     `;
   }
 
-  updateTxStatus(id: string, type: NotificationType, trade: TradeState, status: string) {
-    const message = this.notificationTemplate(trade, status);
+  processTx(account: Account, transaction: Transaction, trade: TradeState) {
+    const notification = {
+      processing: this.notificationTemplate(trade, 'submitted'),
+      success: this.notificationTemplate(trade, null),
+      failure: this.notificationTemplate(trade, 'failed'),
+    };
     const options = {
       bubbles: true,
       composed: true,
-      detail: { id: id, timestamp: Date.now(), type: type, message: message, toast: true } as Notification,
+      detail: { account: account, transaction: transaction, notification: notification } as TxInfo,
     };
-    this.dispatchEvent(new CustomEvent<Notification>('gc:tx:' + status, options));
+    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:new', options));
   }
 
-  async swap(processingId: string, trade: TradeState) {
+  async swap() {
     const account = accountCursor.deref();
-    const transaction = transactionCursor.deref();
-    if (account && transaction) {
-      signAndSendTx(
-        transaction,
-        account,
-        ({ status }) => {
-          const type = status.type.toLowerCase();
-          switch (type) {
-            case 'broadcast':
-              this.updateTxStatus(processingId, NotificationType.progress, trade, 'broadcasted');
-              break;
-            case 'inblock':
-              this.updateTxStatus(processingId, NotificationType.success, trade, 'submitted');
-              console.log(`Completed at block hash #${status.asInBlock.toString()}`);
-              break;
-          }
-        },
-        (error) => {
-          this.updateTxStatus(processingId, NotificationType.error, trade, 'failed');
-        }
-      );
+    if (account && this.tx) {
+      this.processTx(account, this.tx, this.trade);
     }
+  }
+
+  private updateAsset(asset: string, assetKey: string) {
+    if (asset) {
+      this.trade[assetKey] = this.assets.map.get(asset);
+    } else {
+      this.trade[assetKey] = null;
+    }
+  }
+
+  initAssets() {
+    if (!this.assetIn && !this.assetOut) {
+      this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
+      return;
+    }
+    this.updateAsset(this.assetIn, 'assetIn');
+    this.updateAsset(this.assetOut, 'assetOut');
   }
 
   async init() {
@@ -411,7 +511,7 @@ export class TradeApp extends LitElement {
       map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
       pairs: assetsPairs,
     };
-    this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
+    this.initAssets();
   }
 
   async subscribe() {
@@ -419,31 +519,37 @@ export class TradeApp extends LitElement {
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
+      this.syncDolarPrice();
       this.syncTransactionFee();
     });
   }
 
   override async firstUpdated() {
+    const pools = this.pools ? this.pools.split(',') : [];
     const chain = chainCursor.deref();
     if (!chain) {
-      createApi(this.apiAddress, () => {});
+      createApi(this.apiAddress, pools as PoolType[], () => {});
+    }
+  }
+
+  private updateAccount() {
+    if (this.accountAddress && this.accountProvider) {
+      accountCursor.reset({
+        address: this.accountAddress,
+        provider: this.accountProvider,
+        name: this.accountName,
+      } as Account);
+    } else {
+      accountCursor.reset(null);
+      this.resetTrade();
     }
   }
 
   override update(changedProperties: Map<string, unknown>) {
-    if (
-      changedProperties.has('accountAddress') ||
-      changedProperties.has('accountProvider') ||
-      changedProperties.has('accountName')
-    ) {
-      const account = accountCursor.deref();
-      accountCursor.reset({
-        address: this.accountAddress ?? account?.address,
-        provider: this.accountProvider ?? account?.provider,
-        name: this.accountName ?? account?.name,
-      } as Account);
+    if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
+      this.updateAccount();
+      this.resetBalances();
     }
-
     super.update(changedProperties);
   }
 
@@ -460,6 +566,7 @@ export class TradeApp extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
     this.ro.observe(this);
+    this.resetTrade();
   }
 
   override disconnectedCallback() {
@@ -472,6 +579,7 @@ export class TradeApp extends LitElement {
     return html`<gc-trade-app-settings
       style="height: ${this.screen.height}px"
       @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
+      @slippage-changed=${() => this.recalculateTrade()}
     ></gc-trade-app-settings>`;
   }
 
@@ -481,6 +589,7 @@ export class TradeApp extends LitElement {
       .assets=${this.assets.list}
       .pairs=${this.assets.pairs}
       .balances=${this.assets.balance}
+      .usdPrice=${this.assets.usdPrice}
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
       .selector=${this.assets.selector}
@@ -504,7 +613,9 @@ export class TradeApp extends LitElement {
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
       .amountIn=${this.trade.amountIn}
+      .amountInUsd=${this.trade.amountInUsd}
       .amountOut=${this.trade.amountOut}
+      .amountOutUsd=${this.trade.amountOutUsd}
       .balanceIn=${this.trade.balanceIn}
       .balanceOut=${this.trade.balanceOut}
       .spotPrice=${this.trade.spotPrice}
@@ -518,20 +629,16 @@ export class TradeApp extends LitElement {
       @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
         this.assets.active = asset;
         id == 'assetIn' && this.updateAmountIn(value);
-        id == 'assetIn' && this.validateEnoughBalance(value, this.trade.assetIn);
         id == 'assetOut' && this.updateAmountOut(value);
-        id == 'assetOut' && this.validateEnoughBalance(value, this.trade.assetOut);
+        this.validateEnoughBalance();
       }}
       @asset-selector-clicked=${({ detail }: CustomEvent) => {
         this.assets.selector = detail;
         this.changeScreen(TradeScreen.SelectToken);
       }}
-      @asset-switch-clicked=${this.switchAssets}
+      @asset-switch-clicked=${this.switch}
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
-      @swap-clicked=${() => {
-        const processingId = short.generate();
-        this.swap(processingId, this.trade);
-      }}
+      @swap-clicked=${() => this.swap()}
     ></gc-trade-app-main>`;
   }
 

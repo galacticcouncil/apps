@@ -39,5 +39,5 @@ export async function getAccountBalance(address: string, assetId: string): Promi
       : await getTokenAccountBalance(address, assetId);
   const metadata = await getAssetMetadata(assetId);
   const metadataJson = metadata.toHuman();
-  return { amount: balance, decimals: metadataJson.decimals } as Amount;
+  return { amount: balance, decimals: metadataJson?.decimals || 12 } as Amount;
 }

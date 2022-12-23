@@ -1,16 +1,14 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
-import short from 'short-uuid';
 
 import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
-import { Chain, chainCursor, Account, accountCursor, transactionCursor } from '../../db';
-import { signAndSendOb } from '../../api/transaction';
+import { Chain, chainCursor, Account, accountCursor } from '../../db';
 
 import '@galacticcouncil/ui';
-import { ApiProvider, Bridge, ChainName, FN } from '@galacticcouncil/bridge';
+import { ApiProvider, Bridge, ChainName } from '@galacticcouncil/bridge';
 import { RococoAdapter } from '@galacticcouncil/bridge/build/src/adapters/polkadot';
 import { KaruraAdapter } from '@galacticcouncil/bridge/build/src/adapters/acala';
 import { BasiliskAdapter } from '@galacticcouncil/bridge/build/src/adapters/hydradx';
@@ -21,12 +19,13 @@ import './transfer-tokens';
 
 import { Notification, NotificationType } from '../notification/types';
 import { DEFAULT_SCREEN_STATE, ScreenState, TransferScreen, DEFAULT_TRANSFER_STATE, TransferState } from './types';
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { bnum, scale } from '@galacticcouncil/sdk';
+import { PoolType, Transaction } from '@galacticcouncil/sdk';
 
 @customElement('gc-xcm-app')
 export class XcmApp extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
+
+  private tx: Transaction = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
@@ -34,6 +33,7 @@ export class XcmApp extends LitElement {
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
+  
   private adapters = {
     rococo: new RococoAdapter(),
     karura: new KaruraAdapter(),
@@ -47,6 +47,7 @@ export class XcmApp extends LitElement {
   @property({ type: String }) accountAddress: string = null;
   @property({ type: String }) accountProvider: string = null;
   @property({ type: String }) accountName: string = null;
+  @property({ type: String }) pools: string = null;
 
   static styles = [
     baseStyles,
@@ -128,40 +129,10 @@ export class XcmApp extends LitElement {
     this.dispatchEvent(new CustomEvent<Notification>('gc:tx:' + status, options));
   }
 
-  async swap(processingId: string, transfer: TransferState) {
+  async swap() {
     const account = accountCursor.deref();
-    const transaction = transactionCursor.deref();
-    if (account && transaction) {
-      const normAmount = scale(bnum(this.transfer.amount), 12);
-      const fromChain = this.transfer.fromChain;
-      const toChain = this.transfer.toChain;
-      const asset = this.transfer.asset;
-      const tx: SubmittableExtrinsic = this.adapters[fromChain.name].createTx({
-        to: toChain.name,
-        token: asset,
-        amount: FN.fromInner(normAmount.toString(), 12),
-        address: accountCursor.deref().address,
-        signer: accountCursor.deref().address,
-      });
-      signAndSendOb(
-        tx,
-        account,
-        ({ status }) => {
-          const type = status.type.toLowerCase();
-          switch (type) {
-            case 'broadcast':
-              this.updateTxStatus(processingId, NotificationType.progress, transfer, 'broadcasted');
-              break;
-            case 'inblock':
-              this.updateTxStatus(processingId, NotificationType.success, transfer, 'submitted');
-              console.log(`Completed at block hash #${status.asInBlock.toString()}`);
-              break;
-          }
-        },
-        (error) => {
-          this.updateTxStatus(processingId, NotificationType.error, transfer, 'failed');
-        }
-      );
+    if (account && this.tx) {
+      //this.processTx(account, this.tx, this.trade);
     }
   }
 
@@ -194,9 +165,10 @@ export class XcmApp extends LitElement {
   }
 
   override async firstUpdated() {
+    const pools = this.pools ? this.pools.split(',') : [];
     const chain = chainCursor.deref();
     if (!chain) {
-      createApi(this.apiAddress, () => {});
+      createApi(this.apiAddress, pools as PoolType[], () => {});
     }
   }
 
@@ -249,9 +221,7 @@ export class XcmApp extends LitElement {
         this.updateAmount(value);
       }}
       @chain-switch-clicked=${this.switchChains}
-      @transfer-clicked=${() => {
-        const processingId = short.generate();
-        this.swap(processingId, this.transfer);
+      @transfer-clicked=${() => this.swap()}
       }}
     ></gc-xcm-app-main>`;
   }

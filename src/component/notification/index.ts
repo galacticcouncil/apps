@@ -66,7 +66,7 @@ export class NotificationCenter extends LitElement {
 
   notificationTemplate(n: Notification) {
     return html`
-      <uigc-alert class="notification" variant=${n.type}>
+      <uigc-alert class="notification" variant=${n.type} drawer>
         <span class="message">${n.message}</span>
         <span class="secondary">
           <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
@@ -100,6 +100,7 @@ export class NotificationCenter extends LitElement {
     allToasts.forEach((t: Element) => {
       const value = t.getAttribute('id');
       if (id === value) {
+        t.removeAttribute('open');
         t.remove();
       }
     });
@@ -136,11 +137,11 @@ export class NotificationCenter extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.addEventListener('gc:notification', this._handleNotification);
+    this.addEventListener('gc:notification:new', this._handleNotification);
   }
 
   override disconnectedCallback() {
-    this.removeEventListener('gc:notification', this._handleNotification);
+    this.removeEventListener('gc:notification:new', this._handleNotification);
     super.disconnectedCallback();
   }
 

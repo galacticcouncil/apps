@@ -5,11 +5,16 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { baseStyles } from '../base.css';
+import { humanizeAmount } from '../../utils/amount';
+import { Account, accountCursor } from '../../db';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { DatabaseController } from '../../db.ctrl';
 
 @customElement('gc-trade-app-main')
 export class TradeTokens extends LitElement {
+  private account = new DatabaseController<Account>(this, accountCursor);
+
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) inProgress = false;
@@ -17,7 +22,9 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ type: String }) amountIn = null;
+  @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountOut = null;
+  @property({ type: String }) amountOutUsd = null;
   @property({ type: String }) balanceIn = null;
   @property({ type: String }) balanceOut = null;
   @property({ type: String }) spotPrice = null;
@@ -42,13 +49,11 @@ export class TradeTokens extends LitElement {
         display: flex;
         padding: 22px 28px;
         box-sizing: border-box;
+        align-items: center;
       }
 
-      .header h1 {
-        background: var(--gradient-label);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+      .header uigc-typography {
+        margin-top: 5px;
       }
 
       .transfer {
@@ -66,7 +71,7 @@ export class TradeTokens extends LitElement {
       }
 
       .transfer .divider {
-        background: rgba(var(--rgb-primary-450), 0.12);
+        background: var(--uigc-divider-background);
         height: 1px;
         width: 100%;
         left: 0;
@@ -81,16 +86,19 @@ export class TradeTokens extends LitElement {
         width: 100%;
       }
 
+      .transfer uigc-asset-switch {
+        background: var(--uigc-asset-switch-background);
+      }
+
       .transfer .switch-button {
         position: absolute;
         left: 14px;
         border-radius: 50%;
-        background: var(--hex-poison-green);
       }
 
       @media (min-width: 768px) {
         .transfer .switch-button {
-          left: 36px;
+          left: 28px;
         }
       }
 
@@ -108,7 +116,7 @@ export class TradeTokens extends LitElement {
 
       @media (min-width: 768px) {
         .transfer .spot-price {
-          right: 36px;
+          right: 28px;
         }
       }
 
@@ -156,11 +164,11 @@ export class TradeTokens extends LitElement {
         font-size: 14px;
         line-height: 22px;
         text-align: left;
-        color: var(--hex-neutral-gray-300);
+        color: var(--uigc-app-font-color__secondary);
       }
 
       .info .route-label {
-        background: var(--gradient-label);
+        background: var(--uigc-app-font-color__gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -183,7 +191,7 @@ export class TradeTokens extends LitElement {
       }
 
       .info .value + .highlight {
-        color: var(--hex-primary-success);
+        color: var(--uigc-app-font-color__primary);
       }
 
       .info uigc-icon-chevron-right {
@@ -201,8 +209,8 @@ export class TradeTokens extends LitElement {
         align-items: center;
         margin: 12px 14px 0;
         padding: 12px 14px;
-        background: rgba(var(--rgb-red-400), 0.3);
-        border-radius: 8px;
+        background: var(--uigc-app-bg-error);
+        border-radius: var(--uigc-app-border-radius-2);
       }
 
       @media (min-width: 768px) {
@@ -264,8 +272,11 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="150px" height="14px"></uigc-skeleton>`,
-        () => html`<span class="value">${this.afterSlippage} ${assetSymbol} </span>`
+        () => html`<uigc-skeleton progress rectangle width="150px" height="14px"></uigc-skeleton>`,
+        () =>
+          html`<span class="value"
+            >${this.afterSlippage ? humanizeAmount(this.afterSlippage) : '0'} ${assetSymbol}
+          </span>`
       )}`;
   }
 
@@ -274,7 +285,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.priceImpactPct}%</span>`
       )}`;
   }
@@ -284,9 +295,9 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
-        () => html`<span class="value">${this.tradeFee} ${assetSymbol}</span>
-          <span class="value highlight">(${this.tradeFeePct}%)</span>`
+        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
+          <span class="value highlight"> (${this.tradeFeePct}%) </span> `
       )}`;
   }
 
@@ -296,7 +307,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
         () => html`<span class="value">${this.transactionFee || '-'}</span>`
       )}
     `;
@@ -344,7 +355,7 @@ export class TradeTokens extends LitElement {
     };
     return html`
       <div class="header">
-        <h1>Trade Tokens</h1>
+        <uigc-typography variant="title">Trade Assets</uigc-typography>
         <span class="grow"></span>
         <uigc-icon-button @click=${this.onSettingsClick}>
           <uigc-icon-settings></uigc-icon-settings>
@@ -356,7 +367,9 @@ export class TradeTokens extends LitElement {
           title="Pay with"
           .asset=${this.assetIn}
           .amount=${this.amountIn}
+          .amountUsd=${this.amountInUsd}
           .balance=${this.balanceIn}
+          .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
         <div class="switch">
           <div class="divider"></div>
@@ -365,7 +378,7 @@ export class TradeTokens extends LitElement {
             class=${classMap(spotPriceClasses)}
             .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
             .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
-            .outputBalance=${this.spotPrice}
+            .outputBalance=${humanizeAmount(this.spotPrice)}
             .loading=${this.inProgress}
           >
           </uigc-asset-price>
@@ -375,7 +388,9 @@ export class TradeTokens extends LitElement {
           title="You get"
           .asset=${this.assetOut}
           .amount=${this.amountOut}
+          .amountUsd=${this.amountOutUsd}
           .balance=${this.balanceOut}
+          .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
       </div>
       <div class=${classMap(infoClasses)}>
@@ -383,15 +398,23 @@ export class TradeTokens extends LitElement {
         <div class="row">${this.infoPriceImpactTemplate()}</div>
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
         <div class="row">${this.infoTransactionFeeTemplate()}</div>
-        <div class="row">${this.infoBestRouteTemplate()}</div>
+        ${when(
+          this.swaps.length > 1 && !this.inProgress,
+          () => html` <div class="row">${this.infoBestRouteTemplate()}</div>`
+        )}
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>
         <span> ${this.error['balance'] || this.error['trade']} </span>
       </div>
       <div class="grow"></div>
-      <uigc-button ?disabled=${this.disabled} class="confirm" variant="primary" fullWidth @click=${this.onSwapClick}
-        >Confirm Swap</uigc-button
+      <uigc-button
+        ?disabled=${this.disabled || !this.account.state}
+        class="confirm"
+        variant="primary"
+        fullWidth
+        @click=${this.onSwapClick}
+        >${this.account.state ? 'Confirm Swap' : 'Connect Wallet'}</uigc-button
       >
     `;
   }
