@@ -27,7 +27,7 @@ export async function signAndSend(
   const api = chainCursor.deref().api;
   const transactionExtrinsic = api.tx(transaction.hex);
   const wallet = getWalletBySource(account.provider);
-  await wallet.enable('test1');
+  await wallet.enable('HydraDX');
   const nextNonce = await api.rpc.system.accountNextIndex(account.address);
 
   transactionExtrinsic
@@ -44,7 +44,7 @@ export async function signAndSendOb(
   onError: (error: unknown) => void
 ) {
   const wallet = getWalletBySource(account.provider);
-  await wallet.enable('test1');
+  await wallet.enable('HydraDX');
   const o: any = extrinsic.signAndSend(account.address, { signer: wallet.signer });
   o.subscribe({
     next: onStatusChange,
