@@ -12,3 +12,6 @@ coverage
 badges
 src
 assets
+dist/404.html
+dist/index.html
+dist/bundle-*.js
