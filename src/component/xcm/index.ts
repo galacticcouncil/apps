@@ -3,58 +3,63 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 
 import { baseStyles } from '../base.css';
-import { createApi } from '../../chain';
+import { createBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
-import { Chain, chainCursor, Account, accountCursor } from '../../db';
+import { Account, accountCursor, bridgeCursor } from '../../db';
+import { toFN } from '../../utils/amount';
+
+import { Subscription } from 'rxjs';
 
 import '@galacticcouncil/ui';
-import { ApiProvider, Bridge, ChainName } from '@galacticcouncil/bridge';
-import { RococoAdapter } from '@galacticcouncil/bridge/build/src/adapters/polkadot';
-import { KaruraAdapter } from '@galacticcouncil/bridge/build/src/adapters/acala';
-import { BasiliskAdapter } from '@galacticcouncil/bridge/build/src/adapters/hydradx';
-
-import { firstValueFrom } from 'rxjs';
+import { Transaction } from '@galacticcouncil/sdk';
+import { Bridge, Chain, ChainName } from '@galacticcouncil/bridge/build';
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './transfer-tokens';
+import './select-chain';
+import './select-token';
 
-import { Notification, NotificationType } from '../notification/types';
-import { DEFAULT_SCREEN_STATE, ScreenState, TransferScreen, DEFAULT_TRANSFER_STATE, TransferState } from './types';
-import { PoolType, Transaction } from '@galacticcouncil/sdk';
+import {
+  TransferScreen,
+  ScreenState,
+  ChainState,
+  TransferState,
+  DEFAULT_SCREEN_STATE,
+  DEFAULT_CHAIN_STATE,
+  DEFAULT_TRANSFER_STATE,
+} from './types';
+import { TxInfo } from '../transaction/types';
 
 @customElement('gc-xcm-app')
 export class XcmApp extends LitElement {
-  private chain = new DatabaseController<Chain>(this, chainCursor);
+  private bridge = new DatabaseController<Bridge>(this, bridgeCursor);
 
-  private tx: Transaction = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       this.screen.height = entry.contentRect.height;
     });
   });
-  private disconnectSubscribeNewHeads: () => void = null;
-  
-  private adapters = {
-    rococo: new RococoAdapter(),
-    karura: new KaruraAdapter(),
-    basilisk: new BasiliskAdapter(),
-  };
+  private disconnectSubscribeBalance: Subscription = null;
 
   @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
+  @state() chain: ChainState = DEFAULT_CHAIN_STATE;
 
-  @property({ type: String }) apiAddress: string = null;
+  @property({ type: Boolean }) testnet: Boolean = false;
+  @property({ type: String }) fromChain: string = null;
+  @property({ type: String }) toChain: string = null;
+  @property({ type: String }) chains: string = null;
   @property({ type: String }) accountAddress: string = null;
   @property({ type: String }) accountProvider: string = null;
   @property({ type: String }) accountName: string = null;
-  @property({ type: String }) pools: string = null;
 
   static styles = [
     baseStyles,
     css`
       :host {
         display: block;
-        max-width: 520px;
+        max-width: 570px;
         margin-left: auto;
         margin-right: auto;
         position: relative;
@@ -76,34 +81,73 @@ export class XcmApp extends LitElement {
     this.requestUpdate();
   }
 
-  switchChains() {}
+  switchChains() {
+    this.transfer = {
+      ...this.transfer,
+      fromChain: this.transfer.toChain,
+      toChain: this.transfer.fromChain,
+    };
+    this.syncChain();
+  }
 
-  changeChainIn(previous: string) {}
+  changeFromChain(chain: string) {
+    const bridge = bridgeCursor.deref();
+    const fromChain = chain as ChainName;
+    const toChain = this.transfer.toChain as ChainName;
+    const availableTokens = bridge.router.getAvailableTokens({ from: fromChain, to: toChain });
+    const allDestChains = bridge.router.getDestinationChains({ from: fromChain });
+    const destChains = allDestChains.filter((chain: Chain) => this.chain.list.includes(chain.id));
 
-  changeChainOut(previous: string) {}
+    this.chain = {
+      ...this.chain,
+      dest: destChains.map((chain: Chain) => chain.id),
+      tokens: availableTokens,
+    };
 
-  clearAmounts() {}
+    const asset = this.transfer.asset;
+    const isTransferable = availableTokens.includes(asset);
+    this.transfer = {
+      ...this.transfer,
+      asset: isTransferable ? asset : availableTokens[0],
+      fromChain: chain,
+    };
+  }
+
+  changeToChain(chain: string) {
+    const bridge = bridgeCursor.deref();
+    const fromChain = this.transfer.fromChain as ChainName;
+    const toChain = chain as ChainName;
+    const availableTokens = bridge.router.getAvailableTokens({ from: fromChain, to: toChain });
+    this.chain = {
+      ...this.chain,
+      tokens: availableTokens,
+    };
+
+    const asset = this.transfer.asset;
+    const isTransferable = availableTokens.includes(asset);
+    this.transfer = {
+      ...this.transfer,
+      asset: isTransferable ? asset : availableTokens[0],
+      toChain: chain,
+    };
+  }
+
+  changeAsset(asset: string) {
+    this.transfer = {
+      ...this.transfer,
+      asset: asset,
+    };
+  }
+
+  clearAmount() {}
 
   updateAmount(amount: string) {
     if (this.isEmptyAmount(amount)) {
-      this.clearAmounts();
+      this.clearAmount();
       return;
     }
     this.transfer.amount = amount;
     this.requestUpdate();
-  }
-
-  async syncBalances() {
-    const account = accountCursor.deref();
-    if (account) {
-      const fromChain = this.transfer.fromChain;
-      const asset = this.transfer.asset;
-      const balance = (await firstValueFrom(
-        this.adapters[fromChain.name].subscribeTokenBalance(asset, accountCursor.deref().address)
-      )) as any;
-      this.transfer.balance = balance.free.toString();
-      this.requestUpdate();
-    }
   }
 
   notificationTemplate(transfer: TransferState, status: string): TemplateResult {
@@ -112,84 +156,130 @@ export class XcmApp extends LitElement {
       <span class="highlight">${transfer.amount}</span>
       <span class="highlight">${transfer.asset}</span>
       <span>from</span>
-      <span class="highlight">${transfer.fromChain.name}</span>
+      <span class="highlight">${transfer.fromChain}</span>
       <span>to</span>
-      <span class="highlight">${transfer.toChain.name}</span>
+      <span class="highlight">${transfer.toChain}</span>
       <span>${status}</span>
     `;
   }
 
-  updateTxStatus(id: string, type: NotificationType, transfer: TransferState, status: string) {
-    const message = this.notificationTemplate(transfer, status);
+  processTx(account: Account, transaction: Transaction, transfer: TransferState) {
+    const notification = {
+      processing: this.notificationTemplate(transfer, 'submitted'),
+      success: this.notificationTemplate(transfer, 'succesfull'),
+      failure: this.notificationTemplate(transfer, 'failed'),
+    };
     const options = {
       bubbles: true,
       composed: true,
-      detail: { id: id, timestamp: Date.now(), type: type, message: message, toast: true } as Notification,
+      detail: { account: account, transaction: transaction, notification: notification } as TxInfo,
     };
-    this.dispatchEvent(new CustomEvent<Notification>('gc:tx:' + status, options));
+    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:newXcm', options));
   }
 
   async swap() {
     const account = accountCursor.deref();
-    if (account && this.tx) {
-      //this.processTx(account, this.tx, this.trade);
+    const bridge = bridgeCursor.deref();
+    if (account && bridge) {
+      const fromChain = this.transfer.fromChain as ChainName;
+      const toChain = this.transfer.toChain as ChainName;
+      const adapter = bridge.findAdapter(fromChain);
+      const asset = adapter.getToken(this.transfer.asset, toChain);
+      const tx: any = adapter.createTx({
+        to: toChain,
+        token: asset.symbol,
+        amount: toFN(this.transfer.amount, asset.decimals),
+        address: account.address,
+        signer: account.address,
+      });
+
+      const transaction = {
+        hex: tx.toHex(),
+        name: 'xcm',
+        get: (): SubmittableExtrinsic => {
+          return tx;
+        },
+      } as Transaction;
+      this.processTx(account, transaction, this.transfer);
+    }
+  }
+
+  syncChain() {
+    const bridge = bridgeCursor.deref();
+    const fromChain = this.transfer.fromChain as ChainName;
+    const toChain = this.transfer.toChain as ChainName;
+    const availableTokens = bridge.router.getAvailableTokens({ from: fromChain, to: toChain });
+    const allDestChains = bridge.router.getDestinationChains({ from: fromChain });
+    const destChains = allDestChains.filter((chain: Chain) => this.chain.list.includes(chain.id));
+
+    this.chain = {
+      ...this.chain,
+      dest: destChains.map((chain: Chain) => chain.id),
+      tokens: availableTokens,
+    };
+
+    if (!availableTokens.includes(this.transfer.asset)) {
+      this.transfer.asset = availableTokens[0];
     }
   }
 
   async init() {
-    new Bridge({
-      adapters: Object.values(this.adapters),
-    });
+    this.syncChain();
+    console.log(this.chain);
+  }
 
-    const provider = new ApiProvider();
-    const chains = Object.keys(this.adapters) as ChainName[];
-    const observe = provider.connectFromChain(chains, {
-      karura: ['wss://karura-rococo-rpc.aca-staging.network/ws'],
-      basilisk: ['wss://basilisk-rococo-rpc.play.hydration.cloud'],
-      rococo: ['wss://rococo-rpc.polkadot.io'],
-    });
-
-    await firstValueFrom(observe);
-
-    const fromChain = this.transfer.fromChain;
-    const api = provider.getApi(fromChain.name);
-    await Promise.all(chains.map(() => this.adapters[fromChain.name].setApi(api)));
+  subscribeBalance() {
+    const bridge = bridgeCursor.deref();
+    const fromChain = this.transfer.fromChain as ChainName;
+    const adapter = bridge.findAdapter(fromChain);
+    this.disconnectSubscribeBalance = adapter
+      .subscribeTokenBalance(this.transfer.asset, accountCursor.deref().address)
+      .subscribe((val) => {
+        this.transfer.balance = val.free.toString();
+        this.requestUpdate();
+      });
   }
 
   async subscribe() {
-    const api = chainCursor.deref().api;
-    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      console.log('Current block: ' + lastHeader.number.toString());
-      this.syncBalances();
-    });
+    this.subscribeBalance();
   }
 
   override async firstUpdated() {
-    const pools = this.pools ? this.pools.split(',') : [];
-    const chain = chainCursor.deref();
-    if (!chain) {
-      createApi(this.apiAddress, pools as PoolType[], () => {});
+    const bridge = bridgeCursor.deref();
+    if (!bridge) {
+      this.chain.list = this.chains ? this.chains.split(',') : [];
+      createBridge(this.chain.list, this.testnet);
+    }
+  }
+
+  private updateAccount() {
+    if (this.accountAddress && this.accountProvider) {
+      accountCursor.reset({
+        address: this.accountAddress,
+        provider: this.accountProvider,
+        name: this.accountName,
+      } as Account);
+    } else {
+      accountCursor.reset(null);
     }
   }
 
   override update(changedProperties: Map<string, unknown>) {
-    if (
-      changedProperties.has('accountAddress') ||
-      changedProperties.has('accountProvider') ||
-      changedProperties.has('accountName')
-    ) {
-      const account = accountCursor.deref();
-      accountCursor.reset({
-        address: this.accountAddress ?? account?.address,
-        provider: this.accountProvider ?? account?.provider,
-        name: this.accountName ?? account?.name,
-      } as Account);
+    if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
+      this.updateAccount();
+    }
+    if (changedProperties.has('fromChain') || changedProperties.has('toChain')) {
+      this.transfer = {
+        ...this.transfer,
+        fromChain: this.fromChain,
+        toChain: this.toChain,
+      };
     }
     super.update(changedProperties);
   }
 
   override async updated() {
-    if (this.chain.state && !this.ready) {
+    if (this.bridge.state && !this.ready) {
       console.log('Initialization...');
       this.ready = true;
       await this.init();
@@ -205,14 +295,54 @@ export class XcmApp extends LitElement {
 
   override disconnectedCallback() {
     this.ro.unobserve(this);
-    this.disconnectSubscribeNewHeads?.();
+    this.disconnectSubscribeBalance?.unsubscribe();
     super.disconnectedCallback();
+  }
+
+  selectChainTemplate() {
+    const isDest = this.chain.selector === this.transfer.toChain;
+    return html`<gc-xcm-app-chain
+      style="height: ${this.screen.height}px"
+      .chains=${isDest ? this.chain.dest : this.chain.list}
+      .fromChain=${this.transfer.fromChain}
+      .toChain=${this.transfer.toChain}
+      .selector=${this.chain.selector}
+      @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
+      @list-item-clicked=${({ detail: { item } }: CustomEvent) => {
+        /*         console.log('Dest: ' + isDest);
+        console.log(item); */
+        if (isDest) {
+          this.changeToChain(item);
+        } else {
+          this.changeFromChain(item);
+        }
+        this.changeScreen(TransferScreen.Transfer);
+      }}
+    ></gc-xcm-app-chain>`;
+  }
+
+  selectTokenTemplate() {
+    return html`<gc-xcm-app-token
+      style="height: ${this.screen.height}px"
+      .assets=${this.chain.tokens}
+      .asset=${this.transfer.asset}
+      @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
+      @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
+        /*         const { id, asset } = this.assets.selector;
+        id == 'assetIn' && this.changeAssetIn(asset, e.detail);
+        id == 'assetOut' && this.changeAssetOut(asset, e.detail); */
+/*         console.log(e.detail);
+ */        //this.updateBalances();
+        this.changeAsset(symbol);
+        this.changeScreen(TransferScreen.Transfer);
+      }}
+    ></gc-xcm-app-token>`;
   }
 
   transferTokensTemplate() {
     return html`<gc-xcm-app-main
-      .origin=${this.transfer.fromChain.asset}
-      .destination=${this.transfer.toChain.asset}
+      .from=${this.transfer.fromChain}
+      .to=${this.transfer.toChain}
       .asset=${this.transfer.asset}
       .amount=${this.transfer.amount}
       .balance=${this.transfer.balance}
@@ -220,16 +350,26 @@ export class XcmApp extends LitElement {
       @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
         this.updateAmount(value);
       }}
-      @chain-switch-clicked=${this.switchChains}
-      @transfer-clicked=${() => this.swap()}
+      @asset-switch-clicked=${this.switchChains}
+      @asset-selector-clicked=${({ detail }: CustomEvent) => {
+        this.changeScreen(TransferScreen.SelectToken);
       }}
+      @chain-selector-clicked=${({ detail: { chain } }: CustomEvent) => {
+        this.chain.selector = chain;
+        this.changeScreen(TransferScreen.SelectChain);
+      }}
+      @transfer-clicked=${() => this.swap()}
     ></gc-xcm-app-main>`;
   }
 
   render() {
     return html`
       <uigc-paper>
-        ${choose(this.screen.active, [[TransferScreen.Transfer, () => this.transferTokensTemplate()]])}
+        ${choose(this.screen.active, [
+          [TransferScreen.Transfer, () => this.transferTokensTemplate()],
+          [TransferScreen.SelectChain, () => this.selectChainTemplate()],
+          [TransferScreen.SelectToken, () => this.selectTokenTemplate()],
+        ])}
       </uigc-paper>
     `;
   }

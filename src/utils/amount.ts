@@ -1,4 +1,5 @@
-import { Amount, BigNumber } from '@galacticcouncil/sdk';
+import { Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
+import { FN } from '@galacticcouncil/bridge/build';
 
 export function formatAmount(amount: BigNumber, decimals: number): string {
   return amount.shiftedBy(-1 * decimals).toString();
@@ -20,4 +21,9 @@ export function multipleAmounts(amountA: string, amountB: Amount) {
   const amounA = Number(amountA);
   const amounB = Number(formattedAmountB);
   return amounA * amounB;
+}
+
+export function toFN(amount: string, decimals: number) {
+  const amountBN = scale(bnum(amount), decimals);
+  return FN._fromBN(amountBN, decimals);
 }

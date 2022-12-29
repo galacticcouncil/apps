@@ -1,5 +1,6 @@
 export enum TransferScreen {
   SelectChain,
+  SelectToken,
   Transfer,
 }
 
@@ -14,22 +15,31 @@ export const DEFAULT_SCREEN_STATE: ScreenState = {
 };
 
 export type TransferState = {
-  fromChain: Chain;
-  toChain: Chain;
-  amount: string;
+  fromChain: string;
+  toChain: string;
   asset: string;
+  amount: string;
   balance: string;
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
-  fromChain: { name: 'karura', asset: 'KAR' },
-  toChain: { name: 'basilisk', asset: 'BSX' },
+  fromChain: 'karura',
+  toChain: 'basilisk',
+  asset: null,
   amount: null,
-  asset: 'KUSD',
   balance: null,
 };
 
-export type Chain = {
-  name: string;
-  asset: string;
+export type ChainState = {
+  selector: string;
+  list: string[];
+  dest: string[];
+  tokens: string[];
+};
+
+export const DEFAULT_CHAIN_STATE: ChainState = {
+  selector: null,
+  list: [],
+  dest: [],
+  tokens: [],
 };

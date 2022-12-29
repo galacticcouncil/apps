@@ -8,8 +8,11 @@ export class XcmScreen extends LitElement {
   render() {
     return html`
       <gc-xcm-app
-        apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
-        accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
+        testnet
+        fromChain="karura"
+        toChain="basilisk"
+        chains="basilisk,karura"
+        accountAddress="bXhZjWos3qm5MtqLAzrHP4E5jaiL3HzKedWaTQpFxqDFRYj7w"
         accountProvider="polkadot-js"
         accountName="alice"
       ></gc-xcm-app>

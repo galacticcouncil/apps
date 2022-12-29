@@ -5,16 +5,12 @@ import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
 import { baseStyles } from '../base.css';
-import { formatAmount } from '../../utils/amount';
 
-import { Amount, PoolAsset } from '@galacticcouncil/sdk';
-
-@customElement('gc-xcm-app-chain')
-export class SelectChain extends LitElement {
-  @property({ attribute: false }) chains: string[] = [];
-  @property({ type: String }) fromChain = null;
-  @property({ type: String }) toChain = null;
-  @property({ type: String }) selector = null;
+@customElement('gc-xcm-app-token')
+export class SelectToken extends LitElement {
+  @property({ attribute: false }) assets: string[] = [];
+  @property({ type: String }) asset = null;
+  @property({ type: String }) query = '';
 
   static styles = [
     baseStyles,
@@ -31,13 +27,7 @@ export class SelectChain extends LitElement {
         padding: 22px 28px;
         box-sizing: border-box;
         align-items: center;
-        height: 84px;
-      }
-
-      .header span {
-        color: var(--hex-neutral-gray-100);
-        font-weight: 500;
-        font-size: 16px;
+        min-height: 84px;
       }
 
       .header .back {
@@ -56,6 +46,11 @@ export class SelectChain extends LitElement {
         }
       }
 
+      uigc-asset-list {
+        padding-top: 20px;
+        overflow-y: auto;
+      }
+
       .loading {
         align-items: center;
         display: flex;
@@ -72,22 +67,8 @@ export class SelectChain extends LitElement {
     `,
   ];
 
-  isDisabled(chain: string): boolean {
-    return this.selector === this.fromChain && chain === this.toChain;
-  }
-
-  isSelected(chain: string): boolean {
-    return this.selector == chain;
-  }
-
-  getSlot(chain: string): string {
-    if (this.isDisabled(chain)) {
-      return 'disabled';
-    } else if (this.isSelected(chain)) {
-      return 'selected';
-    } else {
-      return null;
-    }
+  updateSearch(searchDetail: any) {
+    this.query = searchDetail.value;
   }
 
   onBackClick(e: any) {
@@ -98,48 +79,60 @@ export class SelectChain extends LitElement {
     this.dispatchEvent(new CustomEvent('back-clicked', options));
   }
 
+  filterAssets(query: string) {
+    return this.assets.filter((a) => a.toLowerCase().includes(query.toLowerCase()));
+  }
+
+  isSelected(asset: string): boolean {
+    return this.asset == asset;
+  }
+
+  getSlot(asset: string): string {
+    if (this.isSelected(asset)) {
+      return 'selected';
+    } else {
+      return null;
+    }
+  }
+
   loadingTemplate() {
     return html`
       <div class="loading">
         <uigc-skeleton circle progress></uigc-skeleton>
         <span class="title">
-          <uigc-skeleton progress width="40px" height="16px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="40px" height="16px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="50px" height="8px"></uigc-skeleton>
         </span>
       </div>
     `;
   }
 
   render() {
-    const isDest = this.selector === this.toChain;
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <span>Select ${isDest ? 'destination' : 'source'} chain</span>
+        <uigc-typography variant="section">Select token</uigc-typography>
         <span></span>
       </div>
+      <uigc-search-bar
+        class="search"
+        placeholder="Search by name"
+        @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
+      ></uigc-search-bar>
       ${when(
-        this.chains.length > 0,
-        () => html` <uigc-list>
-          <span slot="header">CHAIN LIST</span>
-          ${map(this.chains, (chain: string) => {
+        this.assets.length > 0,
+        () => html` <uigc-asset-list>
+          ${map(this.filterAssets(this.query), (asset: string) => {
             return html`
-              <uigc-list-item
-                .item=${chain}
-                slot=${this.getSlot(chain)}
-                ?selected=${this.isSelected(chain)}
-                ?disabled=${this.isDisabled(chain)}
-              >
-                <uigc-chain .chain=${chain}></uigc-chain>
-              </uigc-list-item>
+              <uigc-asset-list-item
+                slot=${this.getSlot(asset)}
+                ?selected=${this.isSelected(asset)}
+                .asset=${{ symbol: asset }}
+              ></uigc-asset-list-item>
             `;
           })}
-        </uigc-list>`,
-        () => html`
-          <uigc-list>
-            <span slot="header">CHAIN LIST</span>
-            ${map(range(3), (i) => this.loadingTemplate())}
-          </uigc-list>
-        `
+        </uigc-asset-list>`,
+        () => html` <uigc-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </uigc-asset-list> `
       )}
     `;
   }
