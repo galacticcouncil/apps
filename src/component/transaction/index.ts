@@ -4,7 +4,7 @@ import { customElement, state } from 'lit/decorators.js';
 import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
-import { signAndSend } from '../../api/transaction';
+import { signAndSend, signAndSendOb } from '../../api/transaction';
 import { infoRecord } from '../../utils/event';
 
 import { TxInfo, TxNotification } from './types';
@@ -14,7 +14,8 @@ import { Notification, NotificationType } from '../notification/types';
 export class TransactionCenter extends LitElement {
   @state() message: TemplateResult = null;
 
-  private _handleTransaction = (e: CustomEvent<TxInfo>) => this.handleTx(short.generate(), e.detail);
+  private _handleOnChainTx = (e: CustomEvent<TxInfo>) => this.handleTx(short.generate(), e.detail);
+  private _handleCrossChainTx = (e: CustomEvent<TxInfo>) => this.handleTxXcm(short.generate(), e.detail);
 
   static styles = [
     css`
@@ -45,7 +46,31 @@ export class TransactionCenter extends LitElement {
 
   handleTx(txId: string, txInfo: TxInfo) {
     signAndSend(
-      txInfo.transaction,
+      txInfo.transaction.get(),
+      txInfo.account,
+      ({ events, status }) => {
+        const type = status.type.toLowerCase();
+        switch (type) {
+          case 'broadcast':
+            this.handleBroadcasted(txId, txInfo.notification);
+            break;
+          case 'inblock':
+            console.log(`[${txId}] Completed at block hash #${status.asInBlock.toString()}`);
+            const { method } = infoRecord(events).event;
+            const hasError = 'ExtrinsicFailed' === method;
+            this.handleInBlock(txId, txInfo.notification, hasError);
+            break;
+        }
+      },
+      (_error) => {
+        this.handleError(txId, txInfo.notification);
+      }
+    );
+  }
+
+  handleTxXcm(txId: string, txInfo: TxInfo) {
+    signAndSendOb(
+      txInfo.transaction.get(),
       txInfo.account,
       ({ events, status }) => {
         const type = status.type.toLowerCase();
@@ -146,11 +171,13 @@ export class TransactionCenter extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.addEventListener('gc:tx:new', this._handleTransaction);
+    this.addEventListener('gc:tx:new', this._handleOnChainTx);
+    this.addEventListener('gc:tx:newXcm', this._handleCrossChainTx);
   }
 
   override disconnectedCallback() {
-    this.removeEventListener('gc:tx:new', this._handleTransaction);
+    this.removeEventListener('gc:tx:new', this._handleOnChainTx);
+    this.removeEventListener('gc:tx:newXcm', this._handleCrossChainTx);
     super.disconnectedCallback();
   }
 
