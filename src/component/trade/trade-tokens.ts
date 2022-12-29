@@ -50,6 +50,7 @@ export class TradeTokens extends LitElement {
         padding: 22px 28px;
         box-sizing: border-box;
         align-items: center;
+        height: 84px;
       }
 
       .header uigc-typography {

@@ -575,7 +575,7 @@ export class TradeApp extends LitElement {
     super.disconnectedCallback();
   }
 
-  settingsTenplate() {
+  settingsTemplate() {
     return html`<gc-trade-app-settings
       style="height: ${this.screen.height}px"
       @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
@@ -583,7 +583,7 @@ export class TradeApp extends LitElement {
     ></gc-trade-app-settings>`;
   }
 
-  selectTokenTenplate() {
+  selectTokenTemplate() {
     return html`<gc-trade-app-select
       style="height: ${this.screen.height}px"
       .assets=${this.assets.list}
@@ -604,7 +604,7 @@ export class TradeApp extends LitElement {
     ></gc-trade-app-select>`;
   }
 
-  tradeTokensTenplate() {
+  tradeTokensTemplate() {
     return html`<gc-trade-app-main
       .assets=${this.assets.map}
       .inProgress=${this.trade.inProgress}
@@ -646,9 +646,9 @@ export class TradeApp extends LitElement {
     return html`
       <uigc-paper>
         ${choose(this.screen.active, [
-          [TradeScreen.TradeTokens, () => this.tradeTokensTenplate()],
-          [TradeScreen.Settings, () => this.settingsTenplate()],
-          [TradeScreen.SelectToken, () => this.selectTokenTenplate()],
+          [TradeScreen.TradeTokens, () => this.tradeTokensTemplate()],
+          [TradeScreen.Settings, () => this.settingsTemplate()],
+          [TradeScreen.SelectToken, () => this.selectTokenTemplate()],
         ])}
       </uigc-paper>
     `;
