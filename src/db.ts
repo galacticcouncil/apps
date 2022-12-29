@@ -1,4 +1,5 @@
 import { TradeRouter } from '@galacticcouncil/sdk';
+import { Bridge } from '@galacticcouncil/bridge/build';
 import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
 import { defAtom } from '@thi.ng/atom/atom';
@@ -24,18 +25,21 @@ export interface Account {
 
 export interface State {
   chain: Chain;
+  bridge: Bridge;
   settings: Settings;
   account: Account;
 }
 
 export const db = defAtom<State>({
   chain: null,
+  bridge: null,
   settings: null,
   account: null,
 });
 
 // Cursors (Direct & Immutable access to a nested value)
 export const chainCursor = defCursor(db, ['chain']);
+export const bridgeCursor = defCursor(db, ['bridge']);
 export const settingsCursor = defCursor(db, ['settings']);
 export const accountCursor = defCursor(db, ['account']);
 
