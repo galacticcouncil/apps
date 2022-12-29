@@ -26,16 +26,68 @@
 
       header {
         height: var(--toolbar-height);
+        position: sticky;
+        z-index: 5;
+        backdrop-filter: blur(16px);
+        -webkit-box-align: center;
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      html[theme='bsx'] header {
+        background: rgba(28, 26, 31, 0.2);
+      }
+
+      html[theme='hdx'] header {
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      nav a {
+        text-decoration: none;
+      }
+
+      nav a span {
+        font-family: var(--uigc-app-font);
+        font-size: 16px;
+        line-height: 18px;
+        margin-right: 32px;
+      }
+
+      html nav a span:hover {
+        color: rgb(255, 255, 255);
+      }
+
+      html[theme='bsx'] nav span {
+        font-weight: 600;
+        color: rgb(158, 169, 177);
+      }
+
+      html[theme='hdx'] nav span {
+        font-family: var(--uigc-app-font);
+        text-transform: uppercase;
+        color: rgb(189, 204, 212);
       }
 
       main {
         width: 100%;
+      }
+
+      @media (min-width: 768px) {
+        main {
+          padding: 44px 0px;
+        }
       }
     </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <header>
+      <nav>
+        <a href="/trade"><span>Trade</span></a>
+        <a href="/xcm"><span>Transfer</span></a>
+      </nav>
     </header>
     <main>
       <div id="app"></div>
