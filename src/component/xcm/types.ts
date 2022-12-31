@@ -20,6 +20,7 @@ export type TransferState = {
   asset: string;
   amount: string;
   balance: string;
+  effectiveBalance: string;
   nativeAsset: string;
   srcChainFee: string;
   dstChainFee: string;
@@ -33,6 +34,7 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   asset: null,
   amount: null,
   balance: null,
+  effectiveBalance: null,
   nativeAsset: null,
   srcChainFee: null,
   dstChainFee: null,
