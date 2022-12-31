@@ -1,7 +1,15 @@
-import type { EventRecord } from '@polkadot/types/interfaces/system';
+import type { EventRecord, Event } from '@polkadot/types/interfaces/system';
 
-export function infoRecord(events: EventRecord[]): EventRecord {
+export function txRecord(events: EventRecord[]): EventRecord {
   return events.find(
     ({ event: { method, section } }) => section === 'system' && ['ExtrinsicFailed', 'ExtrinsicSuccess'].includes(method)
   );
+}
+
+export function xcmpRecord(events: EventRecord[]): EventRecord {
+  return events.find(({ event: { section } }) => section === 'xcmpQueue');
+}
+
+export function messageHash(event: Event): string {
+  return event.data.toHuman()['messageHash'];
 }
