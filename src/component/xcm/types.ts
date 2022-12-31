@@ -15,19 +15,25 @@ export const DEFAULT_SCREEN_STATE: ScreenState = {
 };
 
 export type TransferState = {
-  fromChain: string;
-  toChain: string;
+  srcChain: string;
+  dstChain: string;
   asset: string;
   amount: string;
   balance: string;
+  nativeAsset: string;
+  srcChainFee: string;
+  dstChainFee: string;
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
-  fromChain: 'karura',
-  toChain: 'basilisk',
+  srcChain: null,
+  dstChain: null,
   asset: null,
   amount: null,
   balance: null,
+  nativeAsset: null,
+  srcChainFee: null,
+  dstChainFee: null,
 };
 
 export type ChainState = {
@@ -35,6 +41,7 @@ export type ChainState = {
   list: string[];
   dest: string[];
   tokens: string[];
+  balance: Map<string, string>;
 };
 
 export const DEFAULT_CHAIN_STATE: ChainState = {
@@ -42,4 +49,5 @@ export const DEFAULT_CHAIN_STATE: ChainState = {
   list: [],
   dest: [],
   tokens: [],
+  balance: new Map([]),
 };

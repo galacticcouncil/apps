@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@galacticcouncil/bridge": "^0.0.1-rc8",
-    "@galacticcouncil/ui": "^1.0.33",
+    "@galacticcouncil/ui": "^1.0.35",
     "@lit/reactive-element": "^1.0.0",
     "@talismn/connect-wallets": "^1.2.1",
     "@thi.ng/atom": "^5.1.3",

@@ -4,11 +4,14 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
+import {humanizeAmount } from '../../utils/amount';
+
 import { baseStyles } from '../base.css';
 
 @customElement('gc-xcm-app-token')
 export class SelectToken extends LitElement {
   @property({ attribute: false }) assets: string[] = [];
+  @property({ attribute: false }) balances: Map<string, string> = new Map([]);
   @property({ type: String }) asset = null;
   @property({ type: String }) query = '';
 
@@ -123,11 +126,13 @@ export class SelectToken extends LitElement {
         this.assets.length > 0,
         () => html` <uigc-asset-list>
           ${map(this.filterAssets(this.query), (asset: string) => {
+            const balance = this.balances.get(asset);
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
                 ?selected=${this.isSelected(asset)}
                 .asset=${{ symbol: asset }}
+                .balance=${humanizeAmount(balance)}
               ></uigc-asset-list-item>
             `;
           })}

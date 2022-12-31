@@ -1,7 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { Account, accountCursor } from '../../db';
+
+import { Account, accountCursor, bridgeCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
+import { convertAddressSS58 } from '../../utils/account';
 
 import { baseStyles } from '../base.css';
 
@@ -9,12 +11,15 @@ import { baseStyles } from '../base.css';
 export class TradeTokens extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
-  @property({ type: String }) from = null;
-  @property({ type: String }) to = null;
-  @property({ type: String }) address = null;
+  @property({ type: String }) srcChain = null;
+  @property({ type: String }) dstChain = null;
   @property({ type: String }) amount = null;
+  @property({ type: String }) address = null;
   @property({ type: String }) asset = null;
   @property({ type: String }) balance = null;
+  @property({ type: String }) nativeAsset = null;
+  @property({ type: String }) srcChainFee = null;
+  @property({ type: String }) dstChainFee = null;
   @property({ type: Boolean }) disabled = false;
 
   static styles = [
@@ -161,6 +166,16 @@ export class TradeTokens extends LitElement {
     this.dispatchEvent(new CustomEvent('max-clicked', options));
   }
 
+  getNativeAddress() {
+    const bridge = bridgeCursor.deref();
+    if (!bridge || !this.address) {
+      return null;
+    }
+    const adapter = bridge.findAdapter(this.dstChain);
+    const ss58Prefix = adapter.getSS58Prefix();
+    return convertAddressSS58(this.address, ss58Prefix);
+  }
+
   render() {
     return html`
       <div class="header">
@@ -170,9 +185,9 @@ export class TradeTokens extends LitElement {
       <div class="transfer">
         <uigc-typography variant="subsection">Select chains</uigc-typography>
         <div class="chain">
-          <uigc-chain-selector title="Source Chain" .chain=${this.from}></uigc-chain-selector>
+          <uigc-chain-selector title="Source Chain" .chain=${this.srcChain}></uigc-chain-selector>
           <uigc-asset-switch class="switch"></uigc-asset-switch>
-          <uigc-chain-selector title="Destination Chain" .chain=${this.to}></uigc-chain-selector>
+          <uigc-chain-selector title="Destination Chain" .chain=${this.dstChain}></uigc-chain-selector>
         </div>
         <uigc-typography variant="subsection">Define asset and amount</uigc-typography>
         <uigc-asset-transfer
@@ -185,16 +200,26 @@ export class TradeTokens extends LitElement {
         <uigc-address-input
           id="address"
           title="To address"
-          .address=${accountCursor.deref().address}
+          .address=${this.address}
+          .chain=${this.dstChain}
+          .nativeAddress=${this.getNativeAddress()}
+          @address-input-changed=${({ detail: { address } }: CustomEvent) => {
+            this.address = address;
+          }}
+          }
         ></uigc-address-input>
       </div>
       <div class="info">
-        <div class="row">${this.transferFeeTemplate('Origin Chain Transfer Fee', '0.000006', 'BSX')}</div>
-        <div class="row">${this.transferFeeTemplate('Destination Chain Transfer Fee', '0.0001', 'KSM')}</div>
+        <div class="row">
+          ${this.transferFeeTemplate('Source Chain Transfer Fee', this.srcChainFee, this.nativeAsset)}
+        </div>
+        <div class="row">
+          ${this.transferFeeTemplate('Destination Chain Transfer Fee', this.dstChainFee, this.asset)}
+        </div>
       </div>
       <div class="grow"></div>
       <uigc-button
-        ?disabled=${this.disabled || !this.account.state}
+        ?disabled=${this.disabled || !this.account.state || !this.getNativeAddress()}
         class="confirm"
         variant="primary"
         fullWidth

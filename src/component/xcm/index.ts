@@ -1,18 +1,20 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
+import { when } from 'lit/directives/when.js';
 
 import { baseStyles } from '../base.css';
 import { createBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
 import { Account, accountCursor, bridgeCursor } from '../../db';
-import { toFN } from '../../utils/amount';
+import { formatAmount, humanizeAmount, toFN } from '../../utils/amount';
 
-import { Subscription } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
+import { Subscription, combineLatest } from 'rxjs';
 
 import '@galacticcouncil/ui';
-import { Transaction } from '@galacticcouncil/sdk';
-import { Bridge, Chain, ChainName } from '@galacticcouncil/bridge/build';
+import { bnum, Transaction } from '@galacticcouncil/sdk';
+import { BalanceData, Bridge, Chain, ChainName, FN } from '@galacticcouncil/bridge/build';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './transfer-tokens';
@@ -47,8 +49,8 @@ export class XcmApp extends LitElement {
   @state() chain: ChainState = DEFAULT_CHAIN_STATE;
 
   @property({ type: Boolean }) testnet: Boolean = false;
-  @property({ type: String }) fromChain: string = null;
-  @property({ type: String }) toChain: string = null;
+  @property({ type: String }) srcChain: string = null;
+  @property({ type: String }) dstChain: string = null;
   @property({ type: String }) chains: string = null;
   @property({ type: String }) accountAddress: string = null;
   @property({ type: String }) accountProvider: string = null;
@@ -72,6 +74,10 @@ export class XcmApp extends LitElement {
     `,
   ];
 
+  isTransferEmpty(): boolean {
+    return this.transfer.amount == null;
+  }
+
   isEmptyAmount(amount: string): boolean {
     return amount == '' || amount == '0';
   }
@@ -84,81 +90,65 @@ export class XcmApp extends LitElement {
   switchChains() {
     this.transfer = {
       ...this.transfer,
-      fromChain: this.transfer.toChain,
-      toChain: this.transfer.fromChain,
+      srcChain: this.transfer.dstChain,
+      dstChain: this.transfer.srcChain,
+      balance: null,
     };
-    this.syncChain();
+    this.syncChains();
+    this.syncBalances();
+    this.syncFee();
   }
 
-  changeFromChain(chain: string) {
-    const bridge = bridgeCursor.deref();
-    const fromChain = chain as ChainName;
-    const toChain = this.transfer.toChain as ChainName;
-    const availableTokens = bridge.router.getAvailableTokens({ from: fromChain, to: toChain });
-    const allDestChains = bridge.router.getDestinationChains({ from: fromChain });
-    const destChains = allDestChains.filter((chain: Chain) => this.chain.list.includes(chain.id));
-
-    this.chain = {
-      ...this.chain,
-      dest: destChains.map((chain: Chain) => chain.id),
-      tokens: availableTokens,
-    };
-
-    const asset = this.transfer.asset;
-    const isTransferable = availableTokens.includes(asset);
+  changeSourceChain(chain: string) {
     this.transfer = {
       ...this.transfer,
-      asset: isTransferable ? asset : availableTokens[0],
-      fromChain: chain,
+      srcChain: chain,
+      balance: null,
     };
+    this.syncChains();
+    this.syncBalances();
+    this.syncFee();
   }
 
-  changeToChain(chain: string) {
-    const bridge = bridgeCursor.deref();
-    const fromChain = this.transfer.fromChain as ChainName;
-    const toChain = chain as ChainName;
-    const availableTokens = bridge.router.getAvailableTokens({ from: fromChain, to: toChain });
-    this.chain = {
-      ...this.chain,
-      tokens: availableTokens,
-    };
-
-    const asset = this.transfer.asset;
-    const isTransferable = availableTokens.includes(asset);
+  changeDestinationChain(chain: string) {
     this.transfer = {
       ...this.transfer,
-      asset: isTransferable ? asset : availableTokens[0],
-      toChain: chain,
+      dstChain: chain,
     };
+    this.syncFee();
   }
 
   changeAsset(asset: string) {
     this.transfer = {
       ...this.transfer,
       asset: asset,
+      balance: this.chain.balance.get(asset),
     };
+    this.syncFee();
   }
-
-  clearAmount() {}
 
   updateAmount(amount: string) {
     if (this.isEmptyAmount(amount)) {
-      this.clearAmount();
-      return;
+      this.transfer.amount = null;
+    } else {
+      this.transfer.amount = amount;
     }
-    this.transfer.amount = amount;
     this.requestUpdate();
   }
 
   notificationTemplate(transfer: TransferState, status: string): TemplateResult {
     return html`
-      <span>Transfer of</span>
+      ${when(
+        status,
+        () => html` <span>Transfer of</span> `,
+        () => html` <span>You transferred</span> `
+      )}
       <span class="highlight">${transfer.amount}</span>
       <span class="highlight">${transfer.asset}</span>
       <span>from</span>
-      <span class="highlight">${transfer.fromChain}</span>
+      <span class="highlight">${transfer.srcChain}</span>
       <span>to</span>
-      <span class="highlight">${transfer.toChain}</span>
+      <span class="highlight">${transfer.dstChain}</span>
       <span>${status}</span>
     `;
   }
@@ -166,13 +156,18 @@ export class XcmApp extends LitElement {
   processTx(account: Account, transaction: Transaction, transfer: TransferState) {
     const notification = {
       processing: this.notificationTemplate(transfer, 'submitted'),
-      success: this.notificationTemplate(transfer, 'succesfull'),
+      success: this.notificationTemplate(transfer, null),
       failure: this.notificationTemplate(transfer, 'failed'),
     };
     const options = {
       bubbles: true,
       composed: true,
-      detail: { account: account, transaction: transaction, notification: notification } as TxInfo,
+      detail: {
+        account: account,
+        transaction: transaction,
+        notification: notification,
+        meta: { srcChain: transfer.srcChain, dstChain: transfer.dstChain },
+      } as TxInfo,
     };
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:newXcm', options));
   }
@@ -181,12 +176,12 @@ export class XcmApp extends LitElement {
     const account = accountCursor.deref();
     const bridge = bridgeCursor.deref();
     if (account && bridge) {
-      const fromChain = this.transfer.fromChain as ChainName;
-      const toChain = this.transfer.toChain as ChainName;
-      const adapter = bridge.findAdapter(fromChain);
-      const asset = adapter.getToken(this.transfer.asset, toChain);
+      const srcChain = this.transfer.srcChain as ChainName;
+      const dstChain = this.transfer.dstChain as ChainName;
+      const adapter = bridge.findAdapter(srcChain);
+      const asset = adapter.getToken(this.transfer.asset, dstChain);
       const tx: any = adapter.createTx({
-        to: toChain,
+        to: dstChain,
         token: asset.symbol,
         amount: toFN(this.transfer.amount, asset.decimals),
         address: account.address,
@@ -204,12 +199,15 @@ export class XcmApp extends LitElement {
     }
   }
 
-  syncChain() {
+  private syncChains() {
     const bridge = bridgeCursor.deref();
-    const fromChain = this.transfer.fromChain as ChainName;
-    const toChain = this.transfer.toChain as ChainName;
-    const availableTokens = bridge.router.getAvailableTokens({ from: fromChain, to: toChain });
-    const allDestChains = bridge.router.getDestinationChains({ from: fromChain });
+    const srcChain = this.transfer.srcChain as ChainName;
+    const dstChain = this.transfer.dstChain as ChainName;
+    const availableTokens = bridge.router.getAvailableTokens({
+      from: srcChain,
+      to: dstChain,
+    });
+    const allDestChains = bridge.router.getDestinationChains({ from: srcChain });
     const destChains = allDestChains.filter((chain: Chain) => this.chain.list.includes(chain.id));
 
     this.chain = {
@@ -218,30 +216,70 @@ export class XcmApp extends LitElement {
       tokens: availableTokens,
     };
 
-    if (!availableTokens.includes(this.transfer.asset)) {
-      this.transfer.asset = availableTokens[0];
-    }
+    const asset = this.transfer.asset;
+    const isTransferable = availableTokens.includes(asset);
+    this.transfer = {
+      ...this.transfer,
+      asset: isTransferable ? asset : availableTokens[0],
+    };
+  }
+
+  private async syncFee() {
+    const bridge = bridgeCursor.deref();
+    const account = accountCursor.deref();
+    const srcChain = this.transfer.srcChain as ChainName;
+    const dstChain = this.transfer.dstChain as ChainName;
+    const adapter = bridge.findAdapter(srcChain);
+    const asset = adapter.getToken(this.transfer.asset, dstChain);
+    const nativeAsset = adapter.getApi().registry.chainTokens[0];
+    const dstChainFee = adapter.getCrossChainFee(asset.symbol, dstChain).balance.toString();
+    const srcChainFeeO = adapter.estimateTxFee({
+      signer: account.address,
+      address: account.address,
+      to: dstChain,
+      token: asset.symbol,
+      amount: FN.ONE,
+    });
+    const srcChainFee = await firstValueFrom(srcChainFeeO);
+    const srcChainFeeBN = bnum(srcChainFee);
+    const srcChainFeeFormatted = formatAmount(srcChainFeeBN, asset.decimals);
+    this.transfer = {
+      ...this.transfer,
+      nativeAsset: nativeAsset,
+      srcChainFee: humanizeAmount(srcChainFeeFormatted),
+      dstChainFee: dstChainFee,
+    };
+  }
+
+  private syncBalances() {
+    const bridge = bridgeCursor.deref();
+    const srcChain = this.transfer.srcChain as ChainName;
+    const dstChain = this.transfer.dstChain as ChainName;
+    const adapter = bridge.findAdapter(srcChain);
+    const account = accountCursor.deref().address;
+    const observables = this.chain.tokens.reduce(function (map, token) {
+      map[token] = adapter.subscribeTokenBalance(token, account);
+      return map;
+    }, {});
+
+    this.disconnectSubscribeBalance?.unsubscribe();
+    this.disconnectSubscribeBalance = combineLatest(observables).subscribe((val) => {
+      Object.keys(val).forEach((token: string) => {
+        const balanceData = val[token] as BalanceData;
+        const balance = balanceData.free.toString();
+        this.chain.balance.set(token, balance);
+        if (this.transfer.asset == token) {
+          this.transfer.balance = balance;
+          this.requestUpdate();
+        }
+      });
+    });
   }
 
   async init() {
-    this.syncChain();
-    console.log(this.chain);
-  }
-
-  subscribeBalance() {
-    const bridge = bridgeCursor.deref();
-    const fromChain = this.transfer.fromChain as ChainName;
-    const adapter = bridge.findAdapter(fromChain);
-    this.disconnectSubscribeBalance = adapter
-      .subscribeTokenBalance(this.transfer.asset, accountCursor.deref().address)
-      .subscribe((val) => {
-        this.transfer.balance = val.free.toString();
-        this.requestUpdate();
-      });
-  }
-
-  async subscribe() {
-    this.subscribeBalance();
+    this.syncChains();
+    this.syncBalances();
+    this.syncFee();
   }
 
   override async firstUpdated() {
@@ -268,11 +306,11 @@ export class XcmApp extends LitElement {
     if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
       this.updateAccount();
     }
-    if (changedProperties.has('fromChain') || changedProperties.has('toChain')) {
+    if (changedProperties.has('srcChain') || changedProperties.has('dstChain')) {
       this.transfer = {
         ...this.transfer,
-        fromChain: this.fromChain,
-        toChain: this.toChain,
+        srcChain: this.srcChain,
+        dstChain: this.dstChain,
       };
     }
     super.update(changedProperties);
@@ -283,7 +321,6 @@ export class XcmApp extends LitElement {
       console.log('Initialization...');
       this.ready = true;
       await this.init();
-      await this.subscribe();
       console.log('Done ✅');
     }
   }
@@ -300,21 +337,19 @@ export class XcmApp extends LitElement {
   }
 
   selectChainTemplate() {
-    const isDest = this.chain.selector === this.transfer.toChain;
+    const isDest = this.chain.selector === this.transfer.dstChain;
     return html`<gc-xcm-app-chain
       style="height: ${this.screen.height}px"
       .chains=${isDest ? this.chain.dest : this.chain.list}
-      .fromChain=${this.transfer.fromChain}
-      .toChain=${this.transfer.toChain}
+      .srcChain=${this.transfer.srcChain}
+      .dstChain=${this.transfer.dstChain}
       .selector=${this.chain.selector}
       @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
       @list-item-clicked=${({ detail: { item } }: CustomEvent) => {
-        /*         console.log('Dest: ' + isDest);
-        console.log(item); */
         if (isDest) {
-          this.changeToChain(item);
+          this.changeSourceChain(item);
         } else {
-          this.changeFromChain(item);
+          this.changeDestinationChain(item);
         }
         this.changeScreen(TransferScreen.Transfer);
       }}
@@ -325,35 +360,35 @@ export class XcmApp extends LitElement {
     return html`<gc-xcm-app-token
       style="height: ${this.screen.height}px"
       .assets=${this.chain.tokens}
+      .balances=${this.chain.balance}
       .asset=${this.transfer.asset}
       @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
       @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
-        /*         const { id, asset } = this.assets.selector;
-        id == 'assetIn' && this.changeAssetIn(asset, e.detail);
-        id == 'assetOut' && this.changeAssetOut(asset, e.detail); */
-/*         console.log(e.detail);
- */        //this.updateBalances();
         this.changeAsset(symbol);
+        this.syncBalances();
         this.changeScreen(TransferScreen.Transfer);
       }}
     ></gc-xcm-app-token>`;
   }
 
   transferTokensTemplate() {
+    const address = accountCursor.deref().address;
     return html`<gc-xcm-app-main
-      .from=${this.transfer.fromChain}
-      .to=${this.transfer.toChain}
+      .disabled=${this.isTransferEmpty()}
+      .srcChain=${this.transfer.srcChain}
+      .dstChain=${this.transfer.dstChain}
       .asset=${this.transfer.asset}
       .amount=${this.transfer.amount}
       .balance=${this.transfer.balance}
-      .address=${accountCursor.deref().address}
-      @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
+      .nativeAsset=${this.transfer.nativeAsset}
+      .srcChainFee=${this.transfer.srcChainFee}
+      .dstChainFee=${this.transfer.dstChainFee}
+      .address=${address}
+      @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
         this.updateAmount(value);
       }}
       @asset-switch-clicked=${this.switchChains}
-      @asset-selector-clicked=${({ detail }: CustomEvent) => {
-        this.changeScreen(TransferScreen.SelectToken);
-      }}
+      @asset-selector-clicked=${() => this.changeScreen(TransferScreen.SelectToken)}
       @chain-selector-clicked=${({ detail: { chain } }: CustomEvent) => {
         this.chain.selector = chain;
         this.changeScreen(TransferScreen.SelectChain);

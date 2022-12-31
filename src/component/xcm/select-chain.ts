@@ -5,16 +5,14 @@ import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
 import { baseStyles } from '../base.css';
-import { formatAmount } from '../../utils/amount';
-
-import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 
 @customElement('gc-xcm-app-chain')
 export class SelectChain extends LitElement {
   @property({ attribute: false }) chains: string[] = [];
-  @property({ type: String }) fromChain = null;
-  @property({ type: String }) toChain = null;
+  @property({ type: String }) srcChain = null;
+  @property({ type: String }) dstChain = null;
   @property({ type: String }) selector = null;
+  @property({ type: String }) query = '';
 
   static styles = [
     baseStyles,
@@ -56,6 +54,11 @@ export class SelectChain extends LitElement {
         }
       }
 
+      uigc-list {
+        padding-top: 20px;
+        overflow-y: auto;
+      }
+
       .loading {
         align-items: center;
         display: flex;
@@ -72,8 +75,16 @@ export class SelectChain extends LitElement {
     `,
   ];
 
+  updateSearch(searchDetail: any) {
+    this.query = searchDetail.value;
+  }
+
+  filterChains(query: string) {
+    return this.chains.filter((c) => c.toLowerCase().includes(query.toLowerCase()));
+  }
+
   isDisabled(chain: string): boolean {
-    return this.selector === this.fromChain && chain === this.toChain;
+    return this.selector === this.srcChain && chain === this.dstChain;
   }
 
   isSelected(chain: string): boolean {
@@ -110,18 +121,23 @@ export class SelectChain extends LitElement {
   }
 
   render() {
-    const isDest = this.selector === this.toChain;
+    const isDest = this.selector === this.dstChain;
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <span>Select ${isDest ? 'destination' : 'source'} chain</span>
+        <uigc-typography variant="section">Select ${isDest ? 'destination' : 'source'} chain</uigc-typography>
         <span></span>
       </div>
+      <uigc-search-bar
+        class="search"
+        placeholder="Search by name"
+        @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
+      ></uigc-search-bar>
       ${when(
         this.chains.length > 0,
         () => html` <uigc-list>
           <span slot="header">CHAIN LIST</span>
-          ${map(this.chains, (chain: string) => {
+          ${map(this.filterChains(this.query), (chain: string) => {
             return html`
               <uigc-list-item
                 .item=${chain}
