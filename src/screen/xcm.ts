@@ -12,7 +12,7 @@ export class XcmScreen extends LitElement {
         srcChain="karura"
         dstChain="basilisk"
         chains="basilisk,karura"
-        accountAddress="bXhZjWos3qm5MtqLAzrHP4E5jaiL3HzKedWaTQpFxqDFRYj7w"
+        accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
         accountProvider="polkadot-js"
         accountName="alice"
       ></gc-xcm-app>
