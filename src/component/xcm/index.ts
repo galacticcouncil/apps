@@ -9,12 +9,11 @@ import { DatabaseController } from '../../db.ctrl';
 import { Account, accountCursor, bridgeCursor } from '../../db';
 import { formatAmount, humanizeAmount, toFN } from '../../utils/amount';
 
-import { firstValueFrom } from 'rxjs';
 import { Subscription, combineLatest } from 'rxjs';
 
 import '@galacticcouncil/ui';
 import { bnum, Transaction } from '@galacticcouncil/sdk';
-import { BalanceData, Bridge, Chain, ChainName, FN } from '@galacticcouncil/bridge/build';
+import { BalanceData, Bridge, Chain, ChainName, CrossChainInputConfigs } from '@galacticcouncil/bridge/build';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './transfer-tokens';
@@ -36,6 +35,7 @@ import { TxInfo } from '../transaction/types';
 export class XcmApp extends LitElement {
   private bridge = new DatabaseController<Bridge>(this, bridgeCursor);
 
+  private input: CrossChainInputConfigs = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
@@ -43,6 +43,7 @@ export class XcmApp extends LitElement {
     });
   });
   private disconnectSubscribeBalance: Subscription = null;
+  private disconnectSubscribeInput: Subscription = null;
 
   @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
@@ -82,6 +83,10 @@ export class XcmApp extends LitElement {
     return amount == '' || amount == '0';
   }
 
+  hasError(): boolean {
+    return this.transfer.error != null;
+  }
+
   changeScreen(active: TransferScreen) {
     this.screen.active = active;
     this.requestUpdate();
@@ -92,30 +97,30 @@ export class XcmApp extends LitElement {
       ...this.transfer,
       srcChain: this.transfer.dstChain,
       dstChain: this.transfer.srcChain,
-      balance: null,
     };
     this.syncChains();
     this.syncBalances();
-    this.syncFee();
+    this.syncInput();
   }
 
   changeSourceChain(chain: string) {
     this.transfer = {
       ...this.transfer,
       srcChain: chain,
-      balance: null,
+      error: null,
     };
     this.syncChains();
     this.syncBalances();
-    this.syncFee();
+    this.syncInput();
   }
 
   changeDestinationChain(chain: string) {
     this.transfer = {
       ...this.transfer,
       dstChain: chain,
+      error: null,
     };
-    this.syncFee();
+    this.syncInput();
   }
 
   changeAsset(asset: string) {
@@ -123,8 +128,9 @@ export class XcmApp extends LitElement {
       ...this.transfer,
       asset: asset,
       balance: this.chain.balance.get(asset),
+      error: null,
     };
-    this.syncFee();
+    this.syncInput();
   }
 
   updateAmount(amount: string) {
@@ -132,6 +138,34 @@ export class XcmApp extends LitElement {
       this.transfer.amount = null;
     } else {
       this.transfer.amount = amount;
+    }
+    this.requestUpdate();
+  }
+
+  validateTransferAmount() {
+    const ammount = this.transfer.amount;
+
+    if (!ammount) {
+      this.transfer.error = null;
+      return;
+    }
+
+    const bridge = bridgeCursor.deref();
+    const srcChain = this.transfer.srcChain as ChainName;
+    const dstChain = this.transfer.dstChain as ChainName;
+    const adapter = bridge.findAdapter(srcChain);
+    const asset = adapter.getToken(this.transfer.asset, dstChain);
+    const amountFN = toFN(this.transfer.amount, asset.decimals);
+
+    const maxInput = this.input.maxInput;
+    const minInput = this.input.minInput;
+
+    if (amountFN.gt(this.input.maxInput)) {
+      this.transfer.error = 'Max transfer amount is ' + maxInput.toString() + ' ' + this.transfer.asset;
+    } else if (amountFN.lt(this.input.minInput)) {
+      this.transfer.error = 'Min transfer amount is ' + minInput.toString() + ' ' + this.transfer.asset;
+    } else {
+      this.transfer.error = null;
     }
     this.requestUpdate();
   }
@@ -224,46 +258,19 @@ export class XcmApp extends LitElement {
     };
   }
 
-  private async syncFee() {
-    const bridge = bridgeCursor.deref();
-    const account = accountCursor.deref();
-    const srcChain = this.transfer.srcChain as ChainName;
-    const dstChain = this.transfer.dstChain as ChainName;
-    const adapter = bridge.findAdapter(srcChain);
-    const asset = adapter.getToken(this.transfer.asset, dstChain);
-    const nativeAsset = adapter.getApi().registry.chainTokens[0];
-    const dstChainFee = adapter.getCrossChainFee(asset.symbol, dstChain).balance.toString();
-    const srcChainFeeO = adapter.estimateTxFee({
-      signer: account.address,
-      address: account.address,
-      to: dstChain,
-      token: asset.symbol,
-      amount: FN.ONE,
-    });
-    const srcChainFee = await firstValueFrom(srcChainFeeO);
-    const srcChainFeeBN = bnum(srcChainFee);
-    const srcChainFeeFormatted = formatAmount(srcChainFeeBN, asset.decimals);
-    this.transfer = {
-      ...this.transfer,
-      nativeAsset: nativeAsset,
-      srcChainFee: humanizeAmount(srcChainFeeFormatted),
-      dstChainFee: dstChainFee,
-    };
-  }
-
   private syncBalances() {
     const bridge = bridgeCursor.deref();
     const srcChain = this.transfer.srcChain as ChainName;
-    const dstChain = this.transfer.dstChain as ChainName;
     const adapter = bridge.findAdapter(srcChain);
     const account = accountCursor.deref().address;
-    const observables = this.chain.tokens.reduce(function (map, token) {
+
+    const tokenBalanceO = this.chain.tokens.reduce(function (map, token) {
       map[token] = adapter.subscribeTokenBalance(token, account);
       return map;
     }, {});
 
     this.disconnectSubscribeBalance?.unsubscribe();
-    this.disconnectSubscribeBalance = combineLatest(observables).subscribe((val) => {
+    this.disconnectSubscribeBalance = combineLatest(tokenBalanceO).subscribe((val) => {
       Object.keys(val).forEach((token: string) => {
         const balanceData = val[token] as BalanceData;
         const balance = balanceData.free.toString();
@@ -276,10 +283,43 @@ export class XcmApp extends LitElement {
     });
   }
 
+  private syncInput() {
+    const bridge = bridgeCursor.deref();
+    const account = accountCursor.deref();
+    const srcChain = this.transfer.srcChain as ChainName;
+    const dstChain = this.transfer.dstChain as ChainName;
+    const adapter = bridge.findAdapter(srcChain);
+    const asset = adapter.getToken(this.transfer.asset, dstChain);
+    const nativeAsset = adapter.getApi().registry.chainTokens[0];
+
+    const inputConfigO = adapter.subscribeInputConfigs({
+      to: dstChain,
+      token: this.transfer.asset,
+      address: account.address,
+      signer: account.address,
+    });
+
+    this.disconnectSubscribeInput?.unsubscribe();
+    this.disconnectSubscribeInput = inputConfigO.subscribe((config: CrossChainInputConfigs) => {
+      this.input = config;
+      const srcChainFeeBN = bnum(config.estimateFee);
+      const srcChainFeeFormatted = formatAmount(srcChainFeeBN, asset.decimals);
+      this.transfer = {
+        ...this.transfer,
+        nativeAsset: nativeAsset,
+        effectiveBalance: config.maxInput.toString(),
+        srcChainFee: humanizeAmount(srcChainFeeFormatted),
+        dstChainFee: config.destFee.balance.toString(),
+        dstChainSs58Prefix: config.ss58Prefix.toString(),
+      };
+      this.validateTransferAmount();
+    });
+  }
+
   async init() {
     this.syncChains();
     this.syncBalances();
-    this.syncFee();
+    this.syncInput();
   }
 
   override async firstUpdated() {
@@ -333,6 +373,7 @@ export class XcmApp extends LitElement {
   override disconnectedCallback() {
     this.ro.unobserve(this);
     this.disconnectSubscribeBalance?.unsubscribe();
+    this.disconnectSubscribeInput?.unsubscribe();
     super.disconnectedCallback();
   }
 
@@ -374,18 +415,22 @@ export class XcmApp extends LitElement {
   transferTokensTemplate() {
     const address = accountCursor.deref().address;
     return html`<gc-xcm-app-main
-      .disabled=${this.isTransferEmpty()}
+      .disabled=${this.isTransferEmpty() || this.hasError()}
       .srcChain=${this.transfer.srcChain}
       .dstChain=${this.transfer.dstChain}
       .asset=${this.transfer.asset}
       .amount=${this.transfer.amount}
       .balance=${this.transfer.balance}
+      .effectiveBalance=${this.transfer.effectiveBalance}
       .nativeAsset=${this.transfer.nativeAsset}
       .srcChainFee=${this.transfer.srcChainFee}
       .dstChainFee=${this.transfer.dstChainFee}
+      .dstChainSs58Prefix=${this.transfer.dstChainSs58Prefix}
+      .error=${this.transfer.error}
       .address=${address}
       @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
         this.updateAmount(value);
+        this.validateTransferAmount();
       }}
       @asset-switch-clicked=${this.switchChains}
       @asset-selector-clicked=${() => this.changeScreen(TransferScreen.SelectToken)}

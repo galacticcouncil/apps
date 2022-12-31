@@ -1,7 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 
-import { Account, accountCursor, bridgeCursor } from '../../db';
+import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { convertAddressSS58 } from '../../utils/account';
 
@@ -17,9 +18,12 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) address = null;
   @property({ type: String }) asset = null;
   @property({ type: String }) balance = null;
+  @property({ type: String }) effectiveBalance = null;
   @property({ type: String }) nativeAsset = null;
   @property({ type: String }) srcChainFee = null;
   @property({ type: String }) dstChainFee = null;
+  @property({ type: String }) dstChainSs58Prefix = null;
+  @property({ type: String }) error = null;
   @property({ type: Boolean }) disabled = false;
 
   static styles = [
@@ -122,6 +126,37 @@ export class TradeTokens extends LitElement {
         color: var(--hex-white);
       }
 
+      .error {
+        display: none;
+        flex-direction: row;
+        align-items: center;
+        margin: 12px 14px 0;
+        padding: 12px 14px;
+        background: var(--uigc-app-bg-error);
+        border-radius: var(--uigc-app-border-radius-2);
+      }
+
+      @media (min-width: 768px) {
+        .error {
+          margin: 12px 28px 0;
+        }
+      }
+
+      .error.show {
+        display: flex;
+      }
+
+      .error span {
+        color: var(--hex-white);
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .error uigc-icon-error {
+        margin-right: 8px;
+      }
+
       .confirm {
         display: flex;
         padding: 22px 14px;
@@ -167,16 +202,17 @@ export class TradeTokens extends LitElement {
   }
 
   getNativeAddress() {
-    const bridge = bridgeCursor.deref();
-    if (!bridge || !this.address) {
-      return null;
+    if (this.address && this.dstChainSs58Prefix) {
+      return convertAddressSS58(this.address, this.dstChainSs58Prefix);
     }
-    const adapter = bridge.findAdapter(this.dstChain);
-    const ss58Prefix = adapter.getSS58Prefix();
-    return convertAddressSS58(this.address, ss58Prefix);
+    return null;
   }
 
   render() {
+    const errorClasses = {
+      error: true,
+      show: this.error,
+    };
     return html`
       <div class="header">
         <uigc-typography variant="title">Transfer Assets</uigc-typography>
@@ -186,7 +222,7 @@ export class TradeTokens extends LitElement {
         <uigc-typography variant="subsection">Select chains</uigc-typography>
         <div class="chain">
           <uigc-chain-selector title="Source Chain" .chain=${this.srcChain}></uigc-chain-selector>
-          <uigc-asset-switch class="switch"></uigc-asset-switch>
+          <uigc-asset-switch basic class="switch"></uigc-asset-switch>
           <uigc-chain-selector title="Destination Chain" .chain=${this.dstChain}></uigc-chain-selector>
         </div>
         <uigc-typography variant="subsection">Define asset and amount</uigc-typography>
@@ -196,6 +232,7 @@ export class TradeTokens extends LitElement {
           .asset=${this.asset}
           .amount=${this.amount}
           .balance=${this.balance}
+          .effectiveBalance=${this.effectiveBalance}
         ></uigc-asset-transfer>
         <uigc-address-input
           id="address"
@@ -206,7 +243,6 @@ export class TradeTokens extends LitElement {
           @address-input-changed=${({ detail: { address } }: CustomEvent) => {
             this.address = address;
           }}
-          }
         ></uigc-address-input>
       </div>
       <div class="info">
@@ -216,6 +252,10 @@ export class TradeTokens extends LitElement {
         <div class="row">
           ${this.transferFeeTemplate('Destination Chain Transfer Fee', this.dstChainFee, this.asset)}
         </div>
+      </div>
+      <div class=${classMap(errorClasses)}>
+        <uigc-icon-error></uigc-icon-error>
+        <span> ${this.error} </span>
       </div>
       <div class="grow"></div>
       <uigc-button

@@ -23,6 +23,8 @@ export type TransferState = {
   nativeAsset: string;
   srcChainFee: string;
   dstChainFee: string;
+  dstChainSs58Prefix: string;
+  error: string;
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
@@ -34,6 +36,8 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   nativeAsset: null,
   srcChainFee: null,
   dstChainFee: null,
+  dstChainSs58Prefix: null,
+  error: null,
 };
 
 export type ChainState = {
