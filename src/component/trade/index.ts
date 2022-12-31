@@ -7,7 +7,7 @@ import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor } from '../../db';
-import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
+import { estimatePaymentInfo, getFeePaymentAsset } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
@@ -416,7 +416,7 @@ export class TradeApp extends LitElement {
   async syncTransactionFee() {
     const account = accountCursor.deref();
     if (account && this.tx) {
-      const { partialFee } = await getPaymentInfo(this.tx, account);
+      const { partialFee } = await estimatePaymentInfo(account);
       const feeAssetId = await getFeePaymentAsset(account);
       const feeSystem = partialFee.toHuman();
       this.trade.transactionFee = await this.calculateTransactionFee(feeSystem, feeAssetId);

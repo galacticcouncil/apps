@@ -1,10 +1,13 @@
 import type { Transaction } from '@galacticcouncil/sdk';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import type { ISubmittableResult } from '@polkadot/types/types';
+import { EventRecord } from '@polkadot/types/interfaces/system';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
-import { Account, chainCursor } from '../db';
+import { Account, chainCursor, bridgeCursor } from '../db';
 import { SYSTEM_ASSET_ID } from '../utils/chain';
+
+import { timeout } from 'rxjs/operators';
 
 export async function getFeePaymentAsset(account: Account): Promise<string> {
   const api = chainCursor.deref().api;
@@ -12,10 +15,9 @@ export async function getFeePaymentAsset(account: Account): Promise<string> {
   return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
 }
 
-export async function getPaymentInfo(transaction: Transaction, account: Account): Promise<RuntimeDispatchInfo> {
+export function estimatePaymentInfo(account: Account): Promise<RuntimeDispatchInfo> {
   const api = chainCursor.deref().api;
-  const transactionExtrinsic = api.tx(transaction.hex);
-  return await transactionExtrinsic.paymentInfo(account.address);
+  return api.tx.balances.transfer(account.address, 1).paymentInfo(account.address);
 }
 
 export async function signAndSend(
@@ -45,8 +47,26 @@ export async function signAndSendOb(
 ) {
   const wallet = getWalletBySource(account.provider);
   await wallet.enable('HydraDX');
+
   const o: any = extrinsic.signAndSend(account.address, { signer: wallet.signer });
   o.subscribe({
+    next: onStatusChange,
+    error: (err: any) => onError(err),
+    complete: () => console.log('Observer got a complete notification'),
+  });
+}
+
+export function subscribeBridgeEvents(
+  chain: any,
+  onStatusChange: (events: EventRecord[]) => void,
+  onError: (error: unknown) => void
+) {
+  const bridge = bridgeCursor.deref();
+  const adapter = bridge.findAdapter(chain);
+  const api = adapter.getApi();
+
+  const o: any = api.query.system.events();
+  return o.pipe(timeout(60 * 1000)).subscribe({
     next: onStatusChange,
     error: (err: any) => onError(err),
     complete: () => console.log('Observer got a complete notification'),

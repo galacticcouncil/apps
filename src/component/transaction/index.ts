@@ -4,14 +4,16 @@ import { customElement, state } from 'lit/decorators.js';
 import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
-import { signAndSend, signAndSendOb } from '../../api/transaction';
-import { infoRecord } from '../../utils/event';
+import { signAndSend, signAndSendOb, subscribeBridgeEvents } from '../../api/transaction';
+import { txRecord, xcmpRecord, messageHash } from '../../utils/event';
 
 import { TxInfo, TxNotification } from './types';
 import { Notification, NotificationType } from '../notification/types';
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
+  private xcmpSent: Map<string, string> = new Map([]);
+
   @state() message: TemplateResult = null;
 
   private _handleOnChainTx = (e: CustomEvent<TxInfo>) => this.handleTx(short.generate(), e.detail);
@@ -44,6 +46,14 @@ export class TransactionCenter extends LitElement {
     `,
   ];
 
+  private logInBlockMessage(txId: string, hash: string) {
+    console.log(`[${txId}] Completed at block hash #${hash}`);
+  }
+
+  private logXcmpMessage(txId: string, chain: string, method: string, hash: string) {
+    console.log(`[${txId}] Chain: (${chain}) xcmpQueue.${method} with hash #${hash}`);
+  }
+
   handleTx(txId: string, txInfo: TxInfo) {
     signAndSend(
       txInfo.transaction.get(),
@@ -55,10 +65,10 @@ export class TransactionCenter extends LitElement {
             this.handleBroadcasted(txId, txInfo.notification);
             break;
           case 'inblock':
-            console.log(`[${txId}] Completed at block hash #${status.asInBlock.toString()}`);
-            const { method } = infoRecord(events).event;
-            const hasError = 'ExtrinsicFailed' === method;
-            this.handleInBlock(txId, txInfo.notification, hasError);
+            this.logInBlockMessage(txId, status.asInBlock.toString());
+            const txEvent = txRecord(events).event;
+            const txError = 'ExtrinsicFailed' === txEvent.method;
+            this.handleInBlock(txId, txInfo.notification, txError);
             break;
         }
       },
@@ -69,6 +79,7 @@ export class TransactionCenter extends LitElement {
   }
 
   handleTxXcm(txId: string, txInfo: TxInfo) {
+    const xcmListener = this.xcmpTransferListener(txId, txInfo);
     signAndSendOb(
       txInfo.transaction.get(),
       txInfo.account,
@@ -79,17 +90,55 @@ export class TransactionCenter extends LitElement {
             this.handleBroadcasted(txId, txInfo.notification);
             break;
           case 'inblock':
-            console.log(`[${txId}] Completed at block hash #${status.asInBlock.toString()}`);
-            const { method } = infoRecord(events).event;
-            const hasError = 'ExtrinsicFailed' === method;
-            this.handleInBlock(txId, txInfo.notification, hasError);
+            this.logInBlockMessage(txId, status.asInBlock.toString());
+            const txEvent = txRecord(events).event;
+            const txError = 'ExtrinsicFailed' === txEvent.method;
+            const xcmpEvent = xcmpRecord(events).event;
+            const xcmpError = 'XcmpMessageSent' !== xcmpEvent.method;
+            const xcmpMessageHash = messageHash(xcmpEvent);
+
+            this.logXcmpMessage(txId, txInfo.meta.srcChain, xcmpEvent.method, xcmpMessageHash);
+
+            const srcChainError = txError || xcmpError;
+            if (srcChainError) {
+              xcmListener?.unsubscribe();
+              this.handleInBlock(txId, txInfo.notification, true);
+            } else {
+              this.xcmpSent.set(txId, xcmpMessageHash);
+            }
             break;
         }
       },
       (_error) => {
+        xcmListener?.unsubscribe();
         this.handleError(txId, txInfo.notification);
       }
     );
+  }
+
+  private xcmpTransferListener(txId: string, txInfo: TxInfo) {
+    const dstChain = txInfo.meta.dstChain;
+    const o = subscribeBridgeEvents(
+      dstChain,
+      (events) => {
+        const xcmpEventRecord = xcmpRecord(events);
+        if (xcmpEventRecord) {
+          const xcmpEvent = xcmpEventRecord.event;
+          const xcmpError = 'Success' !== xcmpEvent.method;
+          const xcmpMessageHash = messageHash(xcmpEvent);
+          const sourceXcmpMessageHash = this.xcmpSent.get(txId);
+          if (xcmpMessageHash == sourceXcmpMessageHash) {
+            this.logXcmpMessage(txId, dstChain, xcmpEvent.method, xcmpMessageHash);
+            this.handleInBlock(txId, txInfo.notification, xcmpError);
+            o.unsubscribe();
+          }
+        }
+      },
+      (_error) => {
+        this.handleInBlock(txId, txInfo.notification, true);
+      }
+    );
+    return o;
   }
 
   private handleBroadcasted(id: string, notification: TxNotification) {
