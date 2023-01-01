@@ -132,6 +132,7 @@ export class XcmApp extends LitElement {
       balance: this.chain.balance.get(asset),
       error: null,
     };
+    this.syncBalances();
     this.syncInput();
   }
 
@@ -407,7 +408,6 @@ export class XcmApp extends LitElement {
       @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
       @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
         this.changeAsset(symbol);
-        this.syncBalances();
         this.changeScreen(TransferScreen.Transfer);
       }}
     ></gc-xcm-app-token>`;
