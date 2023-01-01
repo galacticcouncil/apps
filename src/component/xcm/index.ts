@@ -120,6 +120,8 @@ export class XcmApp extends LitElement {
       dstChain: chain,
       error: null,
     };
+    this.syncChains();
+    this.syncBalances();
     this.syncInput();
   }
 
@@ -152,9 +154,8 @@ export class XcmApp extends LitElement {
 
     const bridge = bridgeCursor.deref();
     const srcChain = this.transfer.srcChain as ChainName;
-    const dstChain = this.transfer.dstChain as ChainName;
     const adapter = bridge.findAdapter(srcChain);
-    const asset = adapter.getToken(this.transfer.asset, dstChain);
+    const asset = adapter.getToken(this.transfer.asset, srcChain);
     const amountFN = toFN(this.transfer.amount, asset.decimals);
 
     const maxInput = this.input.maxInput;
@@ -213,7 +214,7 @@ export class XcmApp extends LitElement {
       const srcChain = this.transfer.srcChain as ChainName;
       const dstChain = this.transfer.dstChain as ChainName;
       const adapter = bridge.findAdapter(srcChain);
-      const asset = adapter.getToken(this.transfer.asset, dstChain);
+      const asset = adapter.getToken(this.transfer.asset, srcChain);
       const tx: any = adapter.createTx({
         to: dstChain,
         token: asset.symbol,
@@ -289,8 +290,8 @@ export class XcmApp extends LitElement {
     const srcChain = this.transfer.srcChain as ChainName;
     const dstChain = this.transfer.dstChain as ChainName;
     const adapter = bridge.findAdapter(srcChain);
-    const asset = adapter.getToken(this.transfer.asset, dstChain);
     const nativeAsset = adapter.getApi().registry.chainTokens[0];
+    const nativeAssetDecimals = adapter.getApi().registry.chainDecimals[0];
 
     const inputConfigO = adapter.subscribeInputConfigs({
       to: dstChain,
@@ -303,7 +304,7 @@ export class XcmApp extends LitElement {
     this.disconnectSubscribeInput = inputConfigO.subscribe((config: CrossChainInputConfigs) => {
       this.input = config;
       const srcChainFeeBN = bnum(config.estimateFee);
-      const srcChainFeeFormatted = formatAmount(srcChainFeeBN, asset.decimals);
+      const srcChainFeeFormatted = formatAmount(srcChainFeeBN, nativeAssetDecimals);
       this.transfer = {
         ...this.transfer,
         nativeAsset: nativeAsset,
@@ -388,9 +389,9 @@ export class XcmApp extends LitElement {
       @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
       @list-item-clicked=${({ detail: { item } }: CustomEvent) => {
         if (isDest) {
-          this.changeSourceChain(item);
-        } else {
           this.changeDestinationChain(item);
+        } else {
+          this.changeSourceChain(item);
         }
         this.changeScreen(TransferScreen.Transfer);
       }}
