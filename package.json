@@ -8,6 +8,7 @@
   "module": "dist/index.esm.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
+    "build2": "tsc",
     "build": "node ./esbuild.prod.mjs && tsc --emitDeclarationOnly --outDir dist/types/",
     "build:watch": "ESBUILD_WATCH=true node ./esbuild.dev.mjs",
     "build:prod": "node ./esbuild.prod.mjs && tsc --emitDeclarationOnly --outDir dist/types/",
@@ -29,8 +30,8 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@galacticcouncil/bridge": "^0.0.1-rc8",
-    "@galacticcouncil/ui": "^1.0.36",
+    "@galacticcouncil/ui": "^1.0.37",
+    "@galacticcouncil/bridge": "^0.0.1-rc12",
     "@lit/reactive-element": "^1.0.0",
     "@talismn/connect-wallets": "^1.2.1",
     "@thi.ng/atom": "^5.1.3",
