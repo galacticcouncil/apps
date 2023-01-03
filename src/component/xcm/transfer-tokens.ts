@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
@@ -141,7 +142,11 @@ export class TradeTokens extends LitElement {
   transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
     return html` <span class="label">${label}</span>
       <span class="grow"></span>
-      <span class="value">${tradeFee} ${assetSymbol}</span>`;
+      ${when(
+        tradeFee,
+        () => html` <span class="value">${tradeFee} ${assetSymbol}</span>`,
+        () => html` <span class="value">-</span>`
+      )}`;
   }
 
   onSwitchClick(e: any) {

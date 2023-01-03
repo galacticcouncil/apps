@@ -4,7 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
-import {humanizeAmount } from '../../utils/amount';
+import { humanizeAmount } from '../../utils/amount';
 
 import { baseStyles } from '../base.css';
 
@@ -126,7 +126,7 @@ export class SelectToken extends LitElement {
         this.assets.length > 0,
         () => html` <uigc-asset-list>
           ${map(this.filterAssets(this.query), (asset: string) => {
-            const balance = this.balances.get(asset);
+            const balance = this.balances.get(asset) || null;
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}

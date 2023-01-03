@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "1.0.6",
+  "version": "1.0.7-rc2",
   "private": false,
   "description": "Galactic Apps",
   "author": "Pavol Noha <pavol.noha@gmail.com>",
@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "@galacticcouncil/ui": "^1.0.39",
-    "@galacticcouncil/bridge": "0.0.1-rc20",
     "@lit/reactive-element": "^1.0.0",
     "@talismn/connect-wallets": "^1.2.1",
     "@thi.ng/atom": "^5.1.3",
@@ -43,6 +42,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/sdk": "^0.0.1",
+    "@galacticcouncil/bridge": "0.0.1-rc20",
     "@polkadot/api": "^9.9.1",
     "@polkadot/extension-inject": "^0.44.6"
   }

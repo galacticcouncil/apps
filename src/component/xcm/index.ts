@@ -289,13 +289,18 @@ export class XcmApp extends LitElement {
 
   private syncBalances() {
     const bridge = bridgeCursor.deref();
+    const account = accountCursor.deref();
+
+    if (!account) {
+      return;
+    }
+
     const srcChain = this.transfer.srcChain as ChainName;
     const asset = this.transfer.asset;
     const adapter = bridge.findAdapter(srcChain);
-    const account = accountCursor.deref().address;
 
     const tokenBalanceO = this.chain.tokens.reduce(function (map, token) {
-      map[token] = adapter.subscribeTokenBalance(token, account);
+      map[token] = adapter.subscribeTokenBalance(token, account.address);
       return map;
     }, {});
 
@@ -316,6 +321,11 @@ export class XcmApp extends LitElement {
   private syncInput() {
     const bridge = bridgeCursor.deref();
     const account = accountCursor.deref();
+
+    if (!account) {
+      return;
+    }
+
     const srcChain = this.transfer.srcChain as ChainName;
     const dstChain = this.transfer.dstChain as ChainName;
     const adapter = bridge.findAdapter(srcChain);

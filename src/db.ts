@@ -1,5 +1,5 @@
 import { TradeRouter } from '@galacticcouncil/sdk';
-import { Bridge } from '@galacticcouncil/bridge/build';
+import { Bridge } from '@galacticcouncil/bridge';
 import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
 import { defAtom } from '@thi.ng/atom/atom';
