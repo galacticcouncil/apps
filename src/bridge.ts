@@ -1,8 +1,8 @@
-import { ApiProvider, Bridge, ChainName } from '@galacticcouncil/bridge/build';
-import { BaseCrossChainAdapter } from '@galacticcouncil/bridge/build/base-chain-adapter';
-import { PolkadotAdapter, RococoAdapter } from '@galacticcouncil/bridge/build/adapters/polkadot';
-import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/build/adapters/acala';
-import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/build/adapters/hydradx';
+import { ApiProvider, Bridge, ChainName } from '@galacticcouncil/bridge';
+import { BaseCrossChainAdapter } from '@galacticcouncil/bridge/base-chain-adapter';
+import { PolkadotAdapter, RococoAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
+import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/acala';
+import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
 
 import { firstValueFrom } from 'rxjs';
 

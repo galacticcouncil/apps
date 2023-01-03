@@ -1,5 +1,5 @@
 import { Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
-import { FN } from '@galacticcouncil/bridge/build';
+import { FN } from '@galacticcouncil/bridge';
 
 export function formatAmount(amount: BigNumber, decimals: number): string {
   return amount.shiftedBy(-1 * decimals).toString();
