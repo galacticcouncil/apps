@@ -8,10 +8,9 @@ export class XcmScreen extends LitElement {
   render() {
     return html`
       <gc-xcm-app
-        testnet
-        srcChain="karura"
-        dstChain="basilisk"
-        chains="basilisk,karura"
+        srcChain="polkadot"
+        dstChain="hydradx"
+        chains="polkadot,hydradx,acala"
         accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
         accountProvider="polkadot-js"
         accountName="alice"
