@@ -13,7 +13,7 @@ import { Subscription, combineLatest } from 'rxjs';
 
 import '@galacticcouncil/ui';
 import { bnum, Transaction } from '@galacticcouncil/sdk';
-import { BalanceData, Bridge, Chain, ChainName, CrossChainInputConfigs } from '@galacticcouncil/bridge/build';
+import { BalanceData, Bridge, Chain, ChainName, CrossChainInputConfigs } from '@galacticcouncil/bridge';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './transfer-tokens';
@@ -30,6 +30,8 @@ import {
   DEFAULT_TRANSFER_STATE,
 } from './types';
 import { TxInfo } from '../transaction/types';
+import { convertAddressSS58 } from '../../utils/account';
+import { pairs2Map } from '../../utils/mapper';
 
 @customElement('gc-xcm-app')
 export class XcmApp extends LitElement {
@@ -84,7 +86,7 @@ export class XcmApp extends LitElement {
   }
 
   hasError(): boolean {
-    return this.transfer.error != null;
+    return Object.keys(this.transfer.error).length > 0;
   }
 
   changeScreen(active: TransferScreen) {
@@ -97,6 +99,7 @@ export class XcmApp extends LitElement {
       ...this.transfer,
       srcChain: this.transfer.dstChain,
       dstChain: this.transfer.srcChain,
+      balance: null,
     };
     this.syncChains();
     this.syncBalances();
@@ -107,7 +110,7 @@ export class XcmApp extends LitElement {
     this.transfer = {
       ...this.transfer,
       srcChain: chain,
-      error: null,
+      balance: null,
     };
     this.syncChains();
     this.syncBalances();
@@ -118,7 +121,7 @@ export class XcmApp extends LitElement {
     this.transfer = {
       ...this.transfer,
       dstChain: chain,
-      error: null,
+      balance: null,
     };
     this.syncChains();
     this.syncBalances();
@@ -130,10 +133,29 @@ export class XcmApp extends LitElement {
       ...this.transfer,
       asset: asset,
       balance: this.chain.balance.get(asset),
-      error: null,
     };
-    this.syncBalances();
     this.syncInput();
+  }
+
+  updateAddress(address: string) {
+    const recipientNative = convertAddressSS58(address, Number(this.transfer.dstChainSs58Prefix));
+    this.transfer = {
+      ...this.transfer,
+      address: recipientNative ? recipientNative : address,
+    };
+  }
+
+  validateAddress() {
+    const recipient = this.transfer.address;
+    const recipientNative = convertAddressSS58(recipient, Number(this.transfer.dstChainSs58Prefix));
+
+    if (recipient == null || recipient == '') {
+      this.transfer.error['address'] = 'Empty address. Please, provide valid recipient network address.';
+    } else if (recipientNative == null) {
+      this.transfer.error['address'] = 'Incorrect address. Please, review the network address and try again.';
+    } else {
+      delete this.transfer.error['address'];
+    }
   }
 
   updateAmount(amount: string) {
@@ -149,7 +171,7 @@ export class XcmApp extends LitElement {
     const ammount = this.transfer.amount;
 
     if (!ammount) {
-      this.transfer.error = null;
+      delete this.transfer.error['amount'];
       return;
     }
 
@@ -163,11 +185,11 @@ export class XcmApp extends LitElement {
     const minInput = this.input.minInput;
 
     if (amountFN.gt(this.input.maxInput)) {
-      this.transfer.error = 'Max transfer amount is ' + maxInput.toString() + ' ' + this.transfer.asset;
+      this.transfer.error['amount'] = 'Max transfer amount is ' + maxInput.toString() + ' ' + this.transfer.asset;
     } else if (amountFN.lt(this.input.minInput)) {
-      this.transfer.error = 'Min transfer amount is ' + minInput.toString() + ' ' + this.transfer.asset;
+      this.transfer.error['amount'] = 'Min transfer amount is ' + minInput.toString() + ' ' + this.transfer.asset;
     } else {
-      this.transfer.error = null;
+      delete this.transfer.error['amount'];
     }
     this.requestUpdate();
   }
@@ -192,7 +214,7 @@ export class XcmApp extends LitElement {
   processTx(account: Account, transaction: Transaction, transfer: TransferState) {
     const notification = {
       processing: this.notificationTemplate(transfer, 'submitted'),
-      success: this.notificationTemplate(transfer, null),
+      success: this.notificationTemplate(transfer, 'in block'),
       failure: this.notificationTemplate(transfer, 'failed'),
     };
     const options = {
@@ -209,8 +231,8 @@ export class XcmApp extends LitElement {
   }
 
   async swap() {
-    const account = accountCursor.deref();
     const bridge = bridgeCursor.deref();
+    const account = accountCursor.deref();
     if (account && bridge) {
       const srcChain = this.transfer.srcChain as ChainName;
       const dstChain = this.transfer.dstChain as ChainName;
@@ -220,8 +242,8 @@ export class XcmApp extends LitElement {
         to: dstChain,
         token: asset.symbol,
         amount: toFN(this.transfer.amount, asset.decimals),
-        address: account.address,
-        signer: account.address,
+        address: this.transfer.address,
+        signer: this.transfer.address,
       });
 
       const transaction = {
@@ -260,9 +282,15 @@ export class XcmApp extends LitElement {
     };
   }
 
+  private resetBalances() {
+    this.transfer.balance = null;
+    this.chain.balance = new Map([]);
+  }
+
   private syncBalances() {
     const bridge = bridgeCursor.deref();
     const srcChain = this.transfer.srcChain as ChainName;
+    const asset = this.transfer.asset;
     const adapter = bridge.findAdapter(srcChain);
     const account = accountCursor.deref().address;
 
@@ -273,15 +301,15 @@ export class XcmApp extends LitElement {
 
     this.disconnectSubscribeBalance?.unsubscribe();
     this.disconnectSubscribeBalance = combineLatest(tokenBalanceO).subscribe((val) => {
+      const balances: Map<string, string> = new Map([]);
       Object.keys(val).forEach((token: string) => {
         const balanceData = val[token] as BalanceData;
         const balance = balanceData.free.toString();
-        this.chain.balance.set(token, balance);
-        if (this.transfer.asset == token) {
-          this.transfer.balance = balance;
-          this.requestUpdate();
-        }
+        balances.set(token, balance);
       });
+      this.chain.balance = balances;
+      this.transfer.balance = balances.get(asset);
+      this.requestUpdate();
     });
   }
 
@@ -314,6 +342,7 @@ export class XcmApp extends LitElement {
         dstChainFee: config.destFee.balance.toString(),
         dstChainSs58Prefix: config.ss58Prefix.toString(),
       };
+      this.updateAddress(this.transfer.address);
       this.validateTransferAmount();
     });
   }
@@ -339,6 +368,7 @@ export class XcmApp extends LitElement {
         provider: this.accountProvider,
         name: this.accountName,
       } as Account);
+      this.updateAddress(this.accountAddress);
     } else {
       accountCursor.reset(null);
     }
@@ -347,6 +377,11 @@ export class XcmApp extends LitElement {
   override update(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
       this.updateAccount();
+      this.resetBalances();
+      if (this.ready) {
+        this.syncBalances();
+        this.syncInput();
+      }
     }
     if (changedProperties.has('srcChain') || changedProperties.has('dstChain')) {
       this.transfer = {
@@ -414,7 +449,6 @@ export class XcmApp extends LitElement {
   }
 
   transferTokensTemplate() {
-    const address = accountCursor.deref().address;
     return html`<gc-xcm-app-main
       .disabled=${this.isTransferEmpty() || this.hasError()}
       .srcChain=${this.transfer.srcChain}
@@ -428,10 +462,14 @@ export class XcmApp extends LitElement {
       .dstChainFee=${this.transfer.dstChainFee}
       .dstChainSs58Prefix=${this.transfer.dstChainSs58Prefix}
       .error=${this.transfer.error}
-      .address=${address}
+      .address=${this.transfer.address}
       @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
         this.updateAmount(value);
         this.validateTransferAmount();
+      }}
+      @address-input-changed=${({ detail: { address } }: CustomEvent) => {
+        this.updateAddress(address);
+        this.validateAddress();
       }}
       @asset-switch-clicked=${this.switchChains}
       @asset-selector-clicked=${() => this.changeScreen(TransferScreen.SelectToken)}

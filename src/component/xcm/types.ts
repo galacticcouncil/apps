@@ -20,12 +20,13 @@ export type TransferState = {
   asset: string;
   amount: string;
   balance: string;
+  address: string;
   effectiveBalance: string;
   nativeAsset: string;
   srcChainFee: string;
   dstChainFee: string;
   dstChainSs58Prefix: string;
-  error: string;
+  error: {};
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
@@ -34,12 +35,13 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   asset: null,
   amount: null,
   balance: null,
+  address: null,
   effectiveBalance: null,
   nativeAsset: null,
   srcChainFee: null,
   dstChainFee: null,
   dstChainSs58Prefix: null,
-  error: null,
+  error: {},
 };
 
 export type ChainState = {
