@@ -4,17 +4,16 @@ import { customElement, state } from 'lit/decorators.js';
 import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
-import { signAndSend, signAndSendOb, subscribeBridgeEvents } from '../../api/transaction';
-import { txRecord, xcmpRecord, messageHash } from '../../utils/event';
+import { signAndSend, signAndSendOb } from '../../api/transaction';
+import { txRecord } from '../../utils/event';
 
 import { TxInfo, TxNotification } from './types';
 import { Notification, NotificationType } from '../notification/types';
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
-  private xcmpSent: Map<string, string> = new Map([]);
-
   @state() message: TemplateResult = null;
+  @state() currentTx: string = null;
 
   private _handleOnChainTx = (e: CustomEvent<TxInfo>) => this.handleTx(short.generate(), e.detail);
   private _handleCrossChainTx = (e: CustomEvent<TxInfo>) => this.handleTxXcm(short.generate(), e.detail);
@@ -79,7 +78,6 @@ export class TransactionCenter extends LitElement {
   }
 
   handleTxXcm(txId: string, txInfo: TxInfo) {
-    const xcmListener = this.xcmpTransferListener(txId, txInfo);
     signAndSendOb(
       txInfo.transaction.get(),
       txInfo.account,
@@ -93,55 +91,18 @@ export class TransactionCenter extends LitElement {
             this.logInBlockMessage(txId, status.asInBlock.toString());
             const txEvent = txRecord(events).event;
             const txError = 'ExtrinsicFailed' === txEvent.method;
-            const xcmpEvent = xcmpRecord(events).event;
-            const xcmpError = 'XcmpMessageSent' !== xcmpEvent.method;
-            const xcmpMessageHash = messageHash(xcmpEvent);
-
-            this.logXcmpMessage(txId, txInfo.meta.srcChain, xcmpEvent.method, xcmpMessageHash);
-
-            const srcChainError = txError || xcmpError;
-            if (srcChainError) {
-              xcmListener?.unsubscribe();
-              this.handleInBlock(txId, txInfo.notification, true);
-            } else {
-              this.xcmpSent.set(txId, xcmpMessageHash);
-            }
+            this.handleInBlock(txId, txInfo.notification, txError);
             break;
         }
       },
       (_error) => {
-        xcmListener?.unsubscribe();
         this.handleError(txId, txInfo.notification);
       }
     );
   }
 
-  private xcmpTransferListener(txId: string, txInfo: TxInfo) {
-    const dstChain = txInfo.meta.dstChain;
-    const o = subscribeBridgeEvents(
-      dstChain,
-      (events) => {
-        const xcmpEventRecord = xcmpRecord(events);
-        if (xcmpEventRecord) {
-          const xcmpEvent = xcmpEventRecord.event;
-          const xcmpError = 'Success' !== xcmpEvent.method;
-          const xcmpMessageHash = messageHash(xcmpEvent);
-          const sourceXcmpMessageHash = this.xcmpSent.get(txId);
-          if (xcmpMessageHash == sourceXcmpMessageHash) {
-            this.logXcmpMessage(txId, dstChain, xcmpEvent.method, xcmpMessageHash);
-            this.handleInBlock(txId, txInfo.notification, xcmpError);
-            o.unsubscribe();
-          }
-        }
-      },
-      (_error) => {
-        this.handleInBlock(txId, txInfo.notification, true);
-      }
-    );
-    return o;
-  }
-
   private handleBroadcasted(id: string, notification: TxNotification) {
+    this.currentTx = id;
     this.message = this.broadcastTemplate(id, notification.processing);
     this.sendNotification(id, NotificationType.progress, notification.processing, false);
   }
@@ -152,6 +113,10 @@ export class TransactionCenter extends LitElement {
   }
 
   private handleInBlock(id: string, notification: TxNotification, error: boolean) {
+    if (id == this.currentTx) {
+      this.closeDialog(id);
+    }
+
     if (error) {
       this.sendNotification(id, NotificationType.error, notification.failure, true);
     } else {
@@ -184,6 +149,7 @@ export class TransactionCenter extends LitElement {
   closeDialog(id: string) {
     this.closeDialogGracefully(id);
     this.message = null;
+    this.currentTx = null;
   }
 
   closeBroadcastDialog(id: string, message: string | TemplateResult) {
@@ -196,7 +162,7 @@ export class TransactionCenter extends LitElement {
       <uigc-dialog
         open
         id=${id}
-        timeout="6000"
+        timeout="3000"
         @closeable-closed=${(e: CustomEvent) => this.closeBroadcastDialog(id, message)}
       >
         <uigc-circular-progress class="icon"></uigc-circular-progress>

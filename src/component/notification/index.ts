@@ -80,7 +80,7 @@ export class NotificationCenter extends LitElement {
       <uigc-toast
         open
         id=${n.id}
-        timeout=${n.type === NotificationType.success ? 6000 : 0}
+        timeout=${n.type === NotificationType.success ? 5000 : 0}
         @click=${() => this.openDrawer()}
       >
         <uigc-alert variant=${n.type}>
