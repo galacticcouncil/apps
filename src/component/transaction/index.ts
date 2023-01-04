@@ -55,7 +55,7 @@ export class TransactionCenter extends LitElement {
 
   handleTx(txId: string, txInfo: TxInfo) {
     signAndSend(
-      txInfo.transaction.get(),
+      txInfo.transaction,
       txInfo.account,
       ({ events, status }) => {
         const type = status.type.toLowerCase();
