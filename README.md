@@ -13,6 +13,7 @@ layer with HydraDX & Basilisk chains.
 | Transaction Center  | TransactionCenter  | gc-transaction-center  |
 | Trade App           | TradeApp           | gc-trade-app           |
 | Trade Spa           | TradeSpa           | gc-trade-spa           |
+| Xcm App             | XcmApp             | gc-xcm-app             |
 
 ### Notification Center
 
@@ -53,12 +54,13 @@ enum NotificationType {
 
 ### Transaction Center
 
-Display transaction status based on slotted component event. Dispatch status to Notification center.
+Process transaction & display status based on slotted component event. Dispatch result to Notification center.
 
 #### API
 
 ```js
-this.dispatchEvent(new CustomEvent() < TxInfo > ('gc:tx:new', message));
+this.dispatchEvent(new CustomEvent() < TxInfo > ('gc:tx:new', message)); // on chain tx
+this.dispatchEvent(new CustomEvent() < TxInfo > ('gc:tx:newXcm', message)); // cross chain tx
 ```
 
 #### Types
@@ -68,6 +70,7 @@ this.dispatchEvent(new CustomEvent() < TxInfo > ('gc:tx:new', message));
 | account      | User account (wallet)             |
 | transaction  | Transaction info (extrinsic, hex) |
 | notification | Notification center metadata      |
+| meta         | Transaction metadata              |
 
 ```js
 type TxNotification = {
@@ -80,6 +83,7 @@ type TxInfo = {
   account: Account,
   transaction: Transaction,
   notification: TxNotification,
+  meta?: Record<string, string>,
 };
 ```
 
@@ -140,6 +144,34 @@ Standalone trade app with tx & notification center.
 | pools             | list of pools    | false    |
 | assetIn           | asset in id      | false    |
 | assetOut          | asset out id     | false    |
+
+### Xcm App
+
+Bare cross chain transaction app without tx & notification center.
+
+#### API
+
+```html
+<gc-xcm-app
+  srcChain="polkadot"
+  dstChain="hydradx"
+  chains="polkadot,hydradx,acala"
+  accountAddress="your_account_address"
+  accountProvider="polkadot-js"
+  accountName="your_account_name"
+></gc-xcm-app>
+```
+
+#### Properties
+
+| Property          | Description       | Required |
+| ----------------- | ----------------- | -------- |
+| accountAddress    | account address   | false    |
+| accountProvider   | account provider  | false    |
+| accountName       | account name      | false    |
+| chains            | listed chains     | true     |
+| srcChain          | default src chain | true     |
+| dstChain          | default dst chain | true     |
 
 ## Live [master]
 
