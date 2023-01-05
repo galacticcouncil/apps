@@ -1,6 +1,5 @@
 import { Router } from '@vaadin/router';
-import * as i18n from 'i18next';
-import enLocales from './locales/en/translations.json';
+import './locales/i18n';
 
 import './root';
 import './screen/trade';
@@ -30,16 +29,6 @@ const routes = [
     component: 'not-found',
   },
 ];
-
-i18n.init({
-  lng: 'en',
-  debug: true,
-  resources: {
-    en: {
-      translation: enLocales
-    }
-  }
-});
 
 const outlet = document.getElementById('app');
 const router = new Router(outlet);

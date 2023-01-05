@@ -232,12 +232,8 @@ export class Settings extends LitElement {
             placeholder="${i18n.t('trade.settings.custom')}"
           ></uigc-input>
         </uigc-toggle-button-group>
-        <div class="desc">
-          ${i18n.t('trade.settings.slippageInfo1')}
-        </div>
-        <div class="desc">
-          ${i18n.t('trade.settings.slippageInfo2')}
-        </div>
+        <div class="desc">${i18n.t('trade.settings.slippageInfo1')}</div>
+        <div class="desc">${i18n.t('trade.settings.slippageInfo2')}</div>
       </div>
     `;
   }

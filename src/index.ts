@@ -9,3 +9,6 @@ export { TradeSpa } from './spa/trade';
 /* Types */
 export * from './component/notification/types';
 export * from './component/transaction/types';
+
+/* i18n */
+export * from './locales/i18n';
