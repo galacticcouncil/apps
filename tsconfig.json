@@ -18,7 +18,8 @@
     "noImplicitAny": false,
     "outDir": "./out",
     "rootDir": "./src",
-    "importHelpers": false
+    "importHelpers": false,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*.ts"
