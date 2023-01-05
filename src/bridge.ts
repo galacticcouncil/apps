@@ -30,7 +30,7 @@ const CHAINS_TESTNET: Record<string, string[]> = {
 const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   polkadot: new PolkadotAdapter(),
   rococo: new RococoAdapter(),
-  acala: new AcalaAdapter(CHAINS['acala']),
+  //acala: new AcalaAdapter(CHAINS['acala']),
   karura: new KaruraAdapter(),
   hydradx: new HydradxAdapter(),
   basilisk: new BasiliskAdapter(),
