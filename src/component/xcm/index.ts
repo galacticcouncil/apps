@@ -3,6 +3,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
 
+import * as i18n from 'i18next';
+
 import { baseStyles } from '../base.css';
 import { createBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
@@ -150,9 +152,9 @@ export class XcmApp extends LitElement {
     const recipientNative = convertAddressSS58(recipient, Number(this.transfer.dstChainSs58Prefix));
 
     if (recipient == null || recipient == '') {
-      this.transfer.error['address'] = 'Empty address. Please, provide valid recipient network address.';
+      this.transfer.error['address'] = i18n.t('xcm.error.required');
     } else if (recipientNative == null) {
-      this.transfer.error['address'] = 'Incorrect address. Please, review the network address and try again.';
+      this.transfer.error['address'] = i18n.t('xcm.error.addrIncorrect');
     } else {
       delete this.transfer.error['address'];
     }
@@ -185,9 +187,9 @@ export class XcmApp extends LitElement {
     const minInput = this.input.minInput;
 
     if (amountFN.gt(this.input.maxInput)) {
-      this.transfer.error['amount'] = 'Max transfer amount is ' + maxInput.toString() + ' ' + this.transfer.asset;
+      this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', { amount: maxInput, asset: this.transfer.asset});
     } else if (amountFN.lt(this.input.minInput)) {
-      this.transfer.error['amount'] = 'Min transfer amount is ' + minInput.toString() + ' ' + this.transfer.asset;
+      this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', { amount: minInput, asset: this.transfer.asset});
     } else {
       delete this.transfer.error['amount'];
     }
@@ -198,14 +200,14 @@ export class XcmApp extends LitElement {
     return html`
       ${when(
         status,
-        () => html` <span>Transfer of</span> `,
-        () => html` <span>You transferred</span> `
+        () => html` <span>${i18n.t('xcm.notify.sending')}</span> `,
+        () => html` <span>${i18n.t('xcm.notify.sent')}</span> `
       )}
       <span class="highlight">${transfer.amount}</span>
       <span class="highlight">${transfer.asset}</span>
-      <span>from</span>
+      <span>${i18n.t('xcm.notify.from')}</span>
       <span class="highlight">${transfer.srcChain}</span>
-      <span>to</span>
+      <span>${i18n.t('xcm.notify.to')}</span>
       <span class="highlight">${transfer.dstChain}</span>
       <span>${status}</span>
     `;
@@ -213,9 +215,9 @@ export class XcmApp extends LitElement {
 
   processTx(account: Account, transaction: Transaction, transfer: TransferState) {
     const notification = {
-      processing: this.notificationTemplate(transfer, 'submitted'),
-      success: this.notificationTemplate(transfer, 'in block'),
-      failure: this.notificationTemplate(transfer, 'failed'),
+      processing: this.notificationTemplate(transfer, i18n.t('xcm.tx.submitted')),
+      success: this.notificationTemplate(transfer, i18n.t('xcm.tx.inBlock')),
+      failure: this.notificationTemplate(transfer, i18n.t('xcm.tx.failed')),
     };
     const options = {
       bubbles: true,
