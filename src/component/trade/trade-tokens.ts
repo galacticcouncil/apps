@@ -46,6 +46,7 @@ export class TradeTokens extends LitElement {
       }
 
       .header {
+        position: relative;
         display: flex;
         padding: 22px 28px;
         box-sizing: border-box;
@@ -59,6 +60,7 @@ export class TradeTokens extends LitElement {
 
       .transfer {
         display: flex;
+        position: relative;
         flex-direction: column;
         padding: 0 14px;
         gap: 14px;

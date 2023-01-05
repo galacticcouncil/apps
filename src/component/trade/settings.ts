@@ -41,6 +41,7 @@ export class Settings extends LitElement {
       }
 
       .header {
+        position: relative;
         display: flex;
         justify-content: center;
         padding: 22px 28px;

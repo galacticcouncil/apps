@@ -19,6 +19,7 @@ import { bnum, PoolAsset, PoolType, scale, TradeType, Transaction } from '@galac
 import './select-token';
 import './settings';
 import './trade-tokens';
+import './chart';
 
 import {
   TradeScreen,
@@ -56,6 +57,7 @@ export class TradeApp extends LitElement {
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
   @property({ type: String }) stableCoinAssetId: string = null;
+  @property({ type: Boolean }) chart: Boolean = false;
 
   static styles = [
     baseStyles,
@@ -68,10 +70,25 @@ export class TradeApp extends LitElement {
         position: relative;
       }
 
+      :host([chart]) {
+        max-width: 1170px;
+      }
+
+      :host([chart]) > div {
+        display: grid;
+        grid-template-columns: 1fr 520px;
+        grid-column-gap: 10px;
+      }
+
       uigc-paper {
-        width: 100%;
         display: block;
         border-radius: none;
+      }
+
+      uigc-paper.chart {
+        background: #000524;
+        height: 500px;
+        box-shadow: none;
       }
 
       @media (min-width: 768px) {
@@ -644,13 +661,26 @@ export class TradeApp extends LitElement {
 
   render() {
     return html`
-      <uigc-paper>
-        ${choose(this.screen.active, [
-          [TradeScreen.TradeTokens, () => this.tradeTokensTemplate()],
-          [TradeScreen.Settings, () => this.settingsTemplate()],
-          [TradeScreen.SelectToken, () => this.selectTokenTemplate()],
-        ])}
-      </uigc-paper>
+      <div>
+        ${when(
+          this.chart,
+          () => html` <uigc-paper class="chart">
+            <gc-trade-chart
+              .assetIn=${this.trade.assetIn?.symbol}
+              .assetOut=${this.trade.assetOut?.symbol}
+              .spotPrice=${this.trade.spotPrice}
+              .usdPrice=${this.assets.usdPrice}
+            ></gc-trade-chart>
+          </uigc-paper>`
+        )}
+        <uigc-paper class="main">
+          ${choose(this.screen.active, [
+            [TradeScreen.TradeTokens, () => this.tradeTokensTemplate()],
+            [TradeScreen.Settings, () => this.settingsTemplate()],
+            [TradeScreen.SelectToken, () => this.selectTokenTemplate()],
+          ])}
+        </uigc-paper>
+      </div>
     `;
   }
 }
