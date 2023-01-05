@@ -2,6 +2,8 @@ import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import humanizeDuration, { HumanizerOptions } from 'humanize-duration';
 
+import * as i18n from 'i18next';
+
 import { baseStyles } from '../base.css';
 
 import '@galacticcouncil/ui';
@@ -154,7 +156,7 @@ export class NotificationCenter extends LitElement {
         ${this.toasts}
       </div>
       <uigc-drawer>
-        <span slot="title">Recent Activities</span>
+        <span slot="title">${i18n.t('notify.recent')}</span>
         ${[...this.notifications.values()]
           .filter((n: Notification) => n.type == NotificationType.progress)
           .sort((t1, t2) => t2.timestamp - t1.timestamp)
