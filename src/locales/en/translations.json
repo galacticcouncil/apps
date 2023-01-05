@@ -20,7 +20,7 @@
   "tx.submittedText": "Your transaction has been submitted successfully.",
   "tx.submitted": "Submitted",
   "tx.close": "Close",
-  "xcm.title": "Cross-chain",
+  "xcm.title": "Cross-chain transfers",
   "xcm.selectChains": "Select chains",
   "xcm.assetAmount": "Select asset and amount",
   "xcm.asset": "Transfer asset",
