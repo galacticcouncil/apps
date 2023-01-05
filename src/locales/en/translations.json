@@ -14,5 +14,11 @@
   "trade.settings.custom": "Custom",
   "trade.settings.slippageInfo1": "Here you can control the maximum allowed deviation between your desired price and the actual execution price.",
   "trade.settings.slippageInfo2": "Such deviation can be caused by protocol fees, price impact (trade size vs liquidity), or price changes due to trading activity.",
-  "notify.recent": "Recent activities"
+  "notify.recent": "Recent activities",
+  "tx.failed": "Failed to submit transaction",
+  "tx.failedText": "Unfortunately there was an issue while submitting your transaction. Please try again later.",
+  "tx.submittedText": "Your transaction has been submitted successfully.",
+  "tx.submitted": "Submitted",
+
+  "tx.close": "Close"
 }
