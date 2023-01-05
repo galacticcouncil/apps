@@ -7,7 +7,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../base.css';
-import { humanizeAmount } from '../../utils/amount';
+import { humanizeAmount, subAmounts } from '../../utils/amount';
 import { Account, accountCursor } from '../../db';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
@@ -34,7 +34,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) priceImpactPct = '0';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
-  @property({ type: String }) transactionFee = null;
+  @property({ attribute: false }) transactionFee = null;
   @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
 
@@ -253,6 +253,23 @@ export class TradeTokens extends LitElement {
     `,
   ];
 
+  calculateEffectiveBalance(balance: string, asset: string) {
+    if (!this.transactionFee) {
+      return;
+    }
+
+    const txFee = this.transactionFee[0];
+    const txFeeAsset = this.transactionFee[1];
+    if (asset == txFeeAsset) {
+      const balanceNum = Number(balance);
+      const feeNum = Number(txFee);
+      const result = balanceNum > feeNum ? balanceNum - feeNum : 0;
+      return result.toString();
+    } else {
+      return balance;
+    }
+  }
+
   onSettingsClick(e: any) {
     const options = {
       bubbles: true,
@@ -313,7 +330,10 @@ export class TradeTokens extends LitElement {
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
-        () => html`<span class="value">${this.transactionFee || '-'}</span>`
+        () =>
+          html`<span class="value"
+            >${this.transactionFee ? this.transactionFee[0] + ' ' + this.transactionFee[1] : '-'}</span
+          >`
       )}
     `;
   }
@@ -374,6 +394,7 @@ export class TradeTokens extends LitElement {
           .amount=${this.amountIn}
           .amountUsd=${this.amountInUsd}
           .balance=${this.balanceIn}
+          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceIn, this.assetIn)}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
         <div class="switch">
@@ -395,6 +416,7 @@ export class TradeTokens extends LitElement {
           .amount=${this.amountOut}
           .amountUsd=${this.amountOutUsd}
           .balance=${this.balanceOut}
+          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceOut, this.assetOut)}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
       </div>

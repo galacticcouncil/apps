@@ -54,7 +54,7 @@ export type TradeState = {
   priceImpactPct: string;
   tradeFee: string;
   tradeFeePct: string;
-  transactionFee: string;
+  transactionFee: [string, string];
   swaps: [];
   error: {};
 };

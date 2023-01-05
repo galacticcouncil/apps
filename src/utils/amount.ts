@@ -23,6 +23,13 @@ export function multipleAmounts(amountA: string, amountB: Amount) {
   return amounA * amounB;
 }
 
+export function subAmounts(amountA: Amount, amountB: string) {
+  const formattedAmountA = formatAmount(amountA.amount, amountA.decimals);
+  const amounA = Number(formattedAmountA);
+  const amounB = Number(amountB);
+  return amounA > amounB ? amounA - amounB : 0;
+}
+
 export function toFN(amount: string, decimals: number) {
   const amountBN = scale(bnum(amount), decimals);
   return FN._fromBN(amountBN, decimals);
