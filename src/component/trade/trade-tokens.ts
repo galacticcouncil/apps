@@ -4,6 +4,8 @@ import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
+import * as i18n from 'i18next';
+
 import { baseStyles } from '../base.css';
 import { humanizeAmount } from '../../utils/amount';
 import { Account, accountCursor } from '../../db';
@@ -304,7 +306,7 @@ export class TradeTokens extends LitElement {
 
   infoTransactionFeeTemplate() {
     return html`
-      <span class="label">Transaction Fee:</span>
+      <span class="label">${i18n.t('trade.txFee')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -330,7 +332,7 @@ export class TradeTokens extends LitElement {
 
   infoBestRouteTemplate() {
     return html`
-      <span class="route-label">Best Route</span>
+      <span class="route-label">${i18n.t('trade.bestRoute')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -356,7 +358,7 @@ export class TradeTokens extends LitElement {
     };
     return html`
       <div class="header">
-        <uigc-typography variant="title">Trade Assets</uigc-typography>
+        <uigc-typography variant="title">${i18n.t('trade.title')}</uigc-typography>
         <span class="grow"></span>
         <uigc-icon-button @click=${this.onSettingsClick}>
           <uigc-icon-settings></uigc-icon-settings>
@@ -365,7 +367,7 @@ export class TradeTokens extends LitElement {
       <div class="transfer">
         <uigc-asset-transfer
           id="assetIn"
-          title="Pay with"
+          title="${i18n.t('trade.payWith')}"
           .asset=${this.assetIn}
           .amount=${this.amountIn}
           .amountUsd=${this.amountInUsd}
@@ -386,7 +388,7 @@ export class TradeTokens extends LitElement {
         </div>
         <uigc-asset-transfer
           id="assetOut"
-          title="You get"
+          title="${i18n.t('trade.youGet')}"
           .asset=${this.assetOut}
           .amount=${this.amountOut}
           .amountUsd=${this.amountOutUsd}
@@ -415,7 +417,7 @@ export class TradeTokens extends LitElement {
         variant="primary"
         fullWidth
         @click=${this.onSwapClick}
-        >${this.account.state ? 'Confirm Swap' : 'Connect Wallet'}</uigc-button
+        >${this.account.state ? i18n.t('trade.swap') : i18n.t('trade.connect')}</uigc-button
       >
     `;
   }
