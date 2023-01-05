@@ -15,6 +15,12 @@ export async function getFeePaymentAsset(account: Account): Promise<string> {
   return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
 }
 
+export async function getPaymentInfo(transaction: Transaction, account: Account): Promise<RuntimeDispatchInfo> {
+  const api = chainCursor.deref().api;
+  const transactionExtrinsic = api.tx(transaction.hex);
+  return await transactionExtrinsic.paymentInfo(account.address);
+}
+
 export function estimatePaymentInfo(account: Account): Promise<RuntimeDispatchInfo> {
   const api = chainCursor.deref().api;
   return api.tx.balances.transfer(account.address, 1).paymentInfo(account.address);

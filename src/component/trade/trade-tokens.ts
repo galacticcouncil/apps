@@ -263,6 +263,8 @@ export class TradeTokens extends LitElement {
     if (asset == txFeeAsset) {
       const balanceNum = Number(balance);
       const feeNum = Number(txFee);
+      const feeFactor = 1.1;
+      const fee = feeNum * feeFactor;
       const result = balanceNum > feeNum ? balanceNum - feeNum : 0;
       return result.toString();
     } else {

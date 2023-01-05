@@ -25,6 +25,7 @@ export class TransactionCenter extends LitElement {
       uigc-typography {
         margin-top: 20px;
         margin-bottom: 10px;
+        text-align: center;
       }
 
       span {
