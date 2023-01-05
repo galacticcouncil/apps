@@ -1,6 +1,8 @@
 import { html, css, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import * as i18n from 'i18next';
+
 import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
@@ -166,9 +168,9 @@ export class TransactionCenter extends LitElement {
         @closeable-closed=${(e: CustomEvent) => this.closeBroadcastDialog(id, message)}
       >
         <uigc-circular-progress class="icon"></uigc-circular-progress>
-        <uigc-typography variant="title">Submitted</uigc-typography>
-        <span>Fantastic! Data has been broadcasted and awaits confirmation on the blockchain.</span>
-        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(id, message)}>Close</uigc-button>
+        <uigc-typography variant="title">${i18n.t('tx.submitted')}</uigc-typography>
+        <span>${i18n.t('tx.submittedText')}</span>
+        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(id, message)}>${i18n.t('tx.close')}</uigc-button>
       </uigc-dialog>
     `;
   }
@@ -177,9 +179,9 @@ export class TransactionCenter extends LitElement {
     return html`
       <uigc-dialog open id=${id}>
         <uigc-icon-error-alt fit class="icon"></uigc-icon-error-alt>
-        <uigc-typography variant="title" error>Failed to submit</uigc-typography>
-        <span>Unfortunatelly there was an issue while broadcasting your transaction. Please try again later.</span>
-        <uigc-button variant="secondary" @click=${() => this.closeDialog(id)}>Close</uigc-button>
+        <uigc-typography variant="title" error>${i18n.t('tx.failed')}</uigc-typography>
+        <span>${i18n.t('tx.failedText')}</span>
+        <uigc-button variant="secondary" @click=${() => this.closeDialog(id)}>${i18n.t('tx.close')}</uigc-button>
       </uigc-dialog>
     `;
   }

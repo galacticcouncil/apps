@@ -4,6 +4,8 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
+import * as i18n from 'i18next';
+
 import { baseStyles } from '../base.css';
 
 @customElement('gc-xcm-app-chain')
@@ -125,18 +127,18 @@ export class SelectChain extends LitElement {
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <uigc-typography variant="section">Select ${isDest ? 'destination' : 'source'} chain</uigc-typography>
+        <uigc-typography variant="section">${isDest ? i18n.t('xcm.dest') : i18n.t('xcm.source')}</uigc-typography>
         <span></span>
       </div>
       <uigc-search-bar
         class="search"
-        placeholder="Search by name"
+        placeholder="${i18n.t('xcm.searchByName')}"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
       ${when(
         this.chains.length > 0,
         () => html` <uigc-list>
-          <span slot="header">CHAIN LIST</span>
+          <span slot="header">${i18n.t('xcm.supportedChains')}</span>
           ${map(this.filterChains(this.query), (chain: string) => {
             return html`
               <uigc-list-item
@@ -152,7 +154,7 @@ export class SelectChain extends LitElement {
         </uigc-list>`,
         () => html`
           <uigc-list>
-            <span slot="header">CHAIN LIST</span>
+            <span slot="header">${i18n.t('xcm.supportedChains')}</span>
             ${map(range(3), (i) => this.loadingTemplate())}
           </uigc-list>
         `

@@ -39,6 +39,7 @@
     "chartjs-plugin-annotation": "^2.1.1",
     "date-fns": "^2.29.3",
     "humanize-duration": "^3.27.3",
+    "i18next": "^22.4.8",
     "imask": "^6.4.3",
     "lit": "^2.5.0",
     "short-uuid": "^4.2.0",

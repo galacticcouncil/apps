@@ -1,6 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import * as i18n from 'i18next';
+
 import { baseStyles } from '../base.css';
 import { settingsCursor, DEFAULT_SLIPPAGE } from '../../db';
 import { debounce } from 'ts-debounce';
@@ -100,7 +102,6 @@ export class Settings extends LitElement {
         font-weight: 500;
         font-size: 16px;
         line-height: 22px;
-        text-transform: capitalize;
         color: var(--hex-white);
       }
 
@@ -202,13 +203,13 @@ export class Settings extends LitElement {
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <uigc-typography variant="section">Edit settings</uigc-typography>
+        <uigc-typography variant="section">${i18n.t('trade.settings.title')}</uigc-typography>
         <span></span>
       </div>
-      <div class="section">Slippage</div>
+      <div class="section">${i18n.t('trade.settings.slippage')}</div>
       <div class="settings">
         <div class="row">
-          <span class="label">Allow auto slippage</span>
+          <span class="label">${i18n.t('trade.settings.autoSlippage')}</span>
           <uigc-switch size="small" disabled></uigc-switch>
         </div>
         <uigc-toggle-button-group
@@ -228,12 +229,14 @@ export class Settings extends LitElement {
             class="slippage-input"
             type="text"
             value=${this.customSlippage}
-            placeholder="Custom"
+            placeholder="${i18n.t('trade.settings.custom')}"
           ></uigc-input>
         </uigc-toggle-button-group>
         <div class="desc">
-          The deviation of the final acceptable price from the spot price caused by protocol fee, price impact (depends
-          on trade & pool size) and change in price between announcing the transaction and processing it.
+          ${i18n.t('trade.settings.slippageInfo1')}
+        </div>
+        <div class="desc">
+          ${i18n.t('trade.settings.slippageInfo2')}
         </div>
       </div>
     `;

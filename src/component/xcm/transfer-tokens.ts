@@ -2,6 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
+import * as i18n from 'i18next';
+
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
@@ -176,20 +178,20 @@ export class TradeTokens extends LitElement {
   render() {
     return html`
       <div class="header">
-        <uigc-typography variant="title">Transfer Assets</uigc-typography>
+        <uigc-typography variant="title">${i18n.t('xcm.title')}</uigc-typography>
         <span class="grow"></span>
       </div>
       <div class="transfer">
-        <uigc-typography variant="subsection">Select chains</uigc-typography>
+        <uigc-typography variant="subsection">${i18n.t('xcm.selectChains')}</uigc-typography>
         <div class="chain">
-          <uigc-chain-selector title="Source Chain" .chain=${this.srcChain}></uigc-chain-selector>
+          <uigc-chain-selector title="${i18n.t('xcm.source')}" .chain=${this.srcChain}></uigc-chain-selector>
           <uigc-asset-switch basic class="switch"></uigc-asset-switch>
-          <uigc-chain-selector title="Destination Chain" .chain=${this.dstChain}></uigc-chain-selector>
+          <uigc-chain-selector title="${i18n.t('xcm.dest')}" .chain=${this.dstChain}></uigc-chain-selector>
         </div>
-        <uigc-typography variant="subsection">Define asset and amount</uigc-typography>
+        <uigc-typography variant="subsection">${i18n.t('xcm.assetAmount')}</uigc-typography>
         <uigc-asset-transfer
           id="asset"
-          title="Asset to transfer"
+          title="${i18n.t('xcm.asset')}"
           .asset=${this.asset}
           .amount=${this.amount}
           .balance=${this.balance}
@@ -199,7 +201,7 @@ export class TradeTokens extends LitElement {
         ></uigc-asset-transfer>
         <uigc-address-input
           id="address"
-          title="To address"
+          title="${i18n.t('xcm.toAddr')}"
           .address=${this.address}
           .chain=${this.dstChain}
           ?error=${this.error['address']}
@@ -208,10 +210,10 @@ export class TradeTokens extends LitElement {
       </div>
       <div class="info">
         <div class="row">
-          ${this.transferFeeTemplate('Source Chain Transfer Fee', this.srcChainFee, this.nativeAsset)}
+          ${this.transferFeeTemplate(i18n.t('xcm.sourceFee'), this.srcChainFee, this.nativeAsset)}
         </div>
         <div class="row">
-          ${this.transferFeeTemplate('Destination Chain Transfer Fee', this.dstChainFee, this.asset)}
+          ${this.transferFeeTemplate(i18n.t('xcm.destFee'), this.dstChainFee, this.asset)}
         </div>
       </div>
       <div class="grow"></div>
@@ -221,7 +223,7 @@ export class TradeTokens extends LitElement {
         variant="primary"
         fullWidth
         @click=${this.onTransferClick}
-        >${this.account.state ? 'Transfer' : 'Connect Wallet'}</uigc-button
+        >${this.account.state ? i18n.t('xcm.transfer') : i18n.t('xcm.connect')}</uigc-button
       >
     `;
   }

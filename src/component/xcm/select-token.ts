@@ -4,6 +4,8 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
+import * as i18n from 'i18next';
+
 import { humanizeAmount } from '../../utils/amount';
 
 import { baseStyles } from '../base.css';
@@ -114,12 +116,12 @@ export class SelectToken extends LitElement {
     return html`
       <div class="header">
         <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <uigc-typography variant="section">Select token</uigc-typography>
+        <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
         <span></span>
       </div>
       <uigc-search-bar
         class="search"
-        placeholder="Search by name"
+        placeholder="${i18n.t('xcm.searchByName')}"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
       ${when(
