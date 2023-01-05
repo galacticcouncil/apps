@@ -3,6 +3,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
 
+import * as i18n from 'i18next';
+
 import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
@@ -10,7 +12,7 @@ import { Chain, chainCursor, Account, accountCursor } from '../../db';
 import { estimatePaymentInfo, getFeePaymentAsset } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
-import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
+import { formatAmount, humanizeAmount, multipleAmounts, subAmounts } from '../../utils/amount';
 import { SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
@@ -304,7 +306,7 @@ export class TradeApp extends LitElement {
     const balanceIn = this.assets.balance.get(assetIn);
     const amount = scale(bnum(ammountIn), balanceIn.decimals);
     if (amount.gt(balanceIn.amount)) {
-      this.trade.error['balance'] = 'Your trade is bigger than your balance';
+      this.trade.error['balance'] = i18n.t('trade.error.balance');
     } else {
       delete this.trade.error['balance'];
     }
@@ -314,11 +316,11 @@ export class TradeApp extends LitElement {
   translateTradeError(error: string): string {
     switch (error) {
       case 'InsufficientTradingAmount':
-        return 'Minimal trade limit is not reached';
+        return i18n.t('trade.error.insufficientTradingAmount');
       case 'MaxOutRatioExceeded':
-        return 'Maximal pool trade limit is reached, please split your trade';
+        return i18n.t('trade.error.maxOutRatioExceeded');
       case 'MaxInRatioExceeded':
-        return 'Maximal pool trade limit is reached, please split your trade';
+        return i18n.t('trade.error.maxInRatioExceeded');
     }
   }
 
@@ -417,17 +419,18 @@ export class TradeApp extends LitElement {
     this.assets.usdPrice = await getAssetsDollarPrice(this.assets.list, this.stableCoinAssetId);
   }
 
-  async calculateTransactionFee(feeSystem: string, feeAssetId: string) {
+  async calculateTransactionFee(feeSystem: string, feeAssetId: string): Promise<[string, string]> {
+    const feeSystemAmount = feeSystem.split(' ')[0];
+    const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
+
     if (feeAssetId == SYSTEM_ASSET_ID) {
-      return feeSystem;
+      return [feeSystemAmount, feeAssetSymbol];
     }
 
     const router = chainCursor.deref().router;
-    const feeSystemAmount = feeSystem.split(' ')[0];
-    const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
     const feeAssetPrice = await router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAssetId);
     const fee = multipleAmounts(feeSystemAmount, feeAssetPrice).toFixed(4);
-    return fee + ' ' + feeAssetSymbol;
+    return [fee, feeAssetSymbol];
   }
 
   async syncTransactionFee() {
