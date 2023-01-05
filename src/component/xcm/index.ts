@@ -33,7 +33,6 @@ import {
 } from './types';
 import { TxInfo } from '../transaction/types';
 import { convertAddressSS58 } from '../../utils/account';
-import { pairs2Map } from '../../utils/mapper';
 
 @customElement('gc-xcm-app')
 export class XcmApp extends LitElement {
