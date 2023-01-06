@@ -3,6 +3,7 @@ import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 import { getAccountBalance } from './balance';
 import { chainCursor } from '../db';
 import { pairs2Map } from '../utils/mapper';
+import { SYSTEM_ASSET_ID } from '../utils/chain';
 
 export type AssetDetail = {
   name: string;
@@ -11,7 +12,18 @@ export type AssetDetail = {
   locked: boolean;
 };
 
+const DEFAULT_HYDRA = {
+  name: 'HDX',
+  assetType: 'Token',
+  existentialDeposit: '1000000000000',
+  locked: false,
+} as AssetDetail;
+
 export async function getAssetDetail(assetId: string): Promise<AssetDetail> {
+  if (assetId == SYSTEM_ASSET_ID) {
+    return DEFAULT_HYDRA;
+  }
+
   const api = chainCursor.deref().api;
   const res = await api.query.assetRegistry.assets(assetId);
   const resHuman = res.toHuman() as unknown as AssetDetail;

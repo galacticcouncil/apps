@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "private": false,
   "description": "Galactic Apps",
   "author": "Pavol Noha <pavol.noha@gmail.com>",
@@ -47,7 +47,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/bridge": "0.0.1-rc20",
-    "@galacticcouncil/sdk": "^0.0.1",
+    "@galacticcouncil/sdk": "^0.0.3",
     "@polkadot/api": "^9.9.1",
     "@polkadot/extension-inject": "^0.44.6"
   }
