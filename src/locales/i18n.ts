@@ -3,7 +3,7 @@ import enLocales from './en/translations.json';
 
 i18n.init({
   lng: 'en',
-  debug: true,
+  debug: false,
   resources: {
     en: {
       translation: enLocales,
