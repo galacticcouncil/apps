@@ -518,7 +518,7 @@ export class TradeApp extends LitElement {
 
   initAssets() {
     if (!this.assetIn && !this.assetOut) {
-      this.trade.assetIn = this.assets.map.get(SYSTEM_ASSET_ID);
+      this.trade.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
       return;
     }
     this.updateAsset(this.assetIn, 'assetIn');
