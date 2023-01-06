@@ -265,7 +265,7 @@ export class TradeTokens extends LitElement {
     if (asset == txFeeAsset) {
       const balanceBN = bnum(balance);
       const feeBN = bnum(txFee);
-      const edFactorBN = bnum(ed);
+      const edFactorBN = bnum(ed).multipliedBy(0.5); // ED Factor 50%
       const toSubBN = feeBN.plus(edFactorBN);
       if (balanceBN.gt(toSubBN)) {
         return balanceBN.minus(toSubBN).toFixed();
