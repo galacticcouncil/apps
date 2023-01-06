@@ -1,7 +1,7 @@
 import { Amount, BigNumber, ZERO } from '@galacticcouncil/sdk';
 import { getAssetMetadata } from './asset';
 import { chainCursor } from '../db';
-import { SYSTEM_ASSET_ID } from '../utils/chain';
+import { SYSTEM_ASSET_ID, SYSTEM_ASSET_DECIMALS } from '../utils/chain';
 
 export const EMPTY_AMOUNT = { amount: ZERO, decimals: 0 } as Amount;
 
@@ -39,5 +39,5 @@ export async function getAccountBalance(address: string, assetId: string): Promi
       : await getTokenAccountBalance(address, assetId);
   const metadata = await getAssetMetadata(assetId);
   const metadataJson = metadata.toHuman();
-  return { amount: balance, decimals: metadataJson?.decimals || 12 } as Amount;
+  return { amount: balance, decimals: metadataJson?.decimals || SYSTEM_ASSET_DECIMALS } as Amount;
 }

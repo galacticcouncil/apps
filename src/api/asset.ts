@@ -4,6 +4,28 @@ import { getAccountBalance } from './balance';
 import { chainCursor } from '../db';
 import { pairs2Map } from '../utils/mapper';
 
+export type AssetDetail = {
+  name: string;
+  assetType: string;
+  existentialDeposit: string;
+  locked: boolean;
+};
+
+export async function getAssetDetail(assetId: string): Promise<AssetDetail> {
+  const api = chainCursor.deref().api;
+  const res = await api.query.assetRegistry.assets(assetId);
+  const resHuman = res.toHuman() as unknown as AssetDetail;
+  resHuman['existentialDeposit'] = resHuman.existentialDeposit.replaceAll(',', '');
+  return resHuman;
+}
+
+export async function getAssetsDetail(assets: PoolAsset[]) {
+  const details: [string, AssetDetail][] = await Promise.all(
+    assets.map(async (asset: PoolAsset) => [asset.id, await getAssetDetail(asset.id)])
+  );
+  return pairs2Map(details);
+}
+
 export async function getAssetsBalance(address: string, assets: PoolAsset[]) {
   const balances: [string, Amount][] = await Promise.all(
     assets.map(async (asset: PoolAsset) => [asset.id, await getAccountBalance(address, asset.id)])

@@ -1,4 +1,5 @@
 import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { AssetDetail } from '../../api/asset';
 
 export enum TradeScreen {
   Settings,
@@ -24,6 +25,7 @@ export type AssetsState = {
   list: PoolAsset[];
   map: Map<string, PoolAsset>;
   pairs: Map<string, PoolAsset[]>;
+  details: Map<string, AssetDetail>;
   balance: Map<string, Amount>;
   usdPrice: Map<string, Amount>;
 };
@@ -34,9 +36,12 @@ export const DEFAULT_ASSETS_STATE: AssetsState = {
   list: [],
   map: new Map([]),
   pairs: new Map([]),
+  details: new Map([]),
   balance: new Map([]),
   usdPrice: new Map([]),
 };
+
+export type TransactionFee = { amount: string; asset: string; ed: string };
 
 export type TradeState = {
   inProgress: boolean;
@@ -54,7 +59,7 @@ export type TradeState = {
   priceImpactPct: string;
   tradeFee: string;
   tradeFeePct: string;
-  transactionFee: [string, string];
+  transactionFee: TransactionFee;
   swaps: [];
   error: {};
 };

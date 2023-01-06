@@ -7,11 +7,12 @@ import { classMap } from 'lit/directives/class-map.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../base.css';
-import { humanizeAmount, subAmounts } from '../../utils/amount';
+import { humanizeAmount } from '../../utils/amount';
 import { Account, accountCursor } from '../../db';
 
-import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { bnum, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 import { DatabaseController } from '../../db.ctrl';
+import { TransactionFee } from './types';
 
 @customElement('gc-trade-app-main')
 export class TradeTokens extends LitElement {
@@ -34,7 +35,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) priceImpactPct = '0';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
-  @property({ attribute: false }) transactionFee = null;
+  @property({ attribute: false }) transactionFee: TransactionFee = null;
   @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
 
@@ -255,18 +256,22 @@ export class TradeTokens extends LitElement {
 
   calculateEffectiveBalance(balance: string, asset: string) {
     if (!this.transactionFee) {
-      return;
+      return null;
     }
 
-    const txFee = this.transactionFee[0];
-    const txFeeAsset = this.transactionFee[1];
+    const txFee = this.transactionFee.amount;
+    const txFeeAsset = this.transactionFee.asset;
+    const ed = this.transactionFee.ed;
     if (asset == txFeeAsset) {
-      const balanceNum = Number(balance);
-      const feeNum = Number(txFee);
-      const feeFactor = 1.1;
-      const fee = feeNum * feeFactor;
-      const result = balanceNum > feeNum ? balanceNum - feeNum : 0;
-      return result.toString();
+      const balanceBN = bnum(balance);
+      const feeBN = bnum(txFee);
+      const edBN = bnum(ed);
+      const toSubBN = feeBN.plus(edBN);
+      if (balanceBN.gt(toSubBN)) {
+        return balanceBN.minus(toSubBN).toFixed();
+      } else {
+        return null;
+      }
     } else {
       return balance;
     }
@@ -334,7 +339,9 @@ export class TradeTokens extends LitElement {
         () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
         () =>
           html`<span class="value"
-            >${this.transactionFee ? this.transactionFee[0] + ' ' + this.transactionFee[1] : '-'}</span
+            >${this.transactionFee
+              ? humanizeAmount(this.transactionFee.amount) + ' ' + this.transactionFee.asset
+              : '-'}</span
           >`
       )}
     `;
@@ -397,6 +404,7 @@ export class TradeTokens extends LitElement {
           .amountUsd=${this.amountInUsd}
           .balance=${this.balanceIn}
           .effectiveBalance=${this.calculateEffectiveBalance(this.balanceIn, this.assetIn)}
+          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceIn, this.assetIn)}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
         <div class="switch">
@@ -419,6 +427,7 @@ export class TradeTokens extends LitElement {
           .amountUsd=${this.amountOutUsd}
           .balance=${this.balanceOut}
           .effectiveBalance=${this.calculateEffectiveBalance(this.balanceOut, this.assetOut)}
+          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceOut, this.assetOut)}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
       </div>

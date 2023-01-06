@@ -29,7 +29,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@galacticcouncil/ui": "^1.0.39",
+    "@galacticcouncil/ui": "^1.0.40",
     "@lit/reactive-element": "^1.0.0",
     "@talismn/connect-wallets": "^1.2.1",
     "@thi.ng/atom": "^5.1.3",

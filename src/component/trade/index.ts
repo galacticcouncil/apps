@@ -11,9 +11,9 @@ import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor } from '../../db';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
-import { getAssetsBalance, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
-import { formatAmount, humanizeAmount, multipleAmounts, subAmounts } from '../../utils/amount';
-import { SYSTEM_ASSET_ID } from '../../utils/chain';
+import { getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
+import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
+import { SYSTEM_ASSET_DECIMALS, SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
 import { bnum, PoolAsset, PoolType, scale, TradeType, Transaction } from '@galacticcouncil/sdk';
@@ -31,6 +31,7 @@ import {
   DEFAULT_SCREEN_STATE,
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
+  TransactionFee,
 } from './types';
 import { TxInfo } from '../transaction/types';
 
@@ -419,18 +420,22 @@ export class TradeApp extends LitElement {
     this.assets.usdPrice = await getAssetsDollarPrice(this.assets.list, this.stableCoinAssetId);
   }
 
-  async calculateTransactionFee(feeSystem: string, feeAssetId: string): Promise<[string, string]> {
+  async calculateTransactionFee(feeSystem: string, feeAssetId: string): Promise<TransactionFee> {
     const feeSystemAmount = feeSystem.split(' ')[0];
     const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
+    const feeAssetEd = this.assets.details.get(feeAssetId).existentialDeposit;
+    const feeAssetEdBN = bnum(feeAssetEd.toString());
 
     if (feeAssetId == SYSTEM_ASSET_ID) {
-      return [feeSystemAmount, feeAssetSymbol];
+      const ed = formatAmount(feeAssetEdBN, SYSTEM_ASSET_DECIMALS);
+      return { amount: feeSystemAmount, asset: feeAssetSymbol, ed: ed } as TransactionFee;
     }
 
     const router = chainCursor.deref().router;
     const feeAssetPrice = await router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAssetId);
-    const fee = multipleAmounts(feeSystemAmount, feeAssetPrice).toFixed(4);
-    return [fee, feeAssetSymbol];
+    const fee = multipleAmounts(feeSystemAmount, feeAssetPrice);
+    const ed = formatAmount(feeAssetEdBN, feeAssetPrice.decimals);
+    return { amount: fee.toString(), asset: feeAssetSymbol, ed: ed } as TransactionFee;
   }
 
   async syncTransactionFee() {
@@ -524,12 +529,14 @@ export class TradeApp extends LitElement {
     const router = chainCursor.deref().router;
     const assets = await router.getAllAssets();
     const assetsPairs = await getAssetsPairs(assets);
+    const assetsDetails = await getAssetsDetail(assets);
 
     this.assets = {
       ...this.assets,
       list: assets,
       map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
       pairs: assetsPairs,
+      details: assetsDetails,
     };
     this.initAssets();
   }
