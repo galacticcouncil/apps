@@ -1,11 +1,10 @@
-import type { Transaction } from '@galacticcouncil/sdk';
+import { SYSTEM_ASSET_ID, Transaction } from '@galacticcouncil/sdk';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import { EventRecord } from '@polkadot/types/interfaces/system';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
 import { Account, chainCursor, bridgeCursor } from '../db';
-import { SYSTEM_ASSET_ID } from '../utils/chain';
 
 import { timeout } from 'rxjs/operators';
 

@@ -13,10 +13,18 @@ import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getBestSell, getBestBuy } from '../../api/trade';
 import { getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
-import { SYSTEM_ASSET_DECIMALS, SYSTEM_ASSET_ID } from '../../utils/chain';
 
 import '@galacticcouncil/ui';
-import { bnum, PoolAsset, PoolType, scale, TradeType, Transaction } from '@galacticcouncil/sdk';
+import {
+  bnum,
+  PoolAsset,
+  PoolType,
+  scale,
+  SYSTEM_ASSET_DECIMALS,
+  SYSTEM_ASSET_ID,
+  TradeType,
+  Transaction,
+} from '@galacticcouncil/sdk';
 
 import './select-token';
 import './settings';
