@@ -30,25 +30,20 @@
   },
   "dependencies": {
     "@galacticcouncil/ui": "^1.0.40",
-    "@lit/reactive-element": "^1.0.0",
     "@talismn/connect-wallets": "^1.2.1",
     "@thi.ng/atom": "^5.1.3",
-    "@vaadin/router": "^1.7.4",
     "chart.js": "^4.1.1",
     "chartjs-adapter-date-fns": "^3.0.0",
-    "chartjs-plugin-annotation": "^2.1.1",
-    "date-fns": "^2.29.3",
-    "humanize-duration": "^3.27.3",
-    "i18next": "^22.4.8",
-    "imask": "^6.4.3",
-    "lit": "^2.5.0",
-    "short-uuid": "^4.2.0",
-    "ts-debounce": "^4.0.0"
+    "humanize-duration-ts": "^2.1.1",
+    "short-uuid": "^4.2.0"
   },
   "peerDependencies": {
     "@galacticcouncil/bridge": "0.0.1-rc20",
-    "@galacticcouncil/sdk": "^0.0.3",
+    "@galacticcouncil/sdk": "^0.0.4",
     "@polkadot/api": "^9.9.1",
-    "@polkadot/extension-inject": "^0.44.6"
+    "@polkadot/extension-inject": "^0.44.6",
+    "@vaadin/router": "^1.7.4",
+    "date-fns": "^2.29.3",
+    "i18next": "^22.4.8"
   }
 }
