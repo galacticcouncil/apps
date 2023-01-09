@@ -1,6 +1,6 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import humanizeDuration, { HumanizerOptions } from 'humanize-duration';
+import { HumanizeDurationLanguage, HumanizeDuration } from 'humanize-duration-ts';
 
 import * as i18n from 'i18next';
 
@@ -16,6 +16,14 @@ export class NotificationCenter extends LitElement {
   @state() notifications: Map<string, Notification> = new Map([]);
 
   private _handleNotification = (e: CustomEvent<Notification>) => this.appendNewNotification(e.detail);
+  private _langService: HumanizeDurationLanguage = null;
+  private _humanizer: HumanizeDuration = null;
+
+  constructor() {
+    super();
+    this._langService = new HumanizeDurationLanguage();
+    this._humanizer = new HumanizeDuration(this._langService);
+  }
 
   static styles = [
     baseStyles,
@@ -71,7 +79,7 @@ export class NotificationCenter extends LitElement {
       <uigc-alert class="notification" variant=${n.type} drawer>
         <span class="message">${n.message}</span>
         <span class="secondary">
-          <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
+          <span>${this._humanizer.humanize(Date.now() - n.timestamp, { round: true })} ago</span>
         </span>
       </uigc-alert>
     `;
@@ -88,7 +96,7 @@ export class NotificationCenter extends LitElement {
         <uigc-alert variant=${n.type}>
           <span class="message">${n.message}</span>
           <span class="secondary">
-            <span>${humanizeDuration(Date.now() - n.timestamp, { round: true })} ago</span>
+            <span>${this._humanizer.humanize(Date.now() - n.timestamp, { round: true })} ago</span>
             <span class="grow"></span>
             <span class="count"></span>
           </span>
