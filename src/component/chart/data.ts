@@ -1,5 +1,6 @@
 import { ChartData } from 'chart.js';
 import { getGradientDataset } from './utils';
+import queries from './query.json';
 
 export const dataset: ChartData = {
   labels: [
@@ -32,3 +33,24 @@ export const dataset: ChartData = {
     },
   ],
 };
+
+export function query() {
+  fetch('https://grafana.play.hydration.cloud/api/ds/query', {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+    body: JSON.stringify({
+      from: '1673015692000',
+      to: '1673128707492',
+      queries: queries,
+    }),
+  })
+    .then(function (res) {
+      console.log(res);
+    })
+    .catch(function (res) {
+      console.log(res);
+    });
+}

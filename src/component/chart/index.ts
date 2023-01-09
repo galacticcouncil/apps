@@ -5,7 +5,6 @@ import { baseStyles } from '../base.css';
 
 import {
   Chart,
-  Interaction,
   LineController,
   LineElement,
   PointElement,
@@ -19,10 +18,9 @@ import {
   ChartType,
   ScaleOptions,
 } from 'chart.js';
-import annotationPlugin, { CoreAnnotationOptions } from 'chartjs-plugin-annotation';
 
 import { corsairPlugin, tooltipLabel, tooltipLabelPointStyle, tooltipLabelTextColor } from './plugins';
-import { dataset } from './data';
+import { dataset, query } from './data';
 import { xScale, yScale } from './opts';
 
 import './selector';
@@ -55,8 +53,7 @@ export class GcChart extends LitElement {
       TimeScale,
       Title,
       Filler,
-      Tooltip,
-      annotationPlugin
+      Tooltip
     );
   }
 
@@ -106,19 +103,6 @@ export class GcChart extends LitElement {
             caretSize: 0,
             caretPadding: 7,
           },
-          //   annotation: {
-          //     annotations: {
-          //       line1: {
-          //         type: 'line',
-          //         yMin: 20000000,
-          //         yMax: 20000000,
-          //         borderColor: '#85D1FF',
-          //         borderWidth: 1,
-          //         borderDash: [2],
-          //         borderDashOffset: 2,
-          //       },
-          //     },
-          //   },
         },
       },
     });
