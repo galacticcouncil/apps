@@ -1,31 +1,52 @@
-import { Amount, BigNumber, ZERO } from '@galacticcouncil/sdk';
+import type { Balance } from '@polkadot/types/interfaces/runtime';
+import type { Struct } from '@polkadot/types-codec';
+import { Amount, BigNumber, SYSTEM_ASSET_DECIMALS, SYSTEM_ASSET_ID, ZERO } from '@galacticcouncil/sdk';
 import { getAssetMetadata } from './asset';
 import { chainCursor } from '../db';
-import { SYSTEM_ASSET_ID, SYSTEM_ASSET_DECIMALS } from '../utils/chain';
+
+interface TokensAccountData extends Struct {
+  readonly free: Balance;
+  readonly reserved: Balance;
+  readonly frozen: Balance;
+}
+
+interface AccountInfo extends Struct {
+  readonly nonce: number;
+  readonly consumers: number;
+  readonly providers: number;
+  readonly sufficients: number;
+  readonly data: AccountData;
+}
+
+interface AccountData extends Struct {
+  readonly free: Balance;
+  readonly reserved: Balance;
+  readonly miscFrozen: Balance;
+  readonly feeFrozen: Balance;
+}
 
 export const EMPTY_AMOUNT = { amount: ZERO, decimals: 0 } as Amount;
 
-function calculateFreeBalance(free: BigNumber, miscFrozen: BigNumber, feeFrozen: BigNumber): BigNumber {
-  const maxFrozenBalance = miscFrozen.gt(feeFrozen) ? miscFrozen : feeFrozen;
-  return free.minus(maxFrozenBalance);
+function calculateFreeBalance(free: string, miscFrozen: string, feeFrozen: string): BigNumber {
+  const freeBN = new BigNumber(free);
+  const miscFrozenBN = new BigNumber(miscFrozen);
+  const feeFrozenBN = new BigNumber(feeFrozen);
+  const maxFrozenBN = miscFrozenBN.gt(feeFrozenBN) ? miscFrozenBN : feeFrozenBN;
+  return freeBN.minus(maxFrozenBN);
 }
 
-async function getSystemAccountBalance(address: string): Promise<BigNumber> {
+async function getSystemAccountBalance(accountId: string): Promise<BigNumber> {
   const api = chainCursor.deref().api;
-  const res = await api.query.system.account(address);
-  const freeBalance = new BigNumber(res.data.free.toHex());
-  const miscFrozenBalance = new BigNumber(res.data.miscFrozen.toHex());
-  const feeFrozenBalance = new BigNumber(res.data.feeFrozen.toHex());
-  return calculateFreeBalance(freeBalance, miscFrozenBalance, feeFrozenBalance);
+  const {
+    data: { free, miscFrozen, feeFrozen },
+  } = await api.query.system.account<AccountInfo>(accountId);
+  return calculateFreeBalance(free.toString(), miscFrozen.toString(), feeFrozen.toString());
 }
 
-async function getTokenAccountBalance(address: string, assetId: string): Promise<BigNumber> {
+async function getTokenAccountBalance(accountId: string, tokenKey: string): Promise<BigNumber> {
   const api = chainCursor.deref().api;
-  const res = (await api.query.tokens.accounts(address, assetId)) as any;
-  const freeBalance = new BigNumber(res.free.toHex());
-  const reservedBalance = new BigNumber(res.reserved.toHex());
-  const frozenBalance = new BigNumber(res.frozen.toHex());
-  return calculateFreeBalance(freeBalance, reservedBalance, frozenBalance);
+  const { free, reserved, frozen } = await api.query.tokens.accounts<TokensAccountData>(accountId, tokenKey);
+  return calculateFreeBalance(free.toString(), reserved.toString(), frozen.toString());
 }
 
 export async function getAccountBalance(address: string, assetId: string): Promise<Amount> {
