@@ -593,6 +593,7 @@ export class TradeApp extends LitElement {
       this.syncBalances();
       this.syncDolarPrice();
       this.syncTransactionFee();
+      this.recalculateTrade();
     });
   }
 
