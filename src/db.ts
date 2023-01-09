@@ -6,7 +6,7 @@ import { defAtom } from '@thi.ng/atom/atom';
 import { defCursor } from '@thi.ng/atom/cursor';
 import { getObj, setObj } from './storage';
 
-export const DEFAULT_SLIPPAGE = '0.5';
+export const DEFAULT_SLIPPAGE = '1';
 
 export interface Chain {
   api: ApiPromise;
@@ -30,7 +30,7 @@ export interface State {
   account: Account;
 }
 
-export const db = defAtom<State>({
+const db = defAtom<State>({
   chain: null,
   bridge: null,
   settings: null,
