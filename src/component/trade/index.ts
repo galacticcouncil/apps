@@ -207,6 +207,18 @@ export class TradeApp extends LitElement {
     }
   }
 
+  private async recalculateSpotPrice() {
+    const assetIn = this.trade.assetIn;
+    const assetOut = this.trade.assetOut;
+    const router = chainCursor.deref().router;
+    const spotPrice = await router.getBestSpotPrice(assetIn.id, assetOut.id);
+    this.trade = {
+      ...this.trade,
+      inProgress: false,
+      spotPrice: formatAmount(spotPrice.amount, spotPrice.decimals),
+    };
+  }
+
   private switchAssets(amountIn: string, amountOut: string, progress: boolean) {
     this.trade = {
       ...this.trade,
@@ -221,8 +233,11 @@ export class TradeApp extends LitElement {
   }
 
   switch() {
-    if (!this.isSwapSelected() || this.isSwapEmpty()) {
+    if (!this.isSwapSelected()) {
       this.switchAssets(this.trade.amountOut, this.trade.amountIn, false);
+    } else if (this.isSwapEmpty()) {
+      this.switchAssets(this.trade.amountOut, this.trade.amountIn, true);
+      this.recalculateSpotPrice();
     } else if (this.trade.assetOut.symbol == this.assets.active) {
       this.switchAssets(this.trade.amountOut, null, true);
       this.recalculateBestSell();
@@ -232,17 +247,28 @@ export class TradeApp extends LitElement {
     }
   }
 
-  changeAssetIn(previous: string, asset: PoolAsset) {
+  private async changeAssetIn(previous: string, asset: PoolAsset) {
     const assetIn = asset;
     const assetOut = this.trade.assetOut;
 
-    // Change without recalculation if amount not set or pair not specified
-    if (assetOut == null || this.isSwapEmpty()) {
+    // Change without recalculation if pair not specified
+    if (assetOut == null) {
       this.trade = {
         ...this.trade,
         assetIn: asset,
         balanceIn: null,
       };
+      return;
+    }
+
+    // Recalculate only spot price if amount not set
+    if (this.isSwapEmpty()) {
+      this.trade = {
+        ...this.trade,
+        assetIn: asset,
+        balanceOut: null,
+      };
+      this.recalculateSpotPrice();
       return;
     }
 
@@ -268,17 +294,29 @@ export class TradeApp extends LitElement {
     }
   }
 
-  changeAssetOut(previous: string, asset: PoolAsset) {
+  private async changeAssetOut(previous: string, asset: PoolAsset) {
     const assetIn = this.trade.assetIn;
     const assetOut = asset;
 
-    // Change without recalculation if amount not set or pair not specified
-    if (assetIn == null || this.isSwapEmpty()) {
+    // Change without recalculation if pair not specified
+    if (assetIn == null) {
       this.trade = {
         ...this.trade,
         assetOut: asset,
         balanceOut: null,
       };
+      return;
+    }
+
+    // Recalculate only spot price if amount not set
+    if (this.isSwapEmpty()) {
+      this.trade = {
+        ...this.trade,
+        inProgress: true,
+        assetOut: asset,
+        balanceOut: null,
+      };
+      this.recalculateSpotPrice();
       return;
     }
 
@@ -353,7 +391,6 @@ export class TradeApp extends LitElement {
       amountInUsd: null,
       amountOut: null,
       amountOutUsd: null,
-      spotPrice: null,
       error: [],
       swaps: [],
     };

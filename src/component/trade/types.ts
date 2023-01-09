@@ -66,7 +66,7 @@ export type TradeState = {
 
 export const DEFAULT_TRADE_STATE: TradeState = {
   inProgress: false,
-  type: TradeType.Sell,
+  type: TradeType.Buy,
   assetIn: null,
   assetOut: null,
   amountIn: null,
