@@ -1,9 +1,8 @@
 import type { AssetMetadata } from '@polkadot/types/interfaces';
-import { Amount, PoolAsset } from '@galacticcouncil/sdk';
+import { Amount, PoolAsset, SYSTEM_ASSET_ID } from '@galacticcouncil/sdk';
 import { getAccountBalance } from './balance';
 import { chainCursor } from '../db';
 import { pairs2Map } from '../utils/mapper';
-import { SYSTEM_ASSET_ID } from '../utils/chain';
 
 export type AssetDetail = {
   name: string;
@@ -12,23 +11,23 @@ export type AssetDetail = {
   locked: boolean;
 };
 
-const DEFAULT_HYDRA = {
-  name: 'HDX',
-  assetType: 'Token',
-  existentialDeposit: '1000000000000',
-  locked: false,
-} as AssetDetail;
-
 export async function getAssetDetail(assetId: string): Promise<AssetDetail> {
+  const api = chainCursor.deref().api;
   if (assetId == SYSTEM_ASSET_ID) {
-    return DEFAULT_HYDRA;
+    const defaultAsset = api.registry.chainTokens[0];
+    const defaultAssetEd = api.consts.balances.existentialDeposit;
+    return {
+      name: defaultAsset,
+      assetType: 'Token',
+      existentialDeposit: defaultAssetEd.toString(),
+      locked: false,
+    } as AssetDetail;
   }
 
-  const api = chainCursor.deref().api;
-  const res = await api.query.assetRegistry.assets(assetId);
-  const resHuman = res.toHuman() as unknown as AssetDetail;
-  resHuman['existentialDeposit'] = resHuman.existentialDeposit.replaceAll(',', '');
-  return resHuman;
+  const asset = await api.query.assetRegistry.assets(assetId);
+  const assetHuman = asset.toHuman() as unknown as AssetDetail;
+  assetHuman['existentialDeposit'] = assetHuman.existentialDeposit.replaceAll(',', '');
+  return assetHuman;
 }
 
 export async function getAssetsDetail(assets: PoolAsset[]) {
