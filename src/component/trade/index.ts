@@ -10,12 +10,14 @@ import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor } from '../../db';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
-import { getBestSell, getBestBuy } from '../../api/trade';
+import { getBestSell, getBestBuy, TradeInfo } from '../../api/trade';
 import { getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
+import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
 import '@galacticcouncil/ui';
 import {
+  Amount,
   bnum,
   PoolAsset,
   PoolType,
@@ -118,8 +120,34 @@ export class TradeApp extends LitElement {
     return this.trade.amountIn == null && this.trade.amountOut == null;
   }
 
+  isSwitchEnabled(): boolean {
+    const assetIn = this.trade.assetIn?.id;
+    const assetOut = this.trade.assetOut?.id;
+
+    if (!assetIn || !assetOut) {
+      return true;
+    }
+
+    const assetInAllowed = isAssetInAllowed(this.assets.list, this.assets.pairs, assetOut);
+    const assetOutAllowed = isAssetOutAllowed(this.assets.list, this.assets.pairs, assetIn);
+    return assetInAllowed && assetOutAllowed;
+  }
+
   isEmptyAmount(amount: string): boolean {
     return amount == '' || amount == '0';
+  }
+
+  isPoolError(): boolean {
+    const assetIn = this.trade.assetIn?.id;
+    const assetOut = this.trade.assetOut?.id;
+
+    if (!assetIn || !assetOut) {
+      return false;
+    }
+
+    const assetInAllowed = isAssetInAllowed(this.assets.list, this.assets.pairs, assetIn);
+    const assetOutAllowed = isAssetOutAllowed(this.assets.list, this.assets.pairs, assetOut);
+    return assetIn === assetOut || !assetInAllowed || !assetOutAllowed;
   }
 
   hasError(): boolean {
@@ -140,7 +168,16 @@ export class TradeApp extends LitElement {
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
-    const { trade, transaction, slippage } = await getBestSell(assetIn, assetOut, amountIn);
+    let tradeInfo: TradeInfo;
+    try {
+      tradeInfo = await getBestSell(assetIn, assetOut, amountIn);
+    } catch (error) {
+      console.error(error);
+      this.resetTrade();
+      return;
+    }
+
+    const { trade, transaction, slippage } = tradeInfo;
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
@@ -165,7 +202,16 @@ export class TradeApp extends LitElement {
   }
 
   async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
-    const { trade, transaction, slippage } = await getBestBuy(assetIn, assetOut, amountOut);
+    let tradeInfo: TradeInfo;
+    try {
+      tradeInfo = await getBestBuy(assetIn, assetOut, amountOut);
+    } catch (error) {
+      console.error(error);
+      this.resetTrade();
+      return;
+    }
+
+    const { trade, transaction, slippage } = tradeInfo;
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
@@ -198,7 +244,7 @@ export class TradeApp extends LitElement {
   }
 
   private recalculateTrade() {
-    if (!this.isSwapSelected() || this.isSwapEmpty()) {
+    if (!this.isSwapSelected() || this.isSwapEmpty() || this.isPoolError()) {
       return;
     } else if (this.trade.assetIn.symbol == this.assets.active) {
       this.recalculateBestSell();
@@ -211,11 +257,20 @@ export class TradeApp extends LitElement {
     const assetIn = this.trade.assetIn;
     const assetOut = this.trade.assetOut;
     const router = chainCursor.deref().router;
-    const spotPrice = await router.getBestSpotPrice(assetIn.id, assetOut.id);
+
+    let spotPrice: string;
+    if (this.trade.type == TradeType.Buy) {
+      // SDK getBestSpotPrice support sell only atm
+      const buy = await router.getBestBuy(assetIn.id, assetOut.id, 1);
+      spotPrice = buy.toHuman().spotPrice;
+    } else {
+      const price = await router.getBestSpotPrice(assetIn.id, assetOut.id);
+      spotPrice = formatAmount(price.amount, price.decimals);
+    }
     this.trade = {
       ...this.trade,
       inProgress: false,
-      spotPrice: formatAmount(spotPrice.amount, spotPrice.decimals),
+      spotPrice: spotPrice,
     };
   }
 
@@ -235,6 +290,8 @@ export class TradeApp extends LitElement {
   switch() {
     if (!this.isSwapSelected()) {
       this.switchAssets(this.trade.amountOut, this.trade.amountIn, false);
+    } else if (!this.isSwitchEnabled()) {
+      return;
     } else if (this.isSwapEmpty()) {
       this.switchAssets(this.trade.amountOut, this.trade.amountIn, true);
       this.recalculateSpotPrice();
@@ -250,6 +307,12 @@ export class TradeApp extends LitElement {
   private async changeAssetIn(previous: string, asset: PoolAsset) {
     const assetIn = asset;
     const assetOut = this.trade.assetOut;
+
+    // Switch if selecting the same asset for sell
+    if (assetIn.id === assetOut?.id) {
+      this.switch();
+      return;
+    }
 
     // Change without recalculation if pair not specified
     if (assetOut == null) {
@@ -297,6 +360,12 @@ export class TradeApp extends LitElement {
   private async changeAssetOut(previous: string, asset: PoolAsset) {
     const assetIn = this.trade.assetIn;
     const assetOut = asset;
+
+    // Switch if selecting the same asset for buy
+    if (assetOut.id === assetIn?.id) {
+      this.switch();
+      return;
+    }
 
     // Change without recalculation if pair not specified
     if (assetIn == null) {
@@ -384,14 +453,26 @@ export class TradeApp extends LitElement {
     }
   }
 
-  private resetTrade() {
+  validatePool() {
+    if (this.isPoolError()) {
+      this.trade.error['pool'] = i18n.t('trade.error.invalidPair');
+      this.resetTrade();
+    } else {
+      delete this.trade.error['pool'];
+    }
+  }
+
+  private resetTrade(withError?: boolean) {
+    delete this.trade.error['balance'];
+    delete this.trade.error['trade'];
     this.trade = {
       ...this.trade,
+      inProgress: false,
       amountIn: null,
       amountInUsd: null,
       amountOut: null,
       amountOutUsd: null,
-      error: [],
+      error: withError ? [] : this.trade.error,
       swaps: [],
     };
   }
@@ -403,7 +484,7 @@ export class TradeApp extends LitElement {
       return;
     }
 
-    if (this.isSwapSelected()) {
+    if (this.isSwapSelected() && !this.isPoolError()) {
       this.trade = {
         ...this.trade,
         inProgress: true,
@@ -423,7 +504,7 @@ export class TradeApp extends LitElement {
       return;
     }
 
-    if (this.isSwapSelected()) {
+    if (this.isSwapSelected() && !this.isPoolError()) {
       this.trade = {
         ...this.trade,
         inProgress: true,
@@ -563,11 +644,14 @@ export class TradeApp extends LitElement {
 
   initAssets() {
     if (!this.assetIn && !this.assetOut) {
+      this.trade.assetIn = this.assets.map.get(this.stableCoinAssetId);
       this.trade.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
+      this.recalculateSpotPrice();
       return;
     }
     this.updateAsset(this.assetIn, 'assetIn');
     this.updateAsset(this.assetOut, 'assetOut');
+    this.validatePool();
   }
 
   async init() {
@@ -639,7 +723,7 @@ export class TradeApp extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
     this.ro.observe(this);
-    this.resetTrade();
+    this.resetTrade(true);
   }
 
   override disconnectedCallback() {
@@ -672,6 +756,7 @@ export class TradeApp extends LitElement {
         id == 'assetIn' && this.changeAssetIn(asset, e.detail);
         id == 'assetOut' && this.changeAssetOut(asset, e.detail);
         this.updateBalances();
+        this.validatePool();
         this.changeScreen(TradeScreen.TradeTokens);
       }}
     ></gc-trade-app-select>`;
@@ -680,11 +765,13 @@ export class TradeApp extends LitElement {
   tradeTokensTemplate() {
     return html`<gc-trade-app-main
       .assets=${this.assets.map}
+      .pairs=${this.assets.pairs}
       .inProgress=${this.trade.inProgress}
-      .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError()}
+      .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError() || !this.tx}
+      .switchAllowed=${this.isSwitchEnabled()}
       .tradeType=${this.trade.type}
-      .assetIn=${this.trade.assetIn?.symbol}
-      .assetOut=${this.trade.assetOut?.symbol}
+      .assetIn=${this.trade.assetIn}
+      .assetOut=${this.trade.assetOut}
       .amountIn=${this.trade.amountIn}
       .amountInUsd=${this.trade.amountInUsd}
       .amountOut=${this.trade.amountOut}
@@ -709,7 +796,10 @@ export class TradeApp extends LitElement {
         this.assets.selector = detail;
         this.changeScreen(TradeScreen.SelectToken);
       }}
-      @asset-switch-clicked=${this.switch}
+      @asset-switch-clicked=${() => {
+        this.switch();
+        this.validatePool();
+      }}
       @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
       @swap-clicked=${() => this.swap()}
     ></gc-trade-app-main>`;

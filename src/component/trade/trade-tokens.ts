@@ -19,11 +19,13 @@ export class TradeTokens extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
+  @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
-  @property({ type: String }) assetIn = null;
-  @property({ type: String }) assetOut = null;
+  @property({ type: Boolean }) switchAllowed = true;
+  @property({ type: Object }) assetIn: PoolAsset = null;
+  @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountOut = null;
@@ -374,7 +376,7 @@ export class TradeTokens extends LitElement {
   }
 
   render() {
-    const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn;
+    const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
     const infoClasses = {
       info: true,
       show: this.swaps.length > 0,
@@ -399,21 +401,21 @@ export class TradeTokens extends LitElement {
         <uigc-asset-transfer
           id="assetIn"
           title="${i18n.t('trade.payWith')}"
-          .asset=${this.assetIn}
+          .asset=${this.assetIn?.symbol}
           .amount=${this.amountIn}
           .amountUsd=${this.amountInUsd}
           .balance=${this.balanceIn}
-          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceIn, this.assetIn)}
-          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceIn, this.assetIn)}
+          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceIn, this.assetIn?.symbol)}
+          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceIn, this.assetIn?.symbol)}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
         <div class="switch">
           <div class="divider"></div>
-          <uigc-asset-switch class="switch-button"> </uigc-asset-switch>
+          <uigc-asset-switch class="switch-button" ?disabled=${!this.switchAllowed}> </uigc-asset-switch>
           <uigc-asset-price
             class=${classMap(spotPriceClasses)}
-            .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn : this.assetOut}
-            .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut : this.assetIn}
+            .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol}
+            .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}
             .outputBalance=${humanizeAmount(this.spotPrice)}
             .loading=${this.inProgress}
           >
@@ -422,12 +424,12 @@ export class TradeTokens extends LitElement {
         <uigc-asset-transfer
           id="assetOut"
           title="${i18n.t('trade.youGet')}"
-          .asset=${this.assetOut}
+          .asset=${this.assetOut?.symbol}
           .amount=${this.amountOut}
           .amountUsd=${this.amountOutUsd}
           .balance=${this.balanceOut}
-          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceOut, this.assetOut)}
-          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceOut, this.assetOut)}
+          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceOut, this.assetOut?.symbol)}
+          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceOut, this.assetOut?.symbol)}
           .formatter=${humanizeAmount}
         ></uigc-asset-transfer>
       </div>
@@ -443,7 +445,7 @@ export class TradeTokens extends LitElement {
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>
-        <span> ${this.error['balance'] || this.error['trade']} </span>
+        <span> ${this.error['pool'] || this.error['trade'] || this.error['balance']} </span>
       </div>
       <div class="grow"></div>
       <uigc-button

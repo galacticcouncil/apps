@@ -9,6 +9,7 @@ import * as i18n from 'i18next';
 import { baseStyles } from '../base.css';
 import { AssetSelector } from './types';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
+import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
 import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 
@@ -109,9 +110,9 @@ export class SelectToken extends LitElement {
 
   isDisabled(asset: PoolAsset): boolean {
     if (this.selector.id == 'assetIn') {
-      return this.assetOut == asset.symbol;
+      return !isAssetInAllowed(this.assets, this.pairs, asset.id);
     } else if (this.selector.id == 'assetOut') {
-      return this.assetIn == asset.symbol;
+      return !isAssetOutAllowed(this.assets, this.pairs, asset.id);
     } else {
       return false;
     }
@@ -167,8 +168,8 @@ export class SelectToken extends LitElement {
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
-                ?disabled=${this.isDisabled(asset)}
                 ?selected=${this.isSelected(asset)}
+                ?disabled=${this.isDisabled(asset)}
                 .asset=${asset}
                 .balance=${humanizeAmount(balanceFormated)}
                 .balanceUsd=${humanizeAmount(balanceUsd)}

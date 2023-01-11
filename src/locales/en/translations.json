@@ -18,6 +18,7 @@
   "trade.error.insufficientTradingAmount": "Minimal trade limit is not reached",
   "trade.error.maxOutRatioExceeded": "Maximal pool trade limit is reached, please split your trade",
   "trade.error.maxInRatioExceeded": "Maximal pool trade limit is reached, please split your trade",
+  "trade.error.invalidPair": "Selected pool pair is not valid",
   "notify.recent": "Recent activities",
   "tx.failed": "Failed to submit transaction",
   "tx.failedText": "Unfortunately there was an issue while submitting your transaction. Please try again later.",
