@@ -1,3 +1,5 @@
+import { humanizeAmount } from '../../utils/amount';
+
 export const corsairPlugin = {
   id: 'corsair',
   defaults: {
@@ -47,7 +49,7 @@ export function tooltipLabel(context) {
     label += ': ';
   }
   if (context.parsed.y !== null) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+    return humanizeAmount(context.parsed.y);
   }
   return label;
 }
@@ -58,7 +60,7 @@ export function tooltipLabelTextColor(context) {
 
 export function tooltipLabelPointStyle(context) {
   return {
-    pointStyle: 'triangle',
+    pointStyle: 'line',
     rotation: 0,
   };
 }

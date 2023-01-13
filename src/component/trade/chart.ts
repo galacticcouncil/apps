@@ -15,6 +15,7 @@ const PERIOD_OPTS = ['All', '24h', '12h', '6h', '3h', '1h'];
 export class TradeChart extends LitElement {
   @state() period: String = PERIOD_OPTS[3];
 
+  @property({ type: Object }) data = {};
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ type: String }) spotPrice = null;
@@ -135,7 +136,7 @@ export class TradeChart extends LitElement {
           </div>`
         )}
       </div>
-      <gc-chart></gc-chart>
+      <gc-chart .data=${this.data}></gc-chart>
     `;
   }
 }

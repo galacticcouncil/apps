@@ -21,6 +21,7 @@ export class SelectToken extends LitElement {
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
+  @property({ type: Boolean }) switchAllowed = true;
   @property({ attribute: false }) selector: AssetSelector = null;
   @property({ type: String }) query = '';
 
@@ -110,7 +111,7 @@ export class SelectToken extends LitElement {
 
   isDisabled(asset: PoolAsset): boolean {
     if (this.selector.id == 'assetIn') {
-      return !isAssetInAllowed(this.assets, this.pairs, asset.id);
+      return this.switchAllowed ? !isAssetInAllowed(this.assets, this.pairs, asset.id) : this.assetOut == asset.symbol;
     } else if (this.selector.id == 'assetOut') {
       return !isAssetOutAllowed(this.assets, this.pairs, asset.id);
     } else {

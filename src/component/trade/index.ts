@@ -17,7 +17,6 @@ import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
 import '@galacticcouncil/ui';
 import {
-  Amount,
   bnum,
   PoolAsset,
   PoolType,
@@ -44,6 +43,7 @@ import {
   TransactionFee,
 } from './types';
 import { TxInfo } from '../transaction/types';
+import { query } from '../chart/data';
 
 @customElement('gc-trade-app')
 export class TradeApp extends LitElement {
@@ -61,6 +61,7 @@ export class TradeApp extends LitElement {
   @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
   @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
+  @state() tradeData = { ts: [], price: [] };
 
   @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) accountAddress: string = null;
@@ -308,7 +309,10 @@ export class TradeApp extends LitElement {
     const assetIn = asset;
     const assetOut = this.trade.assetOut;
 
-    // Switch if selecting the same asset for sell
+    console.log(assetIn);
+    console.log(assetOut);
+
+    // Switch if selecting the same asset
     if (assetIn.id === assetOut?.id) {
       this.switch();
       return;
@@ -361,7 +365,7 @@ export class TradeApp extends LitElement {
     const assetIn = this.trade.assetIn;
     const assetOut = asset;
 
-    // Switch if selecting the same asset for buy
+    // Switch if selecting the same asset
     if (assetOut.id === assetIn?.id) {
       this.switch();
       return;
@@ -678,6 +682,9 @@ export class TradeApp extends LitElement {
       this.syncDolarPrice();
       this.syncTransactionFee();
       this.recalculateTrade();
+      query((ts, price) => {
+        this.tradeData = { ts: ts, price: price };
+      });
     });
   }
 
@@ -749,6 +756,7 @@ export class TradeApp extends LitElement {
       .usdPrice=${this.assets.usdPrice}
       .assetIn=${this.trade.assetIn?.symbol}
       .assetOut=${this.trade.assetOut?.symbol}
+      .switchAllowed=${this.isSwitchEnabled()}
       .selector=${this.assets.selector}
       @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
       @asset-clicked=${(e: CustomEvent) => {
@@ -812,6 +820,7 @@ export class TradeApp extends LitElement {
           this.chart,
           () => html` <uigc-paper class="chart">
             <gc-trade-chart
+              .data=${this.tradeData}
               .assetIn=${this.trade.assetIn?.symbol}
               .assetOut=${this.trade.assetOut?.symbol}
               .spotPrice=${this.trade.spotPrice}

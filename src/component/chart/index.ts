@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 
 import { baseStyles } from '../base.css';
 
@@ -20,7 +20,7 @@ import {
 } from 'chart.js';
 
 import { corsairPlugin, tooltipLabel, tooltipLabelPointStyle, tooltipLabelTextColor } from './plugins';
-import { dataset, query } from './data';
+import { dataset } from './data';
 import { xScale, yScale } from './opts';
 
 import './selector';
@@ -41,6 +41,8 @@ Tooltip.positioners.cursor = function (elements, eventPosition) {
 @customElement('gc-chart')
 export class GcChart extends LitElement {
   private chart: Chart = null;
+
+  @property({ type: Object }) data = { ts: [], price: [] };
 
   constructor() {
     super();
@@ -75,7 +77,7 @@ export class GcChart extends LitElement {
     this.chart = new Chart(ctx, {
       type: 'line',
       plugins: [corsairPlugin],
-      data: dataset,
+      data: dataset(this.data.ts, this.data.price),
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -108,8 +110,19 @@ export class GcChart extends LitElement {
     });
   }
 
+  override update(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('data') && this.chart) {
+      const newDataset = dataset(this.data.ts, this.data.price);
+      console.log(newDataset);
+      this.chart.data = newDataset;
+      this.chart.update();
+    }
+    super.update(changedProperties);
+  }
+
   override disconnectedCallback() {
     super.disconnectedCallback();
+    this.chart.destroy();
   }
 
   render() {
