@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
@@ -8,6 +9,7 @@ import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
 import { baseStyles } from '../base.css';
+import { capitalize } from '../../utils/text';
 
 @customElement('gc-xcm-app-main')
 export class TradeTokens extends LitElement {
@@ -26,6 +28,7 @@ export class TradeTokens extends LitElement {
   @property({ type: String }) dstChainSs58Prefix = null;
   @property({ type: Object }) error = {};
   @property({ type: Boolean }) disabled = false;
+  @property({ type: Boolean }) warning = false;
 
   static styles = [
     baseStyles,
@@ -127,6 +130,37 @@ export class TradeTokens extends LitElement {
         color: var(--hex-white);
       }
 
+      .warning {
+        display: none;
+        flex-direction: row;
+        align-items: center;
+        margin: 12px 14px 0;
+        padding: 12px 14px;
+        background: var(--uigc-app-bg-warning);
+        border-radius: var(--uigc-app-border-radius-2);
+      }
+
+      @media (min-width: 768px) {
+        .warning {
+          margin: 12px 28px 0;
+        }
+      }
+
+      .warning.show {
+        display: flex;
+      }
+
+      .warning span {
+        color: var(--hex-white);
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .warning uigc-icon-warning {
+        margin-right: 8px;
+      }
+
       .confirm {
         display: flex;
         padding: 22px 14px;
@@ -176,6 +210,10 @@ export class TradeTokens extends LitElement {
   }
 
   render() {
+    const warningClasses = {
+      warning: true,
+      show: this.dstChain == 'acala' && this.asset == 'DAI',
+    };
     return html`
       <div class="header">
         <uigc-typography variant="title">${i18n.t('xcm.title')}</uigc-typography>
@@ -209,12 +247,12 @@ export class TradeTokens extends LitElement {
         ></uigc-address-input>
       </div>
       <div class="info">
-        <div class="row">
-          ${this.transferFeeTemplate(i18n.t('xcm.sourceFee'), this.srcChainFee, this.nativeAsset)}
-        </div>
-        <div class="row">
-          ${this.transferFeeTemplate(i18n.t('xcm.destFee'), this.dstChainFee, this.asset)}
-        </div>
+        <div class="row">${this.transferFeeTemplate(i18n.t('xcm.sourceFee'), this.srcChainFee, this.nativeAsset)}</div>
+        <div class="row">${this.transferFeeTemplate(i18n.t('xcm.destFee'), this.dstChainFee, this.asset)}</div>
+      </div>
+      <div class=${classMap(warningClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <span> ${i18n.t('xcm.warning', { asset: this.asset, chain: capitalize(this.dstChain) })} </span>
       </div>
       <div class="grow"></div>
       <uigc-button
