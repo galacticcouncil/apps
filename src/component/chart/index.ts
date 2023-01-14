@@ -42,7 +42,9 @@ Tooltip.positioners.cursor = function (elements, eventPosition) {
 export class GcChart extends LitElement {
   private chart: Chart = null;
 
-  @property({ type: Object }) data = { ts: [], price: [] };
+  @property({ attribute: false }) ts: number[] = [];
+  @property({ attribute: false }) price: number[] = [];
+  @property({ type: String }) granularity = null;
 
   constructor() {
     super();
@@ -77,7 +79,7 @@ export class GcChart extends LitElement {
     this.chart = new Chart(ctx, {
       type: 'line',
       plugins: [corsairPlugin],
-      data: dataset(this.data.ts, this.data.price),
+      data: dataset(this.ts, this.price),
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -88,6 +90,7 @@ export class GcChart extends LitElement {
         },
         interaction: {
           intersect: false,
+          mode: 'index',
         },
         plugins: {
           tooltip: {
@@ -111,10 +114,10 @@ export class GcChart extends LitElement {
   }
 
   override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('data') && this.chart) {
-      const newDataset = dataset(this.data.ts, this.data.price);
-      console.log(newDataset);
-      this.chart.data = newDataset;
+    console.log(changedProperties);
+    if (this.chart && changedProperties.has('ts') && changedProperties.has('price')) {
+      this.chart.data.labels = this.ts;
+      this.chart.data.datasets[0].data = this.price;
       this.chart.update();
     }
     super.update(changedProperties);

@@ -36,6 +36,9 @@ export const xScale: ScaleOptions = {
     maxRotation: 0,
     minRotation: 0,
   },
+  grid: {
+    display: false,
+  } as unknown as GridLineOptions,
   border: {
     display: true,
     color: '#333750',

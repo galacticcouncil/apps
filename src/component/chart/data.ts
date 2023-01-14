@@ -1,7 +1,7 @@
 import { ChartData } from 'chart.js';
 import { getGradientDataset } from './utils';
 
-export const dataset = (labels: number[], data: number[]) => {
+export function dataset(labels: number[], data: number[]): ChartData {
   return {
     labels: labels,
     datasets: [
@@ -18,14 +18,20 @@ export const dataset = (labels: number[], data: number[]) => {
           return getGradientDataset(ctx, chartArea.height);
         },
         tension: 0.1,
+        //cubicInterpolationMode: "monotone",
         borderColor: '#85D1FF',
         data: data,
-        pointRadius: 0,
         borderWidth: 2,
+        pointRadius: 0,
+        pointBackgroundColor: function (context) {
+          return '#fff';
+        },
       },
     ],
   } as ChartData;
-};
+}
+
+const GRAFANA_DS = 'https://grafana-api.play.hydration.cloud/api/ds/query';
 
 const tradesQuery = `select timestamp, 
   block.height as block,
@@ -49,21 +55,50 @@ const normalizedTradesQuery = `select timestamp,
   amount_out / 10 ^ (select decimals from token_metadata where id = asset_out limit 1) as amount_out
   from (${tradesQuery}) as trades`;
 
-const finalQuery = `select
- date_trunc( 'hour', timestamp ),
- max(amount_out / amount_in) as price
- from (${normalizedTradesQuery}) as normalized_trades
- where asset_in = 'HDX' and asset_out = 'DAI' and timestamp > now() - INTERVAL '24 hours'
- group by 1`;
+const pairPriceQuery = `select
+    timestamp AS "time",
+    price
+  from pair_price`;
 
-const finalQuery2 = `select
- timestamp,
- amount_out / amount_in as price
- from (${normalizedTradesQuery}) as normalized_trades
- where asset_in = 'HDX' and asset_out = 'DAI' and timestamp > now() - INTERVAL '7 days'`;
+const pairPriceQueryByHourGranularity = `select
+    floor(extract(epoch from "timestamp")/60)*60 as "time",
+    last(price) as "price"
+  from pair_price
+  `;
 
-export function query(onData: (ts: number[], price: number[]) => void) {
-  fetch('https://grafana-api.play.hydration.cloud/api/ds/query', {
+function aggregationQuery(granularity: string) {
+  if (granularity == 'All') {
+    return `${pairPriceQueryByHourGranularity} group by 1`;
+  }
+  return `${pairPriceQueryByHourGranularity} WHERE timestamp > now() - INTERVAL '${granularity || '24h'}' group by 1`;
+}
+
+function buildQuery(assetIn: string, assetOut: string, granularity: string) {
+  return `with normalized_trades as (${normalizedTradesQuery}),
+    pair_price as (select 
+      timestamp,
+      amount_in / amount_out as price
+    from normalized_trades
+    where asset_in = '${assetIn}' and asset_out = '${assetOut}' 
+    union all
+    select 
+      timestamp,
+      amount_out / amount_in as price
+    from normalized_trades
+    where asset_in = '${assetOut}' and asset_out = '${assetIn}' 
+    order by timestamp)
+    ${aggregationQuery(granularity)}
+    order by 1`;
+}
+
+export function query(
+  granularity: string,
+  assetIn: string,
+  assetOut: string,
+  datasourceId: number,
+  onData: (ts: number[], price: number[]) => void
+) {
+  fetch(GRAFANA_DS, {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -72,20 +107,20 @@ export function query(onData: (ts: number[], price: number[]) => void) {
     body: JSON.stringify({
       queries: [
         {
-          refId: 'omni',
-          rawSql: finalQuery2,
+          refId: 'pool',
+          rawSql: buildQuery(assetIn, assetOut, granularity),
           format: 'table',
-          datasourceId: 10,
+          datasourceId: datasourceId,
         },
       ],
     }),
   })
     .then((response) => response.json())
     .then((data) => {
-      const values = data.results.omni.frames[0].data.values;
+      const values = data.results.pool.frames[0].data.values;
       onData(values[0], values[1]);
     })
     .catch(function (res) {
-      console.log(res);
+      console.error(res);
     });
 }

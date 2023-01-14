@@ -49,13 +49,13 @@ export function tooltipLabel(context) {
     label += ': ';
   }
   if (context.parsed.y !== null) {
-    return humanizeAmount(context.parsed.y);
+    return (label += humanizeAmount(context.parsed.y));
   }
   return label;
 }
 
 export function tooltipLabelTextColor(context) {
-  return '#85D1FF';
+  return '#fff';
 }
 
 export function tooltipLabelPointStyle(context) {

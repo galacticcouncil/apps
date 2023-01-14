@@ -8,14 +8,15 @@ import { Amount } from '@galacticcouncil/sdk';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import '../chart';
+import '../chart/index2';
 
-const PERIOD_OPTS = ['All', '24h', '12h', '6h', '3h', '1h'];
+const GRANULARITY_OPTS = ['All', '1d', '1w'];
 
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
-  @state() period: String = PERIOD_OPTS[3];
-
-  @property({ type: Object }) data = {};
+  @property({ attribute: false }) ts: number[] = [];
+  @property({ attribute: false }) price: number[] = [];
+  @property({ type: String }) granularity = GRANULARITY_OPTS[1];
   @property({ type: String }) assetIn = null;
   @property({ type: String }) assetOut = null;
   @property({ type: String }) spotPrice = null;
@@ -28,6 +29,7 @@ export class TradeChart extends LitElement {
         display: flex;
         flex-direction: column;
         height: 100%;
+        position: relative;
       }
 
       .header {
@@ -117,13 +119,8 @@ export class TradeChart extends LitElement {
             () => html` <div class="info">${this.assetIn ?? '-'} / ${this.assetOut ?? '-'}</div>`,
             () => html` <div class="info">Loading...</div>`
           )}
-          <uigc-period-selector
-            selected=${this.period}
-            @toggle-button-clicked=${(e: CustomEvent) => {
-              this.period = e.detail.value;
-            }}
-          >
-            ${PERIOD_OPTS.map(
+          <uigc-period-selector selected=${this.granularity}>
+            ${GRANULARITY_OPTS.map(
               (s: string) => html` <uigc-toggle-button size="small" value=${s}>${s}</uigc-toggle-button> `
             )}
           </uigc-period-selector>
@@ -136,7 +133,7 @@ export class TradeChart extends LitElement {
           </div>`
         )}
       </div>
-      <gc-chart .data=${this.data}></gc-chart>
+      <gc-chart2 .ts=${this.ts} .price=${this.price} .granularity=${this.granularity}></gc-chart2>
     `;
   }
 }

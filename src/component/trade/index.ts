@@ -37,9 +37,11 @@ import {
   ScreenState,
   AssetsState,
   TradeState,
+  TradeChartState,
   DEFAULT_SCREEN_STATE,
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
+  DEFAULT_TRADE_CHART_STATE,
   TransactionFee,
 } from './types';
 import { TxInfo } from '../transaction/types';
@@ -61,7 +63,7 @@ export class TradeApp extends LitElement {
   @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
   @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
-  @state() tradeData = { ts: [], price: [] };
+  @state() tradeChart: TradeChartState = { ...DEFAULT_TRADE_CHART_STATE };
 
   @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) accountAddress: string = null;
@@ -72,6 +74,7 @@ export class TradeApp extends LitElement {
   @property({ type: String }) assetOut: string = null;
   @property({ type: String }) stableCoinAssetId: string = null;
   @property({ type: Boolean }) chart: Boolean = false;
+  @property({ type: Number }) chartDatasourceId: number = null;
 
   static styles = [
     baseStyles,
@@ -682,9 +685,15 @@ export class TradeApp extends LitElement {
       this.syncDolarPrice();
       this.syncTransactionFee();
       this.recalculateTrade();
-      query((ts, price) => {
-        this.tradeData = { ts: ts, price: price };
-      });
+      query(
+        this.tradeChart.granularity,
+        this.trade.assetIn.symbol,
+        this.trade.assetOut.symbol,
+        this.chartDatasourceId,
+        (ts, price) => {
+          this.tradeChart = { ...this.tradeChart, ts: ts, price: price };
+        }
+      );
     });
   }
 
@@ -813,21 +822,35 @@ export class TradeApp extends LitElement {
     ></gc-trade-app-main>`;
   }
 
+  tradeChartTemplate() {
+    return html` <gc-trade-chart
+      .ts=${this.tradeChart.ts}
+      .price=${this.tradeChart.price}
+      .granularity=${this.tradeChart.granularity}
+      .assetIn=${this.trade.assetIn?.symbol}
+      .assetOut=${this.trade.assetOut?.symbol}
+      .spotPrice=${this.trade.spotPrice}
+      .usdPrice=${this.assets.usdPrice}
+      @toggle-button-clicked=${(e: CustomEvent) => {
+        this.tradeChart.granularity = e.detail.value;
+        this.requestUpdate();
+        query(
+          this.tradeChart.granularity,
+          this.trade.assetIn.symbol,
+          this.trade.assetOut.symbol,
+          this.chartDatasourceId,
+          (ts, price) => {
+            this.tradeChart = { ...this.tradeChart, ts: ts, price: price };
+          }
+        );
+      }}
+    ></gc-trade-chart>`;
+  }
+
   render() {
     return html`
       <div>
-        ${when(
-          this.chart,
-          () => html` <uigc-paper class="chart">
-            <gc-trade-chart
-              .data=${this.tradeData}
-              .assetIn=${this.trade.assetIn?.symbol}
-              .assetOut=${this.trade.assetOut?.symbol}
-              .spotPrice=${this.trade.spotPrice}
-              .usdPrice=${this.assets.usdPrice}
-            ></gc-trade-chart>
-          </uigc-paper>`
-        )}
+        ${when(this.chart, () => html` <uigc-paper class="chart"> ${this.tradeChartTemplate()}</uigc-paper>`)}
         <uigc-paper class="main">
           ${choose(this.screen.active, [
             [TradeScreen.TradeTokens, () => this.tradeTokensTemplate()],
