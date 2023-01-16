@@ -175,7 +175,7 @@ Bare cross chain transaction app without tx & notification center.
 
 ## Live [master]
 
-Visit https://classy-sfogliatella-214c28.netlify.app
+Visit https://galactic-apps.netlify.app/
 
 ## Local Development and Build
 
