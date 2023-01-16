@@ -39,10 +39,14 @@ export const timeScale = (range: Range, dayjs) => {
     timeVisible: true,
     secondsVisible: false,
     tickMarkFormatter: (time: UTCTimestamp, tickMarkType: TickMarkType, locale: string) => {
-      if (range == Range['1d']) {
-        return dayjs.unix(time).utc().format('hh: mm');
+      switch (tickMarkType) {
+        case 2:
+          return dayjs.unix(time).utc().format('MMM D');
+        case 3:
+          return dayjs.unix(time).utc().format('hh: mm');
+        default:
+          return dayjs.unix(time).utc().format('MMM D');
       }
-      return dayjs.unix(time).utc().format('MMM D');
     },
   } as TimeScaleOptions;
 };

@@ -15,6 +15,7 @@ import {
   TimeRange,
   PriceLineOptions,
   LineStyle,
+  SingleValueData,
 } from 'lightweight-charts';
 
 import { baseStyles } from '../base.css';
@@ -56,12 +57,10 @@ export class TradeChart extends LitElement {
   private chartSeries: ISeriesApi<'Area'> = null;
   private chartPriceLine: IPriceLine = null;
   private ready: boolean = false;
-  private ro: ResizeObserver = new ResizeObserver((entries) => {
-    if (entries.length === 0 || entries[0].target !== this.chartContainer) {
-      return;
-    }
-    const newRect = entries[0].contentRect;
-    this.chart.applyOptions({ height: newRect.height, width: newRect.width });
+  private ro = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      this.chart.resize(entry.contentRect.width, 315);
+    });
   });
   private disconnectSubscribeNewHeads: () => void = null;
 
@@ -178,39 +177,35 @@ export class TradeChart extends LitElement {
     return multipleAmounts(price, usdPrice).toFixed(2);
   }
 
-  private hasData() {
-    return this.chartState.ts.length > 0 && this.chartState.price.length > 0;
+  private dataKey() {
+    return this.assetIn?.symbol + ':' + this.assetOut?.symbol + ':' + this.tradeType;
+  }
+
+  private hasRecord() {
+    return this.chartState.data.has(this.dataKey());
   }
 
   private fetchData() {
+    if (this.hasRecord()) {
+      const cachedData = this.chartState.data.get(this.dataKey());
+      this.syncChart(cachedData);
+      return;
+    }
+
     const inputAsset = this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
     const outputAsset = this.tradeType == TradeType.Buy ? this.assetOut : this.assetIn;
 
-    query(this.datasourceId, inputAsset.symbol, outputAsset.symbol, (ts, price) => {
-      this.chartState = {
-        ...this.chartState,
-        ts: ts,
-        price: price,
-      };
-      this.syncChart();
+    const endOfDay = dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
+    query(this.datasourceId, inputAsset.symbol, outputAsset.symbol, endOfDay, (ts, price) => {
+      const formattedData = formatData(ts, price);
+      this.chartState.data.set(this.dataKey(), formattedData);
+      this.syncChart(formattedData);
       this.syncChartRange();
     });
   }
 
-  private reverseData() {
-    const priceReverted = this.chartState.price.map((price: number) => {
-      return 1 / price;
-    });
-    this.chartState = {
-      ...this.chartState,
-      price: priceReverted,
-    };
-    this.syncChart();
-  }
-
-  private syncChart() {
-    const formattedData = formatData(this.chartState.ts, this.chartState.price);
-    this.chartSeries.setData(formattedData);
+  private syncChart(data: SingleValueData[]) {
+    this.chartSeries.setData(data);
     this.chartSeries.applyOptions({
       priceFormat: humanizeScale(this.spotPrice),
       priceLineVisible: false,
@@ -271,13 +266,12 @@ export class TradeChart extends LitElement {
     subscribeCrosshair(this.chart, this.chartContainer, this.chartSeries, selected, actual, (price) =>
       this.calculateDollarPrice(price)
     );
-    this.ro.observe(this.chartContainer);
   }
 
   async subscribe() {
     const api = chainCursor.deref().api;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      if (this.hasData()) {
+      if (this.hasRecord()) {
         this.syncPriceLine();
       }
     });
@@ -285,10 +279,8 @@ export class TradeChart extends LitElement {
 
   override async updated() {
     if (this.chain.state && !this.ready) {
-      console.log(this.ready);
       this.ready = true;
       this.subscribe();
-      console.log('Chart ready ✅');
     }
   }
 
@@ -299,13 +291,24 @@ export class TradeChart extends LitElement {
     super.update(changedProperties);
   }
 
+  handleResize(evt) {
+    const chartContainer = this.shadowRoot.getElementById('chart');
+    const newWidth = window.innerWidth - 540;
+    if (newWidth < 640) {
+      this.chart.resize(window.innerWidth - 540, chartContainer.offsetHeight);
+      this.chart.timeScale().scrollToPosition(0, false);
+    }
+  }
+
   override connectedCallback() {
     super.connectedCallback();
+    this.ro.observe(this);
+    window.addEventListener('resize', (evt) => this.handleResize(evt));
   }
 
   override disconnectedCallback() {
     //this.chart.remove();
-    this.ro.unobserve(this.chartContainer);
+    this.ro.unobserve(this);
     this.disconnectSubscribeNewHeads?.();
     super.disconnectedCallback();
   }
