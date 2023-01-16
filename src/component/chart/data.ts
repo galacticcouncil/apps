@@ -1,35 +1,4 @@
-import { ChartData } from 'chart.js';
-import { getGradientDataset } from './utils';
-
-export function dataset(labels: number[], data: number[]): ChartData {
-  return {
-    labels: labels,
-    datasets: [
-      {
-        type: 'line',
-        fill: true,
-        label: 'Price',
-        backgroundColor: function (context) {
-          const chart = context.chart;
-          const { ctx, chartArea } = chart;
-          if (!chartArea) {
-            return;
-          }
-          return getGradientDataset(ctx, chartArea.height);
-        },
-        tension: 0.1,
-        //cubicInterpolationMode: "monotone",
-        borderColor: '#85D1FF',
-        data: data,
-        borderWidth: 2,
-        pointRadius: 0,
-        pointBackgroundColor: function (context) {
-          return '#fff';
-        },
-      },
-    ],
-  } as ChartData;
-}
+import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
 
 const GRAFANA_DS = 'https://grafana-api.play.hydration.cloud/api/ds/query';
 
@@ -61,8 +30,14 @@ const pairPriceQuery = `select
   from pair_price`;
 
 const pairPriceQueryByHourGranularity = `select
-    floor(extract(epoch from "timestamp")/60)*60 as "time",
+    floor(extract(epoch from "timestamp")/1800)*1800 as "time",
     last(price) as "price"
+  from pair_price
+  `;
+
+  const removeDups = `select
+    timestamp AS "time",
+    max(price) as "price"
   from pair_price
   `;
 
@@ -91,11 +66,39 @@ function buildQuery(assetIn: string, assetOut: string, granularity: string) {
     order by 1`;
 }
 
+function buildQuery2(assetIn: string, assetOut: string) {
+  return `with pair_price as (select 
+    timestamp,
+    amount_in / amount_out as price
+   from normalized_trades
+   where asset_in = '${assetIn}' and asset_out = '${assetOut}' 
+   union all
+   select 
+    timestamp,
+    amount_out / amount_in as price
+   from normalized_trades
+   where asset_in = '${assetOut}' and asset_out = '${assetIn}' 
+   order by timestamp)
+   ${removeDups} 
+   WHERE
+    "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '2023-01-15T23:59:00.000Z' 
+   GROUP BY 1
+   ORDER BY 1`;
+}
+
+export function formatData(ts: number[], price: number[]) {
+  return ts.map((obj: number, index: number) => {
+    return {
+      time: Math.floor(obj / 1000) as UTCTimestamp,
+      value: price[index],
+    } as SingleValueData;
+  });
+}
+
 export function query(
-  granularity: string,
+  datasourceId: number,
   assetIn: string,
   assetOut: string,
-  datasourceId: number,
   onData: (ts: number[], price: number[]) => void
 ) {
   fetch(GRAFANA_DS, {
@@ -108,7 +111,7 @@ export function query(
       queries: [
         {
           refId: 'pool',
-          rawSql: buildQuery(assetIn, assetOut, granularity),
+          rawSql: buildQuery2(assetIn, assetOut),
           format: 'table',
           datasourceId: datasourceId,
         },

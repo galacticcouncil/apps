@@ -20,7 +20,7 @@ export class TradeTokens extends LitElement {
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
-  @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
+  @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) switchAllowed = true;

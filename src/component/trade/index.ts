@@ -30,22 +30,19 @@ import {
 import './select-token';
 import './settings';
 import './trade-tokens';
-import './chart';
+import '../chart';
 
 import {
   TradeScreen,
   ScreenState,
   AssetsState,
   TradeState,
-  TradeChartState,
   DEFAULT_SCREEN_STATE,
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
-  DEFAULT_TRADE_CHART_STATE,
   TransactionFee,
 } from './types';
 import { TxInfo } from '../transaction/types';
-import { query } from '../chart/data';
 
 @customElement('gc-trade-app')
 export class TradeApp extends LitElement {
@@ -63,7 +60,6 @@ export class TradeApp extends LitElement {
   @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
   @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
-  @state() tradeChart: TradeChartState = { ...DEFAULT_TRADE_CHART_STATE };
 
   @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) accountAddress: string = null;
@@ -103,7 +99,7 @@ export class TradeApp extends LitElement {
       }
 
       uigc-paper.chart {
-        background: #000524;
+        background: transparent;
         height: 500px;
         box-shadow: none;
       }
@@ -311,9 +307,6 @@ export class TradeApp extends LitElement {
   private async changeAssetIn(previous: string, asset: PoolAsset) {
     const assetIn = asset;
     const assetOut = this.trade.assetOut;
-
-    console.log(assetIn);
-    console.log(assetOut);
 
     // Switch if selecting the same asset
     if (assetIn.id === assetOut?.id) {
@@ -685,15 +678,6 @@ export class TradeApp extends LitElement {
       this.syncDolarPrice();
       this.syncTransactionFee();
       this.recalculateTrade();
-      query(
-        this.tradeChart.granularity,
-        this.trade.assetIn.symbol,
-        this.trade.assetOut.symbol,
-        this.chartDatasourceId,
-        (ts, price) => {
-          this.tradeChart = { ...this.tradeChart, ts: ts, price: price };
-        }
-      );
     });
   }
 
@@ -824,26 +808,13 @@ export class TradeApp extends LitElement {
 
   tradeChartTemplate() {
     return html` <gc-trade-chart
-      .ts=${this.tradeChart.ts}
-      .price=${this.tradeChart.price}
-      .granularity=${this.tradeChart.granularity}
-      .assetIn=${this.trade.assetIn?.symbol}
-      .assetOut=${this.trade.assetOut?.symbol}
+      .datasourceId=${this.chartDatasourceId}
+      .tradeType=${this.trade.type}
+      .tradeProgress=${this.trade.inProgress}
+      .assetIn=${this.trade.assetIn}
+      .assetOut=${this.trade.assetOut}
       .spotPrice=${this.trade.spotPrice}
       .usdPrice=${this.assets.usdPrice}
-      @toggle-button-clicked=${(e: CustomEvent) => {
-        this.tradeChart.granularity = e.detail.value;
-        this.requestUpdate();
-        query(
-          this.tradeChart.granularity,
-          this.trade.assetIn.symbol,
-          this.trade.assetOut.symbol,
-          this.chartDatasourceId,
-          (ts, price) => {
-            this.tradeChart = { ...this.tradeChart, ts: ts, price: price };
-          }
-        );
-      }}
     ></gc-trade-chart>`;
   }
 

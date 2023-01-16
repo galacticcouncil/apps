@@ -1,66 +1,40 @@
 import { humanizeAmount } from '../../utils/amount';
+import { IChartApi, ISeriesApi } from 'lightweight-charts';
 
-export const corsairPlugin = {
-  id: 'corsair',
-  defaults: {
-    width: 1,
-    color: '#66697C',
-    dash: [4, 4],
-  },
-  afterInit: (chart, args, opts) => {
-    chart.corsair = {
-      x: 0,
-      y: 0,
-    };
-  },
-  afterEvent: (chart, args) => {
-    const { inChartArea } = args;
-    const { type, x, y } = args.event;
+export function subscribeCrosshair(
+  chart: IChartApi,
+  chartContainer: HTMLElement,
+  series: ISeriesApi<'Area'>,
+  selected: HTMLElement,
+  actual: HTMLElement,
+  onPriceSelection: (price: string) => string
+): void {
+  chart.subscribeCrosshairMove(function (param) {
+    if (
+      param.point === undefined ||
+      !param.time ||
+      param.point.x < 0 ||
+      param.point.x > chartContainer.clientWidth ||
+      param.point.y < 0 ||
+      param.point.y > chartContainer.clientHeight
+    ) {
+      selected.style.display = 'none';
+      actual.style.display = 'flex';
+    } else {
+      const asset = actual.getElementsByClassName('asset');
+      if (asset.length == 0) {
+        return;
+      }
 
-    chart.corsair = { x, y, draw: inChartArea };
-    chart.draw();
-  },
-  afterDraw: (chart, args, opts) => {
-    const { ctx } = chart;
-    const { top, bottom, left, right } = chart.chartArea;
-    const { x, y, draw } = chart.corsair;
-    if (!draw) return;
-
-    ctx.save();
-
-    ctx.beginPath();
-    ctx.lineWidth = opts.width;
-    ctx.strokeStyle = opts.color;
-    ctx.setLineDash(opts.dash);
-    ctx.moveTo(x, bottom);
-    ctx.lineTo(x, top);
-    ctx.moveTo(left, y);
-    ctx.lineTo(right, y);
-    ctx.stroke();
-
-    ctx.restore();
-  },
-};
-
-export function tooltipLabel(context) {
-  let label = context.dataset.label || '';
-
-  if (label) {
-    label += ': ';
-  }
-  if (context.parsed.y !== null) {
-    return (label += humanizeAmount(context.parsed.y));
-  }
-  return label;
-}
-
-export function tooltipLabelTextColor(context) {
-  return '#fff';
-}
-
-export function tooltipLabelPointStyle(context) {
-  return {
-    pointStyle: 'line',
-    rotation: 0,
-  };
+      selected.style.display = 'block';
+      actual.style.display = 'none';
+      const price = param.seriesPrices.get(series);
+      const usdPrice = onPriceSelection(price.toString());
+      const assetText = asset[0].textContent;
+      const priceHtml =
+        `<div class="price price__selected">` + humanizeAmount(price.toString()) + ` ${assetText}</div>`;
+      const usdHtml = `<div class="usd price__selected"><span>` + `≈$${usdPrice}` + `</span></div>`;
+      selected.innerHTML = usdPrice ? priceHtml + usdHtml : priceHtml;
+    }
+  });
 }

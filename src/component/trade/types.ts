@@ -84,15 +84,3 @@ export const DEFAULT_TRADE_STATE: TradeState = {
   swaps: [],
   error: {},
 };
-
-export type TradeChartState = {
-  ts: number[];
-  price: number[];
-  granularity: string;
-};
-
-export const DEFAULT_TRADE_CHART_STATE: TradeChartState = {
-  ts: [],
-  price: [],
-  granularity: '1d',
-};

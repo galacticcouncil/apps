@@ -1,76 +1,72 @@
-import { ScaleOptions, GridLineOptions } from 'chart.js';
-import 'chartjs-adapter-date-fns';
-import { enUS } from 'date-fns/locale';
+import {
+  UTCTimestamp,
+  TickMarkType,
+  LayoutOptions,
+  PriceScaleOptions,
+  TimeScaleOptions,
+  GridOptions,
+  CrosshairOptions,
+} from 'lightweight-charts';
+import { Range } from './types';
 
-export const xScale: ScaleOptions = {
-  type: 'time',
-  adapters: {
-    date: {
-      locale: enUS,
+export const layoutOptions = {
+  background: {
+    color: 'transparent',
+  },
+  textColor: '#ffffff',
+  fontFamily: 'SatoshiVariable',
+  fontSize: 12,
+} as LayoutOptions;
+
+export const rightPriceScale = {
+  scaleMargins: {
+    top: 0.2,
+    bottom: 0.2,
+  },
+  visible: true,
+  borderVisible: true,
+  borderColor: 'rgba(114, 131, 165, 0.6)',
+} as PriceScaleOptions;
+
+export const leftPriceScale = {
+  visible: false,
+} as PriceScaleOptions;
+
+export const timeScale = (range: Range, dayjs) => {
+  return {
+    borderVisible: true,
+    borderColor: 'rgba(114, 131, 165, 0.6)',
+    timeVisible: true,
+    secondsVisible: false,
+    tickMarkFormatter: (time: UTCTimestamp, tickMarkType: TickMarkType, locale: string) => {
+      if (range == Range['1d']) {
+        return dayjs.unix(time).utc().format('hh: mm');
+      }
+      return dayjs.unix(time).utc().format('MMM D');
     },
-  },
-  time: {
-    tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
-    displayFormats: {
-      millisecond: 'HH:mm:ss',
-      second: 'HH:mm:ss',
-      minute: 'HH:mm',
-      hour: 'HH:mm',
-      day: 'HH:mm',
-      week: 'HH:mm',
-      month: 'HH:mm',
-      quarter: 'HH:mm',
-      year: 'HH:mm',
-    },
-  },
-  ticks: {
-    display: true,
-    color: '#fff',
-    font: {
-      family: 'SatoshiVariable',
-      weight: '500',
-      size: 12,
-    },
-    maxTicksLimit: 15,
-    autoSkip: false,
-    maxRotation: 0,
-    minRotation: 0,
-  },
-  grid: {
-    display: false,
-  } as unknown as GridLineOptions,
-  border: {
-    display: true,
-    color: '#333750',
-  },
+  } as TimeScaleOptions;
 };
 
-export const yScale: ScaleOptions = {
-  ticks: {
-    display: true,
-    color: '#fff',
-    font: {
-      family: 'SatoshiVariable',
-      weight: '500',
-      size: 10,
-    },
-    align: 'end',
-    maxTicksLimit: 3,
-    mirror: true,
-    padding: -10,
-    labelOffset: -10,
+export const grid = {
+  horzLines: {
+    color: 'rgba(133,209,255,0.1)',
+    visible: false,
   },
-  position: 'right',
-  grid: {
-    display: true,
-    drawOnChartArea: true,
-    drawTicks: false,
-    color: function (context) {
-      return 'rgba(133,209,255,0.1)';
-    },
-  } as unknown as GridLineOptions,
-  border: {
-    display: true,
-    color: '#333750',
+  vertLines: {
+    color: '#000524',
+    visible: false,
   },
-};
+} as GridOptions;
+
+export const crosshair = {
+  horzLine: {
+    visible: true,
+    labelVisible: true,
+    labelBackgroundColor: '#000524',
+  },
+  vertLine: {
+    visible: true,
+    labelVisible: true,
+    labelBackgroundColor: '#000524',
+  },
+} as CrosshairOptions;

@@ -1,6 +1,18 @@
-export function getGradientDataset(ctx: CanvasRenderingContext2D, height: number): CanvasGradient {
-  const gradient = ctx.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, 'rgba(79, 223, 255, 0.31)');
-  gradient.addColorStop(1, 'rgba(79, 234, 255, 0)');
-  return gradient;
+import { PriceFormat } from 'lightweight-charts';
+
+export function humanizeScale(amount: string): PriceFormat {
+  const amountNo = Number(amount);
+  let maxSignDigits: number = 4;
+  if (amountNo > 1) {
+    return {
+      type: 'price',
+      precision: 2,
+      minMove: 0.01,
+    } as PriceFormat;
+  }
+  return {
+    type: 'price',
+    precision: maxSignDigits,
+    minMove: 0.0001,
+  } as PriceFormat;
 }

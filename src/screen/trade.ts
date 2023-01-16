@@ -18,7 +18,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
   render() {
     return html`
       <gc-trade-app
-        chart
+        chartDatasourceId="10"
         apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
         accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
         accountProvider="polkadot-js"
