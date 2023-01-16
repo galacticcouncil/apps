@@ -255,8 +255,9 @@ export class TradeChart extends LitElement {
       bottomColor: 'rgba(79, 234, 255, 0)',
       lineColor: '#85D1FF',
       lineWidth: 2,
+      crosshairMarkerRadius: 4,
+      //crosshairMarkerBorderColor: '#000524',
       // Disable default price line
-      crosshairMarkerVisible: false,
       lastValueVisible: false,
       priceLineVisible: false,
     });
