@@ -48,7 +48,7 @@ export class TradeTokens extends LitElement {
       }
 
       .header uigc-typography {
-        margin-top: 5px;
+        margin-top: 35px;
       }
 
       .transfer {
@@ -216,7 +216,7 @@ export class TradeTokens extends LitElement {
     };
     return html`
       <div class="header">
-        <uigc-typography variant="title">${i18n.t('xcm.title')}</uigc-typography>
+        <uigc-typography gradient variant="title">${i18n.t('xcm.title')}</uigc-typography>
         <span class="grow"></span>
       </div>
       <div class="transfer">

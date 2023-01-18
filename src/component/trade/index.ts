@@ -129,11 +129,15 @@ export class TradeApp extends LitElement {
         height: 84px;
       }
 
+      .header uigc-typography {
+        margin-top: 35px;
+      }
+
       .header.section {
         justify-content: center;
       }
 
-      .header uigc-typography {
+      .header.section uigc-typography {
         margin-top: 5px;
       }
 
@@ -889,12 +893,12 @@ export class TradeApp extends LitElement {
       @swap-clicked=${() => this.swap()}
     >
       <div class="header" slot="header">
-        <uigc-typography variant="title">${i18n.t('trade.title')}</uigc-typography>
+        <uigc-typography variant="title" gradient>${i18n.t('trade.title')}</uigc-typography>
         <span class="grow"></span>
-        <uigc-icon-button class="chart-close" @click=${this.onChartToggle}>
+        <uigc-icon-button basic class="chart-close" @click=${this.onChartToggle}>
           <uigc-icon-chart></uigc-icon-chart>
         </uigc-icon-button>
-        <uigc-icon-button @click=${this.onSettingsClick}>
+        <uigc-icon-button basic @click=${this.onSettingsClick}>
           <uigc-icon-settings></uigc-icon-settings>
         </uigc-icon-button>
       </div>
