@@ -83,30 +83,97 @@ export class TradeApp extends LitElement {
         position: relative;
       }
 
-      :host([chart]) {
-        max-width: 1170px;
-      }
-
-      :host([chart]) > div {
-        display: grid;
-        grid-template-columns: 1fr 520px;
-        grid-column-gap: 10px;
-      }
-
-      uigc-paper {
+      uigc-paper.main {
         display: block;
         border-radius: none;
       }
 
+      :host([chart]) {
+        max-width: 1170px;
+      }
+
       uigc-paper.chart {
-        background: transparent;
-        height: 500px;
+        display: none;
         box-shadow: none;
       }
 
+      uigc-icon-button.chart-close {
+        display: none;
+      }
+
+      :host([chart]) uigc-icon-button.chart-close {
+        display: block;
+        margin-right: 12px;
+      }
+
+      input[id='chart-switch'] {
+        display: none;
+      }
+
+      input[id='chart-switch']:checked ~ div > uigc-paper.main {
+        display: none;
+        box-shadow: none;
+      }
+
+      input[id='chart-switch']:checked ~ div > uigc-paper.chart {
+        display: block;
+        box-shadow: none;
+      }
+
+      .header {
+        position: relative;
+        display: flex;
+        padding: 22px 28px;
+        box-sizing: border-box;
+        align-items: center;
+        height: 84px;
+      }
+
+      .header.section {
+        justify-content: center;
+      }
+
+      .header uigc-typography {
+        margin-top: 5px;
+      }
+
+      .header .back {
+        position: absolute;
+        left: 20px;
+      }
+
       @media (min-width: 768px) {
+        :host([chart]) {
+          max-width: 1170px;
+        }
+
+        :host([chart]) > div {
+          display: grid;
+          padding: 0 20px 0 20px;
+          grid-template-columns: 1fr 520px;
+          grid-column-gap: 20px;
+        }
+
         uigc-paper {
           border-radius: var(--uigc-app-border-radius);
+        }
+
+        uigc-paper.main {
+          display: block;
+        }
+
+        uigc-paper.chart {
+          display: block;
+          background: transparent;
+          padding: 28px 0 28px 0;
+        }
+
+        uigc-paper.chart .header {
+          display: none;
+        }
+
+        :host([chart]) uigc-icon-button.chart-close {
+          display: none;
         }
       }
     `,
@@ -732,12 +799,21 @@ export class TradeApp extends LitElement {
     super.disconnectedCallback();
   }
 
+  onBackClick(e: any) {
+    this.changeScreen(TradeScreen.TradeTokens);
+  }
+
   settingsTemplate() {
     return html`<gc-trade-app-settings
       style="height: ${this.screen.height}px"
-      @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
       @slippage-changed=${() => this.recalculateTrade()}
-    ></gc-trade-app-settings>`;
+    >
+      <div class="header section" slot="header">
+        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
+        <uigc-typography variant="section">${i18n.t('trade.settings.title')}</uigc-typography>
+        <span></span>
+      </div>
+    </gc-trade-app-settings>`;
   }
 
   selectTokenTemplate() {
@@ -751,7 +827,6 @@ export class TradeApp extends LitElement {
       .assetOut=${this.trade.assetOut?.symbol}
       .switchAllowed=${this.isSwitchEnabled()}
       .selector=${this.assets.selector}
-      @back-clicked=${() => this.changeScreen(TradeScreen.TradeTokens)}
       @asset-clicked=${(e: CustomEvent) => {
         const { id, asset } = this.assets.selector;
         id == 'assetIn' && this.changeAssetIn(asset, e.detail);
@@ -760,7 +835,17 @@ export class TradeApp extends LitElement {
         this.validatePool();
         this.changeScreen(TradeScreen.TradeTokens);
       }}
-    ></gc-trade-app-select>`;
+    >
+      <div class="header section" slot="header">
+        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
+        <uigc-typography variant="section">${i18n.t('trade.selectAsset')}</uigc-typography>
+        <span></span>
+      </div>
+    </gc-trade-app-select>`;
+  }
+
+  onSettingsClick(e: any) {
+    this.changeScreen(TradeScreen.Settings);
   }
 
   tradeTokensTemplate() {
@@ -801,9 +886,29 @@ export class TradeApp extends LitElement {
         this.switch();
         this.validatePool();
       }}
-      @settings-clicked=${() => this.changeScreen(TradeScreen.Settings)}
       @swap-clicked=${() => this.swap()}
-    ></gc-trade-app-main>`;
+    >
+      <div class="header" slot="header">
+        <uigc-typography variant="title">${i18n.t('trade.title')}</uigc-typography>
+        <span class="grow"></span>
+        <uigc-icon-button class="chart-close" @click=${this.onChartToggle}>
+          <uigc-icon-chart></uigc-icon-chart>
+        </uigc-icon-button>
+        <uigc-icon-button @click=${this.onSettingsClick}>
+          <uigc-icon-settings></uigc-icon-settings>
+        </uigc-icon-button>
+      </div>
+    </gc-trade-app-main>`;
+  }
+
+  onChartToggle(e: any) {
+    const chartSwitch = this.shadowRoot.getElementById('chart-switch');
+    const checked = chartSwitch.hasAttribute('checked');
+    if (checked) {
+      chartSwitch.removeAttribute('checked');
+    } else {
+      chartSwitch.setAttribute('checked', '');
+    }
   }
 
   tradeChartTemplate() {
@@ -815,11 +920,20 @@ export class TradeApp extends LitElement {
       .assetOut=${this.trade.assetOut}
       .spotPrice=${this.trade.spotPrice}
       .usdPrice=${this.assets.usdPrice}
-    ></gc-trade-chart>`;
+    >
+      <div class="header section" slot="header">
+        <uigc-icon-button class="back" @click=${this.onChartToggle}>
+          <uigc-icon-back></uigc-icon-back>
+        </uigc-icon-button>
+        <uigc-typography variant="section">TRADE CHART</uigc-typography>
+        <span></span>
+      </div>
+    </gc-trade-chart>`;
   }
 
   render() {
     return html`
+      <input type="checkbox" id="chart-switch" />
       <div>
         ${when(this.chart, () => html` <uigc-paper class="chart"> ${this.tradeChartTemplate()}</uigc-paper>`)}
         <uigc-paper class="main">

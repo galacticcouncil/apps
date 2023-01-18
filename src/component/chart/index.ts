@@ -48,6 +48,8 @@ const weekRange = () => {
   } as TimeRange;
 };
 
+const CHART_HEIGHT = 315;
+
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
@@ -59,7 +61,7 @@ export class TradeChart extends LitElement {
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
-      this.chart.resize(entry.contentRect.width, 315);
+      this.chart.resize(entry.contentRect.width - 28, CHART_HEIGHT);
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
@@ -89,45 +91,55 @@ export class TradeChart extends LitElement {
         position: relative;
       }
 
-      .header {
+      .summary {
         height: 80px;
-        padding: 28px 28px 28px 0;
         display: flex;
         flex-direction: column;
         row-gap: 5px;
         color: #fff;
-      }
-
-      .header .info {
-        font-family: 'FontOver';
-        font-style: normal;
-        font-weight: 500;
-        font-size: 30px;
-        line-height: 100%;
-      }
-
-      .header .desc {
-        font-family: 'ChakraPetch';
-        font-style: normal;
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 100%;
+        padding: 14px;
       }
 
       .chart {
         height: 100%;
+        padding: 0 14px;
+      }
+
+      @media (min-width: 768px) {
+        .summary {
+          padding: 0 0 28px 0;
+        }
+
+        .chart {
+          padding: 0;
+        }
+      }
+
+      .summary .info {
+        font-family: 'FontOver';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 20px;
+        line-height: 100%;
+      }
+
+      .summary .desc {
+        font-family: 'ChakraPetch';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 100%;
       }
 
       .tooltip {
         position: absolute;
-        padding: 28px;
         box-sizing: border-box;
         font-size: 12px;
         color: #fff;
         text-align: right;
         z-index: 1000;
-        top: 0;
-        right: 0;
+        top: 94px;
+        right: 14px;
         pointer-events: none;
       }
 
@@ -135,7 +147,7 @@ export class TradeChart extends LitElement {
         font-family: 'FontOver';
         font-style: normal;
         font-weight: 500;
-        font-size: 24px;
+        font-size: 20px;
         line-height: 130%;
       }
 
@@ -149,6 +161,27 @@ export class TradeChart extends LitElement {
 
       .tooltip .price__selected {
         color: #85d1ff;
+      }
+
+      @media (min-width: 768px) {
+        .tooltip {
+          top: 0;
+          right: 0;
+        }
+
+        .summary .info {
+          font-weight: 500;
+          font-size: 30px;
+        }
+
+        .summary .desc {
+          font-weight: 500;
+          font-size: 14px;
+        }
+
+        .tooltip .price {
+          font-size: 24px;
+        }
       }
 
       .skeleton {
@@ -177,8 +210,26 @@ export class TradeChart extends LitElement {
     return multipleAmounts(price, usdPrice).toFixed(2);
   }
 
+  /**
+   * Create composite key for pair dataset. Keys are stored as Buys.
+   *
+   * @param inputAsset - Trade input asset
+   * @param outputAsset - Trade output asset
+   * @returns - composite key with semicolon between assets
+   */
+  private createDataKey(inputAsset: string, outputAsset: string) {
+    return inputAsset + ':' + outputAsset;
+  }
+
+  /**
+   * Return composite key for dataset pair. In case of sell assets are switched.
+   *
+   * @returns composite key representing assetIn:assetOut
+   */
   private dataKey() {
-    return this.assetIn?.symbol + ':' + this.assetOut?.symbol + ':' + this.tradeType;
+    return this.tradeType == TradeType.Buy
+      ? this.assetIn?.symbol + ':' + this.assetOut?.symbol
+      : this.assetOut?.symbol + ':' + this.assetIn?.symbol;
   }
 
   private hasRecord() {
@@ -198,7 +249,8 @@ export class TradeChart extends LitElement {
     const endOfDay = dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
     query(this.datasourceId, inputAsset.symbol, outputAsset.symbol, endOfDay, (ts, price) => {
       const formattedData = formatData(ts, price);
-      this.chartState.data.set(this.dataKey(), formattedData);
+      const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
+      this.chartState.data.set(dataKey, formattedData);
       this.syncChart(formattedData);
       this.syncChartRange();
     });
@@ -255,8 +307,6 @@ export class TradeChart extends LitElement {
       bottomColor: 'rgba(79, 234, 255, 0)',
       lineColor: '#85D1FF',
       lineWidth: 2,
-      crosshairMarkerRadius: 4,
-      //crosshairMarkerBorderColor: '#000524',
       // Disable default price line
       lastValueVisible: false,
       priceLineVisible: false,
@@ -292,11 +342,10 @@ export class TradeChart extends LitElement {
     super.update(changedProperties);
   }
 
-  handleResize(evt) {
-    const chartContainer = this.shadowRoot.getElementById('chart');
+  handleResize(_evt: UIEvent) {
     const newWidth = window.innerWidth - 540;
     if (newWidth < 640) {
-      this.chart.resize(window.innerWidth - 540, chartContainer.offsetHeight);
+      this.chart.resize(window.innerWidth - 540, CHART_HEIGHT);
       this.chart.timeScale().scrollToPosition(0, false);
     }
   }
@@ -308,10 +357,11 @@ export class TradeChart extends LitElement {
   }
 
   override disconnectedCallback() {
-    //this.chart.remove();
+    // this.chart.remove(); Destroy chart
     this.ro.unobserve(this);
     this.disconnectSubscribeNewHeads?.();
     super.disconnectedCallback();
+    window.removeEventListener('resize', this.handleResize);
   }
 
   render() {
@@ -326,7 +376,8 @@ export class TradeChart extends LitElement {
     const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
     const rangeVal = Range[this.chartState.range];
     return html`
-      <div class="header">
+      <slot name="header"></slot>
+      <div class="summary">
         ${when(
           this.assetIn || this.assetOut,
           () => html` <div class="info">${this.assetIn.symbol ?? '-'} / ${this.assetOut.symbol ?? '-'}</div>`,

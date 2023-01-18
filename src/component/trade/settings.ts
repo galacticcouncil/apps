@@ -42,21 +42,6 @@ export class Settings extends LitElement {
         height: 100%;
       }
 
-      .header {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        padding: 22px 28px;
-        box-sizing: border-box;
-        align-items: center;
-        height: 84px;
-      }
-
-      .header .back {
-        position: absolute;
-        left: 20px;
-      }
-
       .section {
         height: 40px;
         background: var(--uigc-app-bg-section);
@@ -201,11 +186,7 @@ export class Settings extends LitElement {
 
   render() {
     return html`
-      <div class="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <uigc-typography variant="section">${i18n.t('trade.settings.title')}</uigc-typography>
-        <span></span>
-      </div>
+      <slot name="header"></slot>
       <div class="section">${i18n.t('trade.settings.slippage')}</div>
       <div class="settings">
         <div class="row">

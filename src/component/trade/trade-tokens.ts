@@ -50,19 +50,6 @@ export class TradeTokens extends LitElement {
         height: 100%;
       }
 
-      .header {
-        position: relative;
-        display: flex;
-        padding: 22px 28px;
-        box-sizing: border-box;
-        align-items: center;
-        height: 84px;
-      }
-
-      .header uigc-typography {
-        margin-top: 5px;
-      }
-
       .transfer {
         display: flex;
         position: relative;
@@ -390,13 +377,7 @@ export class TradeTokens extends LitElement {
       show: Object.keys(this.error).length > 0,
     };
     return html`
-      <div class="header">
-        <uigc-typography variant="title">${i18n.t('trade.title')}</uigc-typography>
-        <span class="grow"></span>
-        <uigc-icon-button @click=${this.onSettingsClick}>
-          <uigc-icon-settings></uigc-icon-settings>
-        </uigc-icon-button>
-      </div>
+      <slot name="header"></slot>
       <div class="transfer">
         <uigc-asset-transfer
           id="assetIn"
