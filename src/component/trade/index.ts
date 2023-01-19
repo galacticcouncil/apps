@@ -123,21 +123,17 @@ export class TradeApp extends LitElement {
       .header {
         position: relative;
         display: flex;
-        padding: 22px 28px;
+        padding: 22px 14px;
         box-sizing: border-box;
         align-items: center;
         height: 84px;
-      }
-
-      .header uigc-typography {
-        margin-top: 35px;
       }
 
       .header.section {
         justify-content: center;
       }
 
-      .header.section uigc-typography {
+      .header uigc-typography {
         margin-top: 5px;
       }
 
@@ -162,6 +158,10 @@ export class TradeApp extends LitElement {
           padding: 0 20px 0 20px;
           grid-template-columns: 1fr 520px;
           grid-column-gap: 20px;
+        }
+
+        .header {
+          padding: 22px 28px;
         }
 
         uigc-paper {

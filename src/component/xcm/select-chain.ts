@@ -25,26 +25,6 @@ export class SelectChain extends LitElement {
         height: 100%;
       }
 
-      .header {
-        display: flex;
-        justify-content: center;
-        padding: 22px 28px;
-        box-sizing: border-box;
-        align-items: center;
-        height: 84px;
-      }
-
-      .header span {
-        color: var(--hex-neutral-gray-100);
-        font-weight: 500;
-        font-size: 16px;
-      }
-
-      .header .back {
-        position: absolute;
-        left: 20px;
-      }
-
       .search {
         padding: 0 14px;
         box-sizing: border-box;

@@ -74,21 +74,17 @@ export class XcmApp extends LitElement {
       .header {
         position: relative;
         display: flex;
-        padding: 22px 28px;
+        padding: 22px 14px;
         box-sizing: border-box;
         align-items: center;
         height: 84px;
-      }
-
-      .header uigc-typography {
-        margin-top: 35px;
       }
 
       .header.section {
         justify-content: center;
       }
 
-      .header.section uigc-typography {
+      .header uigc-typography {
         margin-top: 5px;
       }
 
@@ -105,6 +101,16 @@ export class XcmApp extends LitElement {
       @media (max-width: 520px) {
         uigc-paper {
           box-shadow: none;
+        }
+      }
+
+      @media (min-width: 768px) {
+        .header {
+          padding: 22px 28px;
+        }
+
+        uigc-paper {
+          border-radius: var(--uigc-app-border-radius);
         }
       }
     `,
