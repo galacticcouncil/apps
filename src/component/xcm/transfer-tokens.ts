@@ -39,18 +39,6 @@ export class TradeTokens extends LitElement {
         height: 100%;
       }
 
-      .header {
-        display: flex;
-        padding: 22px 28px;
-        box-sizing: border-box;
-        align-items: center;
-        height: 84px;
-      }
-
-      .header uigc-typography {
-        margin-top: 35px;
-      }
-
       .transfer {
         display: flex;
         flex-direction: column;
@@ -215,10 +203,7 @@ export class TradeTokens extends LitElement {
       show: this.dstChain == 'acala' && this.asset == 'DAI',
     };
     return html`
-      <div class="header">
-        <uigc-typography gradient variant="title">${i18n.t('xcm.title')}</uigc-typography>
-        <span class="grow"></span>
-      </div>
+      <slot name="header"></slot>
       <div class="transfer">
         <uigc-typography variant="subsection">${i18n.t('xcm.selectChains')}</uigc-typography>
         <div class="chain">

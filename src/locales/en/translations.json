@@ -50,5 +50,6 @@
   "xcm.dest": "Destination chain",
   "xcm.searchByName": "Search by name",
   "xcm.supportedChains": "Supported chains",
-  "xcm.selectAsset": "Select asset"
+  "xcm.selectAsset": "Select asset",
+  "chart.title": "Trade chart"
 }

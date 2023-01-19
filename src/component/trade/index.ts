@@ -146,6 +146,12 @@ export class TradeApp extends LitElement {
         left: 20px;
       }
 
+      @media (max-width: 520px) {
+        uigc-paper {
+          box-shadow: none;
+        }
+      }
+
       @media (min-width: 768px) {
         :host([chart]) {
           max-width: 1170px;
@@ -807,13 +813,29 @@ export class TradeApp extends LitElement {
     this.changeScreen(TradeScreen.TradeTokens);
   }
 
+  onSettingsClick(e: any) {
+    this.changeScreen(TradeScreen.Settings);
+  }
+
+  onChartToggle(e: any) {
+    const chartSwitch = this.shadowRoot.getElementById('chart-switch');
+    const checked = chartSwitch.hasAttribute('checked');
+    if (checked) {
+      chartSwitch.removeAttribute('checked');
+    } else {
+      chartSwitch.setAttribute('checked', '');
+    }
+  }
+
   settingsTemplate() {
     return html`<gc-trade-app-settings
       style="height: ${this.screen.height}px"
       @slippage-changed=${() => this.recalculateTrade()}
     >
       <div class="header section" slot="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
+        <uigc-icon-button class="back" @click=${this.onBackClick}>
+          <uigc-icon-back></uigc-icon-back>
+        </uigc-icon-button>
         <uigc-typography variant="section">${i18n.t('trade.settings.title')}</uigc-typography>
         <span></span>
       </div>
@@ -841,15 +863,13 @@ export class TradeApp extends LitElement {
       }}
     >
       <div class="header section" slot="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
+        <uigc-icon-button class="back" @click=${this.onBackClick}>
+          <uigc-icon-back></uigc-icon-back>
+        </uigc-icon-button>
         <uigc-typography variant="section">${i18n.t('trade.selectAsset')}</uigc-typography>
         <span></span>
       </div>
     </gc-trade-app-select>`;
-  }
-
-  onSettingsClick(e: any) {
-    this.changeScreen(TradeScreen.Settings);
   }
 
   tradeTokensTemplate() {
@@ -905,16 +925,6 @@ export class TradeApp extends LitElement {
     </gc-trade-app-main>`;
   }
 
-  onChartToggle(e: any) {
-    const chartSwitch = this.shadowRoot.getElementById('chart-switch');
-    const checked = chartSwitch.hasAttribute('checked');
-    if (checked) {
-      chartSwitch.removeAttribute('checked');
-    } else {
-      chartSwitch.setAttribute('checked', '');
-    }
-  }
-
   tradeChartTemplate() {
     return html` <gc-trade-chart
       .datasourceId=${this.chartDatasourceId}
@@ -929,7 +939,7 @@ export class TradeApp extends LitElement {
         <uigc-icon-button class="back" @click=${this.onChartToggle}>
           <uigc-icon-back></uigc-icon-back>
         </uigc-icon-button>
-        <uigc-typography variant="section">TRADE CHART</uigc-typography>
+        <uigc-typography variant="section">${i18n.t('chart.title')}</uigc-typography>
         <span></span>
       </div>
     </gc-trade-chart>`;

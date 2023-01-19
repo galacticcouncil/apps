@@ -71,9 +71,41 @@ export class XcmApp extends LitElement {
         position: relative;
       }
 
+      .header {
+        position: relative;
+        display: flex;
+        padding: 22px 28px;
+        box-sizing: border-box;
+        align-items: center;
+        height: 84px;
+      }
+
+      .header uigc-typography {
+        margin-top: 35px;
+      }
+
+      .header.section {
+        justify-content: center;
+      }
+
+      .header.section uigc-typography {
+        margin-top: 5px;
+      }
+
+      .header .back {
+        position: absolute;
+        left: 20px;
+      }
+
       uigc-paper {
         width: 100%;
         display: block;
+      }
+
+      @media (max-width: 520px) {
+        uigc-paper {
+          box-shadow: none;
+        }
       }
     `,
   ];
@@ -186,9 +218,9 @@ export class XcmApp extends LitElement {
     const minInput = this.input.minInput;
 
     if (amountFN.gt(this.input.maxInput)) {
-      this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', { amount: maxInput, asset: this.transfer.asset});
+      this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', { amount: maxInput, asset: this.transfer.asset });
     } else if (amountFN.lt(this.input.minInput)) {
-      this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', { amount: minInput, asset: this.transfer.asset});
+      this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', { amount: minInput, asset: this.transfer.asset });
     } else {
       delete this.transfer.error['amount'];
     }
@@ -425,6 +457,10 @@ export class XcmApp extends LitElement {
     super.disconnectedCallback();
   }
 
+  onBackClick(e: any) {
+    this.changeScreen(TransferScreen.Transfer);
+  }
+
   selectChainTemplate() {
     const isDest = this.chain.selector === this.transfer.dstChain;
     return html`<gc-xcm-app-chain
@@ -433,7 +469,6 @@ export class XcmApp extends LitElement {
       .srcChain=${this.transfer.srcChain}
       .dstChain=${this.transfer.dstChain}
       .selector=${this.chain.selector}
-      @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
       @list-item-clicked=${({ detail: { item } }: CustomEvent) => {
         if (isDest) {
           this.changeDestinationChain(item);
@@ -442,7 +477,15 @@ export class XcmApp extends LitElement {
         }
         this.changeScreen(TransferScreen.Transfer);
       }}
-    ></gc-xcm-app-chain>`;
+    >
+      <div class="header section" slot="header">
+        <uigc-icon-button class="back" @click=${this.onBackClick}>
+          <uigc-icon-back></uigc-icon-back>
+        </uigc-icon-button>
+        <uigc-typography variant="section">${isDest ? i18n.t('xcm.dest') : i18n.t('xcm.source')}</uigc-typography>
+        <span></span>
+      </div>
+    </gc-xcm-app-chain>`;
   }
 
   selectTokenTemplate() {
@@ -451,12 +494,19 @@ export class XcmApp extends LitElement {
       .assets=${this.chain.tokens}
       .balances=${this.chain.balance}
       .asset=${this.transfer.asset}
-      @back-clicked=${() => this.changeScreen(TransferScreen.Transfer)}
       @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
         this.changeAsset(symbol);
         this.changeScreen(TransferScreen.Transfer);
       }}
-    ></gc-xcm-app-token>`;
+    >
+      <div class="header section" slot="header">
+        <uigc-icon-button class="back" @click=${this.onBackClick}>
+          <uigc-icon-back></uigc-icon-back>
+        </uigc-icon-button>
+        <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
+        <span></span>
+      </div>
+    </gc-xcm-app-token>`;
   }
 
   transferTokensTemplate() {
@@ -489,7 +539,12 @@ export class XcmApp extends LitElement {
         this.changeScreen(TransferScreen.SelectChain);
       }}
       @transfer-clicked=${() => this.swap()}
-    ></gc-xcm-app-main>`;
+    >
+      <div class="header" slot="header">
+        <uigc-typography gradient variant="title">${i18n.t('xcm.title')}</uigc-typography>
+        <span class="grow"></span>
+      </div>
+    </gc-xcm-app-main>`;
   }
 
   render() {

@@ -26,20 +26,6 @@ export class SelectToken extends LitElement {
         height: 100%;
       }
 
-      .header {
-        display: flex;
-        justify-content: center;
-        padding: 22px 28px;
-        box-sizing: border-box;
-        align-items: center;
-        min-height: 84px;
-      }
-
-      .header .back {
-        position: absolute;
-        left: 20px;
-      }
-
       .search {
         padding: 0 14px;
         box-sizing: border-box;
@@ -114,11 +100,7 @@ export class SelectToken extends LitElement {
 
   render() {
     return html`
-      <div class="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
-        <span></span>
-      </div>
+      <slot name="header"></slot>
       <uigc-search-bar
         class="search"
         placeholder="${i18n.t('xcm.searchByName')}"

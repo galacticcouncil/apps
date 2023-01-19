@@ -103,14 +103,6 @@ export class SelectChain extends LitElement {
     }
   }
 
-  onBackClick(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('back-clicked', options));
-  }
-
   loadingTemplate() {
     return html`
       <div class="loading">
@@ -123,13 +115,8 @@ export class SelectChain extends LitElement {
   }
 
   render() {
-    const isDest = this.selector === this.dstChain;
     return html`
-      <div class="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}> <uigc-icon-back></uigc-icon-back> </uigc-icon-button>
-        <uigc-typography variant="section">${isDest ? i18n.t('xcm.dest') : i18n.t('xcm.source')}</uigc-typography>
-        <span></span>
-      </div>
+      <slot name="header"></slot>
       <uigc-search-bar
         class="search"
         placeholder="${i18n.t('xcm.searchByName')}"
