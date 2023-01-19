@@ -83,13 +83,13 @@ export class TradeApp extends LitElement {
         position: relative;
       }
 
+      :host([chart]) {
+        max-width: 1170px;
+      }
+
       uigc-paper.main {
         display: block;
         border-radius: none;
-      }
-
-      :host([chart]) {
-        max-width: 1170px;
       }
 
       uigc-paper.chart {
@@ -133,7 +133,7 @@ export class TradeApp extends LitElement {
         justify-content: center;
       }
 
-      .header uigc-typography {
+      .header uigc-typography[variant='title'] {
         margin-top: 5px;
       }
 

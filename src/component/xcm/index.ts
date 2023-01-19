@@ -84,7 +84,7 @@ export class XcmApp extends LitElement {
         justify-content: center;
       }
 
-      .header uigc-typography {
+      .header uigc-typography[variant='title'] {
         margin-top: 5px;
       }
 
