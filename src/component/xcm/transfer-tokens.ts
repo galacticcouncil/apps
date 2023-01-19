@@ -47,21 +47,12 @@ export class TradeTokens extends LitElement {
         row-gap: 11px;
       }
 
-      @media (min-width: 768px) {
-        .transfer {
-          padding: 0 28px;
-        }
-      }
-
       .transfer .chain {
         display: flex;
+        flex-direction: column;
         justify-content: space-between;
         align-items: center;
         grid-gap: 11px;
-      }
-
-      .transfer .switch {
-        transform: rotate(270deg);
       }
 
       .transfer .label {
@@ -69,6 +60,55 @@ export class TradeTokens extends LitElement {
         font-size: 14px;
         line-height: 100%;
         color: rgba(255, 255, 255, 0.7);
+      }
+
+      .transfer .divider {
+        background: var(--uigc-divider-background);
+        height: 1px;
+        width: 100%;
+        left: 0;
+        position: absolute;
+      }
+
+      .transfer .switch__desktop {
+        display: none;
+      }
+
+      .transfer .switch__mobile {
+        display: block;
+        align-items: center;
+        display: flex;
+        height: 43px;
+        justify-content: center;
+        width: 100%;
+      }
+
+      .transfer uigc-asset-switch.switch {
+        background: var(--uigc-asset-switch-background);
+        position: absolute;
+      }
+
+      @media (min-width: 768px) {
+        .transfer {
+          padding: 0 28px;
+        }
+
+        .transfer .chain {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          grid-gap: 11px;
+        }
+
+        .transfer .switch__desktop {
+          display: block;
+          transform: rotate(270deg);
+        }
+
+        .transfer .switch__mobile {
+          display: none;
+        }
       }
 
       .info {
@@ -208,7 +248,11 @@ export class TradeTokens extends LitElement {
         <uigc-typography variant="subsection">${i18n.t('xcm.selectChains')}</uigc-typography>
         <div class="chain">
           <uigc-chain-selector title="${i18n.t('xcm.source')}" .chain=${this.srcChain}></uigc-chain-selector>
-          <uigc-asset-switch basic class="switch"></uigc-asset-switch>
+          <div class="switch__mobile">
+            <div class="divider"></div>
+            <uigc-asset-switch class="switch"> </uigc-asset-switch>
+          </div>
+          <uigc-asset-switch basic class="switch__desktop"> </uigc-asset-switch>
           <uigc-chain-selector title="${i18n.t('xcm.dest')}" .chain=${this.dstChain}></uigc-chain-selector>
         </div>
         <uigc-typography variant="subsection">${i18n.t('xcm.assetAmount')}</uigc-typography>
