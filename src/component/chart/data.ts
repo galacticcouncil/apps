@@ -4,23 +4,23 @@ const GRAFANA_DS = 'https://grafana-api.play.hydration.cloud/api/ds/query';
 
 const dedupQuery = `SELECT
     timestamp AS "time",
-    max(price) as "price"
+    max(price) AS "price"
   FROM pair_price
   `;
 
 function buildQuery(assetIn: string, assetOut: string, endOfDay: string) {
-  return `with pair_price as (select 
+  return `WITH pair_price AS (SELECT 
     timestamp,
-    amount_in / amount_out as price
-   from normalized_trades
-   where asset_in = '${assetIn}' and asset_out = '${assetOut}' 
-   union all
-   select 
+    amount_in / amount_out AS price
+   FROM normalized_trades
+   WHERE asset_in = '${assetIn}' AND asset_out = '${assetOut}' 
+   UNION ALL
+   SELECT 
     timestamp,
-    amount_out / amount_in as price
-   from normalized_trades
-   where asset_in = '${assetOut}' and asset_out = '${assetIn}' 
-   order by timestamp)
+    amount_out / amount_in AS price
+   FROM normalized_trades
+   WHERE asset_in = '${assetOut}' AND asset_out = '${assetIn}' 
+   ORDER BY timestamp)
    ${dedupQuery} 
    WHERE
     "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 

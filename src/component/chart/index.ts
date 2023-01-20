@@ -5,6 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import * as cache from '@thi.ng/cache';
 
 import {
   createChart,
@@ -13,8 +14,6 @@ import {
   IPriceLine,
   UTCTimestamp,
   TimeRange,
-  PriceLineOptions,
-  LineStyle,
   SingleValueData,
 } from 'lightweight-charts';
 
@@ -26,7 +25,7 @@ import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { formatData, query } from './data';
 import { humanizeScale } from './utils';
 import { subscribeCrosshair } from './plugins';
-import { DEFAULT_TRADE_CHART_STATE, TradeChartState, Range } from './types';
+import { Range } from './types';
 import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeScale } from './opts';
 
 import './range/ButtonGroup';
@@ -37,14 +36,14 @@ import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 const dayRange = () => {
   return {
     from: dayjs().subtract(1, 'day').unix() as UTCTimestamp,
-    to: dayjs().local().unix() as UTCTimestamp,
+    to: dayjs().unix() as UTCTimestamp,
   } as TimeRange;
 };
 
 const weekRange = () => {
   return {
     from: dayjs().subtract(1, 'week').unix() as UTCTimestamp,
-    to: dayjs().local().unix() as UTCTimestamp,
+    to: dayjs().unix() as UTCTimestamp,
   } as TimeRange;
 };
 
@@ -53,6 +52,7 @@ const CHART_HEIGHT = 315;
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
+  private data = new cache.TLRUCache<string, SingleValueData[]>(null, { ttl: 1000 * 60 * 60 });
 
   private chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
@@ -61,12 +61,12 @@ export class TradeChart extends LitElement {
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
-      this.chart.resize(entry.contentRect.width - 28, CHART_HEIGHT);
+      this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
 
-  @state() chartState: TradeChartState = { ...DEFAULT_TRADE_CHART_STATE };
+  @state() range: Range = Range['1w'];
 
   @property({ type: Number }) datasourceId = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
@@ -233,12 +233,12 @@ export class TradeChart extends LitElement {
   }
 
   private hasRecord() {
-    return this.chartState.data.has(this.dataKey());
+    return this.data.has(this.dataKey());
   }
 
   private fetchData() {
     if (this.hasRecord()) {
-      const cachedData = this.chartState.data.get(this.dataKey());
+      const cachedData = this.data.get(this.dataKey());
       this.syncChart(cachedData);
       return;
     }
@@ -250,7 +250,7 @@ export class TradeChart extends LitElement {
     query(this.datasourceId, inputAsset.symbol, outputAsset.symbol, endOfDay, (ts, price) => {
       const formattedData = formatData(ts, price);
       const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
-      this.chartState.data.set(dataKey, formattedData);
+      this.data.set(dataKey, formattedData);
       this.syncChart(formattedData);
       this.syncChartRange();
     });
@@ -258,16 +258,19 @@ export class TradeChart extends LitElement {
 
   private syncChart(data: SingleValueData[]) {
     this.chartSeries.setData(data);
+    this.chartSeries.update({
+      time: dayjs().unix() as UTCTimestamp,
+      value: this.spotPrice,
+    });
     this.chartSeries.applyOptions({
       priceFormat: humanizeScale(this.spotPrice),
       priceLineVisible: false,
       priceLineSource: 1,
     });
-    this.syncPriceLine();
   }
 
   private syncChartRange() {
-    const range = this.chartState.range;
+    const range = this.range;
     switch (range) {
       case Range['1d']:
         this.chart.timeScale().setVisibleRange(dayRange());
@@ -281,25 +284,17 @@ export class TradeChart extends LitElement {
     }
   }
 
-  private syncPriceLine() {
-    this.chartPriceLine && this.chartSeries.removePriceLine(this.chartPriceLine);
-    this.chartPriceLine = this.chartSeries.createPriceLine({
-      price: this.spotPrice,
-      color: '#85D1FF',
-      lineStyle: LineStyle.Dashed,
-      axisLabelVisible: true,
-    } as PriceLineOptions);
-  }
-
   override async firstUpdated() {
     this.chartContainer = this.shadowRoot.getElementById('chart');
     this.chart = createChart(this.chartContainer, {
       layout: layoutOptions,
       rightPriceScale: rightPriceScale,
       leftPriceScale: leftPriceScale,
-      timeScale: timeScale(this.chartState.range, dayjs),
+      timeScale: timeScale(this.range, dayjs),
       grid: grid,
       crosshair: crosshair,
+      handleScale: false,
+      handleScroll: false,
     });
 
     this.chartSeries = this.chart.addAreaSeries({
@@ -307,9 +302,6 @@ export class TradeChart extends LitElement {
       bottomColor: 'rgba(79, 234, 255, 0)',
       lineColor: '#85D1FF',
       lineWidth: 2,
-      // Disable default price line
-      lastValueVisible: false,
-      priceLineVisible: false,
     });
 
     const selected = this.shadowRoot.getElementById('selected');
@@ -323,7 +315,8 @@ export class TradeChart extends LitElement {
     const api = chainCursor.deref().api;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       if (this.hasRecord()) {
-        this.syncPriceLine();
+        const cachedData = this.data.get(this.dataKey());
+        this.syncChart(cachedData);
       }
     });
   }
@@ -374,7 +367,7 @@ export class TradeChart extends LitElement {
       hidden: !this.spotPrice,
     };
     const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
-    const rangeVal = Range[this.chartState.range];
+    const rangeVal = Range[this.range];
     return html`
       <slot name="header"></slot>
       <div class="summary">
@@ -386,7 +379,7 @@ export class TradeChart extends LitElement {
         <uigc-range-button-group
           selected=${rangeVal}
           @range-button-clicked=${(e: CustomEvent) => {
-            this.chartState.range = Range[e.detail.value];
+            this.range = Range[e.detail.value];
             this.requestUpdate();
             this.syncChartRange();
           }}
