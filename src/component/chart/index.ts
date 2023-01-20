@@ -57,11 +57,10 @@ export class TradeChart extends LitElement {
   private chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
   private chartSeries: ISeriesApi<'Area'> = null;
-  private chartPriceLine: IPriceLine = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
-      this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
+      this.chart.resize(entry.contentRect.width - 20, CHART_HEIGHT);
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
@@ -92,12 +91,27 @@ export class TradeChart extends LitElement {
       }
 
       .summary {
-        height: 80px;
-        display: flex;
-        flex-direction: column;
+        display: grid;
         row-gap: 5px;
         color: #fff;
-        padding: 14px;
+        padding: 0 14px;
+        align-items: baseline;
+      }
+
+      .summary > :nth-child(1) {
+        grid-area: 1 / 1 / 2 / 2;
+      }
+
+      .summary > :nth-child(2) {
+        grid-area: 1 / 2 / 2 / 3;
+      }
+
+      .summary > :nth-child(3) {
+        grid-area: 1 / 2 / 2 / 3;
+      }
+
+      .summary > :nth-child(4) {
+        grid-area: 2 / 1 / 3 / 3;
       }
 
       .chart {
@@ -107,7 +121,19 @@ export class TradeChart extends LitElement {
 
       @media (min-width: 768px) {
         .summary {
-          padding: 0 0 28px 0;
+          padding: 0 28px;
+          align-items: center;
+        }
+
+        .chart {
+          padding: 0 28px 28px;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .summary {
+          padding: 0;
+          align-items: center;
         }
 
         .chart {
@@ -132,14 +158,11 @@ export class TradeChart extends LitElement {
       }
 
       .tooltip {
-        position: absolute;
+        height: unset;
         box-sizing: border-box;
         font-size: 12px;
         color: #fff;
         text-align: right;
-        z-index: 1000;
-        top: 94px;
-        right: 14px;
         pointer-events: none;
       }
 
@@ -157,6 +180,9 @@ export class TradeChart extends LitElement {
         font-weight: 500;
         font-size: 14px;
         line-height: 100%;
+        position: absolute;
+        right: 16px;
+        top: 110px;
       }
 
       .tooltip .price__selected {
@@ -164,11 +190,12 @@ export class TradeChart extends LitElement {
       }
 
       @media (min-width: 768px) {
-        .tooltip {
-          top: 0;
-          right: 0;
+        .tooltip .usd {
+          right: 31px; // 28px + 3px
         }
+      }
 
+      @media (min-width: 1024px) {
         .summary .info {
           font-weight: 500;
           font-size: 30px;
@@ -179,8 +206,17 @@ export class TradeChart extends LitElement {
           font-size: 14px;
         }
 
+        .tooltip {
+          height: 35px;
+        }
+
         .tooltip .price {
           font-size: 24px;
+        }
+
+        .tooltip .usd {
+          right: 3px;
+          top: 28px;
         }
       }
 
@@ -336,8 +372,9 @@ export class TradeChart extends LitElement {
   }
 
   handleResize(_evt: UIEvent) {
-    const newWidth = window.innerWidth - 540;
-    if (newWidth < 640) {
+    const innerWidth = window.innerWidth;
+    const newWidth = innerWidth - 540;
+    if (innerWidth > 1024 && newWidth < 640) {
       this.chart.resize(window.innerWidth - 540, CHART_HEIGHT);
       this.chart.timeScale().scrollToPosition(0, false);
     }
@@ -376,6 +413,27 @@ export class TradeChart extends LitElement {
           () => html` <div class="info">${this.assetIn.symbol ?? '-'} / ${this.assetOut.symbol ?? '-'}</div>`,
           () => html` <div class="info">Loading...</div>`
         )}
+        <div id="selected" class="tooltip skeleton"></div>
+        <div id="actual" class="tooltip skeleton">
+          ${when(
+            this.tradeProgress,
+            () => html`
+              <uigc-skeleton progress rectangle width="213px" height="20px"></uigc-skeleton>
+              <uigc-skeleton class="usd usd-skeleton" progress rectangle width="50px" height="10px"></uigc-skeleton>
+            `,
+            () => html`
+              <div class=${classMap(priceClasses)}>
+                ${humanizeAmount(this.spotPrice)}
+                <span class="asset">
+                  ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span
+                >
+              </div>
+              <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>
+            `
+          )}
+        </div>
+      </div>
+      <div id="chart" class="chart">
         <uigc-range-button-group
           selected=${rangeVal}
           @range-button-clicked=${(e: CustomEvent) => {
@@ -386,26 +444,6 @@ export class TradeChart extends LitElement {
         >
           ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}
         </uigc-range-button-group>
-      </div>
-      <div id="chart" class="chart"></div>
-      <div id="selected" class="tooltip skeleton"></div>
-      <div id="actual" class="tooltip skeleton">
-        ${when(
-          this.tradeProgress,
-          () => html`
-            <uigc-skeleton progress rectangle width="213px" height="30px"></uigc-skeleton>
-            <uigc-skeleton class="usd-skeleton" progress rectangle width="50px" height="14px"></uigc-skeleton>
-          `,
-          () => html`
-            <div class=${classMap(priceClasses)}>
-              ${humanizeAmount(this.spotPrice)}
-              <span class="asset">
-                ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span
-              >
-            </div>
-            <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>
-          `
-        )}
       </div>
     `;
   }

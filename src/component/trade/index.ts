@@ -84,17 +84,16 @@ export class TradeApp extends LitElement {
       }
 
       :host([chart]) {
-        max-width: 1170px;
+        max-width: 520px;
       }
 
       uigc-paper.main {
         display: block;
-        border-radius: none;
       }
 
       uigc-paper.chart {
         display: none;
-        box-shadow: none;
+        //box-shadow: none;
       }
 
       uigc-icon-button.chart-close {
@@ -112,12 +111,10 @@ export class TradeApp extends LitElement {
 
       input[id='chart-switch']:checked ~ div > uigc-paper.main {
         display: none;
-        box-shadow: none;
       }
 
       input[id='chart-switch']:checked ~ div > uigc-paper.chart {
         display: block;
-        box-shadow: none;
       }
 
       .header {
@@ -149,6 +146,16 @@ export class TradeApp extends LitElement {
       }
 
       @media (min-width: 768px) {
+        .header {
+          padding: 22px 28px;
+        }
+
+        uigc-paper {
+          border-radius: var(--uigc-app-border-radius);
+        }
+      }
+
+      @media (min-width: 1024px) {
         :host([chart]) {
           max-width: 1170px;
         }
@@ -160,12 +167,12 @@ export class TradeApp extends LitElement {
           grid-column-gap: 20px;
         }
 
-        .header {
-          padding: 22px 28px;
+        input[id='chart-switch']:checked ~ div > uigc-paper.main {
+          display: block;
         }
 
-        uigc-paper {
-          border-radius: var(--uigc-app-border-radius);
+        input[id='chart-switch']:checked ~ div > uigc-paper.chart {
+          display: block;
         }
 
         uigc-paper.main {
@@ -175,6 +182,7 @@ export class TradeApp extends LitElement {
         uigc-paper.chart {
           display: block;
           background: transparent;
+          box-shadow: none;
           padding: 28px 0 28px 0;
         }
 
