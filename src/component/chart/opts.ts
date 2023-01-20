@@ -25,6 +25,7 @@ export const rightPriceScale = {
   },
   visible: true,
   borderVisible: true,
+  entireTextOnly: true,
   borderColor: 'rgba(114, 131, 165, 0.6)',
 } as PriceScaleOptions;
 
@@ -34,6 +35,8 @@ export const leftPriceScale = {
 
 export const timeScale = (range: Range, dayjs) => {
   return {
+    fixLeftEdge: true,
+    fixRightEdge: true,
     borderVisible: true,
     borderColor: 'rgba(114, 131, 165, 0.6)',
     timeVisible: true,
