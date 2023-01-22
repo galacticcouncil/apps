@@ -82,11 +82,13 @@ export class TradeApp extends LitElement {
       }
 
       uigc-paper.main {
+        display: block;
         grid-area: main;
         position: relative;
       }
 
       uigc-paper.chart {
+        display: block;
         grid-area: main;
         position: relative;
       }
@@ -116,7 +118,7 @@ export class TradeApp extends LitElement {
         padding: 22px 14px;
         box-sizing: border-box;
         align-items: center;
-        height: 84px;
+        min-height: 84px;
       }
 
       .header.section {
@@ -730,7 +732,6 @@ export class TradeApp extends LitElement {
     const assets = await router.getAllAssets();
     const assetsPairs = await getAssetsPairs(assets);
     const assetsDetails = await getAssetsDetail(assets);
-
     this.assets = {
       ...this.assets,
       list: assets,
@@ -838,6 +839,7 @@ export class TradeApp extends LitElement {
       <gc-trade-app-select
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
+        .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.trade.assetIn?.symbol}

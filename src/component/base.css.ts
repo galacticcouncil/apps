@@ -180,4 +180,18 @@ export const baseStyles = css`
   h3 {
     font-size: 18px;
   }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: transparent url('assets/img/scrollbar.svg') no-repeat;
+    background-position: bottom;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 `;
