@@ -7,15 +7,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import * as cache from '@thi.ng/cache';
 
-import {
-  createChart,
-  IChartApi,
-  ISeriesApi,
-  IPriceLine,
-  UTCTimestamp,
-  TimeRange,
-  SingleValueData,
-} from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, UTCTimestamp, TimeRange, SingleValueData } from 'lightweight-charts';
 
 import { baseStyles } from '../base.css';
 import { Chain, chainCursor } from '../../db';
@@ -33,20 +25,6 @@ import './range/Button';
 
 import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
-const dayRange = () => {
-  return {
-    from: dayjs().subtract(1, 'day').unix() as UTCTimestamp,
-    to: dayjs().unix() as UTCTimestamp,
-  } as TimeRange;
-};
-
-const weekRange = () => {
-  return {
-    from: dayjs().subtract(1, 'week').unix() as UTCTimestamp,
-    to: dayjs().unix() as UTCTimestamp,
-  } as TimeRange;
-};
-
 const CHART_HEIGHT = 315;
 
 @customElement('gc-trade-chart')
@@ -60,7 +38,14 @@ export class TradeChart extends LitElement {
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
-      this.chart.resize(entry.contentRect.width - 20, CHART_HEIGHT);
+      const iWidth = window.innerWidth;
+      if (iWidth > 1023) {
+        this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
+      } else if (iWidth < 768) {
+        this.chart.resize(entry.contentRect.width - 2 * 14, CHART_HEIGHT);
+      } else {
+        this.chart.resize(entry.contentRect.width - 2 * 28, CHART_HEIGHT);
+      }
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
@@ -116,7 +101,7 @@ export class TradeChart extends LitElement {
 
       .chart {
         height: 100%;
-        padding: 0 14px;
+        padding-left: 14px;
       }
 
       @media (min-width: 768px) {
@@ -126,7 +111,7 @@ export class TradeChart extends LitElement {
         }
 
         .chart {
-          padding: 0 28px 28px;
+          padding-left: 28px;
         }
       }
 
@@ -137,7 +122,7 @@ export class TradeChart extends LitElement {
         }
 
         .chart {
-          padding: 0;
+          padding-left: 0;
         }
       }
 
@@ -158,6 +143,7 @@ export class TradeChart extends LitElement {
       }
 
       .tooltip {
+        position: relative;
         height: unset;
         box-sizing: border-box;
         font-size: 12px;
@@ -181,18 +167,12 @@ export class TradeChart extends LitElement {
         font-size: 14px;
         line-height: 100%;
         position: absolute;
-        right: 16px;
-        top: 110px;
+        right: 3px;
+        top: 25px;
       }
 
       .tooltip .price__selected {
         color: #85d1ff;
-      }
-
-      @media (min-width: 768px) {
-        .tooltip .usd {
-          right: 31px; // 28px + 3px
-        }
       }
 
       @media (min-width: 1024px) {
@@ -215,7 +195,6 @@ export class TradeChart extends LitElement {
         }
 
         .tooltip .usd {
-          right: 3px;
           top: 28px;
         }
       }
@@ -282,42 +261,50 @@ export class TradeChart extends LitElement {
     const inputAsset = this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
     const outputAsset = this.tradeType == TradeType.Buy ? this.assetOut : this.assetIn;
 
+    if (!inputAsset?.symbol || !outputAsset?.symbol) {
+      return;
+    }
+
     const endOfDay = dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
     query(this.datasourceId, inputAsset.symbol, outputAsset.symbol, endOfDay, (ts, price) => {
       const formattedData = formatData(ts, price);
       const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
       this.data.set(dataKey, formattedData);
       this.syncChart(formattedData);
-      this.syncChartRange();
     });
   }
 
   private syncChart(data: SingleValueData[]) {
-    this.chartSeries.setData(data);
-    this.chartSeries.update({
-      time: dayjs().unix() as UTCTimestamp,
-      value: this.spotPrice,
-    });
+    const lastPrice = this.getLastPrice();
+    const rangeFrom = this.getRangeFrom();
+    const rangeData = data.filter((point: SingleValueData) => point.time > rangeFrom);
+    this.chartSeries.setData(rangeData);
+    this.chartSeries.update(lastPrice);
     this.chartSeries.applyOptions({
       priceFormat: humanizeScale(this.spotPrice),
-      priceLineVisible: false,
+      priceLineVisible: true,
       priceLineSource: 1,
     });
+    this.chart.timeScale().fitContent();
   }
 
-  private syncChartRange() {
+  private getRangeFrom(): UTCTimestamp {
     const range = this.range;
     switch (range) {
       case Range['1d']:
-        this.chart.timeScale().setVisibleRange(dayRange());
-        break;
+        return dayjs().subtract(1, 'day').unix() as UTCTimestamp;
       case Range['1w']:
-        this.chart.timeScale().setVisibleRange(weekRange());
-        break;
+        return dayjs().subtract(1, 'week').unix() as UTCTimestamp;
       default:
-        this.chart.timeScale().fitContent();
-        break;
+        return 0 as UTCTimestamp;
     }
+  }
+
+  private getLastPrice(): SingleValueData {
+    return {
+      time: dayjs().unix() as UTCTimestamp,
+      value: this.spotPrice,
+    } as SingleValueData;
   }
 
   override async firstUpdated() {
@@ -350,10 +337,7 @@ export class TradeChart extends LitElement {
   async subscribe() {
     const api = chainCursor.deref().api;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      if (this.hasRecord()) {
-        const cachedData = this.data.get(this.dataKey());
-        this.syncChart(cachedData);
-      }
+      this.fetchData();
     });
   }
 
@@ -371,27 +355,15 @@ export class TradeChart extends LitElement {
     super.update(changedProperties);
   }
 
-  handleResize(_evt: UIEvent) {
-    const innerWidth = window.innerWidth;
-    const newWidth = innerWidth - 540;
-    if (innerWidth > 1024 && newWidth < 640) {
-      this.chart.resize(window.innerWidth - 540, CHART_HEIGHT);
-      this.chart.timeScale().scrollToPosition(0, false);
-    }
-  }
-
   override connectedCallback() {
     super.connectedCallback();
     this.ro.observe(this);
-    window.addEventListener('resize', (evt) => this.handleResize(evt));
   }
 
   override disconnectedCallback() {
-    // this.chart.remove(); Destroy chart
     this.ro.unobserve(this);
     this.disconnectSubscribeNewHeads?.();
     super.disconnectedCallback();
-    window.removeEventListener('resize', this.handleResize);
   }
 
   render() {
@@ -439,7 +411,7 @@ export class TradeChart extends LitElement {
           @range-button-clicked=${(e: CustomEvent) => {
             this.range = Range[e.detail.value];
             this.requestUpdate();
-            this.syncChartRange();
+            this.fetchData();
           }}
         >
           ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}

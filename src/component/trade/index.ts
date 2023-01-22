@@ -1,7 +1,7 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
@@ -50,11 +50,6 @@ export class TradeApp extends LitElement {
 
   private tx: Transaction = null;
   private ready: boolean = false;
-  private ro = new ResizeObserver((entries) => {
-    entries.forEach((entry) => {
-      this.screen.height = entry.contentRect.height;
-    });
-  });
   private disconnectSubscribeNewHeads: () => void = null;
 
   @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
@@ -83,38 +78,38 @@ export class TradeApp extends LitElement {
         position: relative;
       }
 
-      :host([chart]) {
-        max-width: 520px;
+      .trade-root {
+        display: grid;
+        grid-template-areas: 'main';
       }
 
       uigc-paper.main {
-        display: block;
+        grid-area: main;
+        position: relative;
       }
 
       uigc-paper.chart {
-        display: none;
-        //box-shadow: none;
+        grid-area: main;
+        position: relative;
       }
 
-      uigc-icon-button.chart-close {
+      uigc-icon-button.chart-btn {
         display: none;
       }
 
-      :host([chart]) uigc-icon-button.chart-close {
+      :host([chart]) uigc-icon-button.chart-btn {
         display: block;
         margin-right: 12px;
       }
 
-      input[id='chart-switch'] {
-        display: none;
+      .tab {
+        visibility: hidden;
+        opacity: 0;
       }
 
-      input[id='chart-switch']:checked ~ div > uigc-paper.main {
-        display: none;
-      }
-
-      input[id='chart-switch']:checked ~ div > uigc-paper.chart {
-        display: block;
+      .tab.active {
+        visibility: visible;
+        opacity: 1;
       }
 
       .header {
@@ -163,34 +158,27 @@ export class TradeApp extends LitElement {
         :host([chart]) > div {
           display: grid;
           padding: 0 20px 0 20px;
-          grid-template-columns: 1fr 520px;
+          grid-template-areas:
+            'chart main'
+            'dca main';
+          grid-template-columns: 1fr minmax(auto, 520px);
           grid-column-gap: 20px;
         }
 
-        input[id='chart-switch']:checked ~ div > uigc-paper.main {
-          display: block;
-        }
-
-        input[id='chart-switch']:checked ~ div > uigc-paper.chart {
-          display: block;
-        }
-
-        uigc-paper.main {
-          display: block;
-        }
-
-        uigc-paper.chart {
-          display: block;
+        :host([chart]) uigc-paper.chart {
+          visibility: visible;
+          opacity: 1;
+          grid-area: chart;
           background: transparent;
           box-shadow: none;
           padding: 28px 0 28px 0;
         }
 
-        uigc-paper.chart .header {
+        :host([chart]) uigc-paper.chart .header {
           display: none;
         }
 
-        :host([chart]) uigc-icon-button.chart-close {
+        :host([chart]) uigc-icon-button.chart-btn {
           display: none;
         }
       }
@@ -805,166 +793,171 @@ export class TradeApp extends LitElement {
     }
   }
 
+  handleResize(_evt: UIEvent) {
+    if (window.innerWidth > 1023 && TradeScreen.TradeChart == this.screen.active) {
+      this.changeScreen(TradeScreen.TradeTokens);
+    }
+  }
+
   override connectedCallback() {
     super.connectedCallback();
-    this.ro.observe(this);
+    window.addEventListener('resize', (evt) => this.handleResize(evt));
     this.resetTrade(true);
   }
 
   override disconnectedCallback() {
-    this.ro.unobserve(this);
     this.disconnectSubscribeNewHeads?.();
+    window.removeEventListener('resize', this.handleResize);
     super.disconnectedCallback();
   }
 
-  onBackClick(e: any) {
-    this.changeScreen(TradeScreen.TradeTokens);
-  }
-
-  onSettingsClick(e: any) {
-    this.changeScreen(TradeScreen.Settings);
-  }
-
-  onChartToggle(e: any) {
-    const chartSwitch = this.shadowRoot.getElementById('chart-switch');
-    const checked = chartSwitch.hasAttribute('checked');
-    if (checked) {
-      chartSwitch.removeAttribute('checked');
-    } else {
-      chartSwitch.setAttribute('checked', '');
-    }
-  }
-
   settingsTemplate() {
-    return html`<gc-trade-app-settings
-      style="height: ${this.screen.height}px"
-      @slippage-changed=${() => this.recalculateTrade()}
-    >
-      <div class="header section" slot="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}>
-          <uigc-icon-back></uigc-icon-back>
-        </uigc-icon-button>
-        <uigc-typography variant="section">${i18n.t('trade.settings.title')}</uigc-typography>
-        <span></span>
-      </div>
-    </gc-trade-app-settings>`;
+    const classes = {
+      tab: true,
+      main: true,
+      active: this.screen.active == TradeScreen.Settings,
+    };
+    return html` <uigc-paper class=${classMap(classes)}>
+      <gc-trade-app-settings @slippage-changed=${() => this.recalculateTrade()}>
+        <div class="header section" slot="header">
+          <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section">${i18n.t('trade.settings.title')}</uigc-typography>
+          <span></span>
+        </div>
+      </gc-trade-app-settings>
+    </uigc-paper>`;
   }
 
   selectTokenTemplate() {
-    return html`<gc-trade-app-select
-      style="height: ${this.screen.height}px"
-      .assets=${this.assets.list}
-      .pairs=${this.assets.pairs}
-      .balances=${this.assets.balance}
-      .usdPrice=${this.assets.usdPrice}
-      .assetIn=${this.trade.assetIn?.symbol}
-      .assetOut=${this.trade.assetOut?.symbol}
-      .switchAllowed=${this.isSwitchEnabled()}
-      .selector=${this.assets.selector}
-      @asset-clicked=${(e: CustomEvent) => {
-        const { id, asset } = this.assets.selector;
-        id == 'assetIn' && this.changeAssetIn(asset, e.detail);
-        id == 'assetOut' && this.changeAssetOut(asset, e.detail);
-        this.updateBalances();
-        this.validatePool();
-        this.changeScreen(TradeScreen.TradeTokens);
-      }}
-    >
-      <div class="header section" slot="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}>
-          <uigc-icon-back></uigc-icon-back>
-        </uigc-icon-button>
-        <uigc-typography variant="section">${i18n.t('trade.selectAsset')}</uigc-typography>
-        <span></span>
-      </div>
-    </gc-trade-app-select>`;
+    const classes = {
+      tab: true,
+      main: true,
+      active: this.screen.active == TradeScreen.SelectToken,
+    };
+    return html` <uigc-paper class=${classMap(classes)}>
+      <gc-trade-app-select
+        .assets=${this.assets.list}
+        .pairs=${this.assets.pairs}
+        .balances=${this.assets.balance}
+        .usdPrice=${this.assets.usdPrice}
+        .assetIn=${this.trade.assetIn?.symbol}
+        .assetOut=${this.trade.assetOut?.symbol}
+        .switchAllowed=${this.isSwitchEnabled()}
+        .selector=${this.assets.selector}
+        @asset-clicked=${(e: CustomEvent) => {
+          const { id, asset } = this.assets.selector;
+          id == 'assetIn' && this.changeAssetIn(asset, e.detail);
+          id == 'assetOut' && this.changeAssetOut(asset, e.detail);
+          this.updateBalances();
+          this.validatePool();
+          this.changeScreen(TradeScreen.TradeTokens);
+        }}
+      >
+        <div class="header section" slot="header">
+          <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section">${i18n.t('trade.selectAsset')}</uigc-typography>
+          <span></span>
+        </div>
+      </gc-trade-app-select>
+    </uigc-paper>`;
   }
 
   tradeTokensTemplate() {
-    return html`<gc-trade-app-main
-      .assets=${this.assets.map}
-      .pairs=${this.assets.pairs}
-      .inProgress=${this.trade.inProgress}
-      .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError() || !this.tx}
-      .switchAllowed=${this.isSwitchEnabled()}
-      .tradeType=${this.trade.type}
-      .assetIn=${this.trade.assetIn}
-      .assetOut=${this.trade.assetOut}
-      .amountIn=${this.trade.amountIn}
-      .amountInUsd=${this.trade.amountInUsd}
-      .amountOut=${this.trade.amountOut}
-      .amountOutUsd=${this.trade.amountOutUsd}
-      .balanceIn=${this.trade.balanceIn}
-      .balanceOut=${this.trade.balanceOut}
-      .spotPrice=${this.trade.spotPrice}
-      .afterSlippage=${this.trade.afterSlippage}
-      .priceImpactPct=${this.trade.priceImpactPct}
-      .tradeFee=${this.trade.tradeFee}
-      .tradeFeePct=${this.trade.tradeFeePct}
-      .transactionFee=${this.trade.transactionFee}
-      .error=${this.trade.error}
-      .swaps=${this.trade.swaps}
-      @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
-        this.assets.active = asset;
-        id == 'assetIn' && this.updateAmountIn(value);
-        id == 'assetOut' && this.updateAmountOut(value);
-        this.validateEnoughBalance();
-      }}
-      @asset-selector-clicked=${({ detail }: CustomEvent) => {
-        this.assets.selector = detail;
-        this.changeScreen(TradeScreen.SelectToken);
-      }}
-      @asset-switch-clicked=${() => {
-        this.switch();
-        this.validatePool();
-      }}
-      @swap-clicked=${() => this.swap()}
-    >
-      <div class="header" slot="header">
-        <uigc-typography variant="title" gradient>${i18n.t('trade.title')}</uigc-typography>
-        <span class="grow"></span>
-        <uigc-icon-button basic class="chart-close" @click=${this.onChartToggle}>
-          <uigc-icon-chart></uigc-icon-chart>
-        </uigc-icon-button>
-        <uigc-icon-button basic @click=${this.onSettingsClick}>
-          <uigc-icon-settings></uigc-icon-settings>
-        </uigc-icon-button>
-      </div>
-    </gc-trade-app-main>`;
+    const classes = {
+      tab: true,
+      main: true,
+      active: this.screen.active == TradeScreen.TradeTokens,
+    };
+    return html` <uigc-paper class=${classMap(classes)}>
+      <gc-trade-app-main
+        .assets=${this.assets.map}
+        .pairs=${this.assets.pairs}
+        .inProgress=${this.trade.inProgress}
+        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError() || !this.tx}
+        .switchAllowed=${this.isSwitchEnabled()}
+        .tradeType=${this.trade.type}
+        .assetIn=${this.trade.assetIn}
+        .assetOut=${this.trade.assetOut}
+        .amountIn=${this.trade.amountIn}
+        .amountInUsd=${this.trade.amountInUsd}
+        .amountOut=${this.trade.amountOut}
+        .amountOutUsd=${this.trade.amountOutUsd}
+        .balanceIn=${this.trade.balanceIn}
+        .balanceOut=${this.trade.balanceOut}
+        .spotPrice=${this.trade.spotPrice}
+        .afterSlippage=${this.trade.afterSlippage}
+        .priceImpactPct=${this.trade.priceImpactPct}
+        .tradeFee=${this.trade.tradeFee}
+        .tradeFeePct=${this.trade.tradeFeePct}
+        .transactionFee=${this.trade.transactionFee}
+        .error=${this.trade.error}
+        .swaps=${this.trade.swaps}
+        @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
+          this.assets.active = asset;
+          id == 'assetIn' && this.updateAmountIn(value);
+          id == 'assetOut' && this.updateAmountOut(value);
+          this.validateEnoughBalance();
+        }}
+        @asset-selector-clicked=${({ detail }: CustomEvent) => {
+          this.assets.selector = detail;
+          this.changeScreen(TradeScreen.SelectToken);
+        }}
+        @asset-switch-clicked=${() => {
+          this.switch();
+          this.validatePool();
+        }}
+        @swap-clicked=${() => this.swap()}
+      >
+        <div class="header" slot="header">
+          <uigc-typography variant="title" gradient>${i18n.t('trade.title')}</uigc-typography>
+          <span class="grow"></span>
+          <uigc-icon-button basic class="chart-btn" @click=${() => this.changeScreen(TradeScreen.TradeChart)}>
+            <uigc-icon-chart></uigc-icon-chart>
+          </uigc-icon-button>
+          <uigc-icon-button basic @click=${() => this.changeScreen(TradeScreen.Settings)}>
+            <uigc-icon-settings></uigc-icon-settings>
+          </uigc-icon-button>
+        </div>
+      </gc-trade-app-main>
+    </uigc-paper>`;
   }
 
   tradeChartTemplate() {
-    return html` <gc-trade-chart
-      .datasourceId=${this.chartDatasourceId}
-      .tradeType=${this.trade.type}
-      .tradeProgress=${this.trade.inProgress}
-      .assetIn=${this.trade.assetIn}
-      .assetOut=${this.trade.assetOut}
-      .spotPrice=${this.trade.spotPrice}
-      .usdPrice=${this.assets.usdPrice}
-    >
-      <div class="header section" slot="header">
-        <uigc-icon-button class="back" @click=${this.onChartToggle}>
-          <uigc-icon-back></uigc-icon-back>
-        </uigc-icon-button>
-        <uigc-typography variant="section">${i18n.t('chart.title')}</uigc-typography>
-        <span></span>
-      </div>
-    </gc-trade-chart>`;
+    const classes = {
+      tab: true,
+      chart: true,
+      active: this.screen.active == TradeScreen.TradeChart,
+    };
+    return html` <uigc-paper class=${classMap(classes)}>
+      <gc-trade-chart
+        .datasourceId=${this.chartDatasourceId}
+        .tradeType=${this.trade.type}
+        .tradeProgress=${this.trade.inProgress}
+        .assetIn=${this.trade.assetIn}
+        .assetOut=${this.trade.assetOut}
+        .spotPrice=${this.trade.spotPrice}
+        .usdPrice=${this.assets.usdPrice}
+      >
+        <div class="header section" slot="header">
+          <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section">${i18n.t('chart.title')}</uigc-typography>
+          <span></span>
+        </div>
+      </gc-trade-chart>
+    </uigc-paper>`;
   }
 
   render() {
     return html`
-      <input type="checkbox" id="chart-switch" />
-      <div>
-        ${when(this.chart, () => html` <uigc-paper class="chart"> ${this.tradeChartTemplate()}</uigc-paper>`)}
-        <uigc-paper class="main">
-          ${choose(this.screen.active, [
-            [TradeScreen.TradeTokens, () => this.tradeTokensTemplate()],
-            [TradeScreen.Settings, () => this.settingsTemplate()],
-            [TradeScreen.SelectToken, () => this.selectTokenTemplate()],
-          ])}
-        </uigc-paper>
+      <div class="trade-root">
+        ${this.tradeChartTemplate()} ${this.tradeTokensTemplate()} ${this.settingsTemplate()}
+        ${this.selectTokenTemplate()}
       </div>
     `;
   }

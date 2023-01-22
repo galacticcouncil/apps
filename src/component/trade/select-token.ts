@@ -87,9 +87,9 @@ export class SelectToken extends LitElement {
   }
 
   isDisabled(asset: PoolAsset): boolean {
-    if (this.selector.id == 'assetIn') {
+    if (this.selector?.id == 'assetIn') {
       return this.switchAllowed ? !isAssetInAllowed(this.assets, this.pairs, asset.id) : this.assetOut == asset.symbol;
-    } else if (this.selector.id == 'assetOut') {
+    } else if (this.selector?.id == 'assetOut') {
       return !isAssetOutAllowed(this.assets, this.pairs, asset.id);
     } else {
       return false;
@@ -97,7 +97,7 @@ export class SelectToken extends LitElement {
   }
 
   isSelected(asset: PoolAsset): boolean {
-    return this.selector.asset == asset.symbol;
+    return this.selector?.asset == asset.symbol;
   }
 
   getSlot(asset: PoolAsset): string {
