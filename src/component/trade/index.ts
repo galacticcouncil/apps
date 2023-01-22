@@ -238,17 +238,17 @@ export class TradeApp extends LitElement {
     return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
-  async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
-    let tradeInfo: TradeInfo;
+  private async safeSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string): Promise<TradeInfo> {
     try {
-      tradeInfo = await getBestSell(assetIn, assetOut, amountIn);
+      return await getBestSell(assetIn, assetOut, amountIn);
     } catch (error) {
       console.error(error);
       this.resetTrade();
-      return;
     }
+  }
 
-    const { trade, transaction, slippage } = tradeInfo;
+  async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
+    const { trade, transaction, slippage } = await this.safeSell(assetIn, assetOut, amountIn);
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
@@ -272,17 +272,17 @@ export class TradeApp extends LitElement {
     console.log(trade);
   }
 
-  async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
-    let tradeInfo: TradeInfo;
+  private async safeBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string): Promise<TradeInfo> {
     try {
-      tradeInfo = await getBestBuy(assetIn, assetOut, amountOut);
+      return await getBestBuy(assetIn, assetOut, amountOut);
     } catch (error) {
       console.error(error);
       this.resetTrade();
-      return;
     }
+  }
 
-    const { trade, transaction, slippage } = tradeInfo;
+  async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
+    const { trade, transaction, slippage } = await this.safeBuy(assetIn, assetOut, amountOut);
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
