@@ -34,10 +34,8 @@ import '../chart';
 
 import {
   TradeScreen,
-  ScreenState,
   AssetsState,
   TradeState,
-  DEFAULT_SCREEN_STATE,
   DEFAULT_ASSETS_STATE,
   DEFAULT_TRADE_STATE,
   TransactionFee,
@@ -52,7 +50,7 @@ export class TradeApp extends LitElement {
   private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
 
-  @state() screen: ScreenState = { ...DEFAULT_SCREEN_STATE };
+  @state() screen: TradeScreen = TradeScreen.TradeTokens;
   @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
 
@@ -228,7 +226,7 @@ export class TradeApp extends LitElement {
   }
 
   changeScreen(active: TradeScreen) {
-    this.screen.active = active;
+    this.screen = active;
     this.requestUpdate();
   }
 
@@ -794,7 +792,7 @@ export class TradeApp extends LitElement {
   }
 
   handleResize(_evt: UIEvent) {
-    if (window.innerWidth > 1023 && TradeScreen.TradeChart == this.screen.active) {
+    if (window.innerWidth > 1023 && TradeScreen.TradeChart == this.screen) {
       this.changeScreen(TradeScreen.TradeTokens);
     }
   }
@@ -815,7 +813,7 @@ export class TradeApp extends LitElement {
     const classes = {
       tab: true,
       main: true,
-      active: this.screen.active == TradeScreen.Settings,
+      active: this.screen == TradeScreen.Settings,
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-trade-app-settings @slippage-changed=${() => this.recalculateTrade()}>
@@ -834,7 +832,7 @@ export class TradeApp extends LitElement {
     const classes = {
       tab: true,
       main: true,
-      active: this.screen.active == TradeScreen.SelectToken,
+      active: this.screen == TradeScreen.SelectToken,
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-trade-app-select
@@ -870,7 +868,7 @@ export class TradeApp extends LitElement {
     const classes = {
       tab: true,
       main: true,
-      active: this.screen.active == TradeScreen.TradeTokens,
+      active: this.screen == TradeScreen.TradeTokens,
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-trade-app-main
@@ -930,7 +928,7 @@ export class TradeApp extends LitElement {
     const classes = {
       tab: true,
       chart: true,
-      active: this.screen.active == TradeScreen.TradeChart,
+      active: this.screen == TradeScreen.TradeChart,
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-trade-chart

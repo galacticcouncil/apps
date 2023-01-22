@@ -5,17 +5,8 @@ export enum TradeScreen {
   Settings,
   SelectToken,
   TradeTokens,
+  TradeChart,
 }
-
-export type ScreenState = {
-  active: TradeScreen;
-  height: number;
-};
-
-export const DEFAULT_SCREEN_STATE: ScreenState = {
-  active: TradeScreen.TradeTokens,
-  height: null,
-};
 
 export type AssetSelector = { id: string; asset: string };
 
