@@ -8,6 +8,7 @@ import * as i18n from 'i18next';
 
 import { baseStyles } from '../base.css';
 import { AssetSelector } from './types';
+import { AssetDetail } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
@@ -17,6 +18,7 @@ import { Amount, PoolAsset } from '@galacticcouncil/sdk';
 export class SelectToken extends LitElement {
   @property({ attribute: false }) assets: PoolAsset[] = [];
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
+  @property({ attribute: false }) details: Map<string, AssetDetail> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ type: String }) assetIn = null;
@@ -45,9 +47,17 @@ export class SelectToken extends LitElement {
         }
       }
 
+      .list {
+        margin-top: 20px;
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
       uigc-asset-list {
-        padding-top: 20px;
-        overflow-y: auto;
+        position: absolute;
+        width: 100%;
+        height: 100%;
       }
 
       .loading {
@@ -132,27 +142,30 @@ export class SelectToken extends LitElement {
         placeholder="${i18n.t('trade.searchByName')}"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
-      ${when(
-        this.assets.length > 0,
-        () => html` <uigc-asset-list>
-          ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
-            const balance = this.balances.get(asset.id);
-            const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
-            const balanceUsd = balance ? this.calculateDollarPrice(asset, balanceFormated) : null;
-            return html`
-              <uigc-asset-list-item
-                slot=${this.getSlot(asset)}
-                ?selected=${this.isSelected(asset)}
-                ?disabled=${this.isDisabled(asset)}
-                .asset=${asset}
-                .balance=${humanizeAmount(balanceFormated)}
-                .balanceUsd=${humanizeAmount(balanceUsd)}
-              ></uigc-asset-list-item>
-            `;
-          })}
-        </uigc-asset-list>`,
-        () => html` <uigc-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </uigc-asset-list> `
-      )}
+      <div class="list">
+        ${when(
+          this.assets.length > 0,
+          () => html` <uigc-asset-list>
+            ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
+              const balance = this.balances.get(asset.id);
+              const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
+              const balanceUsd = balance ? this.calculateDollarPrice(asset, balanceFormated) : null;
+              return html`
+                <uigc-asset-list-item
+                  slot=${this.getSlot(asset)}
+                  ?selected=${this.isSelected(asset)}
+                  ?disabled=${this.isDisabled(asset)}
+                  .asset=${asset}
+                  .desc=${this.details.get(asset.id).name}
+                  .balance=${humanizeAmount(balanceFormated)}
+                  .balanceUsd=${humanizeAmount(balanceUsd)}
+                ></uigc-asset-list-item>
+              `;
+            })}
+          </uigc-asset-list>`,
+          () => html` <uigc-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </uigc-asset-list> `
+        )}
+      </div>
     `;
   }
 }
