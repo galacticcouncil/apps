@@ -25,7 +25,7 @@ import './loading/Indicator';
 
 import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
-const CHART_HEIGHT = 315;
+const CHART_HEIGHT = 345;
 
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
@@ -41,9 +41,9 @@ export class TradeChart extends LitElement {
       if (iWidth > 1023) {
         this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
       } else if (iWidth < 768) {
-        this.chart.resize(entry.contentRect.width - 2 * 14, CHART_HEIGHT);
+        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 150);
       } else {
-        this.chart.resize(entry.contentRect.width - 2 * 28, CHART_HEIGHT);
+        this.chart.resize(entry.contentRect.width - 2 * 28, entry.contentRect.height - 150);
       }
     });
   });
@@ -293,14 +293,22 @@ export class TradeChart extends LitElement {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
     const rangeData = data.filter((point: SingleValueData) => point.time > rangeFrom);
-    this.chartSeries.setData(rangeData);
-    this.chartSeries.update(lastPrice);
+
+    if (rangeData.length == 0) {
+      // TODO: No data available for given period
+      this.chartSeries.setData([]);
+      this.chart.timeScale().fitContent();
+    } else {
+      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: rangeData.length - 0.5 });
+      this.chartSeries.setData(rangeData);
+      this.chartSeries.update(lastPrice);
+    }
+
     this.chartSeries.applyOptions({
       priceFormat: humanizeScale(this.spotPrice),
       priceLineVisible: true,
       priceLineSource: 1,
     });
-    this.chart.timeScale().fitContent();
   }
 
   private getRangeFrom(): UTCTimestamp {

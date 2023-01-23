@@ -161,7 +161,7 @@ export class TradeApp extends LitElement {
           grid-template-areas:
             'chart main'
             'dca main';
-          grid-template-columns: 1fr minmax(auto, 520px);
+          grid-template-columns: 1fr minmax(414px, 520px);
           grid-column-gap: 20px;
         }
 
@@ -171,7 +171,7 @@ export class TradeApp extends LitElement {
           grid-area: chart;
           background: transparent;
           box-shadow: none;
-          padding: 28px 0 28px 0;
+          padding: 28px 0 0 0;
         }
 
         :host([chart]) uigc-paper.chart .header {

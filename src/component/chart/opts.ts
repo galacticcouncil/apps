@@ -41,7 +41,7 @@ export const timeScale = (range: Range, dayjs) => {
     borderColor: 'rgba(114, 131, 165, 0.6)',
     timeVisible: true,
     secondsVisible: false,
-    minBarSpacing: 0,
+    //minBarSpacing: 0,
     tickMarkFormatter: (time: UTCTimestamp, tickMarkType: TickMarkType, locale: string) => {
       switch (tickMarkType) {
         case 2:
