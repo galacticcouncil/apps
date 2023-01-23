@@ -933,23 +933,28 @@ export class TradeApp extends LitElement {
       active: this.screen == TradeScreen.TradeChart,
     };
     return html` <uigc-paper class=${classMap(classes)}>
-      <gc-trade-chart
-        .datasourceId=${this.chartDatasourceId}
-        .tradeType=${this.trade.type}
-        .tradeProgress=${this.trade.inProgress}
-        .assetIn=${this.trade.assetIn}
-        .assetOut=${this.trade.assetOut}
-        .spotPrice=${this.trade.spotPrice}
-        .usdPrice=${this.assets.usdPrice}
-      >
-        <div class="header section" slot="header">
-          <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
-            <uigc-icon-back></uigc-icon-back>
-          </uigc-icon-button>
-          <uigc-typography variant="section">${i18n.t('chart.title')}</uigc-typography>
-          <span></span>
-        </div>
-      </gc-trade-chart>
+      ${when(
+        this.chart,
+        () => html`
+          <gc-trade-chart
+            .datasourceId=${this.chartDatasourceId}
+            .tradeType=${this.trade.type}
+            .tradeProgress=${this.trade.inProgress}
+            .assetIn=${this.trade.assetIn}
+            .assetOut=${this.trade.assetOut}
+            .spotPrice=${this.trade.spotPrice}
+            .usdPrice=${this.assets.usdPrice}
+          >
+            <div class="header section" slot="header">
+              <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
+                <uigc-icon-back></uigc-icon-back>
+              </uigc-icon-button>
+              <uigc-typography variant="section">${i18n.t('chart.title')}</uigc-typography>
+              <span></span>
+            </div>
+          </gc-trade-chart>
+        `
+      )}
     </uigc-paper>`;
   }
 
