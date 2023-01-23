@@ -42,7 +42,8 @@ export function query(
   assetIn: string,
   assetOut: string,
   endOfDay: string,
-  onData: (ts: number[], price: number[]) => void
+  onSuccess: (ts: number[], price: number[]) => void,
+  onError: (error: any) => void
 ) {
   fetch(GRAFANA_DS, {
     headers: {
@@ -64,9 +65,10 @@ export function query(
     .then((response) => response.json())
     .then((data) => {
       const values = data.results.pool.frames[0].data.values;
-      onData(values[0], values[1]);
+      onSuccess(values[0], values[1]);
     })
     .catch(function (res) {
       console.error(res);
+      onError(res);
     });
 }

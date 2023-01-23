@@ -5,12 +5,11 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import * as cache from '@thi.ng/cache';
 
-import { createChart, IChartApi, ISeriesApi, UTCTimestamp, TimeRange, SingleValueData } from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
 import { baseStyles } from '../base.css';
-import { Chain, chainCursor } from '../../db';
+import { Chain, chainCursor, tradeDataCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
@@ -22,6 +21,7 @@ import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeSc
 
 import './range/ButtonGroup';
 import './range/Button';
+import './loading/Indicator';
 
 import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
@@ -30,7 +30,6 @@ const CHART_HEIGHT = 315;
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
-  private data = new cache.TLRUCache<string, SingleValueData[]>(null, { ttl: 1000 * 60 * 60 });
 
   private chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
@@ -51,6 +50,8 @@ export class TradeChart extends LitElement {
   private disconnectSubscribeNewHeads: () => void = null;
 
   @state() range: Range = Range['1w'];
+  @state() error: boolean = false;
+  @state() loading: boolean = false;
 
   @property({ type: Number }) datasourceId = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
@@ -248,12 +249,13 @@ export class TradeChart extends LitElement {
   }
 
   private hasRecord() {
-    return this.data.has(this.dataKey());
+    return tradeDataCursor.deref().has(this.dataKey());
   }
 
   private fetchData() {
     if (this.hasRecord()) {
-      const cachedData = this.data.get(this.dataKey());
+      this.error = false;
+      const cachedData = tradeDataCursor.deref().get(this.dataKey());
       this.syncChart(cachedData);
       return;
     }
@@ -266,12 +268,25 @@ export class TradeChart extends LitElement {
     }
 
     const endOfDay = dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
-    query(this.datasourceId, inputAsset.symbol, outputAsset.symbol, endOfDay, (ts, price) => {
-      const formattedData = formatData(ts, price);
-      const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
-      this.data.set(dataKey, formattedData);
-      this.syncChart(formattedData);
-    });
+    this.loading = true;
+    query(
+      this.datasourceId,
+      inputAsset.symbol,
+      outputAsset.symbol,
+      endOfDay,
+      (ts, price) => {
+        this.loading = false;
+        this.error = false;
+        const formattedData = formatData(ts, price);
+        const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
+        tradeDataCursor.deref().set(dataKey, formattedData);
+        this.syncChart(formattedData);
+      },
+      (err) => {
+        this.loading = false;
+        this.error = true;
+      }
+    );
   }
 
   private syncChart(data: SingleValueData[]) {
@@ -375,6 +390,10 @@ export class TradeChart extends LitElement {
       price: true,
       hidden: !this.spotPrice,
     };
+    const chartClasses = {
+      chart: true,
+      loading: this.loading || tradeDataCursor.deref().length == 0,
+    };
     const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
     const rangeVal = Range[this.range];
     return html`
@@ -405,7 +424,7 @@ export class TradeChart extends LitElement {
           )}
         </div>
       </div>
-      <div id="chart" class="chart">
+      <div class=${classMap(chartClasses)} id="chart">
         <uigc-range-button-group
           selected=${rangeVal}
           @range-button-clicked=${(e: CustomEvent) => {

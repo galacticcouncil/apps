@@ -4,9 +4,12 @@ import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
 import { defAtom } from '@thi.ng/atom/atom';
 import { defCursor } from '@thi.ng/atom/cursor';
+import { TLRUCache } from '@thi.ng/cache';
 import { getObj, setObj } from './storage';
+import { SingleValueData } from 'lightweight-charts';
 
 export const DEFAULT_SLIPPAGE = '1';
+const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
 export interface Chain {
   api: ApiPromise;
@@ -28,6 +31,7 @@ export interface State {
   bridge: Bridge;
   settings: Settings;
   account: Account;
+  tradeData: TLRUCache<string, SingleValueData[]>;
 }
 
 const db = defAtom<State>({
@@ -35,6 +39,7 @@ const db = defAtom<State>({
   bridge: null,
   settings: null,
   account: null,
+  tradeData: new TLRUCache<string, SingleValueData[]>(null, TRADE_DATA_OPTS),
 });
 
 // Cursors (Direct & Immutable access to a nested value)
@@ -42,6 +47,7 @@ export const chainCursor = defCursor(db, ['chain']);
 export const bridgeCursor = defCursor(db, ['bridge']);
 export const settingsCursor = defCursor(db, ['settings']);
 export const accountCursor = defCursor(db, ['account']);
+export const tradeDataCursor = defCursor(db, ['tradeData']);
 
 // Storage keys
 const ACCOUNT_KEY = 'trade.account';
