@@ -48,8 +48,17 @@ export class TradeApp extends LitElement {
 
   private tx: Transaction = null;
   private ready: boolean = false;
+  private ro = new ResizeObserver((entries) => {
+    entries.forEach((_entry) => {
+      if (TradeScreen.TradeTokens == this.screen) {
+        const tradeScreen = this.shadowRoot.getElementById('trade-screen');
+        this.screenHeight = tradeScreen.offsetHeight;
+      }
+    });
+  });
   private disconnectSubscribeNewHeads: () => void = null;
 
+  @state() screenHeight: number;
   @state() screen: TradeScreen = TradeScreen.TradeTokens;
   @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
@@ -82,13 +91,13 @@ export class TradeApp extends LitElement {
       }
 
       uigc-paper.main {
-        display: block;
+        display: none;
         grid-area: main;
         position: relative;
       }
 
       uigc-paper.chart {
-        display: block;
+        display: none;
         grid-area: main;
         position: relative;
       }
@@ -102,14 +111,8 @@ export class TradeApp extends LitElement {
         margin-right: 12px;
       }
 
-      .tab {
-        visibility: hidden;
-        opacity: 0;
-      }
-
       .tab.active {
-        visibility: visible;
-        opacity: 1;
+        display: block;
       }
 
       .header {
@@ -155,7 +158,7 @@ export class TradeApp extends LitElement {
           max-width: 1170px;
         }
 
-        :host([chart]) > div {
+        :host([chart]) > .trade-root {
           display: grid;
           padding: 0 20px 0 20px;
           grid-template-areas:
@@ -166,8 +169,7 @@ export class TradeApp extends LitElement {
         }
 
         :host([chart]) uigc-paper.chart {
-          visibility: visible;
-          opacity: 1;
+          display: block;
           grid-area: chart;
           background: transparent;
           box-shadow: none;
@@ -800,12 +802,14 @@ export class TradeApp extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
+    this.ro.observe(this);
     window.addEventListener('resize', (evt) => this.handleResize(evt));
     this.resetTrade(true);
   }
 
   override disconnectedCallback() {
     this.disconnectSubscribeNewHeads?.();
+    this.ro.unobserve(this);
     window.removeEventListener('resize', this.handleResize);
     super.disconnectedCallback();
   }
@@ -816,7 +820,7 @@ export class TradeApp extends LitElement {
       main: true,
       active: this.screen == TradeScreen.Settings,
     };
-    return html` <uigc-paper class=${classMap(classes)}>
+    return html` <uigc-paper class=${classMap(classes)} style="height: ${this.screenHeight}px">
       <gc-trade-app-settings @slippage-changed=${() => this.recalculateTrade()}>
         <div class="header section" slot="header">
           <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
@@ -835,7 +839,7 @@ export class TradeApp extends LitElement {
       main: true,
       active: this.screen == TradeScreen.SelectToken,
     };
-    return html` <uigc-paper class=${classMap(classes)}>
+    return html` <uigc-paper class=${classMap(classes)} style="height: ${this.screenHeight}px">
       <gc-trade-app-select
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
@@ -872,7 +876,7 @@ export class TradeApp extends LitElement {
       main: true,
       active: this.screen == TradeScreen.TradeTokens,
     };
-    return html` <uigc-paper class=${classMap(classes)}>
+    return html` <uigc-paper class=${classMap(classes)} id="trade-screen">
       <gc-trade-app-main
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
@@ -932,7 +936,10 @@ export class TradeApp extends LitElement {
       chart: true,
       active: this.screen == TradeScreen.TradeChart,
     };
-    return html` <uigc-paper class=${classMap(classes)}>
+    return html` <uigc-paper
+      class=${classMap(classes)}
+      style="height: ${TradeScreen.TradeChart == this.screen ? this.screenHeight : 0}px"
+    >
       ${when(
         this.chart,
         () => html`
