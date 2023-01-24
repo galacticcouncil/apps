@@ -52,13 +52,15 @@ export class TradeApp extends LitElement {
     entries.forEach((_entry) => {
       if (TradeScreen.TradeTokens == this.screen) {
         const tradeScreen = this.shadowRoot.getElementById('trade-screen');
-        this.screenHeight = tradeScreen.offsetHeight;
+        const tabs = this.shadowRoot.querySelectorAll('.tab:not(#trade-screen)');
+        tabs.forEach((tab: Element) => {
+          tab.setAttribute('style', `height: ${tradeScreen.offsetHeight}px`);
+        });
       }
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
 
-  @state() screenHeight: number;
   @state() screen: TradeScreen = TradeScreen.TradeTokens;
   @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
@@ -174,6 +176,7 @@ export class TradeApp extends LitElement {
           background: transparent;
           box-shadow: none;
           padding: 28px 0 0 0;
+          height: 0 !important;
         }
 
         :host([chart]) uigc-paper.chart .header {
@@ -820,7 +823,7 @@ export class TradeApp extends LitElement {
       main: true,
       active: this.screen == TradeScreen.Settings,
     };
-    return html` <uigc-paper class=${classMap(classes)} style="height: ${this.screenHeight}px">
+    return html` <uigc-paper class=${classMap(classes)}>
       <gc-trade-app-settings @slippage-changed=${() => this.recalculateTrade()}>
         <div class="header section" slot="header">
           <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
@@ -839,7 +842,7 @@ export class TradeApp extends LitElement {
       main: true,
       active: this.screen == TradeScreen.SelectToken,
     };
-    return html` <uigc-paper class=${classMap(classes)} style="height: ${this.screenHeight}px">
+    return html` <uigc-paper class=${classMap(classes)}>
       <gc-trade-app-select
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
@@ -936,10 +939,7 @@ export class TradeApp extends LitElement {
       chart: true,
       active: this.screen == TradeScreen.TradeChart,
     };
-    return html` <uigc-paper
-      class=${classMap(classes)}
-      style="height: ${TradeScreen.TradeChart == this.screen ? this.screenHeight : 0}px"
-    >
+    return html` <uigc-paper class=${classMap(classes)}>
       ${when(
         this.chart,
         () => html`

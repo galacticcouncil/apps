@@ -47,17 +47,9 @@ export class SelectToken extends LitElement {
         }
       }
 
-      .list {
-        margin-top: 20px;
-        width: 100%;
-        height: 100%;
-        position: relative;
-      }
-
       uigc-asset-list {
-        position: absolute;
-        width: 100%;
-        height: 100%;
+        margin-top: 20px;
+        overflow-y: auto;
       }
 
       .loading {
@@ -142,30 +134,28 @@ export class SelectToken extends LitElement {
         placeholder="${i18n.t('trade.searchByName')}"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
-      <div class="list">
-        ${when(
-          this.assets.length > 0,
-          () => html` <uigc-asset-list>
-            ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
-              const balance = this.balances.get(asset.id);
-              const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
-              const balanceUsd = balance ? this.calculateDollarPrice(asset, balanceFormated) : null;
-              return html`
-                <uigc-asset-list-item
-                  slot=${this.getSlot(asset)}
-                  ?selected=${this.isSelected(asset)}
-                  ?disabled=${this.isDisabled(asset)}
-                  .asset=${asset}
-                  .desc=${this.details.get(asset.id).name}
-                  .balance=${humanizeAmount(balanceFormated)}
-                  .balanceUsd=${humanizeAmount(balanceUsd)}
-                ></uigc-asset-list-item>
-              `;
-            })}
-          </uigc-asset-list>`,
-          () => html` <uigc-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </uigc-asset-list> `
-        )}
-      </div>
+      ${when(
+        this.assets.length > 0,
+        () => html` <uigc-asset-list>
+          ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
+            const balance = this.balances.get(asset.id);
+            const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
+            const balanceUsd = balance ? this.calculateDollarPrice(asset, balanceFormated) : null;
+            return html`
+              <uigc-asset-list-item
+                slot=${this.getSlot(asset)}
+                ?selected=${this.isSelected(asset)}
+                ?disabled=${this.isDisabled(asset)}
+                .asset=${asset}
+                .desc=${this.details.get(asset.id).name}
+                .balance=${humanizeAmount(balanceFormated)}
+                .balanceUsd=${humanizeAmount(balanceUsd)}
+              ></uigc-asset-list-item>
+            `;
+          })}
+        </uigc-asset-list>`,
+        () => html` <uigc-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </uigc-asset-list> `
+      )}
     `;
   }
 }
