@@ -176,7 +176,7 @@ export class TradeApp extends LitElement {
           background: transparent;
           box-shadow: none;
           padding: 28px 0 0 0;
-          height: 0 !important;
+          height: 100% !important;
         }
 
         :host([chart]) uigc-paper.chart .header {
