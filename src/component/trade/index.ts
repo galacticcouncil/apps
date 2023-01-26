@@ -156,8 +156,16 @@ export class TradeApp extends LitElement {
         }
 
         uigc-paper.main {
-          height: 100% !important;
           overflow-y: auto;
+        }
+
+        uigc-paper:not(#trade-screen) {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh !important;
+          z-index: 10;
         }
       }
 
