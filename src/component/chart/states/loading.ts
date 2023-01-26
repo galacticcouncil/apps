@@ -3,52 +3,51 @@ import { customElement } from 'lit/decorators.js';
 
 import { baseStyles } from '../../base.css';
 
-@customElement('uigc-chart-loading')
-export class LoadingIndicator extends LitElement {
+@customElement('gc-chart-loading')
+export class ChartLoading extends LitElement {
   static styles = [
     baseStyles,
     css`
       .loading {
-        position: fixed;
-        float: left;
+        position: absolute;
         top: 50%;
         left: 50%;
-        height: 120px;
+        height: 60px;
         padding: 0px;
-        width: 160px;
+        width: 82px;
         margin-top: -50px;
-        margin-left: -70px;
+        margin-left: -40px;
         border-left: 1px solid transparent;
         border-bottom: 1px solid transparent;
-        padding: 10px;
+        padding: 5px;
         box-sizing: border-box;
       }
 
       @keyframes loading {
         0% {
-          background-color: #cd0a00;
+          background-color: #fc408c;
         }
         30% {
-          background-color: #fa8a00;
+          background-color: #004de2;
         }
         50% {
-          height: 100px;
+          height: 50px;
           margin-top: 0px;
         }
         80% {
-          background-color: #91d700;
+          background-color: #00c2ff;
         }
         100% {
-          background-color: #cd0a00;
+          background-color: #fc408c;
         }
       }
 
       .loading > div {
-        height: 10px;
-        width: 30px;
+        height: 5px;
+        width: 15px;
         background-color: #fff;
         display: inline-block;
-        margin-top: 90px;
+        margin-top: 45px;
         -webkit-animation: loading 2.5s infinite;
         -moz-animation: loading 2.5s infinite;
         -o-animation: loading 2.5s infinite;

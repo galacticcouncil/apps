@@ -16,16 +16,18 @@ import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { formatData, query } from './data';
 import { humanizeScale } from './utils';
 import { subscribeCrosshair } from './plugins';
-import { Range } from './types';
+import { ChartState, Range } from './types';
 import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeScale } from './opts';
 
 import './range/ButtonGroup';
 import './range/Button';
-import './loading/Indicator';
+import './states/error';
+import './states/empty';
+import './states/loading';
 
 import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
-const CHART_HEIGHT = 345;
+const CHART_HEIGHT = 365;
 
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
@@ -50,8 +52,7 @@ export class TradeChart extends LitElement {
   private disconnectSubscribeNewHeads: () => void = null;
 
   @state() range: Range = Range['1w'];
-  @state() error: boolean = false;
-  @state() loading: boolean = false;
+  @state() chartState: ChartState = ChartState.Loading;
 
   @property({ type: Number }) datasourceId = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
@@ -102,7 +103,10 @@ export class TradeChart extends LitElement {
 
       .chart {
         height: 100%;
+        position: relative;
         padding-left: 14px;
+        display: flex;
+        flex-direction: column;
       }
 
       @media (min-width: 768px) {
@@ -118,19 +122,20 @@ export class TradeChart extends LitElement {
 
       @media (min-width: 1024px) {
         .summary {
-          padding: 0;
+          padding: 28px 0 0;
           align-items: center;
         }
 
         .chart {
+          margin-top: 4px;
           padding-left: 0;
         }
       }
 
       .summary .info {
-        font-family: 'FontOver';
+        font-family: 'ChakraPetch';
         font-style: normal;
-        font-weight: 500;
+        font-weight: 700;
         font-size: 20px;
         line-height: 100%;
       }
@@ -178,7 +183,6 @@ export class TradeChart extends LitElement {
 
       @media (min-width: 1024px) {
         .summary .info {
-          font-weight: 500;
           font-size: 30px;
         }
 
@@ -208,6 +212,46 @@ export class TradeChart extends LitElement {
 
       .usd-skeleton {
         margin-top: 2px;
+      }
+
+      .backdrop {
+        display: block;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+      }
+
+      .loading .backdrop {
+        display: block;
+      }
+
+      .loading .tv-lightweight-charts {
+        filter: blur(8px);
+      }
+
+      uigc-busy-indicator {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 55px;
+        height: 16px;
+        margin-top: -8px;
+        margin-left: -22.5px;
+      }
+
+      gc-chart-empty,
+      gc-chart-error,
+      uigc-busy-indicator {
+        display: none;
+      }
+
+      #chart {
+        position: relative;
+      }
+
+      .show {
+        display: block;
       }
     `,
   ];
@@ -254,7 +298,6 @@ export class TradeChart extends LitElement {
 
   private fetchData() {
     if (this.hasRecord()) {
-      this.error = false;
       const cachedData = tradeDataCursor.deref().get(this.dataKey());
       this.syncChart(cachedData);
       return;
@@ -268,23 +311,20 @@ export class TradeChart extends LitElement {
     }
 
     const endOfDay = dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
-    this.loading = true;
+    this.chartState = ChartState.Loading;
     query(
       this.datasourceId,
       inputAsset.symbol,
       outputAsset.symbol,
       endOfDay,
       (ts, price) => {
-        this.loading = false;
-        this.error = false;
         const formattedData = formatData(ts, price);
         const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
         tradeDataCursor.deref().set(dataKey, formattedData);
         this.syncChart(formattedData);
       },
-      (err) => {
-        this.loading = false;
-        this.error = true;
+      (_err) => {
+        this.chartState = ChartState.Error;
       }
     );
   }
@@ -295,13 +335,12 @@ export class TradeChart extends LitElement {
     const rangeData = data.filter((point: SingleValueData) => point.time > rangeFrom);
 
     if (rangeData.length == 0) {
-      // TODO: No data available for given period
-      this.chartSeries.setData([]);
-      this.chart.timeScale().fitContent();
+      this.chartState = ChartState.Empty;
     } else {
       this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: rangeData.length - 0.5 });
       this.chartSeries.setData(rangeData);
       this.chartSeries.update(lastPrice);
+      this.chartState = ChartState.Loaded;
     }
 
     this.chartSeries.applyOptions({
@@ -400,7 +439,16 @@ export class TradeChart extends LitElement {
     };
     const chartClasses = {
       chart: true,
-      loading: this.loading || tradeDataCursor.deref().length == 0,
+      loading: this.chartState != ChartState.Loaded || tradeDataCursor.deref().length == 0,
+    };
+    const chartErrorClasses = {
+      show: this.chartState == ChartState.Error,
+    };
+    const chartEmptyClasses = {
+      show: this.chartState == ChartState.Empty,
+    };
+    const chartLoadingClasses = {
+      show: this.chartState == ChartState.Loading,
     };
     const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
     const rangeVal = Range[this.range];
@@ -432,7 +480,7 @@ export class TradeChart extends LitElement {
           )}
         </div>
       </div>
-      <div class=${classMap(chartClasses)} id="chart">
+      <div class=${classMap(chartClasses)}>
         <uigc-range-button-group
           selected=${rangeVal}
           @range-button-clicked=${(e: CustomEvent) => {
@@ -443,6 +491,13 @@ export class TradeChart extends LitElement {
         >
           ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}
         </uigc-range-button-group>
+        <div id="chart">
+          <div class="backdrop">
+            <gc-chart-empty class=${classMap(chartEmptyClasses)}></gc-chart-empty>
+            <gc-chart-error class=${classMap(chartErrorClasses)}></gc-chart-error>
+            <uigc-busy-indicator class=${classMap(chartLoadingClasses)}></uigc-busy-indicator>
+          </div>
+        </div>
       </div>
     `;
   }
