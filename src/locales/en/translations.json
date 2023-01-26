@@ -1,6 +1,8 @@
 {
   "trade.title": "Trade assets",
   "trade.txFee": "Transaction fee:",
+  "trade.tradeFee": "Trade fee:",
+  "trade.priceImpact": "Price impact:",
   "trade.bestRoute": "Best route",
   "trade.payWith": "Pay with",
   "trade.youGet": "You get",

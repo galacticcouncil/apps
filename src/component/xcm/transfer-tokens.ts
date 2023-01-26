@@ -125,16 +125,22 @@ export class TradeTokens extends LitElement {
         }
       }
 
+      @media (max-width: 480px) {
+        .info {
+          padding: 0 14px;
+        }
+      }
+
       .info .row {
         display: flex;
         align-items: center;
         position: relative;
         gap: 5px;
-        padding: 4px 0;
+        height: 24px;
       }
 
       .info .row:not(:last-child):after {
-        background-color: var(--hex-background-gray-800);
+        background-color: var(--uigc-divider-color);
         bottom: 0;
         content: ' ';
         height: 1px;
@@ -144,16 +150,16 @@ export class TradeTokens extends LitElement {
 
       .info .label {
         font-weight: 500;
-        font-size: 14px;
-        line-height: 22px;
+        font-size: 12px;
+        line-height: 100%;
         text-align: left;
-        color: var(--hex-neutral-gray-300);
+        color: var(--uigc-app-font-color__secondary);
       }
 
       .info .value {
         font-weight: 500;
-        font-size: 14px;
-        line-height: 22px;
+        font-size: 12px;
+        line-height: 100%;
         text-align: right;
         color: var(--hex-white);
       }
@@ -162,19 +168,21 @@ export class TradeTokens extends LitElement {
         display: none;
         flex-direction: row;
         align-items: center;
-        margin: 12px 14px 0;
-        padding: 12px 14px;
+        line-height: 16px;
+        margin: 5px 14px 0;
+        padding: 0 14px;
         background: var(--uigc-app-bg-warning);
         border-radius: var(--uigc-app-border-radius-2);
       }
 
       @media (min-width: 768px) {
         .warning {
-          margin: 12px 28px 0;
+          margin: 5px 28px 0;
         }
       }
 
       .warning.show {
+        padding: 10px;
         display: flex;
       }
 
@@ -191,13 +199,13 @@ export class TradeTokens extends LitElement {
 
       .confirm {
         display: flex;
-        padding: 22px 14px;
+        padding: 11px 14px 22px 14px;
         box-sizing: border-box;
       }
 
       @media (min-width: 768px) {
         .confirm {
-          padding: 22px 28px;
+          padding: 11px 28px 22px 28px;
         }
       }
     `,

@@ -81,7 +81,7 @@ export class TradeApp extends LitElement {
     css`
       :host {
         display: block;
-        max-width: 520px;
+        max-width: 480px;
         margin-left: auto;
         margin-right: auto;
         position: relative;
@@ -96,6 +96,7 @@ export class TradeApp extends LitElement {
         display: none;
         grid-area: main;
         position: relative;
+        overflow: hidden;
       }
 
       uigc-paper.chart {
@@ -166,7 +167,7 @@ export class TradeApp extends LitElement {
           grid-template-areas:
             'chart main'
             'dca main';
-          grid-template-columns: 1fr minmax(414px, 520px);
+          grid-template-columns: 1fr minmax(414px, 480px);
           grid-column-gap: 20px;
         }
 
@@ -175,8 +176,7 @@ export class TradeApp extends LitElement {
           grid-area: chart;
           background: transparent;
           box-shadow: none;
-          padding: 28px 0 0 0;
-          height: 100% !important;
+          height: 456px !important;
         }
 
         :host([chart]) uigc-paper.chart .header {

@@ -59,6 +59,12 @@ export class TradeTokens extends LitElement {
         box-sizing: border-box;
       }
 
+      @media (max-width: 480px) {
+        .transfer {
+          padding: 0;
+        }
+      }
+
       @media (min-width: 768px) {
         .transfer {
           padding: 0 28px;
@@ -137,16 +143,22 @@ export class TradeTokens extends LitElement {
         }
       }
 
+      @media (max-width: 480px) {
+        .info {
+          padding: 0 14px;
+        }
+      }
+
       .info .row {
         display: flex;
         align-items: center;
         position: relative;
         gap: 5px;
-        padding: 4px 0;
+        height: 24px;
       }
 
       .info .row:not(:last-child):after {
-        background-color: var(--hex-background-gray-800);
+        background-color: var(--uigc-divider-color);
         bottom: 0;
         content: ' ';
         height: 1px;
@@ -156,8 +168,8 @@ export class TradeTokens extends LitElement {
 
       .info .label {
         font-weight: 500;
-        font-size: 14px;
-        line-height: 22px;
+        font-size: 12px;
+        line-height: 100%;
         text-align: left;
         color: var(--uigc-app-font-color__secondary);
       }
@@ -168,8 +180,8 @@ export class TradeTokens extends LitElement {
         -webkit-text-fill-color: transparent;
         background-clip: text;
         font-weight: 500;
-        font-size: 14px;
-        line-height: 22px;
+        font-size: 12px;
+        line-height: 100%;
         text-align: center;
       }
 
@@ -179,8 +191,8 @@ export class TradeTokens extends LitElement {
 
       .info .value {
         font-weight: 500;
-        font-size: 14px;
-        line-height: 22px;
+        font-size: 12px;
+        line-height: 100%;
         text-align: right;
         color: var(--hex-white);
       }
@@ -198,23 +210,40 @@ export class TradeTokens extends LitElement {
         margin-left: 12px;
       }
 
+      @keyframes scale-display {
+        0% {
+          opacity: 0;
+          transform: scale(0);
+          -webkit-transform: scale(0);
+        }
+
+        100% {
+          opacity: 1;
+          transform: scale(1);
+          -webkit-transform: scale(1);
+        }
+      }
+
       .error {
         display: none;
         flex-direction: row;
         align-items: center;
-        margin: 12px 14px 0;
-        padding: 12px 14px;
+        line-height: 16px;
+        margin: 5px 14px 0;
+        padding: 0 14px;
         background: var(--uigc-app-bg-error);
         border-radius: var(--uigc-app-border-radius-2);
       }
 
       @media (min-width: 768px) {
         .error {
-          margin: 12px 28px 0;
+          margin: 5px 28px 0;
         }
       }
 
       .error.show {
+        padding: 10px;
+        animation: scale-display 0.25s;
         display: flex;
       }
 
@@ -231,13 +260,13 @@ export class TradeTokens extends LitElement {
 
       .confirm {
         display: flex;
-        padding: 22px 14px;
+        padding: 11px 14px 22px 14px;
         box-sizing: border-box;
       }
 
       @media (min-width: 768px) {
         .confirm {
-          padding: 22px 28px;
+          padding: 11px 28px 22px 28px;
         }
       }
     `,
@@ -284,13 +313,13 @@ export class TradeTokens extends LitElement {
 
   infoSlippageTemplate(assetSymbol: string) {
     return html` ${choose(this.tradeType, [
-        [TradeType.Sell, () => html` <span class="label">Minimum received after slippage:</span>`],
-        [TradeType.Buy, () => html` <span class="label">Maximum sent after slippage:</span>`],
+        [TradeType.Sell, () => html` <span class="label">Minimum received:</span>`],
+        [TradeType.Buy, () => html` <span class="label">Maximum sent:</span>`],
       ])}
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="150px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="150px" height="12px"></uigc-skeleton>`,
         () =>
           html`<span class="value"
             >${this.afterSlippage ? humanizeAmount(this.afterSlippage) : '0'} ${assetSymbol}
@@ -299,21 +328,21 @@ export class TradeTokens extends LitElement {
   }
 
   infoPriceImpactTemplate() {
-    return html` <span class="label">Price Impact:</span>
+    return html` <span class="label">${i18n.t('trade.priceImpact')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
         () => html`<span class="value">${this.priceImpactPct}%</span>`
       )}`;
   }
 
   infoTradeFeeTemplate(assetSymbol: string) {
-    return html` <span class="label">Trade Fee:</span>
+    return html` <span class="label">${i18n.t('trade.tradeFee')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
         () => html`<span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
           <span class="value highlight"> (${this.tradeFeePct}%) </span> `
       )}`;
@@ -325,7 +354,7 @@ export class TradeTokens extends LitElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="80px" height="14px"></uigc-skeleton>`,
+        () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
         () =>
           html`<span class="value"
             >${this.transactionFee
@@ -338,7 +367,7 @@ export class TradeTokens extends LitElement {
 
   bestRouteTemplate() {
     return html`
-      <span class="value">${this.assetIn}</span>
+      <span class="value">${this.assetIn.symbol}</span>
       ${this.swaps.map(
         (swap: any) =>
           html`
@@ -374,7 +403,7 @@ export class TradeTokens extends LitElement {
     };
     const errorClasses = {
       error: true,
-      show: Object.keys(this.error).length > 0,
+      show: Object.keys(this.error).length > 0 && this.swaps.length > 0,
     };
     return html`
       <slot name="header"></slot>
