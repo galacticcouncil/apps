@@ -10,12 +10,8 @@
 
     <style>
       :root {
-        --toolbar-height: 64px;
-      }
-
-      html,
-      body {
-        height: 100%;
+        --toolbar-height: 65px;
+        --footer-height: 60px;
       }
 
       body {
@@ -25,10 +21,14 @@
       }
 
       header {
-        height: var(--toolbar-height);
-        position: sticky;
+        position: fixed;
+        top: 0px;
+        left: 0px;
         z-index: 5;
+        height: var(--toolbar-height);
+        width: 100%;
         backdrop-filter: blur(16px);
+        background: rgba(0, 0, 0, 0.2);
         -webkit-box-align: center;
         align-items: center;
         display: flex;
@@ -60,6 +60,7 @@
       }
 
       html[theme='bsx'] nav span {
+        font-family: var(--uigc-app-font);
         font-weight: 600;
         color: rgb(158, 169, 177);
       }
@@ -72,18 +73,36 @@
 
       main {
         width: 100%;
-      }
-
-      @media (max-width: 480px) {
-        main {
-          background: var(--uigc-paper-background);
-          height: calc(100vh - var(--toolbar-height));
-        }
+        margin-top: var(--toolbar-height);
+        height: calc(100vh - var(--toolbar-height));
       }
 
       @media (min-width: 768px) {
-        main {
+        main > div#app {
           padding: 44px 0px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        main > div#app {
+          height: 100%;
+        }
+
+        main {
+          width: 100%;
+          margin-top: var(--toolbar-height);
+          height: calc(100vh - var(--toolbar-height) - var(--footer-height));
+        }
+
+        footer {
+          width: 100%;
+          height: var(--footer-height);
+          position: fixed;
+          left: 0px;
+          bottom: 0px;
+          z-index: 5;
+          background: rgba(0, 1, 7, 0.6);
+          backdrop-filter: blur(12px);
         }
       }
     </style>

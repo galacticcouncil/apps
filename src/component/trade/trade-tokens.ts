@@ -457,7 +457,6 @@ export class TradeTokens extends LitElement {
         <uigc-icon-error></uigc-icon-error>
         <span> ${this.error['pool'] || this.error['trade'] || this.error['balance']} </span>
       </div>
-      <div class="grow"></div>
       <uigc-button
         ?disabled=${this.disabled || !this.account.state}
         class="confirm"

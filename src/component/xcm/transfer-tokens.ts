@@ -45,6 +45,7 @@ export class TradeTokens extends LitElement {
         padding: 0 14px;
         box-sizing: border-box;
         row-gap: 11px;
+        position: relative;
       }
 
       .transfer .chain {

@@ -82,6 +82,7 @@ export class TradeApp extends LitElement {
       :host {
         display: block;
         max-width: 480px;
+        height: 100%;
         margin-left: auto;
         margin-right: auto;
         position: relative;
@@ -121,7 +122,7 @@ export class TradeApp extends LitElement {
       .header {
         position: relative;
         display: flex;
-        padding: 22px 14px;
+        padding: 0 14px;
         box-sizing: border-box;
         align-items: center;
         min-height: 84px;
@@ -140,9 +141,23 @@ export class TradeApp extends LitElement {
         left: 20px;
       }
 
-      @media (max-width: 520px) {
+      @media (max-width: 480px) {
+        .trade-root {
+          grid-auto-columns: 1fr;
+          height: 100%;
+        }
+
+        .header {
+          min-height: 64px;
+        }
+
         uigc-paper {
           box-shadow: none;
+        }
+
+        uigc-paper.main {
+          height: 100% !important;
+          overflow-y: auto;
         }
       }
 
