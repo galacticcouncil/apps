@@ -1,6 +1,6 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { choose } from 'lit/directives/choose.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 
 import * as i18n from 'i18next';
@@ -22,15 +22,7 @@ import './transfer-tokens';
 import './select-chain';
 import './select-token';
 
-import {
-  TransferScreen,
-  ScreenState,
-  ChainState,
-  TransferState,
-  DEFAULT_SCREEN_STATE,
-  DEFAULT_CHAIN_STATE,
-  DEFAULT_TRANSFER_STATE,
-} from './types';
+import { TransferScreen, ChainState, TransferState, DEFAULT_CHAIN_STATE, DEFAULT_TRANSFER_STATE } from './types';
 import { TxInfo } from '../transaction/types';
 import { convertAddressSS58 } from '../../utils/account';
 
@@ -41,14 +33,20 @@ export class XcmApp extends LitElement {
   private input: CrossChainInputConfigs = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
-    entries.forEach((entry) => {
-      this.screen.height = entry.contentRect.height;
+    entries.forEach((_entry) => {
+      if (TransferScreen.Transfer == this.screen) {
+        const transferScreen = this.shadowRoot.getElementById('transfer-screen');
+        const tabs = this.shadowRoot.querySelectorAll('.tab:not(#transfer-screen)');
+        tabs.forEach((tab: Element) => {
+          tab.setAttribute('style', `height: ${transferScreen.offsetHeight}px`);
+        });
+      }
     });
   });
   private disconnectSubscribeBalance: Subscription = null;
   private disconnectSubscribeInput: Subscription = null;
 
-  @state() screen: ScreenState = DEFAULT_SCREEN_STATE;
+  @state() screen: TransferScreen = TransferScreen.Transfer;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
   @state() chain: ChainState = DEFAULT_CHAIN_STATE;
 
@@ -73,7 +71,19 @@ export class XcmApp extends LitElement {
       }
 
       .xcm-root {
-        height: 100%;
+        display: grid;
+        grid-template-areas: 'main';
+      }
+
+      uigc-paper {
+        display: none;
+        grid-area: main;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .tab.active {
+        display: block;
       }
 
       .header {
@@ -98,11 +108,6 @@ export class XcmApp extends LitElement {
         left: 20px;
       }
 
-      uigc-paper {
-        width: 100%;
-        display: block;
-      }
-
       @media (max-width: 480px) {
         uigc-paper {
           box-shadow: none;
@@ -112,6 +117,31 @@ export class XcmApp extends LitElement {
 
         .header {
           min-height: 64px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .xcm-root {
+          grid-auto-columns: 1fr;
+          height: 100%;
+        }
+
+        .header {
+          min-height: 64px;
+        }
+
+        uigc-paper {
+          box-shadow: none;
+          overflow-y: auto;
+        }
+
+        uigc-paper:not(#transfer-screen) {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh !important;
+          z-index: 10;
         }
       }
 
@@ -140,7 +170,7 @@ export class XcmApp extends LitElement {
   }
 
   changeScreen(active: TransferScreen) {
-    this.screen.active = active;
+    this.screen = active;
     this.requestUpdate();
   }
 
@@ -474,106 +504,112 @@ export class XcmApp extends LitElement {
     super.disconnectedCallback();
   }
 
-  onBackClick(e: any) {
-    this.changeScreen(TransferScreen.Transfer);
-  }
-
   selectChainTemplate() {
+    const classes = {
+      tab: true,
+      active: this.screen == TransferScreen.SelectChain,
+    };
     const isDest = this.chain.selector === this.transfer.dstChain;
-    return html`<gc-xcm-app-chain
-      style="height: ${this.screen.height}px"
-      .chains=${isDest ? this.chain.dest : this.chain.list}
-      .srcChain=${this.transfer.srcChain}
-      .dstChain=${this.transfer.dstChain}
-      .selector=${this.chain.selector}
-      @list-item-clicked=${({ detail: { item } }: CustomEvent) => {
-        if (isDest) {
-          this.changeDestinationChain(item);
-        } else {
-          this.changeSourceChain(item);
-        }
-        this.changeScreen(TransferScreen.Transfer);
-      }}
-    >
-      <div class="header section" slot="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}>
-          <uigc-icon-back></uigc-icon-back>
-        </uigc-icon-button>
-        <uigc-typography variant="section">${isDest ? i18n.t('xcm.dest') : i18n.t('xcm.source')}</uigc-typography>
-        <span></span>
-      </div>
-    </gc-xcm-app-chain>`;
+    return html`<uigc-paper class=${classMap(classes)}>
+      <gc-xcm-app-chain
+        .chains=${isDest ? this.chain.dest : this.chain.list}
+        .srcChain=${this.transfer.srcChain}
+        .dstChain=${this.transfer.dstChain}
+        .selector=${this.chain.selector}
+        @list-item-clicked=${({ detail: { item } }: CustomEvent) => {
+          if (isDest) {
+            this.changeDestinationChain(item);
+          } else {
+            this.changeSourceChain(item);
+          }
+          this.changeScreen(TransferScreen.Transfer);
+        }}
+      >
+        <div class="header section" slot="header">
+          <uigc-icon-button class="back" @click=${() => this.changeScreen(TransferScreen.Transfer)}>
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section">${isDest ? i18n.t('xcm.dest') : i18n.t('xcm.source')}</uigc-typography>
+          <span></span>
+        </div>
+      </gc-xcm-app-chain>
+    </uigc-paper>`;
   }
 
   selectTokenTemplate() {
-    return html`<gc-xcm-app-token
-      style="height: ${this.screen.height}px"
-      .assets=${this.chain.tokens}
-      .balances=${this.chain.balance}
-      .asset=${this.transfer.asset}
-      @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
-        this.changeAsset(symbol);
-        this.changeScreen(TransferScreen.Transfer);
-      }}
-    >
-      <div class="header section" slot="header">
-        <uigc-icon-button class="back" @click=${this.onBackClick}>
-          <uigc-icon-back></uigc-icon-back>
-        </uigc-icon-button>
-        <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
-        <span></span>
-      </div>
-    </gc-xcm-app-token>`;
+    const classes = {
+      tab: true,
+      active: this.screen == TransferScreen.SelectToken,
+    };
+    return html`<uigc-paper class=${classMap(classes)}>
+      <gc-xcm-app-token
+        .assets=${this.chain.tokens}
+        .balances=${this.chain.balance}
+        .asset=${this.transfer.asset}
+        @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
+          this.changeAsset(symbol);
+          this.changeScreen(TransferScreen.Transfer);
+        }}
+      >
+        <div class="header section" slot="header">
+          <uigc-icon-button class="back" @click=${() => this.changeScreen(TransferScreen.Transfer)}>
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
+          <span></span>
+        </div>
+      </gc-xcm-app-token>
+    </uigc-paper>`;
   }
 
   transferTokensTemplate() {
-    return html`<gc-xcm-app-main
-      .disabled=${this.isTransferEmpty() || this.hasError()}
-      .srcChain=${this.transfer.srcChain}
-      .dstChain=${this.transfer.dstChain}
-      .asset=${this.transfer.asset}
-      .amount=${this.transfer.amount}
-      .balance=${this.transfer.balance}
-      .effectiveBalance=${this.transfer.effectiveBalance}
-      .nativeAsset=${this.transfer.nativeAsset}
-      .srcChainFee=${this.transfer.srcChainFee}
-      .dstChainFee=${this.transfer.dstChainFee}
-      .dstChainSs58Prefix=${this.transfer.dstChainSs58Prefix}
-      .error=${this.transfer.error}
-      .address=${this.transfer.address}
-      @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
-        this.updateAmount(value);
-        this.validateTransferAmount();
-      }}
-      @address-input-changed=${({ detail: { address } }: CustomEvent) => {
-        this.updateAddress(address);
-        this.validateAddress();
-      }}
-      @asset-switch-clicked=${this.switchChains}
-      @asset-selector-clicked=${() => this.changeScreen(TransferScreen.SelectToken)}
-      @chain-selector-clicked=${({ detail: { chain } }: CustomEvent) => {
-        this.chain.selector = chain;
-        this.changeScreen(TransferScreen.SelectChain);
-      }}
-      @transfer-clicked=${() => this.swap()}
-    >
-      <div class="header" slot="header">
-        <uigc-typography gradient variant="title">${i18n.t('xcm.title')}</uigc-typography>
-        <span class="grow"></span>
-      </div>
-    </gc-xcm-app-main>`;
+    const classes = {
+      tab: true,
+      active: this.screen == TransferScreen.Transfer,
+    };
+    return html` <uigc-paper class=${classMap(classes)} id="transfer-screen">
+      <gc-xcm-app-main
+        .disabled=${this.isTransferEmpty() || this.hasError()}
+        .srcChain=${this.transfer.srcChain}
+        .dstChain=${this.transfer.dstChain}
+        .asset=${this.transfer.asset}
+        .amount=${this.transfer.amount}
+        .balance=${this.transfer.balance}
+        .effectiveBalance=${this.transfer.effectiveBalance}
+        .nativeAsset=${this.transfer.nativeAsset}
+        .srcChainFee=${this.transfer.srcChainFee}
+        .dstChainFee=${this.transfer.dstChainFee}
+        .dstChainSs58Prefix=${this.transfer.dstChainSs58Prefix}
+        .error=${this.transfer.error}
+        .address=${this.transfer.address}
+        @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
+          this.updateAmount(value);
+          this.validateTransferAmount();
+        }}
+        @address-input-changed=${({ detail: { address } }: CustomEvent) => {
+          this.updateAddress(address);
+          this.validateAddress();
+        }}
+        @asset-switch-clicked=${this.switchChains}
+        @asset-selector-clicked=${() => this.changeScreen(TransferScreen.SelectToken)}
+        @chain-selector-clicked=${({ detail: { chain } }: CustomEvent) => {
+          this.chain.selector = chain;
+          this.changeScreen(TransferScreen.SelectChain);
+        }}
+        @transfer-clicked=${() => this.swap()}
+      >
+        <div class="header" slot="header">
+          <uigc-typography gradient variant="title">${i18n.t('xcm.title')}</uigc-typography>
+          <span class="grow"></span>
+        </div>
+      </gc-xcm-app-main>
+    </uigc-paper>`;
   }
 
   render() {
     return html`
       <div class="xcm-root">
-        <uigc-paper>
-          ${choose(this.screen.active, [
-            [TransferScreen.Transfer, () => this.transferTokensTemplate()],
-            [TransferScreen.SelectChain, () => this.selectChainTemplate()],
-            [TransferScreen.SelectToken, () => this.selectTokenTemplate()],
-          ])}
-        </uigc-paper>
+        ${this.transferTokensTemplate()} ${this.selectChainTemplate()}} ${this.selectTokenTemplate()}
       </div>
     `;
   }
