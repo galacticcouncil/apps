@@ -14,6 +14,8 @@ import { Notification, NotificationType } from '../notification/types';
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
+  private txBroadcasted: Set<string> = new Set([]);
+
   @state() message: TemplateResult = null;
   @state() currentTx: string = null;
 
@@ -50,10 +52,6 @@ export class TransactionCenter extends LitElement {
 
   private logInBlockMessage(txId: string, hash: string) {
     console.log(`[${txId}] Completed at block hash #${hash}`);
-  }
-
-  private logXcmpMessage(txId: string, chain: string, method: string, hash: string) {
-    console.log(`[${txId}] Chain: (${chain}) xcmpQueue.${method} with hash #${hash}`);
   }
 
   handleTx(txId: string, txInfo: TxInfo) {
@@ -105,6 +103,12 @@ export class TransactionCenter extends LitElement {
   }
 
   private handleBroadcasted(id: string, notification: TxNotification) {
+    const isBroadcasted = this.txBroadcasted.has(id);
+    if (isBroadcasted) {
+      return;
+    } else {
+      this.txBroadcasted.add(id);
+    }
     this.currentTx = id;
     this.message = this.broadcastTemplate(id, notification.processing);
     this.sendNotification(id, NotificationType.progress, notification.processing, false);
@@ -171,7 +175,9 @@ export class TransactionCenter extends LitElement {
         <uigc-circular-progress class="icon"></uigc-circular-progress>
         <uigc-typography variant="title">${i18n.t('tx.submitted')}</uigc-typography>
         <span>${i18n.t('tx.submittedText')}</span>
-        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(id, message)}>${i18n.t('tx.close')}</uigc-button>
+        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(id, message)}
+          >${i18n.t('tx.close')}</uigc-button
+        >
       </uigc-dialog>
     `;
   }
