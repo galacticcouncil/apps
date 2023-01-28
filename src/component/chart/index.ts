@@ -6,7 +6,15 @@ import { classMap } from 'lit/directives/class-map.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
-import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
+import {
+  createChart,
+  IChartApi,
+  ISeriesApi,
+  IPriceLine,
+  UTCTimestamp,
+  SingleValueData,
+  PriceLineOptions,
+} from 'lightweight-charts';
 
 import { baseStyles } from '../base.css';
 import { Chain, chainCursor, tradeDataCursor } from '../../db';
@@ -36,6 +44,7 @@ export class TradeChart extends LitElement {
   private chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
   private chartSeries: ISeriesApi<'Area'> = null;
+  private chartPriceLine: IPriceLine = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
@@ -179,6 +188,35 @@ export class TradeChart extends LitElement {
 
       .tooltip .price__selected {
         color: #85d1ff;
+      }
+
+      .tooltip-floating {
+        width: 96px;
+        height: 365px;
+        position: absolute;
+        display: none;
+        flex-direction: column;
+        row-gap: 10px;
+        padding: 8px;
+        box-sizing: border-box;
+        font-size: 16px;
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.1);
+        text-align: center;
+        z-index: 1000;
+        top: 12px;
+        left: 12px;
+        pointer-events: none;
+        border-radius: 2px;
+        font-weight: 700;
+        line-height: 16px;
+        font-family: 'SatoshiVariable';
+        box-shadow: 0 1px 2px 0 rgba(117, 134, 150, 0.45);
+      }
+
+      .tooltip-floating .time {
+        font-size: 20px;
+        font-weight: 900;
       }
 
       @media (min-width: 1024px) {
@@ -343,11 +381,15 @@ export class TradeChart extends LitElement {
       this.chartState = ChartState.Loaded;
     }
 
-    this.chartSeries.applyOptions({
-      priceFormat: humanizeScale(this.spotPrice),
-      priceLineVisible: true,
-      priceLineSource: 1,
-    });
+    const priceLine = {
+      price: this.spotPrice,
+      color: '#85D1FF',
+      lineWidth: 1,
+      axisLabelVisible: true,
+      title: humanizeAmount(this.spotPrice),
+    } as PriceLineOptions;
+    this.chartPriceLine && this.chartSeries.removePriceLine(this.chartPriceLine);
+    this.chartPriceLine = this.chartSeries.createPriceLine(priceLine);
   }
 
   private getRangeFrom(): UTCTimestamp {
@@ -387,11 +429,18 @@ export class TradeChart extends LitElement {
       bottomColor: 'rgba(79, 234, 255, 0)',
       lineColor: '#85D1FF',
       lineWidth: 2,
+      lastValueVisible: false,
+      priceLineVisible: false,
+      crosshairMarkerRadius: 4,
+      crosshairMarkerBorderColor: '#000',
+      crosshairMarkerBackgroundColor: '#fff',
     });
 
     const selected = this.shadowRoot.getElementById('selected');
     const actual = this.shadowRoot.getElementById('actual');
-    subscribeCrosshair(this.chart, this.chartContainer, this.chartSeries, selected, actual, (price) =>
+    const floating = this.shadowRoot.getElementById('floating');
+
+    subscribeCrosshair(this.chart, this.chartContainer, this.chartSeries, selected, actual, floating, (price) =>
       this.calculateDollarPrice(price)
     );
   }
@@ -492,6 +541,7 @@ export class TradeChart extends LitElement {
           ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}
         </uigc-range-button-group>
         <div id="chart">
+          <div id="floating" class="tooltip-floating"></div>
           <div class="backdrop">
             <gc-chart-empty class=${classMap(chartEmptyClasses)}></gc-chart-empty>
             <gc-chart-error class=${classMap(chartErrorClasses)}></gc-chart-error>

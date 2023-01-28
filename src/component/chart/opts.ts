@@ -23,7 +23,7 @@ export const rightPriceScale = {
     top: 0.2,
     bottom: 0.2,
   },
-  visible: true,
+  visible: false,
   borderVisible: true,
   entireTextOnly: true,
   borderColor: 'rgba(114, 131, 165, 0.6)',
@@ -35,13 +35,13 @@ export const leftPriceScale = {
 
 export const timeScale = (range: Range, dayjs) => {
   return {
+    visible: false,
     fixLeftEdge: true,
     fixRightEdge: true,
     borderVisible: true,
     borderColor: 'rgba(114, 131, 165, 0.6)',
     timeVisible: true,
     secondsVisible: false,
-    //minBarSpacing: 0,
     tickMarkFormatter: (time: UTCTimestamp, tickMarkType: TickMarkType, locale: string) => {
       switch (tickMarkType) {
         case 2:
@@ -68,13 +68,13 @@ export const grid = {
 
 export const crosshair = {
   horzLine: {
-    visible: true,
+    visible: false,
     labelVisible: true,
-    labelBackgroundColor: '#000524',
+    labelBackgroundColor: '#66697C',
   },
   vertLine: {
     visible: true,
     labelVisible: true,
-    labelBackgroundColor: '#000524',
+    labelBackgroundColor: '#66697C',
   },
 } as CrosshairOptions;

@@ -4,16 +4,6 @@ export enum TransferScreen {
   Transfer,
 }
 
-export type ScreenState = {
-  active: TransferScreen;
-  height: number;
-};
-
-export const DEFAULT_SCREEN_STATE: ScreenState = {
-  active: TransferScreen.Transfer,
-  height: null,
-};
-
 export type TransferState = {
   srcChain: string;
   dstChain: string;
