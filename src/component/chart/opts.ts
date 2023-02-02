@@ -18,27 +18,27 @@ export const layoutOptions = {
   fontSize: 12,
 } as LayoutOptions;
 
-export const rightPriceScale = {
+export const leftPriceScale = {
   scaleMargins: {
     top: 0.2,
     bottom: 0.2,
   },
   visible: false,
-  borderVisible: true,
+  borderVisible: false,
   entireTextOnly: true,
   borderColor: 'rgba(114, 131, 165, 0.6)',
 } as PriceScaleOptions;
 
-export const leftPriceScale = {
+export const rightPriceScale = {
   visible: false,
 } as PriceScaleOptions;
 
 export const timeScale = (range: Range, dayjs) => {
   return {
-    visible: false,
+    visible: true,
     fixLeftEdge: true,
     fixRightEdge: true,
-    borderVisible: true,
+    borderVisible: false,
     borderColor: 'rgba(114, 131, 165, 0.6)',
     timeVisible: true,
     secondsVisible: false,
@@ -68,13 +68,13 @@ export const grid = {
 
 export const crosshair = {
   horzLine: {
-    visible: false,
-    labelVisible: true,
-    labelBackgroundColor: '#66697C',
+    visible: true,
+    labelVisible: false,
+    labelBackgroundColor: '#000524',
   },
   vertLine: {
     visible: true,
-    labelVisible: true,
-    labelBackgroundColor: '#66697C',
+    labelVisible: false,
+    labelBackgroundColor: '#000524',
   },
 } as CrosshairOptions;

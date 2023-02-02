@@ -166,6 +166,7 @@ export class TradeApp extends LitElement {
           width: 100%;
           height: 100vh !important;
           z-index: 10;
+          overflow: auto;
         }
       }
 
@@ -974,6 +975,7 @@ export class TradeApp extends LitElement {
             .assetOut=${this.trade.assetOut}
             .spotPrice=${this.trade.spotPrice}
             .usdPrice=${this.assets.usdPrice}
+            .details=${this.assets.details}
           >
             <div class="header section" slot="header">
               <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
