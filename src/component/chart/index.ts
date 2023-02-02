@@ -27,9 +27,11 @@ import './states/loading';
 import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 import { AssetDetail } from '../../api/asset';
 
-const CHART_HEIGHT = 335;
+const CHART_HEIGHT = 345;
 const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
+const MAX_PAPER_WIDTH = 480;
+const MIN_DATAPOINTS = 5;
 
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
@@ -44,10 +46,14 @@ export class TradeChart extends LitElement {
       const iWidth = window.innerWidth;
       if (iWidth > 1023) {
         this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
+      } else if (iWidth < 480) {
+        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 170);
       } else if (iWidth < 768) {
-        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 190);
+        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 150);
       } else {
-        this.chart.resize(entry.contentRect.width - 2 * 28, entry.contentRect.height - 190);
+        const crv = entry.contentRect.width;
+        const chartWidth = crv > MAX_PAPER_WIDTH ? MAX_PAPER_WIDTH : crv;
+        this.chart.resize(chartWidth - 2 * 28, entry.contentRect.height - 180);
       }
       this.fetchData();
     });
@@ -82,24 +88,31 @@ export class TradeChart extends LitElement {
       }
 
       .summary {
-        display: block;
+        display: grid;
+        grid-gap: 2px;
+        grid-template-areas:
+          'pair price'
+          'desc price';
         color: #fff;
         padding: 0 14px;
       }
 
-      .summary .info {
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
-        justify-content: space-between;
-        height: 20px;
-        margin-bottom: 5px;
+      .summary > div:nth-child(1) {
+        grid-area: pair;
       }
 
-      .summary .sub {
-        display: flex;
-        height: 20px;
-        align-items: flex-start;
+      .summary > div:nth-child(2) {
+        grid-area: desc;
+      }
+
+      .summary > div:nth-child(3) {
+        grid-area: price;
+        align-items: flex-end;
+      }
+
+      .summary > div:nth-child(4) {
+        grid-area: price;
+        align-items: flex-end;
       }
 
       .chart {
@@ -108,13 +121,18 @@ export class TradeChart extends LitElement {
         padding: 0 14px;
         display: flex;
         flex-direction: column;
-        margin-top: 16px;
+        margin-top: 8px;
+      }
+
+      @media (max-width: 480px) {
+        .summary {
+          padding: 20px 14px 0;
+        }
       }
 
       @media (min-width: 768px) {
         .summary {
           padding: 0 28px;
-          align-items: center;
         }
 
         .chart {
@@ -125,11 +143,6 @@ export class TradeChart extends LitElement {
       @media (min-width: 1024px) {
         .summary {
           padding: 26px 0 0;
-          align-items: center;
-        }
-
-        .summary .info {
-          height: 30px;
         }
 
         .chart {
@@ -138,28 +151,20 @@ export class TradeChart extends LitElement {
       }
 
       .summary .pair {
-        font-family: 'FontOver';
-        font-style: normal;
-        font-weight: 700;
-        font-size: 20px;
-        line-height: 100%;
-      }
-
-      .summary .pair-detail {
         font-family: 'ChakraPetch';
         font-style: normal;
-        font-weight: 500;
-        font-size: 14px;
+        font-weight: 700;
+        font-size: 18px;
         line-height: 100%;
-        color: rgba(255, 255, 255, 0.6);
       }
 
       .summary .desc {
         font-family: 'ChakraPetch';
         font-style: normal;
         font-weight: 500;
-        font-size: 12px;
+        font-size: 14px;
         line-height: 100%;
+        color: rgba(255, 255, 255, 0.6);
       }
 
       .tooltip {
@@ -172,10 +177,10 @@ export class TradeChart extends LitElement {
       }
 
       .tooltip .price {
-        font-family: 'FontOver';
+        font-family: 'ChakraPetch';
         font-style: normal;
-        font-weight: 500;
-        font-size: 20px;
+        font-weight: 600;
+        font-size: 18px;
         line-height: 100%;
       }
 
@@ -185,9 +190,6 @@ export class TradeChart extends LitElement {
         font-weight: 500;
         font-size: 14px;
         line-height: 100%;
-        position: absolute;
-        right: 3px;
-        top: 25px;
       }
 
       .tooltip .price__selected {
@@ -196,15 +198,14 @@ export class TradeChart extends LitElement {
 
       .tooltip-floating {
         width: 96px;
-        //height: 50px;
         padding: 5px 0;
         //background-color: #000524;
         position: absolute;
         display: none;
         flex-direction: column;
-        row-gap: 10px;
+        row-gap: 5px;
         box-sizing: border-box;
-        font-size: 16px;
+        font-size: 14px;
         color: #fff;
         text-align: center;
         z-index: 5;
@@ -218,33 +219,23 @@ export class TradeChart extends LitElement {
       }
 
       .tooltip-floating .time {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 900;
       }
 
       @media (min-width: 1024px) {
         .summary .pair {
-          font-size: 30px;
-        }
-
-        .summary .desc {
-          font-weight: 500;
-          font-size: 14px;
+          font-size: 24px;
         }
 
         .tooltip .price {
           font-size: 24px;
-        }
-
-        .tooltip .usd {
-          top: 28px;
         }
       }
 
       .skeleton {
         display: flex;
         flex-direction: column;
-        align-items: end;
       }
 
       .usd-skeleton {
@@ -417,7 +408,7 @@ export class TradeChart extends LitElement {
     const rangeFrom = this.getRangeFrom();
     const rangeData = data.filter((point: SingleValueData) => point.time > rangeFrom);
 
-    if (rangeData.length == 0) {
+    if (rangeData.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
@@ -425,7 +416,6 @@ export class TradeChart extends LitElement {
       this.chartSeries.setData(rangeData);
       this.chartSeries.update(lastPrice);
     }
-
     this.chartSeries.applyOptions({
       priceLineVisible: true,
       priceLineSource: 1,
@@ -436,6 +426,7 @@ export class TradeChart extends LitElement {
     const sum = rangeData.map((svd: SingleValueData) => svd.value).reduce((v1: number, v2: number) => v1 + v2, 0);
     const avg = sum / rangeData.length || 0;
     this.syncPriceScale(max, min, avg);
+    this.chartState = ChartState.Loaded;
   }
 
   syncPriceLine(id: string, yCoord: number) {
@@ -447,10 +438,6 @@ export class TradeChart extends LitElement {
     const tagEl = this.shadowRoot.getElementById(id);
     tagEl.setAttribute('style', 'top: ' + (yCoord - 9) + 'px;');
     tagEl.innerHTML = humanizeAmount(value.toString());
-  }
-
-  private delay(time: number) {
-    return new Promise((resolve) => setTimeout(resolve, time));
   }
 
   syncPriceScale(max: number, min: number, avg: number) {
@@ -468,12 +455,6 @@ export class TradeChart extends LitElement {
     this.syncPriceTag('maxTag', maxYCoord, max);
     this.syncPriceTag('minTag', minYCoord, min);
     this.syncPriceTag('avgTag', avgYCoord, avg);
-
-    this.delay(10).then(() => {
-      const spotYCoord = this.chartSeries.priceToCoordinate(this.spotPrice);
-      this.syncPriceTag('spotTag', spotYCoord, this.spotPrice);
-      this.chartState = ChartState.Loaded;
-    });
   }
 
   private getRangeFrom(): UTCTimestamp {
@@ -534,7 +515,7 @@ export class TradeChart extends LitElement {
   async subscribe() {
     const api = chainCursor.deref().api;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      //this.fetchData();
+      this.fetchData();
     });
   }
 
@@ -598,6 +579,11 @@ export class TradeChart extends LitElement {
     </div>`;
   }
 
+  private formatAssetName(asset: PoolAsset) {
+    const name = this.details.get(asset.id)?.name ?? '-';
+    return name.replace(/ *\([^)]*\) */g, '');
+  }
+
   render() {
     const usdClasses = {
       usd: true,
@@ -612,38 +598,36 @@ export class TradeChart extends LitElement {
     return html`
       <slot name="header"></slot>
       <div class="summary">
-        <div class="info">
+        <div>
           ${when(
             this.assetIn || this.assetOut,
             () => html` <div class="pair">${this.assetIn.symbol ?? '-'} / ${this.assetOut.symbol ?? '-'}</div>`,
-            () => html` <uigc-skeleton class="skeleton" progress rectangle width="150px" height="30px"></uigc-skeleton>`
+            () => html` <uigc-skeleton class="skeleton" progress rectangle width="150px" height="24px"></uigc-skeleton>`
           )}
-          <div>
-            <div id="selected" class="tooltip skeleton"></div>
-            <div id="actual" class="tooltip skeleton">
-              ${when(
-                this.tradeProgress || !this.spotPrice,
-                () => html` <uigc-skeleton progress rectangle width="150px" height="20px"></uigc-skeleton> `,
-                () => html`
-                  <div class="price">
-                    ${humanizeAmount(this.spotPrice)}
-                    <span class="asset">
-                      ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span
-                    >
-                  </div>
-                  <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>
-                `
-              )}
-            </div>
-          </div>
         </div>
-        <div class="sub">
+        <div>
           ${when(
             this.assetIn || this.assetOut,
             () => html` <div class="pair-detail">
-              ${this.details.get(this.assetIn.id)?.name ?? '-'} / ${this.details.get(this.assetOut.id)?.name ?? '-'}
+              ${this.formatAssetName(this.assetIn)} / ${this.formatAssetName(this.assetOut)}
             </div>`,
-            () => html` <uigc-skeleton class="skeleton" progress rectangle width="130px" height="14px"></uigc-skeleton>`
+            () => html` <uigc-skeleton class="skeleton" progress rectangle width="130px" height="21px"></uigc-skeleton>`
+          )}
+        </div>
+        <div id="selected" class="tooltip skeleton"></div>
+        <div id="actual" class="tooltip skeleton">
+          ${when(
+            this.tradeProgress || !this.spotPrice,
+            () => html` <uigc-skeleton progress rectangle width="150px" height="24px"></uigc-skeleton> `,
+            () => html`
+              <div class="price">
+                ${humanizeAmount(this.spotPrice)}
+                <span class="asset">
+                  ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span
+                >
+              </div>
+              <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>
+            `
           )}
         </div>
       </div>
