@@ -33,25 +33,24 @@ export function subscribeCrosshair(
         return;
       }
 
-      selected.style.display = 'block';
+      selected.style.display = 'flex';
       floating.style.display = 'flex';
       actual.style.display = 'none';
       const price = param.seriesPrices.get(series);
       const usdPrice = onPriceSelection(price.toString());
       const assetText = asset[0].textContent;
-      const priceHtml =
-        `<div class="price price__selected">` + humanizeAmount(price.toString()) + ` ${assetText}</div>`;
-      const usdHtml = `<div class="usd price__selected"><span>` + `≈$${usdPrice}` + `</span></div>`;
+      const priceHtml = `<div class="price">` + humanizeAmount(price.toString()) + ` ${assetText}</div>`;
+      const usdHtml = `<div class="usd"><span>` + `≈$${usdPrice}` + `</span></div>`;
       selected.innerHTML = usdPrice ? priceHtml + usdHtml : priceHtml;
 
       const date = dayjs
         .unix(param.time as UTCTimestamp)
         .utc()
-        .format('MMM D');
+        .format('MMM D, YYYY');
       const time = dayjs
         .unix(param.time as UTCTimestamp)
         .utc()
-        .format('hh:mm a');
+        .format('hh:mm');
       let left: any = param.point.x;
 
       floating.innerHTML = `<div>` + date + `</div>` + `<div class="time">` + time + `</div>`;

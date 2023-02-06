@@ -47,7 +47,7 @@ export class TradeChart extends LitElement {
       if (iWidth > 1023) {
         this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
       } else if (iWidth < 480) {
-        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 170);
+        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 180);
       } else if (iWidth < 768) {
         this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 150);
       } else {
@@ -89,12 +89,13 @@ export class TradeChart extends LitElement {
 
       .summary {
         display: grid;
-        grid-gap: 2px;
+        row-gap: 10px;
         grid-template-areas:
-          'pair price'
-          'desc price';
+          'pair range'
+          'price price';
         color: #fff;
         padding: 0 14px;
+        align-items: center;
       }
 
       .summary > div:nth-child(1) {
@@ -102,17 +103,20 @@ export class TradeChart extends LitElement {
       }
 
       .summary > div:nth-child(2) {
-        grid-area: desc;
+        grid-area: range;
+        text-align: right;
       }
 
       .summary > div:nth-child(3) {
         grid-area: price;
-        align-items: flex-end;
+        text-align: left;
+        height: 40px;
       }
 
       .summary > div:nth-child(4) {
         grid-area: price;
-        align-items: flex-end;
+        text-align: left;
+        height: 40px;
       }
 
       .chart {
@@ -142,7 +146,7 @@ export class TradeChart extends LitElement {
 
       @media (min-width: 1024px) {
         .summary {
-          padding: 26px 0 0;
+          padding: 28px 0 0;
         }
 
         .chart {
@@ -182,6 +186,7 @@ export class TradeChart extends LitElement {
         font-weight: 600;
         font-size: 18px;
         line-height: 100%;
+        color: #85d1ff;
       }
 
       .tooltip .usd {
@@ -190,10 +195,7 @@ export class TradeChart extends LitElement {
         font-weight: 500;
         font-size: 14px;
         line-height: 100%;
-      }
-
-      .tooltip .price__selected {
-        color: #85d1ff;
+        color: rgba(255, 255, 255, 0.4);
       }
 
       .tooltip-floating {
@@ -201,31 +203,32 @@ export class TradeChart extends LitElement {
         padding: 5px 0;
         //background-color: #000524;
         position: absolute;
-        display: none;
-        flex-direction: column;
-        row-gap: 5px;
-        box-sizing: border-box;
-        font-size: 14px;
-        color: #fff;
-        text-align: center;
-        z-index: 5;
         top: 12px;
         left: 12px;
+        display: none;
+        flex-direction: column;
+        box-sizing: border-box;
+        z-index: 5;
         pointer-events: none;
         border-radius: 2px;
+        font-family: 'ChakraPetch';
         font-weight: 700;
-        line-height: 16px;
-        font-family: 'SatoshiVariable';
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+        text-align: center;
+        line-height: 120%;
       }
 
       .tooltip-floating .time {
         font-size: 18px;
-        font-weight: 900;
+        font-weight: 600;
+        color: #ecedef;
+        line-height: 130%;
       }
 
       @media (min-width: 1024px) {
         .summary .pair {
-          font-size: 24px;
+          font-size: 19px;
         }
 
         .tooltip .price {
@@ -544,6 +547,45 @@ export class TradeChart extends LitElement {
     super.disconnectedCallback();
   }
 
+  pairTemplate() {
+    if (this.assetIn || this.assetOut) {
+      return html`<div class="pair">${this.assetIn.symbol ?? '-'} / ${this.assetOut.symbol ?? '-'}</div>`;
+    } else {
+      return html`<uigc-skeleton class="skeleton" progress rectangle width="150px" height="24px"></uigc-skeleton>`;
+    }
+  }
+
+  priceTemplate() {
+    const usdClasses = {
+      usd: true,
+      hidden: this.usdPrice.size == 0,
+    };
+    const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
+    if (this.tradeProgress || !this.spotPrice) {
+      return html`<uigc-skeleton progress rectangle width="150px" height="24px"></uigc-skeleton>`;
+    } else {
+      return html`<div class="price">
+          ${humanizeAmount(this.spotPrice)}
+          <span class="asset"> ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span>
+        </div>
+        <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>`;
+    }
+  }
+
+  rangeTemplate() {
+    const rangeVal = Range[this.range];
+    return html`<uigc-range-button-group
+      selected=${rangeVal}
+      @range-button-clicked=${(e: CustomEvent) => {
+        this.range = Range[e.detail.value];
+        this.requestUpdate();
+        this.fetchData();
+      }}
+    >
+      ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}
+    </uigc-range-button-group>`;
+  }
+
   backdropTemplate() {
     const chartErrorClasses = {
       show: this.chartState == ChartState.Error,
@@ -579,70 +621,20 @@ export class TradeChart extends LitElement {
     </div>`;
   }
 
-  private formatAssetName(asset: PoolAsset) {
-    const name = this.details.get(asset.id)?.name ?? '-';
-    return name.replace(/ *\([^)]*\) */g, '');
-  }
-
   render() {
-    const usdClasses = {
-      usd: true,
-      hidden: this.usdPrice.size == 0,
-    };
     const chartClasses = {
       chart: true,
       loading: this.chartState != ChartState.Loaded || tradeDataCursor.deref().length == 0,
     };
-    const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
-    const rangeVal = Range[this.range];
     return html`
       <slot name="header"></slot>
       <div class="summary">
-        <div>
-          ${when(
-            this.assetIn || this.assetOut,
-            () => html` <div class="pair">${this.assetIn.symbol ?? '-'} / ${this.assetOut.symbol ?? '-'}</div>`,
-            () => html` <uigc-skeleton class="skeleton" progress rectangle width="150px" height="24px"></uigc-skeleton>`
-          )}
-        </div>
-        <div>
-          ${when(
-            this.assetIn || this.assetOut,
-            () => html` <div class="pair-detail">
-              ${this.formatAssetName(this.assetIn)} / ${this.formatAssetName(this.assetOut)}
-            </div>`,
-            () => html` <uigc-skeleton class="skeleton" progress rectangle width="130px" height="21px"></uigc-skeleton>`
-          )}
-        </div>
+        <div>${this.pairTemplate()}</div>
+        <div>${this.rangeTemplate()}</div>
         <div id="selected" class="tooltip skeleton"></div>
-        <div id="actual" class="tooltip skeleton">
-          ${when(
-            this.tradeProgress || !this.spotPrice,
-            () => html` <uigc-skeleton progress rectangle width="150px" height="24px"></uigc-skeleton> `,
-            () => html`
-              <div class="price">
-                ${humanizeAmount(this.spotPrice)}
-                <span class="asset">
-                  ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span
-                >
-              </div>
-              <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>
-            `
-          )}
-        </div>
+        <div id="actual" class="tooltip skeleton">${this.priceTemplate()}</div>
       </div>
-
       <div class=${classMap(chartClasses)}>
-        <uigc-range-button-group
-          selected=${rangeVal}
-          @range-button-clicked=${(e: CustomEvent) => {
-            this.range = Range[e.detail.value];
-            this.requestUpdate();
-            this.fetchData();
-          }}
-        >
-          ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}
-        </uigc-range-button-group>
         <div id="chart">
           <div id="floating" class="tooltip-floating"></div>
           ${this.backdropTemplate()}
