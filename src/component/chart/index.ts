@@ -46,10 +46,8 @@ export class TradeChart extends LitElement {
       const iWidth = window.innerWidth;
       if (iWidth > 1023) {
         this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
-      } else if (iWidth < 480) {
-        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 180);
       } else if (iWidth < 768) {
-        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 150);
+        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 180);
       } else {
         const crv = entry.contentRect.width;
         const chartWidth = crv > MAX_PAPER_WIDTH ? MAX_PAPER_WIDTH : crv;
