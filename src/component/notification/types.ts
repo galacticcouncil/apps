@@ -13,4 +13,5 @@ export type Notification = {
   message: string | TemplateResult;
   type: NotificationType;
   toast: boolean;
+  meta?: Record<string, string>;
 };

@@ -1,6 +1,9 @@
 import { html, css, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import type { ISubmittableResult } from '@polkadot/types/types';
+import type { ExtrinsicStatus } from '@polkadot/types/interfaces';
+
 import * as i18n from 'i18next';
 
 import short from 'short-uuid';
@@ -54,21 +57,31 @@ export class TransactionCenter extends LitElement {
     console.log(`[${txId}] Completed at block hash #${hash}`);
   }
 
+  private blockMeta(result: ISubmittableResult, blockHash: string): Record<string, string> {
+    const meta: Record<string, string> = {};
+    meta['blockHash'] = blockHash;
+    meta['txIndex'] = result.txIndex.toString();
+    return meta;
+  }
+
   handleTx(txId: string, txInfo: TxInfo) {
     signAndSend(
       txInfo.transaction,
       txInfo.account,
-      ({ events, status }) => {
+      (res) => {
+        const { events, status } = res;
         const type = status.type.toLowerCase();
         switch (type) {
           case 'broadcast':
             this.handleBroadcasted(txId, txInfo.notification);
             break;
           case 'inblock':
-            this.logInBlockMessage(txId, status.asInBlock.toString());
+            const blockHash = status.asInBlock.toString();
+            const meta = this.blockMeta(res, blockHash);
+            this.logInBlockMessage(txId, blockHash);
             const txEvent = txRecord(events).event;
             const txError = 'ExtrinsicFailed' === txEvent.method;
-            this.handleInBlock(txId, txInfo.notification, txError);
+            this.handleInBlock(txId, txInfo.notification, txError, meta);
             break;
         }
       },
@@ -82,17 +95,20 @@ export class TransactionCenter extends LitElement {
     signAndSendOb(
       txInfo.transaction.get(),
       txInfo.account,
-      ({ events, status }) => {
+      (res) => {
+        const { events, status } = res;
         const type = status.type.toLowerCase();
         switch (type) {
           case 'broadcast':
             this.handleBroadcasted(txId, txInfo.notification);
             break;
           case 'inblock':
-            this.logInBlockMessage(txId, status.asInBlock.toString());
+            const blockHash = status.asInBlock.toString();
+            const meta = this.blockMeta(res, blockHash);
+            this.logInBlockMessage(txId, blockHash);
             const txEvent = txRecord(events).event;
             const txError = 'ExtrinsicFailed' === txEvent.method;
-            this.handleInBlock(txId, txInfo.notification, txError);
+            this.handleInBlock(txId, txInfo.notification, txError, meta);
             break;
         }
       },
@@ -119,19 +135,25 @@ export class TransactionCenter extends LitElement {
     this.sendNotification(id, NotificationType.error, notification.failure, false);
   }
 
-  private handleInBlock(id: string, notification: TxNotification, error: boolean) {
+  private handleInBlock(id: string, notification: TxNotification, error: boolean, meta?: Record<string, string>) {
     if (id == this.currentTx) {
       this.closeDialog(id);
     }
 
     if (error) {
-      this.sendNotification(id, NotificationType.error, notification.failure, true);
+      this.sendNotification(id, NotificationType.error, notification.failure, true, meta);
     } else {
-      this.sendNotification(id, NotificationType.success, notification.success, true);
+      this.sendNotification(id, NotificationType.success, notification.success, true, meta);
     }
   }
 
-  sendNotification(id: string, type: NotificationType, message: string | TemplateResult, toast: boolean) {
+  sendNotification(
+    id: string,
+    type: NotificationType,
+    message: string | TemplateResult,
+    toast: boolean,
+    meta?: Record<string, string>
+  ) {
     const options = {
       bubbles: true,
       composed: true,
@@ -141,6 +163,7 @@ export class TransactionCenter extends LitElement {
         type: type,
         message: message,
         toast: toast,
+        meta: meta,
       } as Notification,
     };
     const notificationEvent = new CustomEvent<Notification>('gc:notification:new', options);
