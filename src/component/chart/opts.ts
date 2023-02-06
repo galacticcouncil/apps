@@ -47,7 +47,7 @@ export const timeScale = (range: Range, dayjs) => {
         case 2:
           return dayjs.unix(time).utc().format('MMM D');
         case 3:
-          return dayjs.unix(time).utc().format('hh: mm');
+          return dayjs.unix(time).utc().format('HH: mm');
         default:
           return dayjs.unix(time).utc().format('MMM D');
       }

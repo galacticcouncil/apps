@@ -50,7 +50,7 @@ export function subscribeCrosshair(
       const time = dayjs
         .unix(param.time as UTCTimestamp)
         .utc()
-        .format('hh:mm');
+        .format('HH:mm');
       let left: any = param.point.x;
 
       floating.innerHTML = `<div>` + date + `</div>` + `<div class="time">` + time + `</div>`;
