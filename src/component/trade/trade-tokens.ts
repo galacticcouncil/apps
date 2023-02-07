@@ -449,7 +449,7 @@ export class TradeTokens extends LitElement {
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
         <div class="row">${this.infoTransactionFeeTemplate()}</div>
         ${when(
-          this.swaps.length > 1 && !this.inProgress,
+          this.swaps.length > 1,
           () => html` <div class="row">${this.infoBestRouteTemplate()}</div>`
         )}
       </div>
