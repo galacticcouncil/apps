@@ -89,11 +89,7 @@ export class TradeTokens extends LitElement {
         position: absolute;
       }
 
-      @media (min-width: 768px) {
-        .transfer {
-          padding: 0 28px;
-        }
-
+      @media (min-width: 480px) {
         .transfer .chain {
           display: flex;
           flex-direction: row;
@@ -109,6 +105,12 @@ export class TradeTokens extends LitElement {
 
         .transfer .switch__mobile {
           display: none;
+        }
+      }
+
+      @media (min-width: 768px) {
+        .transfer {
+          padding: 0 28px;
         }
       }
 

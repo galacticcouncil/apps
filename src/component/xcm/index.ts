@@ -109,18 +109,6 @@ export class XcmApp extends LitElement {
       }
 
       @media (max-width: 480px) {
-        uigc-paper {
-          box-shadow: none;
-          height: 100% !important;
-          overflow-y: auto;
-        }
-
-        .header {
-          min-height: 64px;
-        }
-      }
-
-      @media (max-width: 480px) {
         .xcm-root {
           grid-auto-columns: 1fr;
           height: 100%;
@@ -133,6 +121,7 @@ export class XcmApp extends LitElement {
         uigc-paper {
           box-shadow: none;
           overflow-y: auto;
+          height: 100% !important;
         }
 
         uigc-paper:not(#transfer-screen) {
@@ -145,13 +134,15 @@ export class XcmApp extends LitElement {
         }
       }
 
+      @media (min-width: 480px) {
+        uigc-paper {
+          border-radius: var(--uigc-app-border-radius);
+        }
+      }
+
       @media (min-width: 768px) {
         .header {
           padding: 22px 28px;
-        }
-
-        uigc-paper {
-          border-radius: var(--uigc-app-border-radius);
         }
       }
     `,

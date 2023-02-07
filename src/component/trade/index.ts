@@ -170,13 +170,15 @@ export class TradeApp extends LitElement {
         }
       }
 
+      @media (min-width: 480px) {
+        uigc-paper {
+          border-radius: var(--uigc-app-border-radius);
+        }
+      }
+
       @media (min-width: 768px) {
         .header {
           padding: 22px 28px;
-        }
-
-        uigc-paper {
-          border-radius: var(--uigc-app-border-radius);
         }
       }
 
