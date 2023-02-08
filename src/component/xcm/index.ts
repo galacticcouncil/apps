@@ -600,7 +600,7 @@ export class XcmApp extends LitElement {
   render() {
     return html`
       <div class="xcm-root">
-        ${this.transferTokensTemplate()} ${this.selectChainTemplate()}} ${this.selectTokenTemplate()}
+        ${this.transferTokensTemplate()} ${this.selectChainTemplate()} ${this.selectTokenTemplate()}
       </div>
     `;
   }
