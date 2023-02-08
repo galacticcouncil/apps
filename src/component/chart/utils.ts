@@ -1,18 +1,6 @@
-import { PriceFormat } from 'lightweight-charts';
+const MAX_PAPER_WIDTH = 480;
 
-export function humanizeScale(amount: string): PriceFormat {
-  const amountNo = Number(amount);
-  let maxSignDigits: number = 4;
-  if (amountNo > 1) {
-    return {
-      type: 'price',
-      precision: 2,
-      minMove: 0.01,
-    } as PriceFormat;
-  }
-  return {
-    type: 'price',
-    precision: maxSignDigits,
-    minMove: 0.0001,
-  } as PriceFormat;
+export function calculateWidth(entry: ResizeObserverEntry): number {
+  const crv = entry.contentRect.width;
+  return crv > MAX_PAPER_WIDTH ? MAX_PAPER_WIDTH : crv;
 }

@@ -1,6 +1,5 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import dayjs from 'dayjs';
@@ -15,6 +14,7 @@ import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import { DEFAULT_DATASET, formatData, query } from './data';
 import { subscribeCrosshair } from './plugins';
+import { calculateWidth } from './utils';
 import { ChartState, Range } from './types';
 import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeScale } from './opts';
 
@@ -30,7 +30,6 @@ import { AssetDetail } from '../../api/asset';
 const CHART_HEIGHT = 345;
 const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
-const MAX_PAPER_WIDTH = 480;
 const MIN_DATAPOINTS = 5;
 
 @customElement('gc-trade-chart')
@@ -47,10 +46,10 @@ export class TradeChart extends LitElement {
       if (iWidth > 1023) {
         this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
       } else if (iWidth < 768) {
-        this.chart.resize(entry.contentRect.width - 2 * 14, entry.contentRect.height - 180);
+        const chartWidth = calculateWidth(entry);
+        this.chart.resize(chartWidth - 2 * 14, entry.contentRect.height - 180);
       } else {
-        const crv = entry.contentRect.width;
-        const chartWidth = crv > MAX_PAPER_WIDTH ? MAX_PAPER_WIDTH : crv;
+        const chartWidth = calculateWidth(entry);
         this.chart.resize(chartWidth - 2 * 28, entry.contentRect.height - 180);
       }
       this.fetchData();
@@ -311,20 +310,6 @@ export class TradeChart extends LitElement {
         display: block;
       }
 
-      .spot-tag {
-        display: none;
-        position: absolute;
-        left: 0;
-        font-family: 'SatoshiVariable';
-        font-style: normal;
-        font-weight: 500;
-        font-size: 12px;
-        color: #000;
-        z-index: 3;
-        padding: 0 4px;
-        background: #85d1ff;
-      }
-
       .show {
         display: block;
       }
@@ -417,10 +402,6 @@ export class TradeChart extends LitElement {
       this.chartSeries.setData(rangeData);
       this.chartSeries.update(lastPrice);
     }
-    this.chartSeries.applyOptions({
-      priceLineVisible: true,
-      priceLineSource: 1,
-    });
 
     const max = Math.max(...rangeData.map((p: SingleValueData) => p.value));
     const min = Math.min(...rangeData.map((p: SingleValueData) => p.value));
@@ -430,18 +411,18 @@ export class TradeChart extends LitElement {
     this.chartState = ChartState.Loaded;
   }
 
-  syncPriceLine(id: string, yCoord: number) {
+  private syncPriceLine(id: string, yCoord: number) {
     const lineEl = this.shadowRoot.getElementById(id);
     lineEl.setAttribute('style', 'top: ' + yCoord + 'px;');
   }
 
-  syncPriceTag(id: string, yCoord: number, value: number) {
+  private syncPriceTag(id: string, yCoord: number, value: number) {
     const tagEl = this.shadowRoot.getElementById(id);
     tagEl.setAttribute('style', 'top: ' + (yCoord - 9) + 'px;');
     tagEl.innerHTML = humanizeAmount(value.toString());
   }
 
-  syncPriceScale(max: number, min: number, avg: number) {
+  private syncPriceScale(max: number, min: number, avg: number) {
     const backdropEl = this.shadowRoot.getElementById('backdrop');
     const canvasHeight = backdropEl.offsetHeight - CHART_TIME_SCALE_HEIGHT;
 
@@ -584,6 +565,20 @@ export class TradeChart extends LitElement {
     </uigc-range-button-group>`;
   }
 
+  priceScaleTemplate(priceTagId: string, priceLineId: string) {
+    const priceLineClasses = {
+      'price-line': true,
+    };
+    const priceTagClasses = {
+      'price-tag': true,
+      show: this.chartState == ChartState.Loaded,
+    };
+    return html`
+      <span id="${priceTagId}" class=${classMap(priceTagClasses)}> </span>
+      <span id="${priceLineId}" class=${classMap(priceLineClasses)}></span>
+    `;
+  }
+
   backdropTemplate() {
     const chartErrorClasses = {
       show: this.chartState == ChartState.Error,
@@ -594,25 +589,9 @@ export class TradeChart extends LitElement {
     const chartLoadingClasses = {
       show: this.chartState == ChartState.Loading,
     };
-    const priceLineClasses = {
-      'price-line': true,
-    };
-    const priceTagClasses = {
-      'price-tag': true,
-      show: this.chartState == ChartState.Loaded,
-    };
-    const spotTagClasses = {
-      'spot-tag': true,
-      show: this.chartState == ChartState.Loaded,
-    };
     return html`<div id="backdrop" class="backdrop">
-      <span id="maxTag" class=${classMap(priceTagClasses)}> </span>
-      <span id="maxLine" class=${classMap(priceLineClasses)}></span>
-      <span id="avgTag" class=${classMap(priceTagClasses)}></span>
-      <span id="avgLine" class=${classMap(priceLineClasses)}></span>
-      <span id="minTag" class=${classMap(priceTagClasses)}></span>
-      <span id="minLine" class=${classMap(priceLineClasses)}></span>
-      <span id="spotTag" class=${classMap(spotTagClasses)}></span>
+      ${this.priceScaleTemplate('maxTag', 'maxLine')} ${this.priceScaleTemplate('avgTag', 'avgLine')}
+      ${this.priceScaleTemplate('minTag', 'minLine')}
       <gc-chart-empty class=${classMap(chartEmptyClasses)}></gc-chart-empty>
       <gc-chart-error class=${classMap(chartErrorClasses)}></gc-chart-error>
       <uigc-busy-indicator class=${classMap(chartLoadingClasses)}></uigc-busy-indicator>
