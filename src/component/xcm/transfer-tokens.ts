@@ -10,6 +10,7 @@ import { DatabaseController } from '../../db.ctrl';
 
 import { baseStyles } from '../base.css';
 import { capitalize } from '../../utils/text';
+import { isSameAddress, isValidAddress } from '../../utils/account';
 
 @customElement('gc-xcm-app-main')
 export class TradeTokens extends LitElement {
@@ -186,6 +187,7 @@ export class TradeTokens extends LitElement {
 
       .warning.show {
         padding: 10px;
+        animation: scale 0.25s;
         display: flex;
       }
 
@@ -249,9 +251,11 @@ export class TradeTokens extends LitElement {
   }
 
   render() {
+    const isUserAddr = isSameAddress(this.address, accountCursor.deref().address);
+    const isValidAddr = isValidAddress(this.address);
     const warningClasses = {
       warning: true,
-      show: this.dstChain == 'acala' && this.asset == 'DAI',
+      show: isValidAddr && !isUserAddr,
     };
     return html`
       <slot name="header"></slot>

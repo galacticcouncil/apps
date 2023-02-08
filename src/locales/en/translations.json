@@ -40,7 +40,7 @@
   "xcm.error.addrIncorrect": "The address is incorrect. Please review it and try again.",
   "xcm.error.maxAmount": "The maximum transferable amount is {{amount}} {{asset}}.",
   "xcm.error.minAmount": "The minimum transferable amount is {{amount}} {{asset}}.",
-  "xcm.warning": "Sending {{asset}} to {{chain}} requires your account to have {{asset}} balance on {{chain}}, otherwise your assets will be frozen.",
+  "xcm.warning": "Transferring assets to CEX through XCM directly will result in loss of funds. Please send them to your address on the relevant network first.",
   "xcm.notify.sending": "Sending",
   "xcm.notify.sent": "Sent",
   "xcm.notify.from": "from",

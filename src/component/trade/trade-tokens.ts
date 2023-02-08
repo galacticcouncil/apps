@@ -210,20 +210,6 @@ export class TradeTokens extends LitElement {
         margin-left: 12px;
       }
 
-      @keyframes scale-display {
-        0% {
-          opacity: 0;
-          transform: scale(0);
-          -webkit-transform: scale(0);
-        }
-
-        100% {
-          opacity: 1;
-          transform: scale(1);
-          -webkit-transform: scale(1);
-        }
-      }
-
       .error {
         display: none;
         flex-direction: row;
@@ -243,7 +229,7 @@ export class TradeTokens extends LitElement {
 
       .error.show {
         padding: 10px;
-        animation: scale-display 0.25s;
+        animation: scale 0.25s;
         display: flex;
       }
 
