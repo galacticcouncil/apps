@@ -29,6 +29,17 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
       ></gc-trade-app>
+
+      <!-- <gc-trade-app
+        apiAddress="wss://rpc.basilisk.cloud"
+        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
+        accountProvider="talisman"
+        accountName="nohaapav"
+        pools="XYK"
+        stableCoinAssetId="2"
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
+      ></gc-trade-app> -->
     `;
   }
 }

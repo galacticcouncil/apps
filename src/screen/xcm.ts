@@ -15,6 +15,15 @@ export class XcmScreen extends LitElement {
         accountProvider="polkadot-js"
         accountName="alice"
       ></gc-xcm-app>
+
+      <!-- <gc-xcm-app
+        srcChain="kusama"
+        dstChain="basilisk"
+        chains="basilisk,karura,kusama"
+        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
+        accountProvider="talisman"
+        accountName="nohaapav"
+      ></gc-xcm-app> -->
     `;
   }
 }
