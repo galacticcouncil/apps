@@ -1,8 +1,9 @@
 import { ApiProvider, Bridge, ChainName } from '@galacticcouncil/bridge';
 import { BaseCrossChainAdapter } from '@galacticcouncil/bridge/base-chain-adapter';
-import { PolkadotAdapter, RococoAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
+import { KusamaAdapter, PolkadotAdapter, RococoAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
 import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/acala';
 import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
+import { StatemineAdapter } from '@galacticcouncil/bridge/adapters/statemint';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -10,12 +11,10 @@ import { bridgeCursor } from './db';
 
 const CHAINS: Record<string, string[]> = {
   polkadot: ['wss://rpc.polkadot.io'],
+  kusama: ['wss://kusama.api.onfinality.io/public-ws'],
   acala: ['wss://acala-polkadot.api.onfinality.io/public-ws'],
-  karura: [
-    'wss://karura-rpc-0.aca-api.network',
-    'wss://karura-rpc-1.aca-api.network',
-    'wss://karura-rpc-2.aca-api.network',
-  ],
+  karura: ['wss://karura.api.onfinality.io/public-ws'],
+  statemine: ['wss://statemine.api.onfinality.io/public-ws'],
   hydradx: ['wss://rpc.hydradx.cloud'],
   basilisk: ['wss://rpc.basilisk.cloud'],
 };
@@ -29,11 +28,13 @@ const CHAINS_TESTNET: Record<string, string[]> = {
 
 const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   polkadot: new PolkadotAdapter(),
+  kusama: new KusamaAdapter(),
   rococo: new RococoAdapter(),
   acala: new AcalaAdapter(CHAINS['acala']),
   karura: new KaruraAdapter(),
   hydradx: new HydradxAdapter(),
   basilisk: new BasiliskAdapter(),
+  statemine: new StatemineAdapter(),
 };
 
 export async function createBridge(chains: string[], testnet: Boolean) {
