@@ -251,11 +251,11 @@ export class TradeTokens extends LitElement {
   }
 
   render() {
-    const isUserAddr = isSameAddress(this.address, accountCursor.deref().address);
+    const isUserAddr = isSameAddress(this.address, accountCursor.deref()?.address);
     const isValidAddr = isValidAddress(this.address);
     const warningClasses = {
       warning: true,
-      show: isValidAddr && !isUserAddr,
+      show: accountCursor.deref() && isValidAddr && !isUserAddr,
     };
     return html`
       <slot name="header"></slot>
