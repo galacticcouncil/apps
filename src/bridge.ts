@@ -4,6 +4,7 @@ import { KusamaAdapter, PolkadotAdapter, RococoAdapter } from '@galacticcouncil/
 import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/acala';
 import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
 import { StatemineAdapter } from '@galacticcouncil/bridge/adapters/statemint';
+import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -15,6 +16,7 @@ const CHAINS: Record<string, string[]> = {
   acala: ['wss://acala-polkadot.api.onfinality.io/public-ws'],
   karura: ['wss://karura.api.onfinality.io/public-ws'],
   statemine: ['wss://statemine.api.onfinality.io/public-ws'],
+  tinkernet: ['wss://invarch-tinkernet.api.onfinality.io/public-ws'],
   hydradx: ['wss://rpc.hydradx.cloud'],
   basilisk: ['wss://rpc.basilisk.cloud'],
 };
@@ -35,6 +37,7 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   hydradx: new HydradxAdapter(),
   basilisk: new BasiliskAdapter(),
   statemine: new StatemineAdapter(),
+  tinkernet: new TinkernetAdapter(),
 };
 
 export async function createBridge(chains: string[], testnet: Boolean) {
