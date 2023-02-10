@@ -1,4 +1,5 @@
 import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
+import { TradeData } from '../../db';
 
 export const DEFAULT_DATASET: SingleValueData[] = [
   { time: '2018-03-28', value: 154 },
@@ -305,13 +306,19 @@ export const DEFAULT_DATASET: SingleValueData[] = [
 
 const GRAFANA_DS = 'https://grafana-api.play.hydration.cloud/api/ds/query';
 
-const dedupQuery = `SELECT
+const priceQueryGroup = `SELECT
+    $__timeGroupAlias("timestamp",'1h'),
+    max(price) AS "price"
+  FROM pair_price
+  `;
+
+const priceQuery = `SELECT
     timestamp AS "time",
     max(price) AS "price"
   FROM pair_price
   `;
 
-function buildQuery(assetIn: string, assetOut: string, endOfDay: string) {
+function buildPriceQuery(assetIn: string, assetOut: string, endOfDay: string) {
   return `WITH pair_price AS (SELECT 
     timestamp,
     amount_in / amount_out AS price
@@ -324,18 +331,46 @@ function buildQuery(assetIn: string, assetOut: string, endOfDay: string) {
    FROM normalized_trades
    WHERE asset_in = '${assetOut}' AND asset_out = '${assetIn}' 
    ORDER BY timestamp)
-   ${dedupQuery} 
+   ${priceQuery} 
    WHERE
     "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
    GROUP BY 1
    ORDER BY 1`;
 }
 
-export function formatData(ts: number[], price: number[]) {
+const volumeQuery = `SELECT
+    $__timeGroupAlias("timestamp",'1h'),
+    sum(volume) AS "volume (hourly)"
+  FROM volume
+  `;
+
+function buildVolumeQuery(assetIn: string, assetOut: string, endOfDay: string) {
+  return `WITH volume AS (SELECT 
+    timestamp,
+    amount_in AS volume
+   FROM normalized_trades
+   WHERE asset_in = '${assetIn}' AND asset_out = '${assetOut}' 
+   AND "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
+   UNION ALL
+   SELECT 
+    timestamp,
+    amount_out AS volume
+   FROM normalized_trades
+   WHERE asset_in = '${assetOut}' AND asset_out = '${assetIn}' 
+   AND "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
+   ORDER BY timestamp)
+   ${volumeQuery} 
+   WHERE
+    "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
+   GROUP BY 1
+   ORDER BY 1`;
+}
+
+export function formatData(ts: number[], value: number[]) {
   return ts.map((obj: number, index: number) => {
     return {
       time: Math.floor(obj / 1000) as UTCTimestamp,
-      value: price[index],
+      value: value[index],
     } as SingleValueData;
   });
 }
@@ -345,7 +380,7 @@ export function query(
   assetIn: string,
   assetOut: string,
   endOfDay: string,
-  onSuccess: (ts: number[], price: number[]) => void,
+  onSuccess: (data: TradeData) => void,
   onError: (error: any) => void
 ) {
   fetch(GRAFANA_DS, {
@@ -357,18 +392,27 @@ export function query(
     body: JSON.stringify({
       queries: [
         {
-          refId: 'pool',
-          rawSql: buildQuery(assetIn, assetOut, endOfDay),
+          refId: 'price',
+          rawSql: buildPriceQuery(assetIn, assetOut, endOfDay),
           format: 'table',
           datasourceId: datasourceId,
         },
+        /*         {
+          refId: 'volume',
+          rawSql: buildVolumeQuery(assetIn, assetOut, endOfDay),
+          format: 'table',
+          datasourceId: datasourceId,
+        }, */
       ],
     }),
   })
     .then((response) => response.json())
     .then((data) => {
-      const values = data.results.pool.frames[0].data.values;
-      onSuccess(values[0], values[1]);
+      const rawPrice = data.results.price.frames[0].data.values;
+      //const rawVolume = data.results.volume.frames[0].data.values;
+      const formattedPrice = formatData(rawPrice[0], rawPrice[1]);
+      //const formattedVolume = formatData(rawVolume[0], rawVolume[1]);
+      onSuccess({ price: formattedPrice, volume: null });
     })
     .catch(function (res) {
       console.error(res);

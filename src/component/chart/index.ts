@@ -8,11 +8,11 @@ import utc from 'dayjs/plugin/utc';
 import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
 import { baseStyles } from '../base.css';
-import { Chain, chainCursor, tradeDataCursor } from '../../db';
+import { Chain, chainCursor, TradeData, tradeDataCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
-import { DEFAULT_DATASET, formatData, query } from './data';
+import { DEFAULT_DATASET, query } from './data';
 import { subscribeCrosshair } from './plugins';
 import { calculateWidth } from './utils';
 import { ChartState, Range } from './types';
@@ -38,7 +38,8 @@ export class TradeChart extends LitElement {
 
   private chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
-  private chartSeries: ISeriesApi<'Area'> = null;
+  private chartPriceSeries: ISeriesApi<'Area'> = null;
+  private chartVolumeSeries: ISeriesApi<'Histogram'> = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
@@ -377,11 +378,10 @@ export class TradeChart extends LitElement {
       inputAsset.symbol,
       outputAsset.symbol,
       endOfDay,
-      (ts, price) => {
-        const formattedData = formatData(ts, price);
+      (data: TradeData) => {
         const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
-        tradeDataCursor.deref().set(dataKey, formattedData);
-        this.syncChart(formattedData);
+        tradeDataCursor.deref().set(dataKey, data);
+        this.syncChart(data);
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -389,24 +389,26 @@ export class TradeChart extends LitElement {
     );
   }
 
-  private syncChart(data: SingleValueData[]) {
+  private syncChart(data: TradeData) {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
-    const rangeData = data.filter((point: SingleValueData) => point.time > rangeFrom);
+    const priceRangeData = data.price.filter((point: SingleValueData) => point.time > rangeFrom);
+    //const volumeRangeData = data.volume.filter((point: SingleValueData) => point.time > rangeFrom);
 
-    if (rangeData.length <= MIN_DATAPOINTS) {
+    if (priceRangeData.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
-      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: rangeData.length - 0.5 });
-      this.chartSeries.setData(rangeData);
-      this.chartSeries.update(lastPrice);
+      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceRangeData.length - 0.5 });
+      this.chartPriceSeries.setData(priceRangeData);
+      this.chartPriceSeries.update(lastPrice);
+      //this.chartVolumeSeries.setData(volumeRangeData);
     }
 
-    const max = Math.max(...rangeData.map((p: SingleValueData) => p.value));
-    const min = Math.min(...rangeData.map((p: SingleValueData) => p.value));
-    const sum = rangeData.map((svd: SingleValueData) => svd.value).reduce((v1: number, v2: number) => v1 + v2, 0);
-    const avg = sum / rangeData.length || 0;
+    const max = Math.max(...priceRangeData.map((p: SingleValueData) => p.value));
+    const min = Math.min(...priceRangeData.map((p: SingleValueData) => p.value));
+    const sum = priceRangeData.map((svd: SingleValueData) => svd.value).reduce((v1: number, v2: number) => v1 + v2, 0);
+    const avg = sum / priceRangeData.length || 0;
     this.syncPriceScale(max, min, avg);
     this.chartState = ChartState.Loaded;
   }
@@ -471,7 +473,7 @@ export class TradeChart extends LitElement {
       handleScroll: false,
     });
 
-    this.chartSeries = this.chart.addAreaSeries({
+    this.chartPriceSeries = this.chart.addAreaSeries({
       topColor: 'rgba(79, 223, 255, 0.31)',
       bottomColor: 'rgba(79, 234, 255, 0)',
       lineColor: '#85D1FF',
@@ -482,14 +484,28 @@ export class TradeChart extends LitElement {
       crosshairMarkerBorderColor: '#000',
       crosshairMarkerBackgroundColor: '#fff',
     });
-    this.chartSeries.setData(DEFAULT_DATASET);
+    this.chartPriceSeries.setData(DEFAULT_DATASET);
     this.chart.timeScale().fitContent();
+
+    this.chartVolumeSeries = this.chart.addHistogramSeries({
+      color: '#85D1FF',
+      lastValueVisible: false,
+      priceLineVisible: false,
+      priceFormat: {
+        type: 'volume',
+      },
+      priceScaleId: '',
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
 
     const selected = this.shadowRoot.getElementById('selected');
     const actual = this.shadowRoot.getElementById('actual');
     const floating = this.shadowRoot.getElementById('floating');
 
-    subscribeCrosshair(this.chart, this.chartContainer, this.chartSeries, selected, actual, floating, (price) =>
+    subscribeCrosshair(this.chart, this.chartContainer, this.chartPriceSeries, selected, actual, floating, (price) =>
       this.calculateDollarPrice(price)
     );
   }
@@ -528,7 +544,9 @@ export class TradeChart extends LitElement {
 
   pairTemplate() {
     if (this.assetIn || this.assetOut) {
-      return html`<div class="pair">${this.assetIn.symbol ?? '-'} / ${this.assetOut.symbol ?? '-'}</div>`;
+      const inputAsset = this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol;
+      const outputAsset = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
+      return html`<div class="pair">${inputAsset ?? '-'} / ${outputAsset ?? '-'}</div>`;
     } else {
       return html`<uigc-skeleton class="skeleton" progress rectangle width="150px" height="24px"></uigc-skeleton>`;
     }

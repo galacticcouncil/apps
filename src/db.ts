@@ -11,6 +11,11 @@ import { SingleValueData } from 'lightweight-charts';
 export const DEFAULT_SLIPPAGE = '1';
 const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
+export type TradeData = {
+  price: SingleValueData[];
+  volume: SingleValueData[];
+};
+
 export interface Chain {
   api: ApiPromise;
   router: TradeRouter;
@@ -31,7 +36,7 @@ export interface State {
   bridge: Bridge;
   settings: Settings;
   account: Account;
-  tradeData: TLRUCache<string, SingleValueData[]>;
+  tradeData: TLRUCache<string, TradeData>;
 }
 
 const db = defAtom<State>({
@@ -39,7 +44,7 @@ const db = defAtom<State>({
   bridge: null,
   settings: null,
   account: null,
-  tradeData: new TLRUCache<string, SingleValueData[]>(null, TRADE_DATA_OPTS),
+  tradeData: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
 });
 
 // Cursors (Direct & Immutable access to a nested value)
