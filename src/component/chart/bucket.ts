@@ -1,26 +1,12 @@
-import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
+import { SingleValueData, WhitespaceData, UTCTimestamp } from 'lightweight-charts';
 
 const MINUTE_MS = 1 * 60;
 const HOUR_MS = MINUTE_MS * 60;
-const DAY_MS = HOUR_MS * 24;
-const WEEK_MS = DAY_MS * 7;
-const MONTH_MS = WEEK_MS * 30;
-
-const granularity2ms: Record<string, number> = {
-  '1m': MINUTE_MS,
-  '15m': MINUTE_MS * 15,
-  '30m': MINUTE_MS * 30,
-  '45m': MINUTE_MS * 45,
-  '1h': HOUR_MS,
-  '1d': DAY_MS,
-  '1w': WEEK_MS,
-  '30d': MONTH_MS,
-};
 
 export class Bucket {
   private _data: SingleValueData[];
-  private _start: number;
-  private _end: number;
+  private _first: SingleValueData;
+  private _from: number;
 
   /**
    * Create a new @see Bucket representing time series data.
@@ -29,8 +15,8 @@ export class Bucket {
   public constructor(data: SingleValueData[]) {
     if (data && data.length > 0) {
       this._data = data;
-      this._start = this.first().time as number;
-      this._end = this.last().time as number;
+      this._first = this.first();
+      this._from = this.first().time as number;
     } else {
       this._data = [];
     }
@@ -72,8 +58,8 @@ export class Bucket {
     return this.values().reduce((acc, cur) => acc + cur, 0);
   }
 
-  public average(): number | null {
-    return this.length > 0 ? this.sum() / this.length : null;
+  public avg(): number {
+    return this.length > 0 ? this.sum() / this.length : 0;
   }
 
   public max(): number {
@@ -84,54 +70,68 @@ export class Bucket {
     return Math.min(...this.values());
   }
 
-  public static lastAggregator = (chunk: SingleValueData[]) => chunk[chunk.length - 1]?.value || 0;
-  public static minAggregator = (chunk: SingleValueData[]) => Math.min(...chunk.map((c) => c.value));
-  public static maxAggregator = (chunk: SingleValueData[]) => Math.max(...chunk.map((c) => c.value));
-  public static sumAggregator = (chunk: SingleValueData[]) => chunk.map((c) => c.value).reduce((a, b) => a + b, 0);
-
-  public convertToFrequency(granularity: string, aggregator: (chunk: SingleValueData[]) => number) {
-    const buckets = this.generateBuckets(granularity);
-    const normalizedData: SingleValueData[] = [];
-    let prevBucket = 0;
-    buckets.forEach((bucket: number) => {
-      const nextChunk = this.data.filter((svd: SingleValueData) => svd.time > prevBucket && svd.time <= bucket);
-      const value = aggregator(nextChunk);
-      normalizedData.push({
-        time: bucket as UTCTimestamp,
-        value: value,
-      } as SingleValueData);
-      prevBucket = bucket;
-    });
-    return normalizedData;
+  public withRange(from: number): this {
+    const newDataset = this.data.filter((point: SingleValueData) => point.time > from);
+    this._data = newDataset;
+    this._from = from;
+    return this;
   }
 
-  public static fixEmptyBuckets(data: SingleValueData[], currentValue: number) {
-    const reversed: SingleValueData[] = data.reverse();
-    let lastVal = currentValue;
-    reversed.map((svd: SingleValueData) => {
-      if (svd.value == 0) {
-        svd.value = lastVal;
+  public withGaps(fillLastKnown?: boolean): this {
+    const buckets = this.generateBuckets(HOUR_MS);
+    const normalizedData: SingleValueData[] = [];
+    let prevNonEmpty = this.first().value;
+    buckets.forEach((bucket: number) => {
+      const next = this.data.filter((svd: SingleValueData) => svd.time == bucket)[0];
+      let nextValue: number;
+
+      if (next) {
+        nextValue = next.value;
+        prevNonEmpty = next.value;
+      } else if (fillLastKnown) {
+        nextValue = prevNonEmpty;
       } else {
-        lastVal = svd.value;
+        nextValue = 0;
       }
-      return svd;
+
+      normalizedData.push({
+        time: bucket as UTCTimestamp,
+        value: nextValue,
+      } as SingleValueData);
     });
-    return reversed.reverse();
+    this._data = normalizedData;
+    return this;
+  }
+
+  public fixWhitespace(): (SingleValueData | WhitespaceData)[] {
+    if (this._first.time < this._from) {
+      return this._data;
+    }
+
+    const whiteSpace: (SingleValueData | WhitespaceData)[] = [];
+
+    let curr: number = this.first().time as number;
+    while (this._from + HOUR_MS < curr) {
+      whiteSpace.unshift({ time: (curr - HOUR_MS) as UTCTimestamp });
+      curr = whiteSpace[0].time as number;
+    }
+    return whiteSpace.concat(this._data);
   }
 
   private generateEntryBucket(interval: number): number {
-    return Math.floor(this._start / interval) * interval;
+    const start = this.first().time as number;
+    return Math.floor(start / interval) * interval;
   }
 
-  private generateBuckets(granularity: string) {
-    const interval = granularity2ms[granularity];
+  private generateBuckets(interval: number) {
     const buckets: number[] = [];
     const bucket: number = this.generateEntryBucket(interval);
     return this.generateBucketsRecur(interval, buckets, bucket);
   }
 
   private generateBucketsRecur(interval: number, buckets: number[], bucket: number) {
-    if (bucket > this._end) {
+    const end = this.last().time as number;
+    if (bucket > end) {
       return buckets;
     }
     const nextBuckets = buckets.concat(bucket);

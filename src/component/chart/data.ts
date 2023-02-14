@@ -304,6 +304,8 @@ export const DEFAULT_DATASET: SingleValueData[] = [
   { time: '2019-06-05', value: 95.94 },
 ];
 
+export const INIT_DATE = '2023-01-06T13:00:00.000Z';
+
 const GRAFANA_DS = 'https://grafana-api.play.hydration.cloud/api/ds/query';
 
 const priceQueryGroup = `SELECT
@@ -331,9 +333,9 @@ function buildPriceQuery(assetIn: string, assetOut: string, endOfDay: string) {
    FROM normalized_trades
    WHERE asset_in = '${assetOut}' AND asset_out = '${assetIn}' 
    ORDER BY timestamp)
-   ${priceQuery} 
+   ${priceQueryGroup} 
    WHERE
-    "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
+    "timestamp" BETWEEN '${INIT_DATE}' AND '${endOfDay}' 
    GROUP BY 1
    ORDER BY 1`;
 }
@@ -350,18 +352,18 @@ function buildVolumeQuery(assetIn: string, assetOut: string, endOfDay: string) {
     amount_in AS volume
    FROM normalized_trades
    WHERE asset_in = '${assetIn}' AND asset_out = '${assetOut}' 
-   AND "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
+   AND "timestamp" BETWEEN '${INIT_DATE}' AND '${endOfDay}' 
    UNION ALL
    SELECT 
     timestamp,
     amount_out AS volume
    FROM normalized_trades
    WHERE asset_in = '${assetOut}' AND asset_out = '${assetIn}' 
-   AND "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
+   AND "timestamp" BETWEEN '${INIT_DATE}' AND '${endOfDay}' 
    ORDER BY timestamp)
    ${volumeQuery} 
    WHERE
-    "timestamp" BETWEEN '2023-01-06T22:05:49.000Z' AND '${endOfDay}' 
+    "timestamp" BETWEEN '${INIT_DATE}' AND '${endOfDay}' 
    GROUP BY 1
    ORDER BY 1`;
 }
@@ -397,7 +399,7 @@ export function query(
           format: 'table',
           datasourceId: datasourceId,
         },
-        /*         {
+        /*  {
           refId: 'volume',
           rawSql: buildVolumeQuery(assetIn, assetOut, endOfDay),
           format: 'table',
@@ -409,9 +411,9 @@ export function query(
     .then((response) => response.json())
     .then((data) => {
       const rawPrice = data.results.price.frames[0].data.values;
-      //const rawVolume = data.results.volume.frames[0].data.values;
       const formattedPrice = formatData(rawPrice[0], rawPrice[1]);
-      //const formattedVolume = formatData(rawVolume[0], rawVolume[1]);
+      // const rawVolume = data.results.volume.frames[0].data.values;
+      // const formattedVolume = formatData(rawVolume[0], rawVolume[1]);
       onSuccess({ price: formattedPrice, volume: null });
     })
     .catch(function (res) {

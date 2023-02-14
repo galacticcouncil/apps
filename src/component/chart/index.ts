@@ -12,7 +12,8 @@ import { Chain, chainCursor, TradeData, tradeDataCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
-import { DEFAULT_DATASET, query } from './data';
+import { Bucket } from './bucket';
+import { DEFAULT_DATASET, INIT_DATE, query } from './data';
 import { subscribeCrosshair } from './plugins';
 import { calculateWidth } from './utils';
 import { ChartState, Range } from './types';
@@ -392,23 +393,26 @@ export class TradeChart extends LitElement {
   private syncChart(data: TradeData) {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
-    const priceRangeData = data.price.filter((point: SingleValueData) => point.time > rangeFrom);
-    //const volumeRangeData = data.volume.filter((point: SingleValueData) => point.time > rangeFrom);
+    const priceBucket = new Bucket(data.price).withRange(rangeFrom);
+    //const volumeBucket = new Bucket(data.volume).withRange(rangeFrom);
 
-    if (priceRangeData.length <= MIN_DATAPOINTS) {
+    if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
-      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceRangeData.length - 0.5 });
-      this.chartPriceSeries.setData(priceRangeData);
+      //const priceBucketData = priceBucket.withGaps(true).fixWhitespace();
+      //const volumeBucketData = volumeBucket.withGaps().data;
+
+      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 0.5 });
+      this.chartPriceSeries.setData(priceBucket.data);
       this.chartPriceSeries.update(lastPrice);
-      //this.chartVolumeSeries.setData(volumeRangeData);
+      //this.chartVolumeSeries.setData(volumeBucketData);
     }
 
-    const max = Math.max(...priceRangeData.map((p: SingleValueData) => p.value));
-    const min = Math.min(...priceRangeData.map((p: SingleValueData) => p.value));
-    const sum = priceRangeData.map((svd: SingleValueData) => svd.value).reduce((v1: number, v2: number) => v1 + v2, 0);
-    const avg = sum / priceRangeData.length || 0;
+    const max = priceBucket.max();
+    const min = priceBucket.min();
+    const avg = priceBucket.avg();
+
     this.syncPriceScale(max, min, avg);
     this.chartState = ChartState.Loaded;
   }
@@ -449,7 +453,7 @@ export class TradeChart extends LitElement {
       case Range['1w']:
         return dayjs().subtract(1, 'week').unix() as UTCTimestamp;
       default:
-        return 0 as UTCTimestamp;
+        return dayjs(INIT_DATE).unix() as UTCTimestamp;
     }
   }
 

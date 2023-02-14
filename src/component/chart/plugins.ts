@@ -29,14 +29,18 @@ export function subscribeCrosshair(
       actual.style.display = 'flex';
     } else {
       const asset = actual.getElementsByClassName('asset');
-      if (asset.length == 0) {
+      const price = param.seriesPrices.get(series);
+      if (asset.length == 0 || !price) {
+        selected.style.display = 'none';
+        floating.style.display = 'none';
+        actual.style.display = 'flex';
         return;
       }
 
       selected.style.display = 'flex';
       floating.style.display = 'flex';
       actual.style.display = 'none';
-      const price = param.seriesPrices.get(series);
+
       const usdPrice = onPriceSelection(price.toString());
       const assetText = asset[0].textContent;
       const priceHtml = `<div class="price">` + humanizeAmount(price.toString()) + ` ${assetText}</div>`;
