@@ -398,7 +398,7 @@ export class XcmApp extends LitElement {
       const balances: Map<string, string> = new Map([]);
       Object.keys(val).forEach((token: string) => {
         const balanceData = val[token] as BalanceData;
-        const balance = balanceData.free.toString();
+        const balance = balanceData.available.toString();
         balances.set(token, balance);
       });
       this.chain.balance = balances;
