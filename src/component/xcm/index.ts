@@ -6,16 +6,16 @@ import { when } from 'lit/directives/when.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../base.css';
-import { createBridge } from '../../bridge';
+import { initAdapterConnection, initBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
-import { Account, accountCursor, bridgeCursor } from '../../db';
+import { Account, accountCursor, XChain, xChainCursor } from '../../db';
 import { formatAmount, humanizeAmount, toFN } from '../../utils/amount';
 
 import { Subscription, combineLatest } from 'rxjs';
 
 import '@galacticcouncil/ui';
 import { bnum, Transaction } from '@galacticcouncil/sdk';
-import { BalanceData, Bridge, Chain, ChainName, CrossChainInputConfigs } from '@galacticcouncil/bridge';
+import { BalanceData, Chain, ChainName, CrossChainInputConfigs } from '@galacticcouncil/bridge';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './transfer-tokens';
@@ -28,7 +28,7 @@ import { convertAddressSS58 } from '../../utils/account';
 
 @customElement('gc-xcm-app')
 export class XcmApp extends LitElement {
-  private bridge = new DatabaseController<Bridge>(this, bridgeCursor);
+  private xChain = new DatabaseController<XChain>(this, xChainCursor);
 
   private input: CrossChainInputConfigs = null;
   private ready: boolean = false;
@@ -165,47 +165,54 @@ export class XcmApp extends LitElement {
     this.requestUpdate();
   }
 
-  switchChains() {
+  private async switchChains() {
     this.transfer = {
       ...this.transfer,
       srcChain: this.transfer.dstChain,
       dstChain: this.transfer.srcChain,
       balance: null,
     };
+    this.disconnectSubscriptions();
     this.syncChains();
-    this.syncBalances();
-    this.syncInput();
+    await this.syncBalances();
+    await this.syncInput();
   }
 
-  changeSourceChain(chain: string) {
+  private async changeSourceChain(chain: string) {
     this.transfer = {
       ...this.transfer,
       srcChain: chain,
       balance: null,
     };
+    this.disconnectSubscriptions();
     this.syncChains();
-    this.syncBalances();
-    this.syncInput();
+    await this.syncBalances();
+    await this.syncInput();
   }
 
-  changeDestinationChain(chain: string) {
+  private async changeDestinationChain(chain: string) {
     this.transfer = {
       ...this.transfer,
       dstChain: chain,
       balance: null,
     };
+    this.disconnectSubscriptions();
     this.syncChains();
-    this.syncBalances();
-    this.syncInput();
+    await this.syncBalances();
+    await this.syncInput();
   }
 
-  changeAsset(asset: string) {
+  private async changeAsset(asset: string) {
     this.transfer = {
       ...this.transfer,
       asset: asset,
       balance: this.chain.balance.get(asset),
+      srcChainFee: null,
+      dstChainFee: null,
     };
-    this.syncInput();
+    this.disconnectSubscriptions();
+    await this.syncBalances();
+    await this.syncInput();
   }
 
   updateAddress(address: string) {
@@ -246,7 +253,7 @@ export class XcmApp extends LitElement {
       return;
     }
 
-    const bridge = bridgeCursor.deref();
+    const bridge = xChainCursor.deref().bridge;
     const srcChain = this.transfer.srcChain as ChainName;
     const adapter = bridge.findAdapter(srcChain);
     const asset = adapter.getToken(this.transfer.asset, srcChain);
@@ -302,7 +309,7 @@ export class XcmApp extends LitElement {
   }
 
   async swap() {
-    const bridge = bridgeCursor.deref();
+    const bridge = xChainCursor.deref().bridge;
     const account = accountCursor.deref();
     if (account && bridge) {
       const srcChain = this.transfer.srcChain as ChainName;
@@ -329,20 +336,27 @@ export class XcmApp extends LitElement {
   }
 
   private syncChains() {
-    const bridge = bridgeCursor.deref();
+    const bridge = xChainCursor.deref().bridge;
     const srcChain = this.transfer.srcChain as ChainName;
     const dstChain = this.transfer.dstChain as ChainName;
+
+    const destChainsConfig = bridge.router.getDestinationChains({ from: srcChain });
+    const destChains = destChainsConfig.filter((chain: Chain) => this.chain.list.includes(chain.id));
+    const destChainsList = destChains.map((chain: Chain) => chain.id);
+
+    const isDestValid = destChainsList.includes(dstChain);
+    const validDstChain = isDestValid ? dstChain : destChains[0].id;
+
     const availableTokens = bridge.router.getAvailableTokens({
       from: srcChain,
-      to: dstChain,
+      to: validDstChain as ChainName,
     });
-    const allDestChains = bridge.router.getDestinationChains({ from: srcChain });
-    const destChains = allDestChains.filter((chain: Chain) => this.chain.list.includes(chain.id));
 
     this.chain = {
       ...this.chain,
-      dest: destChains.map((chain: Chain) => chain.id),
+      dest: destChainsList,
       tokens: availableTokens,
+      balance: new Map([]),
     };
 
     const asset = this.transfer.asset;
@@ -350,6 +364,10 @@ export class XcmApp extends LitElement {
     this.transfer = {
       ...this.transfer,
       asset: isTransferable ? asset : availableTokens[0],
+      dstChain: validDstChain,
+      balance: null,
+      srcChainFee: null,
+      dstChainFee: null,
     };
   }
 
@@ -358,8 +376,8 @@ export class XcmApp extends LitElement {
     this.chain.balance = new Map([]);
   }
 
-  private syncBalances() {
-    const bridge = bridgeCursor.deref();
+  private async syncBalances() {
+    const bridge = xChainCursor.deref().bridge;
     const account = accountCursor.deref();
 
     if (!account) {
@@ -369,13 +387,13 @@ export class XcmApp extends LitElement {
     const srcChain = this.transfer.srcChain as ChainName;
     const asset = this.transfer.asset;
     const adapter = bridge.findAdapter(srcChain);
+    await initAdapterConnection(adapter, this.testnet);
 
     const tokenBalanceO = this.chain.tokens.reduce(function (map, token) {
       map[token] = adapter.subscribeTokenBalance(token, account.address);
       return map;
     }, {});
 
-    this.disconnectSubscribeBalance?.unsubscribe();
     this.disconnectSubscribeBalance = combineLatest(tokenBalanceO).subscribe((val) => {
       const balances: Map<string, string> = new Map([]);
       Object.keys(val).forEach((token: string) => {
@@ -389,8 +407,8 @@ export class XcmApp extends LitElement {
     });
   }
 
-  private syncInput() {
-    const bridge = bridgeCursor.deref();
+  private async syncInput() {
+    const bridge = xChainCursor.deref().bridge;
     const account = accountCursor.deref();
 
     if (!account) {
@@ -400,6 +418,7 @@ export class XcmApp extends LitElement {
     const srcChain = this.transfer.srcChain as ChainName;
     const dstChain = this.transfer.dstChain as ChainName;
     const adapter = bridge.findAdapter(srcChain);
+    await initAdapterConnection(adapter, this.testnet);
     const nativeAsset = adapter.getApi().registry.chainTokens[0];
     const nativeAssetDecimals = adapter.getApi().registry.chainDecimals[0];
 
@@ -410,7 +429,6 @@ export class XcmApp extends LitElement {
       signer: account.address,
     });
 
-    this.disconnectSubscribeInput?.unsubscribe();
     this.disconnectSubscribeInput = inputConfigO.subscribe((config: CrossChainInputConfigs) => {
       this.input = config;
       const srcChainFeeBN = bnum(config.estimateFee);
@@ -430,15 +448,15 @@ export class XcmApp extends LitElement {
 
   async init() {
     this.syncChains();
-    this.syncBalances();
-    this.syncInput();
+    await this.syncBalances();
+    await this.syncInput();
   }
 
   override async firstUpdated() {
-    const bridge = bridgeCursor.deref();
-    if (!bridge) {
+    const xChain = xChainCursor.deref();
+    if (!xChain) {
       this.chain.list = this.chains ? this.chains.split(',') : [];
-      createBridge(this.chain.list, this.testnet);
+      initBridge(this.chain.list);
     }
   }
 
@@ -455,13 +473,13 @@ export class XcmApp extends LitElement {
     }
   }
 
-  override update(changedProperties: Map<string, unknown>) {
+  override async update(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
       this.updateAccount();
       this.resetBalances();
       if (this.ready) {
-        this.syncBalances();
-        this.syncInput();
+        await this.syncBalances();
+        await this.syncInput();
       }
     }
     if (changedProperties.has('srcChain') || changedProperties.has('dstChain')) {
@@ -475,7 +493,7 @@ export class XcmApp extends LitElement {
   }
 
   override async updated() {
-    if (this.bridge.state && !this.ready) {
+    if (this.xChain.state && !this.ready) {
       console.log('Initialization...');
       this.ready = true;
       await this.init();
@@ -488,10 +506,14 @@ export class XcmApp extends LitElement {
     this.ro.observe(this);
   }
 
-  override disconnectedCallback() {
-    this.ro.unobserve(this);
+  private disconnectSubscriptions() {
     this.disconnectSubscribeBalance?.unsubscribe();
     this.disconnectSubscribeInput?.unsubscribe();
+  }
+
+  override disconnectedCallback() {
+    this.ro.unobserve(this);
+    this.disconnectSubscriptions();
     super.disconnectedCallback();
   }
 

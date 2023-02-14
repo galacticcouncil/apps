@@ -4,7 +4,7 @@ import type { ISubmittableResult } from '@polkadot/types/types';
 import { EventRecord } from '@polkadot/types/interfaces/system';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
-import { Account, chainCursor, bridgeCursor } from '../db';
+import { Account, chainCursor, xChainCursor } from '../db';
 
 import { timeout } from 'rxjs/operators';
 
@@ -66,7 +66,7 @@ export function subscribeBridgeEvents(
   onStatusChange: (events: EventRecord[]) => void,
   onError: (error: unknown) => void
 ) {
-  const bridge = bridgeCursor.deref();
+  const bridge = xChainCursor.deref().bridge;
   const adapter = bridge.findAdapter(chain);
   const api = adapter.getApi();
 

@@ -36,6 +36,7 @@
   "xcm.destFee": "Destination chain fee:",
   "xcm.transfer": "Transfer",
   "xcm.connect": "Connect wallet",
+  "xcm.connecting": "Connecting...",
   "xcm.error.required": "This field is required.",
   "xcm.error.addrIncorrect": "The address is incorrect. Please review it and try again.",
   "xcm.error.maxAmount": "The maximum transferable amount is {{amount}} {{asset}}.",

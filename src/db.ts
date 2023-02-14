@@ -1,5 +1,5 @@
 import { TradeRouter } from '@galacticcouncil/sdk';
-import { Bridge } from '@galacticcouncil/bridge';
+import { ApiProvider, Bridge } from '@galacticcouncil/bridge';
 import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
 import { defAtom } from '@thi.ng/atom/atom';
@@ -21,6 +21,11 @@ export interface Chain {
   router: TradeRouter;
 }
 
+export interface XChain {
+  apiProvider: ApiProvider;
+  bridge: Bridge;
+}
+
 export interface Settings {
   slippage: string;
 }
@@ -33,7 +38,7 @@ export interface Account {
 
 export interface State {
   chain: Chain;
-  bridge: Bridge;
+  xChain: XChain;
   settings: Settings;
   account: Account;
   tradeData: TLRUCache<string, TradeData>;
@@ -41,7 +46,7 @@ export interface State {
 
 const db = defAtom<State>({
   chain: null,
-  bridge: null,
+  xChain: null,
   settings: null,
   account: null,
   tradeData: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
@@ -49,7 +54,7 @@ const db = defAtom<State>({
 
 // Cursors (Direct & Immutable access to a nested value)
 export const chainCursor = defCursor(db, ['chain']);
-export const bridgeCursor = defCursor(db, ['bridge']);
+export const xChainCursor = defCursor(db, ['xChain']);
 export const settingsCursor = defCursor(db, ['settings']);
 export const accountCursor = defCursor(db, ['account']);
 export const tradeDataCursor = defCursor(db, ['tradeData']);

@@ -5,7 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { Account, accountCursor } from '../../db';
+import { Account, accountCursor, xChainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
 import { baseStyles } from '../base.css';
@@ -226,6 +226,24 @@ export class TradeTokens extends LitElement {
       )}`;
   }
 
+  isChainConnected(): boolean {
+    const chainAdapter = xChainCursor.deref().bridge.findAdapter(this.srcChain);
+    const chainApi = chainAdapter.getApi();
+    return chainApi && chainApi.isConnected;
+  }
+
+  transferButtonText(): string {
+    if (!this.account.state) {
+      return i18n.t('xcm.connect');
+    }
+
+    if (this.isChainConnected()) {
+      return i18n.t('xcm.transfer');
+    } else {
+      return i18n.t('xcm.connecting');
+    }
+  }
+
   onSwitchClick(e: any) {
     const options = {
       bubbles: true,
@@ -300,12 +318,12 @@ export class TradeTokens extends LitElement {
       </div>
       <div class="grow"></div>
       <uigc-button
-        ?disabled=${this.disabled || !this.account.state}
+        ?disabled=${this.disabled || !this.account.state || !this.isChainConnected()}
         class="confirm"
         variant="primary"
         fullWidth
         @click=${this.onTransferClick}
-        >${this.account.state ? i18n.t('xcm.transfer') : i18n.t('xcm.connect')}</uigc-button
+        >${this.transferButtonText()}</uigc-button
       >
     `;
   }

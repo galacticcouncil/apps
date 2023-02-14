@@ -8,7 +8,7 @@ import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
 
 import { firstValueFrom } from 'rxjs';
 
-import { bridgeCursor } from './db';
+import { xChainCursor } from './db';
 
 const CHAINS: Record<string, string[]> = {
   polkadot: ['wss://rpc.polkadot.io'],
@@ -40,15 +40,24 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   tinkernet: new TinkernetAdapter(),
 };
 
-export async function createBridge(chains: string[], testnet: Boolean) {
+export async function initBridge(chains: string[]) {
   const adapters = chains.map((chain: string) => ADAPTERS[chain]);
   const bridge = new Bridge({
     adapters: adapters,
   });
   const provider = new ApiProvider();
-  const chainNames = chains as ChainName[];
-  const connected = provider.connectFromChain(chainNames, testnet ? CHAINS_TESTNET : CHAINS);
-  await firstValueFrom(connected);
-  await Promise.all(chains.map((chain) => ADAPTERS[chain].setApi(provider.getApi(chain))));
-  bridgeCursor.reset(bridge);
+  xChainCursor.reset({ apiProvider: provider, bridge: bridge });
+}
+
+export async function initAdapterConnection(adapter: BaseCrossChainAdapter, testnet?: Boolean) {
+  if (adapter.getApi() != null) {
+    return;
+  }
+
+  const provider = xChainCursor.deref().apiProvider;
+  const chain = adapter.chain.id;
+  const notConnectedChain = [chain] as ChainName[];
+  const connectedChain = provider.connectFromChain(notConnectedChain, testnet ? CHAINS_TESTNET : CHAINS);
+  await firstValueFrom(connectedChain);
+  await adapter.setApi(provider.getApi(chain));
 }
