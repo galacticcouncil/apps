@@ -16,7 +16,7 @@ export class XcmScreen extends LitElement {
         accountName="alice"
       ></gc-xcm-app>
 
-  <!--     <gc-xcm-app
+      <!-- <gc-xcm-app
         srcChain="kusama"
         dstChain="basilisk"
         chains="basilisk,karura,kusama,tinkernet"
