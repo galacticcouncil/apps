@@ -12,6 +12,8 @@ import { baseStyles } from '../base.css';
 import { capitalize } from '../../utils/text';
 import { isSameAddress, isValidAddress } from '../../utils/account';
 
+import '../identicon';
+
 @customElement('gc-xcm-app-main')
 export class TradeTokens extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
@@ -306,7 +308,15 @@ export class TradeTokens extends LitElement {
           .chain=${this.dstChain}
           ?error=${this.error['address']}
           .error=${this.error['address']}
-        ></uigc-address-input>
+        >
+          ${when(
+            isValidAddr && this.dstChainSs58Prefix,
+            () =>
+              html`
+                <gc-identicon slot="id" .address=${this.address} .ss58prefix=${this.dstChainSs58Prefix}></gc-identicon>
+              `
+          )}
+        </uigc-address-input>
       </div>
       <div class="info">
         <div class="row">${this.transferFeeTemplate(i18n.t('xcm.sourceFee'), this.srcChainFee, this.nativeAsset)}</div>
