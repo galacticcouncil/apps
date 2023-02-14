@@ -16,10 +16,10 @@ export class XcmScreen extends LitElement {
         accountName="alice"
       ></gc-xcm-app>
 
-      <!-- <gc-xcm-app
+  <!--     <gc-xcm-app
         srcChain="kusama"
         dstChain="basilisk"
-        chains="basilisk,karura,kusama"
+        chains="basilisk,karura,kusama,tinkernet"
         accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
         accountProvider="talisman"
         accountName="nohaapav"
