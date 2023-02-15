@@ -3,9 +3,12 @@ import { customElement, state } from 'lit/decorators.js';
 import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
 import '../component/trade';
+import { ThemeController } from '../component/theme/observer.ctrl';
 
 @customElement('gc-trade-screen')
 export class TradeScreen extends LitElement implements BeforeEnterObserver {
+  private theme = new ThemeController(this);
+
   @state() assetIn: string = null;
   @state() assetOut: string = null;
 
@@ -15,7 +18,22 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     this.assetOut = queryParams.get('assetOut');
   }
 
-  render() {
+  bsxTemplate() {
+    return html`
+      <gc-trade-app
+        apiAddress="wss://rpc.basilisk.cloud"
+        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
+        accountProvider="talisman"
+        accountName="nohaapav"
+        pools="XYK"
+        stableCoinAssetId="2"
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
+      ></gc-trade-app>
+    `;
+  }
+
+  hdxTemplate() {
     return html`
       <gc-trade-app
         chart
@@ -29,17 +47,14 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
       ></gc-trade-app>
-
-      <!-- <gc-trade-app
-        apiAddress="wss://rpc.basilisk.cloud"
-        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
-        accountProvider="talisman"
-        accountName="nohaapav"
-        pools="XYK"
-        stableCoinAssetId="2"
-        assetIn=${this.assetIn}
-        assetOut=${this.assetOut}
-      ></gc-trade-app> -->
     `;
+  }
+
+  render() {
+    if (this.theme.state == 'hdx') {
+      return this.hdxTemplate();
+    } else {
+      return this.bsxTemplate();
+    }
   }
 }

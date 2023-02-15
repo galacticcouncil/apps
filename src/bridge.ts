@@ -43,14 +43,15 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
 export async function initBridge(chains: string[]) {
   const adapters = chains.map((chain: string) => ADAPTERS[chain]);
   const bridge = new Bridge({
-    adapters: adapters,
+    adapters: adapters
   });
   const provider = new ApiProvider();
   xChainCursor.reset({ apiProvider: provider, bridge: bridge });
 }
 
 export async function initAdapterConnection(adapter: BaseCrossChainAdapter, testnet?: Boolean) {
-  if (adapter.getApi() != null) {
+  const api = adapter.getApi();
+  if (api != null) {
     return;
   }
 

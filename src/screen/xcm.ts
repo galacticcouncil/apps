@@ -2,10 +2,26 @@ import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import '../component/xcm';
+import { ThemeController } from '../component/theme/observer.ctrl';
 
 @customElement('gc-xcm-screen')
 export class XcmScreen extends LitElement {
-  render() {
+  private theme = new ThemeController(this);
+
+  bsxTemplate() {
+    return html`
+      <gc-xcm-app
+        srcChain="kusama"
+        dstChain="basilisk"
+        chains="basilisk,karura,kusama,tinkernet"
+        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
+        accountProvider="talisman"
+        accountName="nohaapav"
+      ></gc-xcm-app>
+    `;
+  }
+
+  hdxTemplate() {
     return html`
       <gc-xcm-app
         srcChain="polkadot"
@@ -15,15 +31,14 @@ export class XcmScreen extends LitElement {
         accountProvider="polkadot-js"
         accountName="alice"
       ></gc-xcm-app>
-
-      <!-- <gc-xcm-app
-        srcChain="kusama"
-        dstChain="basilisk"
-        chains="basilisk,karura,kusama,tinkernet"
-        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
-        accountProvider="talisman"
-        accountName="nohaapav"
-      ></gc-xcm-app> -->
     `;
+  }
+
+  render() {
+    if (this.theme.state == 'hdx') {
+      return this.hdxTemplate();
+    } else {
+      return this.bsxTemplate();
+    }
   }
 }
