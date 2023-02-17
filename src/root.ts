@@ -3,7 +3,6 @@ import { customElement } from 'lit/decorators.js';
 
 import './component/notification';
 import './component/transaction';
-import './component/theme';
 
 @customElement('gc-root')
 export class Root extends LitElement {

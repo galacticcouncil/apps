@@ -1,8 +1,9 @@
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
+import { ThemeController } from '../theme.ctrl';
+
 import '../component/xcm';
-import { ThemeController } from '../component/theme/observer.ctrl';
 
 @customElement('gc-xcm-screen')
 export class XcmScreen extends LitElement {
@@ -13,7 +14,7 @@ export class XcmScreen extends LitElement {
       <gc-xcm-app
         srcChain="kusama"
         dstChain="basilisk"
-        chains="basilisk,karura,kusama,tinkernet"
+        chains="basilisk,karura,kusama,tinkernet,statemine"
         accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
         accountProvider="talisman"
         accountName="nohaapav"

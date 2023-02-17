@@ -1,6 +1,6 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 
-import { chainCursor, xChainCursor } from '../../db';
+import { chainCursor, xChainCursor } from './db';
 
 export class ThemeController implements ReactiveController {
   private readonly host: ReactiveControllerHost;

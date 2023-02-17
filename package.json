@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "private": false,
   "description": "Galactic Apps",
   "author": "Pavol Noha <pavol.noha@gmail.com>",
@@ -39,7 +39,7 @@
     "short-uuid": "^4.2.0"
   },
   "peerDependencies": {
-    "@galacticcouncil/bridge": "0.0.1-rc33",
+    "@galacticcouncil/bridge": "0.0.1-rc38",
     "@galacticcouncil/sdk": "^0.0.6",
     "@galacticcouncil/ui": "^1.0.66",
     "@polkadot/api": "^9.9.1",

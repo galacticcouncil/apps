@@ -3,7 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
 import '../component/trade';
-import { ThemeController } from '../component/theme/observer.ctrl';
+import { ThemeController } from '../theme.ctrl';
 
 @customElement('gc-trade-screen')
 export class TradeScreen extends LitElement implements BeforeEnterObserver {
