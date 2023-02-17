@@ -9,7 +9,7 @@ dayjs.extend(utc);
 export function subscribeCrosshair(
   chart: IChartApi,
   chartContainer: HTMLElement,
-  series: ISeriesApi<'Area'>,
+  series: ISeriesApi<'Baseline'>,
   selected: HTMLElement,
   actual: HTMLElement,
   floating: HTMLElement,

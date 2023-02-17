@@ -39,7 +39,7 @@ export class TradeChart extends LitElement {
 
   private chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
-  private chartPriceSeries: ISeriesApi<'Area'> = null;
+  private chartPriceSeries: ISeriesApi<'Baseline'> = null;
   private chartVolumeSeries: ISeriesApi<'Histogram'> = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
@@ -402,7 +402,6 @@ export class TradeChart extends LitElement {
     } else {
       //const priceBucketData = priceBucket.withGaps(true).fixWhitespace();
       //const volumeBucketData = volumeBucket.withGaps().data;
-
       this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 0.5 });
       this.chartPriceSeries.setData(priceBucket.data);
       this.chartPriceSeries.update(lastPrice);
@@ -412,6 +411,7 @@ export class TradeChart extends LitElement {
     const max = priceBucket.max();
     const min = priceBucket.min();
     const avg = priceBucket.avg();
+    this.chartPriceSeries.applyOptions({ baseValue: { type: 'price', price: min } });
 
     this.syncPriceScale(max, min, avg);
     this.chartState = ChartState.Loaded;
@@ -477,18 +477,21 @@ export class TradeChart extends LitElement {
       handleScroll: false,
     });
 
-    this.chartPriceSeries = this.chart.addAreaSeries({
-      topColor: 'rgba(79, 223, 255, 0.31)',
-      bottomColor: 'rgba(79, 234, 255, 0)',
-      lineColor: '#85D1FF',
+    this.chartPriceSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
+      topLineColor: '#85D1FF',
+      topFillColor1: 'rgba(79, 223, 255, 0.31)',
+      topFillColor2: 'rgba(79, 234, 255, 0',
+      bottomLineColor: 'transparent',
       lastValueVisible: false,
       priceLineVisible: false,
       crosshairMarkerRadius: 4,
       crosshairMarkerBorderColor: '#000',
       crosshairMarkerBackgroundColor: '#fff',
     });
+    const min = new Bucket(DEFAULT_DATASET).min();
     this.chartPriceSeries.setData(DEFAULT_DATASET);
+    this.chartPriceSeries.applyOptions({ baseValue: { type: 'price', price: min } });
     this.chart.timeScale().fitContent();
 
     this.chartVolumeSeries = this.chart.addHistogramSeries({
