@@ -15,7 +15,8 @@
     "cleanup": "rimraf out && rimraf dist",
     "dev": "rimraf out & npm run build:watch & npm run serve",
     "copy:assets": "cp -R ./assets/ ./dist/assets/ && cp ./dist/index.html ./dist/404.html",
-    "package:prod": "rimraf dist && npm run build:prod && npm run copy:assets"
+    "package:prod": "rimraf dist && npm run build:prod && npm run copy:assets",
+    "release": "npm run cleanup && npm run package:prod && standard-version --skip.changelog"
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",
@@ -26,6 +27,7 @@
     "node-html-parser": "^5.4.2-0",
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
+    "standard-version": "^9.5.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {
