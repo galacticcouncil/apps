@@ -297,6 +297,18 @@ export class TradeTokens extends LitElement {
     this.dispatchEvent(new CustomEvent('swap-clicked', options));
   }
 
+  maxClickHandler(id: string, balance: string, effectiveBalance: string, asset: PoolAsset) {
+    return function (_e: Event) {
+      const amount = effectiveBalance ?? balance;
+      const options = {
+        bubbles: true,
+        composed: true,
+        detail: { id: id, asset: asset.symbol, value: amount },
+      };
+      this.dispatchEvent(new CustomEvent('asset-input-changed', options));
+    };
+  }
+
   infoSlippageTemplate(assetSymbol: string) {
     return html` ${choose(this.tradeType, [
         [TradeType.Sell, () => html` <span class="label">Minimum received:</span>`],
@@ -379,6 +391,8 @@ export class TradeTokens extends LitElement {
 
   render() {
     const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
+    const effectiveBalanceIn = this.calculateEffectiveBalance(this.balanceIn, this.assetIn?.symbol);
+    const effectiveBalanceOut = this.calculateEffectiveBalance(this.balanceOut, this.assetOut?.symbol);
     const infoClasses = {
       info: true,
       show: this.swaps.length > 0,
@@ -400,11 +414,15 @@ export class TradeTokens extends LitElement {
           .asset=${this.assetIn?.symbol}
           .amount=${this.amountIn}
           .amountUsd=${this.amountInUsd}
-          .balance=${this.balanceIn}
-          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceIn, this.assetIn?.symbol)}
-          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceIn, this.assetIn?.symbol)}
-          .formatter=${humanizeAmount}
-        ></uigc-asset-transfer>
+        >
+          <uigc-asset-balance
+            slot="balance"
+            .balance=${this.balanceIn}
+            .formatter=${humanizeAmount}
+            .onMaxClick=${this.maxClickHandler('assetIn', this.balanceIn, effectiveBalanceIn, this.assetIn)}
+            ?disabled=${!effectiveBalanceIn}
+          ></uigc-asset-balance>
+        </uigc-asset-transfer>
         <div class="switch">
           <div class="divider"></div>
           <uigc-asset-switch class="switch-button" ?disabled=${!this.switchAllowed}> </uigc-asset-switch>
@@ -423,21 +441,22 @@ export class TradeTokens extends LitElement {
           .asset=${this.assetOut?.symbol}
           .amount=${this.amountOut}
           .amountUsd=${this.amountOutUsd}
-          .balance=${this.balanceOut}
-          .effectiveBalance=${this.calculateEffectiveBalance(this.balanceOut, this.assetOut?.symbol)}
-          .maxDisabled=${!this.calculateEffectiveBalance(this.balanceOut, this.assetOut?.symbol)}
-          .formatter=${humanizeAmount}
-        ></uigc-asset-transfer>
+        >
+          <uigc-asset-balance
+            slot="balance"
+            .balance=${this.balanceOut}
+            .formatter=${humanizeAmount}
+            .onMaxClick=${this.maxClickHandler('assetOut', this.balanceOut, effectiveBalanceOut, this.assetOut)}
+            ?disabled=${!effectiveBalanceOut}
+          ></uigc-asset-balance>
+        </uigc-asset-transfer>
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
         <div class="row">${this.infoTransactionFeeTemplate()}</div>
-        ${when(
-          this.swaps.length > 1,
-          () => html` <div class="row">${this.infoBestRouteTemplate()}</div>`
-        )}
+        ${when(this.swaps.length > 1, () => html` <div class="row">${this.infoBestRouteTemplate()}</div>`)}
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>

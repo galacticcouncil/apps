@@ -246,14 +246,6 @@ export class TradeTokens extends LitElement {
     }
   }
 
-  onSwitchClick(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('chain-switch-clicked', options));
-  }
-
   onTransferClick(e: any) {
     const options = {
       bubbles: true,
@@ -262,12 +254,16 @@ export class TradeTokens extends LitElement {
     this.dispatchEvent(new CustomEvent('transfer-clicked', options));
   }
 
-  onMaxClick(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
+  maxClickHandler(balance: string, effectiveBalance: string) {
+    return function (_e: Event) {
+      const amount = effectiveBalance ?? balance;
+      const options = {
+        bubbles: true,
+        composed: true,
+        detail: { value: amount },
+      };
+      this.dispatchEvent(new CustomEvent('asset-input-changed', options));
     };
-    this.dispatchEvent(new CustomEvent('max-clicked', options));
   }
 
   render() {
@@ -296,11 +292,15 @@ export class TradeTokens extends LitElement {
           title="${i18n.t('xcm.asset')}"
           .asset=${this.asset}
           .amount=${this.amount}
-          .balance=${this.balance}
-          .effectiveBalance=${this.effectiveBalance}
           ?error=${this.error['amount']}
           .error=${this.error['amount']}
-        ></uigc-asset-transfer>
+        >
+          <uigc-asset-balance
+            slot="balance"
+            .balance=${this.balance}
+            .onMaxClick=${this.maxClickHandler(this.balance, this.effectiveBalance)}
+          ></uigc-asset-balance>
+        </uigc-asset-transfer>
         <uigc-address-input
           id="address"
           title="${i18n.t('xcm.toAddr')}"
