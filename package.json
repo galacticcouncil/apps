@@ -15,8 +15,9 @@
     "cleanup": "rimraf out && rimraf dist",
     "dev": "rimraf out & npm run build:watch & npm run serve",
     "copy:assets": "cp -R ./assets/ ./dist/assets/ && cp ./dist/index.html ./dist/404.html",
-    "package:prod": "rimraf dist && npm run build:prod && npm run copy:assets",
-    "release": "npm run cleanup && npm run package:prod && standard-version"
+    "pckg:build": "rimraf dist && npm run build:prod && npm run copy:assets",
+    "pckg:release": "npm run cleanup && npm run pckg:build && standard-version",
+    "pckg:publish": "git push origin master && npm publish"
   },
   "standard-version": {
     "skip": {
