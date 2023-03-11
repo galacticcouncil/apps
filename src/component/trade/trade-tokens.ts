@@ -364,13 +364,15 @@ export class TradeTokens extends LitElement {
   }
 
   bestRouteTemplate() {
+    const bestRoute = this.swaps.map((swap: any) => this.assets.get(swap.assetOut).symbol);
+    this.tradeType == TradeType.Buy && bestRoute.reverse();
     return html`
       <span class="value">${this.assetIn.symbol}</span>
-      ${this.swaps.map(
-        (swap: any) =>
+      ${bestRoute.map(
+        (poolAsset: string) =>
           html`
             <uigc-icon-chevron-right></uigc-icon-chevron-right>
-            <span class="value">${this.assets.get(swap.assetOut).symbol}</span>
+            <span class="value">${poolAsset}</span>
           `
       )}
       <uigc-icon-route></uigc-icon-route>
