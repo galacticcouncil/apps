@@ -164,14 +164,14 @@ Bare cross chain transaction app without tx & notification center.
 
 #### Properties
 
-| Property          | Description       | Required |
-| ----------------- | ----------------- | -------- |
-| accountAddress    | account address   | false    |
-| accountProvider   | account provider  | false    |
-| accountName       | account name      | false    |
-| chains            | listed chains     | true     |
-| srcChain          | default src chain | true     |
-| dstChain          | default dst chain | true     |
+| Property        | Description       | Required |
+| --------------- | ----------------- | -------- |
+| accountAddress  | account address   | false    |
+| accountProvider | account provider  | false    |
+| accountName     | account name      | false    |
+| chains          | listed chains     | true     |
+| srcChain        | default src chain | true     |
+| dstChain        | default dst chain | true     |
 
 ## Live [master]
 
@@ -193,8 +193,11 @@ npm run dev # to build & serve the apps
 ### PROD build
 
 ```sh
-npm run cleanup # to cleanup the namespace
-npm run package:prod # to build library & web bundle
+npm install # to install all dependencies
+npm run release # to release patch version (default)
+
+npm run release -- --release-as minor # Release minor version. E.g. 1.0.23 -> 1.1.0
+npm run release -- --release-as major # Release minor version. E.g. 1.0.23 -> 2.0.0
 ```
 
 ## Issue reporting
