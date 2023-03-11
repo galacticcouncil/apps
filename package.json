@@ -16,7 +16,13 @@
     "dev": "rimraf out & npm run build:watch & npm run serve",
     "copy:assets": "cp -R ./assets/ ./dist/assets/ && cp ./dist/index.html ./dist/404.html",
     "package:prod": "rimraf dist && npm run build:prod && npm run copy:assets",
-    "release": "npm run cleanup && npm run package:prod && standard-version --skip.changelog"
+    "release": "npm run cleanup && npm run package:prod && standard-version"
+  },
+  "standard-version": {
+    "skip": {
+      "changelog": true,
+      "tag": true
+    }
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",
