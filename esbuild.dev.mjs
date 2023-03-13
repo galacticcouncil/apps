@@ -16,14 +16,14 @@ esbuild.build({
   preserveSymlinks: true,
   treeShaking: true,
   sourcemap: true,
-  watch: process.env.ESBUILD_WATCH === 'true' && {
-    onRebuild(error, result) {
-      if (error) {
-        console.error('watch build failed:', error);
-      } else {
-        console.log('watch build succeeded:', result);
-      }
-    },
-  },
+  // watch: process.env.ESBUILD_WATCH === 'true' && {
+  //   onRebuild(error, result) {
+  //     if (error) {
+  //       console.error('watch build failed:', error);
+  //     } else {
+  //       console.log('watch build succeeded:', result);
+  //     }
+  //   },
+  // },
   outdir: 'out/',
 });
