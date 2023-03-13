@@ -5,6 +5,7 @@ import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/ac
 import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
 import { StatemineAdapter } from '@galacticcouncil/bridge/adapters/statemint';
 import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
+import { RobonimicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -17,6 +18,7 @@ const CHAINS: Record<string, string[]> = {
   karura: ['wss://karura.api.onfinality.io/public-ws'],
   statemine: ['wss://statemine.api.onfinality.io/public-ws'],
   tinkernet: ['wss://invarch-tinkernet.api.onfinality.io/public-ws'],
+  robonomics: ['wss://robonomics.api.onfinality.io/public-ws'],
   hydradx: ['wss://rpc.hydradx.cloud'],
   basilisk: ['wss://rpc.basilisk.cloud'],
 };
@@ -38,12 +40,13 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   basilisk: new BasiliskAdapter(),
   statemine: new StatemineAdapter(),
   tinkernet: new TinkernetAdapter(),
+  robonomics: new RobonimicsAdapter(),
 };
 
 export async function initBridge(chains: string[]) {
   const adapters = chains.map((chain: string) => ADAPTERS[chain]);
   const bridge = new Bridge({
-    adapters: adapters
+    adapters: adapters,
   });
   const provider = new ApiProvider();
   xChainCursor.reset({ apiProvider: provider, bridge: bridge });

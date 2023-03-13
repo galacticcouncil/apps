@@ -14,7 +14,7 @@ export class XcmScreen extends LitElement {
       <gc-xcm-app
         srcChain="kusama"
         dstChain="basilisk"
-        chains="basilisk,karura,kusama,tinkernet,statemine"
+        chains="basilisk,karura,kusama,tinkernet,statemine,robonomics"
         accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
         accountProvider="talisman"
         accountName="nohaapav"
