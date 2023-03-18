@@ -27,7 +27,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         accountProvider="talisman"
         accountName="nohaapav"
         pools="XYK"
-        stableCoinAssetId="2"
+        stableCoinAssetId="14"
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
       ></gc-trade-app>
