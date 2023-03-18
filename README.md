@@ -183,21 +183,38 @@ Visit https://galactic-apps.netlify.app/
 
 - [Node.js](https://nodejs.org/) (**version 18 or higher**)
 
-### Run local DEV
+### Local development
+
+Live reloading is configured in 2 steps:
+
+- First step is to enable:
+  - <ins>watch mode</ins> (to automatically start a build when you edit and save a file)
+  - <ins>serve mode</ins> (to serve the latest build, but block until it's done)
+- The second step is to add some code to your JavaScript that subscribes to the `/esbuild` server-sent event source.
+  When you get the change event, the page will reload with the latest version of the app.
+
+For details see `esbuild.dev.mjs`
 
 ```sh
 npm install # to install all dependencies
 npm run dev # to build & serve the apps
 ```
 
-### PROD build
+### Production build
 
 ```sh
 npm install # to install all dependencies
-npm run release # to release patch version (default)
+npm run pckg:release # to release patch version (default)
+npm run pckg:publish # to publish npm package
+```
 
-npm run release -- --release-as minor # Release minor version. E.g. 1.0.23 -> 1.1.0
-npm run release -- --release-as major # Release minor version. E.g. 1.0.23 -> 2.0.0
+#### Other
+
+To release minor or major version of the apps package use following commands.
+
+```sh
+npm run pckg:release -- --release-as minor # Release minor version. E.g. 1.0.23 -> 1.1.0
+npm run pckg:release -- --release-as major # Release major version. E.g. 1.0.23 -> 2.0.0
 ```
 
 ## Issue reporting
