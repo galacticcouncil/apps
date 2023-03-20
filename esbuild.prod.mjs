@@ -18,8 +18,7 @@ readdirSync('node_modules/@polkadot').forEach((pckg) => {
 });
 
 const indexDOM = parse(indexTemplate);
-const script = indexDOM.getElementsByTagName('script')[0];
-script.remove();
+indexDOM.getElementsByTagName('script').forEach((script) => script.remove());
 
 fixTalismanEsm();
 
