@@ -11,7 +11,7 @@
     "build": "node ./esbuild.dev.mjs",
     "build:prod": "node ./esbuild.prod.mjs && tsc --emitDeclarationOnly --outDir dist/types/",
     "cleanup": "rimraf out && rimraf dist",
-    "dev": "npm run cleanup && npm run build",
+    "dev": "npm run cleanup & npm run build",
     "pckg:assets": "cp -R ./assets/ ./dist/assets/ && cp ./dist/index.html ./dist/404.html",
     "pckg:build": "npm run cleanup && npm run build:prod && npm run pckg:assets",
     "pckg:release": "npm run pckg:build && standard-version",
@@ -45,7 +45,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/bridge": "0.0.1-rc42",
-    "@galacticcouncil/sdk": "^0.0.6",
+    "@galacticcouncil/sdk": "^0.1.0",
     "@galacticcouncil/ui": "^1.0.69",
     "@polkadot/api": "^9.9.1",
     "@polkadot/extension-inject": "^0.44.6",
