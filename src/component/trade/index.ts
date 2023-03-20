@@ -17,6 +17,7 @@ import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
 import '@galacticcouncil/ui';
 import {
+  Amount,
   bnum,
   PoolAsset,
   PoolType,
@@ -362,15 +363,13 @@ export class TradeApp extends LitElement {
     const assetOut = this.trade.assetOut;
     const router = chainCursor.deref().router;
 
-    let spotPrice: string;
+    let price: Amount;
     if (this.trade.type == TradeType.Buy) {
-      // SDK getBestSpotPrice support sell only atm
-      const buy = await router.getBestBuy(assetIn.id, assetOut.id, 1);
-      spotPrice = buy.toHuman().spotPrice;
+      price = await router.getBestSpotPrice(assetOut.id, assetIn.id);
     } else {
-      const price = await router.getBestSpotPrice(assetIn.id, assetOut.id);
-      spotPrice = formatAmount(price.amount, price.decimals);
+      price = await router.getBestSpotPrice(assetIn.id, assetOut.id);
     }
+    const spotPrice = formatAmount(price.amount, price.decimals);
     this.trade = {
       ...this.trade,
       inProgress: false,
