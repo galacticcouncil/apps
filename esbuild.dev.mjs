@@ -14,7 +14,6 @@ const options = {
   preserveSymlinks: true,
   treeShaking: true,
   sourcemap: true,
-  banner: { js: ' (() => new EventSource("/esbuild").onmessage = () => location.reload())();' },
   outdir: 'out/',
   logLevel: 'info',
 };

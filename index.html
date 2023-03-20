@@ -102,6 +102,9 @@
       <div id="app"></div>
     </main>
     <footer></footer>
+    <script>
+      new EventSource('/esbuild').addEventListener('change', () => location.reload());
+    </script>
     <script type="module" src="./out/app.js"></script>
   </body>
 </html>
