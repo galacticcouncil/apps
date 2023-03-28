@@ -194,7 +194,7 @@ export class Settings extends LitElement {
           <uigc-switch size="small" disabled></uigc-switch>
         </div>
         <uigc-toggle-button-group
-          selected=${this.slippage}
+          value=${this.slippage}
           @toggle-button-clicked=${(e: CustomEvent) => {
             this.changeSlippage(e.detail);
             this._slippageHandler();
