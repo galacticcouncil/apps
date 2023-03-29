@@ -46,7 +46,7 @@ async function getSystemAccountBalance(accountId: string): Promise<BigNumber> {
 async function getTokenAccountBalance(accountId: string, tokenKey: string): Promise<BigNumber> {
   const api = chainCursor.deref().api;
   const { free, reserved, frozen } = await api.query.tokens.accounts<TokensAccountData>(accountId, tokenKey);
-  return calculateFreeBalance(free.toString(), reserved.toString(), frozen.toString());
+  return calculateFreeBalance(free.toString(), ZERO.toFixed(), frozen.toString());
 }
 
 export async function getAccountBalance(address: string, assetId: string): Promise<Amount> {
