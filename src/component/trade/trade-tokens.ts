@@ -432,7 +432,7 @@ export class TradeTokens extends LitElement {
             class=${classMap(spotPriceClasses)}
             .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol}
             .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}
-            .outputBalance=${humanizeAmount(this.spotPrice)}
+            .outputBalance=${this.spotPrice}
             .loading=${this.inProgress}
           >
           </uigc-asset-price>
