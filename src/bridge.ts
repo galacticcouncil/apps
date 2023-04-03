@@ -5,7 +5,7 @@ import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/ac
 import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
 import { StatemineAdapter } from '@galacticcouncil/bridge/adapters/statemint';
 import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
-import { RobonimicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
+import { RobonomicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -40,7 +40,7 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   basilisk: new BasiliskAdapter(),
   statemine: new StatemineAdapter(),
   tinkernet: new TinkernetAdapter(),
-  robonomics: new RobonimicsAdapter(),
+  robonomics: new RobonomicsAdapter(),
 };
 
 export async function initBridge(chains: string[]) {
