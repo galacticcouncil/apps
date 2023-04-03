@@ -24,6 +24,8 @@ await ctx.rebuild();
 await ctx.watch();
 const localServer = await ctx.serve({ servedir: './',  host: '127.0.0.1' });
 
+const PROXY_PORT = 3000;
+
 /**
  * Create proxy server that will forward requests to esbuild local server.
  * @see https://esbuild.github.io/api/#serve-proxy
@@ -51,6 +53,6 @@ http.createServer((req, res) => {
     req.pipe(proxyReq, { end: true });
   };
   forwardRequest(req.url);
-}).listen(3000)
+}).listen(PROXY_PORT)
 
-console.log('\x1b[1m\x1b[92m', `> Proxy: \x1b[4mhttp://${localServer.host}:3000/\x1b[0m`);
+console.log('\x1b[1m\x1b[92m', '> Proxy: \x1b[4mhttp://' + localServer.host + ':' + PROXY_PORT + '/\x1b[0m\n');
