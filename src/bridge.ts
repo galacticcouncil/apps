@@ -3,7 +3,7 @@ import { BaseCrossChainAdapter } from '@galacticcouncil/bridge/base-chain-adapte
 import { KusamaAdapter, PolkadotAdapter, RococoAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
 import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/acala';
 import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
-import { StatemineAdapter } from '@galacticcouncil/bridge/adapters/statemint';
+import { StatemineAdapter, StatemintAdapter } from '@galacticcouncil/bridge/adapters/statemint';
 import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
 import { RobonomicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
 
@@ -17,6 +17,7 @@ const CHAINS: Record<string, string[]> = {
   acala: ['wss://acala-polkadot.api.onfinality.io/public-ws'],
   karura: ['wss://karura.api.onfinality.io/public-ws'],
   statemine: ['wss://statemine.api.onfinality.io/public-ws'],
+  statemint: ['wss://statemint.api.onfinality.io/public-ws'],
   tinkernet: ['wss://invarch-tinkernet.api.onfinality.io/public-ws'],
   robonomics: ['wss://robonomics.api.onfinality.io/public-ws'],
   hydradx: ['wss://rpc.hydradx.cloud'],
@@ -39,6 +40,7 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   hydradx: new HydradxAdapter(),
   basilisk: new BasiliskAdapter(),
   statemine: new StatemineAdapter(),
+  statemint: new StatemintAdapter(),
   tinkernet: new TinkernetAdapter(),
   robonomics: new RobonomicsAdapter(),
 };
