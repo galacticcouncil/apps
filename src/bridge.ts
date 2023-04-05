@@ -6,6 +6,7 @@ import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapter
 import { StatemineAdapter, StatemintAdapter } from '@galacticcouncil/bridge/adapters/statemint';
 import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
 import { RobonomicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
+import { InterlayAdapter } from '@galacticcouncil/bridge/adapters/interlay';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -20,6 +21,7 @@ const CHAINS: Record<string, string[]> = {
   statemint: ['wss://statemint.api.onfinality.io/public-ws'],
   tinkernet: ['wss://invarch-tinkernet.api.onfinality.io/public-ws'],
   robonomics: ['wss://robonomics.api.onfinality.io/public-ws'],
+  interlay: ['wss://interlay.api.onfinality.io/public-ws'],
   hydradx: ['wss://rpc.hydradx.cloud'],
   basilisk: ['wss://rpc.basilisk.cloud'],
 };
@@ -39,6 +41,7 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   karura: new KaruraAdapter(),
   hydradx: new HydradxAdapter(),
   basilisk: new BasiliskAdapter(),
+  interlay: new InterlayAdapter(),
   statemine: new StatemineAdapter(),
   statemint: new StatemintAdapter(),
   tinkernet: new TinkernetAdapter(),
