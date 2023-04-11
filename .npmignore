@@ -11,6 +11,7 @@ demo
 coverage
 badges
 src
+out
 assets
 dist/404.html
 dist/index.html
