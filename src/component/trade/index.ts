@@ -49,17 +49,6 @@ export class TradeApp extends LitElement {
 
   private tx: Transaction = null;
   private ready: boolean = false;
-  private ro = new ResizeObserver((entries) => {
-    entries.forEach((_entry) => {
-      if (TradeScreen.TradeTokens == this.screen) {
-        const tradeScreen = this.shadowRoot.getElementById('trade-screen');
-        const tabs = this.shadowRoot.querySelectorAll('.tab:not(#trade-screen)');
-        tabs.forEach((tab: Element) => {
-          tab.setAttribute('style', `height: ${tradeScreen.offsetHeight}px`);
-        });
-      }
-    });
-  });
   private disconnectSubscribeNewHeads: () => void = null;
 
   @state() screen: TradeScreen = TradeScreen.TradeTokens;
@@ -118,6 +107,10 @@ export class TradeApp extends LitElement {
 
       .tab.active {
         display: block;
+      }
+
+      .tab:not(#trade-screen) {
+        height: 616px;
       }
 
       .header {
@@ -830,14 +823,12 @@ export class TradeApp extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.ro.observe(this);
     window.addEventListener('resize', (evt) => this.handleResize(evt));
     this.resetTrade(true);
   }
 
   override disconnectedCallback() {
     this.disconnectSubscribeNewHeads?.();
-    this.ro.unobserve(this);
     window.removeEventListener('resize', this.handleResize);
     super.disconnectedCallback();
   }
