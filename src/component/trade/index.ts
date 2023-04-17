@@ -9,6 +9,7 @@ import { baseStyles } from '../base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor } from '../../db';
+import { calculateEffectiveBalance } from '../../api/balance';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getBestSell, getBestBuy, TradeInfo } from '../../api/trade';
 import { getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
@@ -19,6 +20,7 @@ import '@galacticcouncil/ui';
 import {
   Amount,
   bnum,
+  ONE,
   PoolAsset,
   PoolType,
   scale,
@@ -296,6 +298,7 @@ export class TradeApp extends LitElement {
     this.tx = transaction;
     this.validateTrade(TradeType.Sell);
     this.validateEnoughBalance();
+    this.syncTransactionFee();
     console.log(trade);
   }
 
@@ -330,6 +333,7 @@ export class TradeApp extends LitElement {
     this.tx = transaction;
     this.validateTrade(TradeType.Buy);
     this.validateEnoughBalance();
+    this.syncTransactionFee();
     console.log(trade);
   }
 
@@ -662,13 +666,61 @@ export class TradeApp extends LitElement {
 
   async syncTransactionFee() {
     const account = accountCursor.deref();
-    if (account && this.tx) {
+    if (account) {
       const { partialFee } = await getPaymentInfo(this.tx, account);
       const feeAssetId = await getFeePaymentAsset(account);
       const feeSystem = partialFee.toHuman();
       this.trade.transactionFee = await this.calculateTransactionFee(feeSystem, feeAssetId);
       this.requestUpdate();
     }
+  }
+
+  async updateMaxAmountIn(asset: PoolAsset) {
+    const account = accountCursor.deref();
+    const feeAssetId = await getFeePaymentAsset(account);
+
+    if (asset.id !== feeAssetId) {
+      this.updateAmountIn(this.trade.balanceIn);
+      return;
+    }
+
+    const { transaction } = await this.safeSell(this.trade.assetIn, this.trade.assetOut, ONE.toFixed());
+    const { partialFee } = await getPaymentInfo(transaction, account);
+    const feeSystem = partialFee.toHuman();
+    const txFee = await this.calculateTransactionFee(feeSystem, feeAssetId);
+
+    const eb = calculateEffectiveBalance(
+      this.trade.balanceIn,
+      this.trade.assetIn.symbol,
+      txFee.ed,
+      txFee.asset,
+      txFee.amount
+    );
+    this.updateAmountIn(eb);
+  }
+
+  async updateMaxAmountOut(asset: PoolAsset) {
+    const account = accountCursor.deref();
+    const feeAssetId = await getFeePaymentAsset(account);
+
+    if (asset.id !== feeAssetId) {
+      this.updateAmountOut(this.trade.balanceOut);
+      return;
+    }
+
+    const { transaction } = await this.safeBuy(this.trade.assetIn, this.trade.assetOut, ONE.toFixed());
+    const { partialFee } = await getPaymentInfo(transaction, account);
+    const feeSystem = partialFee.toHuman();
+    const txFee = await this.calculateTransactionFee(feeSystem, feeAssetId);
+
+    const eb = calculateEffectiveBalance(
+      this.trade.balanceOut,
+      this.trade.assetOut.symbol,
+      txFee.ed,
+      txFee.asset,
+      txFee.amount
+    );
+    this.updateAmountOut(eb);
   }
 
   notificationMessage(t: TradeState, status: string): string {
@@ -771,7 +823,6 @@ export class TradeApp extends LitElement {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncBalances();
       this.syncDolarPrice();
-      this.syncTransactionFee();
       this.recalculateTrade();
     });
   }
@@ -924,6 +975,11 @@ export class TradeApp extends LitElement {
           id == 'assetIn' && this.updateAmountIn(value);
           id == 'assetOut' && this.updateAmountOut(value);
           this.validateEnoughBalance();
+        }}
+        @asset-max-clicked=${({ detail: { id, asset } }: CustomEvent) => {
+          this.assets.active = asset.symbol;
+          id == 'assetIn' && this.updateMaxAmountIn(asset);
+          id == 'assetOut' && this.updateMaxAmountOut(asset);
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {
           this.assets.selector = detail;

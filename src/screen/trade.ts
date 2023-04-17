@@ -40,7 +40,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         chart
         chartDatasourceId="10"
         apiAddress="wss://rpc.hydradx.cloud"
-        accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
+        accountAddress="7MHE9BUBEWU88cEto6P1XNNb66foSwAZPKhfL8GHW9exnuH1"
         accountProvider="polkadot-js"
         accountName="alice"
         pools="Omni"

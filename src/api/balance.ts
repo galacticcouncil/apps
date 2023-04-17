@@ -26,6 +26,7 @@ interface AccountData extends Struct {
 }
 
 export const EMPTY_AMOUNT = { amount: ZERO, decimals: 0 } as Amount;
+const ED_FACTOR = 0.5; // ED Factor 50%
 
 function calculateFreeBalance(free: string, miscFrozen: string, feeFrozen: string): BigNumber {
   const freeBN = new BigNumber(free);
@@ -61,4 +62,25 @@ export async function getAccountBalance(address: string, assetId: string): Promi
   const metadata = await getAssetMetadata(assetId);
   const metadataJson = metadata.toHuman();
   return { amount: balance, decimals: metadataJson?.decimals || SYSTEM_ASSET_DECIMALS } as Amount;
+}
+
+export function calculateEffectiveBalance(
+  free: string,
+  asset: string,
+  assetEd: string,
+  txFeeAsset: string,
+  txFee: string
+) {
+  if (asset == txFeeAsset) {
+    const balance = new BigNumber(free);
+    const fee = new BigNumber(txFee);
+    const edFactor = new BigNumber(assetEd).multipliedBy(ED_FACTOR);
+    const minDeposit = fee.plus(edFactor);
+    if (balance.gt(minDeposit)) {
+      return balance.minus(minDeposit).toFixed();
+    } else {
+      return balance.toFixed();
+    }
+  }
+  return free;
 }

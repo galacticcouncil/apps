@@ -10,7 +10,7 @@ import { baseStyles } from '../base.css';
 import { humanizeAmount } from '../../utils/amount';
 import { Account, accountCursor } from '../../db';
 
-import { bnum, PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 import { DatabaseController } from '../../db.ctrl';
 import { TransactionFee } from './types';
 
@@ -258,29 +258,6 @@ export class TradeTokens extends LitElement {
     `,
   ];
 
-  calculateEffectiveBalance(balance: string, asset: string) {
-    if (!this.transactionFee) {
-      return null;
-    }
-
-    const txFee = this.transactionFee.amount;
-    const txFeeAsset = this.transactionFee.asset;
-    const ed = this.transactionFee.ed;
-    if (asset == txFeeAsset) {
-      const balanceBN = bnum(balance);
-      const feeBN = bnum(txFee);
-      const edFactorBN = bnum(ed).multipliedBy(0.5); // ED Factor 50%
-      const toSubBN = feeBN.plus(edFactorBN);
-      if (balanceBN.gt(toSubBN)) {
-        return balanceBN.minus(toSubBN).toFixed();
-      } else {
-        return null;
-      }
-    } else {
-      return balance;
-    }
-  }
-
   onSettingsClick(e: any) {
     const options = {
       bubbles: true,
@@ -297,15 +274,14 @@ export class TradeTokens extends LitElement {
     this.dispatchEvent(new CustomEvent('swap-clicked', options));
   }
 
-  maxClickHandler(id: string, balance: string, effectiveBalance: string, asset: PoolAsset) {
+  maxClickHandler(id: string, asset: PoolAsset) {
     return function (_e: Event) {
-      const amount = effectiveBalance ?? balance;
       const options = {
         bubbles: true,
         composed: true,
-        detail: { id: id, asset: asset.symbol, value: amount },
+        detail: { id: id, asset: asset },
       };
-      this.dispatchEvent(new CustomEvent('asset-input-changed', options));
+      this.dispatchEvent(new CustomEvent('asset-max-clicked', options));
     };
   }
 
@@ -393,8 +369,6 @@ export class TradeTokens extends LitElement {
 
   render() {
     const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
-    const effectiveBalanceIn = this.calculateEffectiveBalance(this.balanceIn, this.assetIn?.symbol);
-    const effectiveBalanceOut = this.calculateEffectiveBalance(this.balanceOut, this.assetOut?.symbol);
     const infoClasses = {
       info: true,
       show: this.swaps.length > 0,
@@ -421,8 +395,7 @@ export class TradeTokens extends LitElement {
             slot="balance"
             .balance=${this.balanceIn}
             .formatter=${humanizeAmount}
-            .onMaxClick=${this.maxClickHandler('assetIn', this.balanceIn, effectiveBalanceIn, this.assetIn)}
-            ?disabled=${!effectiveBalanceIn}
+            .onMaxClick=${this.maxClickHandler('assetIn', this.assetIn)}
           ></uigc-asset-balance>
         </uigc-asset-transfer>
         <div class="switch">
@@ -448,8 +421,7 @@ export class TradeTokens extends LitElement {
             slot="balance"
             .balance=${this.balanceOut}
             .formatter=${humanizeAmount}
-            .onMaxClick=${this.maxClickHandler('assetOut', this.balanceOut, effectiveBalanceOut, this.assetOut)}
-            ?disabled=${!effectiveBalanceOut}
+            .onMaxClick=${this.maxClickHandler('assetOut', this.assetOut)}
           ></uigc-asset-balance>
         </uigc-asset-transfer>
       </div>
