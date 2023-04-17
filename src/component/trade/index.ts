@@ -15,6 +15,7 @@ import { getBestSell, getBestBuy, TradeInfo } from '../../api/trade';
 import { getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
+import { updateQueryParams } from '../../utils/url';
 
 import '@galacticcouncil/ui';
 import {
@@ -358,6 +359,11 @@ export class TradeApp extends LitElement {
   private async recalculateSpotPrice() {
     const assetIn = this.trade.assetIn;
     const assetOut = this.trade.assetOut;
+
+    if (!assetIn || !assetOut) {
+      return;
+    }
+
     const router = chainCursor.deref().router;
 
     let price: Amount;
@@ -794,11 +800,11 @@ export class TradeApp extends LitElement {
     if (!this.assetIn && !this.assetOut) {
       this.trade.assetIn = this.assets.map.get(this.stableCoinAssetId);
       this.trade.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
-      this.recalculateSpotPrice();
-      return;
+    } else {
+      this.updateAsset(this.assetIn, 'assetIn');
+      this.updateAsset(this.assetOut, 'assetOut');
     }
-    this.updateAsset(this.assetIn, 'assetIn');
-    this.updateAsset(this.assetOut, 'assetOut');
+    this.recalculateSpotPrice();
     this.validatePool();
   }
 
@@ -926,6 +932,10 @@ export class TradeApp extends LitElement {
           id == 'assetOut' && this.changeAssetOut(asset, e.detail);
           this.updateBalances();
           this.validatePool();
+          updateQueryParams({
+            assetIn: this.trade.assetIn?.id,
+            assetOut: this.trade.assetOut?.id,
+          });
           this.changeScreen(TradeScreen.TradeTokens);
         }}
       >
@@ -988,6 +998,10 @@ export class TradeApp extends LitElement {
         @asset-switch-clicked=${() => {
           this.switch();
           this.validatePool();
+          updateQueryParams({
+            assetIn: this.trade.assetIn?.id,
+            assetOut: this.trade.assetOut?.id,
+          });
         }}
         @swap-clicked=${() => this.swap()}
       >

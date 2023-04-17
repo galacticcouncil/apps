@@ -318,6 +318,10 @@ export class TradeChart extends LitElement {
     `,
   ];
 
+  private hasPoolPair(): boolean {
+    return this.assetIn != null && this.assetOut != null;
+  }
+
   private calculateDollarPrice(price: string) {
     if (this.usdPrice.size == 0) {
       return null;
@@ -564,6 +568,11 @@ export class TradeChart extends LitElement {
       usd: true,
       hidden: this.usdPrice.size == 0,
     };
+
+    if (!this.hasPoolPair()) {
+      return;
+    }
+
     const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
     if (this.tradeProgress || !this.spotPrice) {
       return html`<uigc-skeleton progress rectangle width="150px" height="24px"></uigc-skeleton>`;
@@ -612,7 +621,7 @@ export class TradeChart extends LitElement {
       show: this.chartState == ChartState.Empty,
     };
     const chartLoadingClasses = {
-      show: this.chartState == ChartState.Loading,
+      show: this.chartState == ChartState.Loading && this.hasPoolPair(),
     };
     return html`<div id="backdrop" class="backdrop">
       ${this.priceScaleTemplate('maxTag', 'maxLine')} ${this.priceScaleTemplate('avgTag', 'avgLine')}
