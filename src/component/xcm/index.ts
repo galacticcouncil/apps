@@ -1,7 +1,6 @@
-import { LitElement, html, css, TemplateResult } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { when } from 'lit/directives/when.js';
 
 import * as i18n from 'i18next';
 
@@ -10,6 +9,8 @@ import { initAdapterConnection, initBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
 import { Account, accountCursor, XChain, xChainCursor } from '../../db';
 import { formatAmount, humanizeAmount, toFN } from '../../utils/amount';
+import { convertAddressSS58 } from '../../utils/account';
+import { getRenderString } from '../../utils/dom';
 
 import { Subscription, combineLatest } from 'rxjs';
 
@@ -23,8 +24,7 @@ import './select-chain';
 import './select-token';
 
 import { TransferScreen, ChainState, TransferState, DEFAULT_CHAIN_STATE, DEFAULT_TRANSFER_STATE } from './types';
-import { TxInfo } from '../transaction/types';
-import { convertAddressSS58 } from '../../utils/account';
+import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-xcm-app')
 export class XcmApp extends LitElement {
@@ -272,13 +272,9 @@ export class XcmApp extends LitElement {
     this.requestUpdate();
   }
 
-  notificationTemplate(transfer: TransferState, status: string): TemplateResult {
-    return html`
-      ${when(
-        status,
-        () => html` <span>${i18n.t('xcm.notify.sending')}</span> `,
-        () => html` <span>${i18n.t('xcm.notify.sent')}</span> `
-      )}
+  notificationTemplate(transfer: TransferState, status: string): TxNotificationMssg {
+    const template = html`
+      <span>${status ? i18n.t('xcm.notify.sending') : i18n.t('xcm.notify.sent')}</span>
       <span class="highlight">${transfer.amount}</span>
       <span class="highlight">${transfer.asset}</span>
       <span>${i18n.t('xcm.notify.from')}</span>
@@ -287,6 +283,10 @@ export class XcmApp extends LitElement {
       <span class="highlight">${transfer.dstChain}</span>
       <span>${status}</span>
     `;
+    return {
+      message: template,
+      rawHtml: getRenderString(template),
+    } as TxNotificationMssg;
   }
 
   processTx(account: Account, transaction: Transaction, transfer: TransferState) {

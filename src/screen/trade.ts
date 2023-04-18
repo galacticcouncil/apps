@@ -2,6 +2,8 @@ import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
+import { Account, accountCursor } from '../db';
+import { DatabaseController } from '../db.ctrl';
 import { ThemeController } from '../theme.ctrl';
 
 import '../component/trade';
@@ -9,6 +11,7 @@ import '../component/trade';
 @customElement('gc-trade-screen')
 export class TradeScreen extends LitElement implements BeforeEnterObserver {
   private theme = new ThemeController(this);
+  private account = new DatabaseController<Account>(this, accountCursor);
 
   @state() assetIn: string = null;
   @state() assetOut: string = null;
@@ -23,9 +26,9 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     return html`
       <gc-trade-app
         apiAddress="wss://rpc.basilisk.cloud"
-        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
-        accountProvider="talisman"
-        accountName="nohaapav"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
         pools="XYK"
         stableCoinAssetId="14"
         assetIn=${this.assetIn}
@@ -40,9 +43,9 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         chart
         chartDatasourceId="10"
         apiAddress="wss://rpc.hydradx.cloud"
-        accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
-        accountProvider="polkadot-js"
-        accountName="alice"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
         pools="Omni"
         stableCoinAssetId="2"
         assetIn=${this.assetIn}

@@ -2,10 +2,8 @@ import { html, css, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import type { ISubmittableResult } from '@polkadot/types/types';
-import type { ExtrinsicStatus } from '@polkadot/types/interfaces';
 
 import * as i18n from 'i18next';
-
 import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
@@ -118,7 +116,7 @@ export class TransactionCenter extends LitElement {
     );
   }
 
-  private handleBroadcasted(id: string, notification: TxNotification) {
+  private handleBroadcasted(id: string, { processing }: TxNotification) {
     const isBroadcasted = this.txBroadcasted.has(id);
     if (isBroadcasted) {
       return;
@@ -126,24 +124,29 @@ export class TransactionCenter extends LitElement {
       this.txBroadcasted.add(id);
     }
     this.currentTx = id;
-    this.message = this.broadcastTemplate(id, notification.processing);
-    this.sendNotification(id, NotificationType.progress, notification.processing, false);
+    this.message = this.broadcastTemplate(id, processing.message);
+    this.sendNotification(id, NotificationType.progress, processing.message, false);
   }
 
-  private handleError(id: string, notification: TxNotification) {
+  private handleError(id: string, { failure }: TxNotification) {
     this.message = this.errorTemplate(id);
-    this.sendNotification(id, NotificationType.error, notification.failure, false);
+    this.sendNotification(id, NotificationType.error, failure.message, false);
   }
 
-  private handleInBlock(id: string, notification: TxNotification, error: boolean, meta?: Record<string, string>) {
+  private handleInBlock(
+    id: string,
+    { success, failure }: TxNotification,
+    error: boolean,
+    meta?: Record<string, string>
+  ) {
     if (id == this.currentTx) {
       this.closeDialog(id);
     }
 
     if (error) {
-      this.sendNotification(id, NotificationType.error, notification.failure, true, meta);
+      this.sendNotification(id, NotificationType.error, failure.message, true, meta);
     } else {
-      this.sendNotification(id, NotificationType.success, notification.success, true, meta);
+      this.sendNotification(id, NotificationType.success, success.message, true, meta);
     }
   }
 

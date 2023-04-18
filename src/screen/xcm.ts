@@ -1,6 +1,8 @@
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
+import { Account, accountCursor } from '../db';
+import { DatabaseController } from '../db.ctrl';
 import { ThemeController } from '../theme.ctrl';
 
 import '../component/xcm';
@@ -8,6 +10,7 @@ import '../component/xcm';
 @customElement('gc-xcm-screen')
 export class XcmScreen extends LitElement {
   private theme = new ThemeController(this);
+  private account = new DatabaseController<Account>(this, accountCursor);
 
   bsxTemplate() {
     return html`
@@ -15,9 +18,9 @@ export class XcmScreen extends LitElement {
         srcChain="kusama"
         dstChain="basilisk"
         chains="basilisk,karura,kusama,tinkernet,statemine,robonomics"
-        accountAddress="bXieCAR98oWxVhRog5fCyTNkTquvFAonLPC2pLE1Qd1jgsK9f"
-        accountProvider="talisman"
-        accountName="nohaapav"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
       ></gc-xcm-app>
     `;
   }
@@ -28,9 +31,9 @@ export class XcmScreen extends LitElement {
         srcChain="polkadot"
         dstChain="hydradx"
         chains="polkadot,hydradx,acala,statemint,interlay,zeitgeist"
-        accountAddress="7NPoMQbiA6trJKkjB35uk96MeJD4PGWkLQLH7k7hXEkZpiba"
-        accountProvider="polkadot-js"
-        accountName="alice"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
       ></gc-xcm-app>
     `;
   }

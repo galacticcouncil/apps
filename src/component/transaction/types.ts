@@ -2,10 +2,16 @@ import { Transaction } from '@galacticcouncil/sdk';
 import { TemplateResult } from 'lit-html';
 import { Account } from '../../db';
 
+export type TxNotificationMssg = {
+  message: TemplateResult | string;
+  rawHtml: string;
+  values: string[];
+};
+
 export type TxNotification = {
-  processing: string | TemplateResult;
-  success: string | TemplateResult;
-  failure: string | TemplateResult;
+  processing: TxNotificationMssg;
+  success: TxNotificationMssg;
+  failure: TxNotificationMssg;
 };
 
 export type TxInfo = {

@@ -1,4 +1,4 @@
-import { LitElement, html, css, TemplateResult } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -16,6 +16,7 @@ import { getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 import { updateQueryParams } from '../../utils/url';
+import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
 import {
@@ -44,7 +45,7 @@ import {
   DEFAULT_TRADE_STATE,
   TransactionFee,
 } from './types';
-import { TxInfo } from '../transaction/types';
+import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-trade-app')
 export class TradeApp extends LitElement {
@@ -729,42 +730,25 @@ export class TradeApp extends LitElement {
     this.updateAmountOut(eb);
   }
 
-  notificationMessage(t: TradeState, status: string): string {
-    const isSell: boolean = t.type == TradeType.Sell;
-    const amountIn = t.amountIn;
-    const assetIn = t.assetIn.symbol;
-    const amountOut = t.amountOut;
-    const assetOut = t.assetOut.symbol;
-    return [
-      t.type,
-      humanizeAmount(isSell ? amountIn : amountOut),
-      isSell ? assetIn : assetOut,
-      'for',
-      humanizeAmount(isSell ? amountOut : amountIn),
-      isSell ? assetOut : assetIn,
-      status,
-    ].join(' ');
-  }
-
-  notificationTemplate(trade: TradeState, status: string): TemplateResult {
+  notificationTemplate(trade: TradeState, status: string): TxNotificationMssg {
     const isSell: boolean = trade.type == TradeType.Sell;
     const amountIn = trade.amountIn;
     const assetIn = trade.assetIn.symbol;
     const amountOut = trade.amountOut;
     const assetOut = trade.assetOut.symbol;
-    return html`
-      ${when(
-        status,
-        () => html` <span>${trade.type}</span> `,
-        () => html` <span>You ${isSell ? 'sold' : 'bought'}</span> `
-      )}
+    const template = html`
+      <span>${status ? trade.type : isSell ? 'You sold' : 'You bought'}</span>
       <span class="highlight">${humanizeAmount(isSell ? amountIn : amountOut)}</span>
       <span class="highlight">${isSell ? assetIn : assetOut}</span>
-      <span>for</span>
+      <span>${'for'}</span>
       <span class="highlight">${humanizeAmount(isSell ? amountOut : amountIn)}</span>
       <span class="highlight">${isSell ? assetOut : assetIn}</span>
       <span>${status}</span>
     `;
+    return {
+      message: template,
+      rawHtml: getRenderString(template),
+    } as TxNotificationMssg;
   }
 
   processTx(account: Account, transaction: Transaction, trade: TradeState) {
