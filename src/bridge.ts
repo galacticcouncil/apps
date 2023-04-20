@@ -1,4 +1,4 @@
-import { ApiProvider, Bridge, ChainName } from '@galacticcouncil/bridge';
+import { ApiProvider, Bridge, ChainId } from '@galacticcouncil/bridge';
 import { BaseCrossChainAdapter } from '@galacticcouncil/bridge/base-chain-adapter';
 import { KusamaAdapter, PolkadotAdapter, RococoAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
 import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/acala';
@@ -39,7 +39,7 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   polkadot: new PolkadotAdapter(),
   kusama: new KusamaAdapter(),
   rococo: new RococoAdapter(),
-  acala: new AcalaAdapter(CHAINS['acala']),
+  acala: new AcalaAdapter("wss://acala.polkawallet.io"),
   karura: new KaruraAdapter(),
   hydradx: new HydradxAdapter(),
   basilisk: new BasiliskAdapter(),
@@ -68,8 +68,8 @@ export async function initAdapterConnection(adapter: BaseCrossChainAdapter, test
 
   const provider = xChainCursor.deref().apiProvider;
   const chain = adapter.chain.id;
-  const notConnectedChain = [chain] as ChainName[];
+  const notConnectedChain = [chain] as ChainId[];
   const connectedChain = provider.connectFromChain(notConnectedChain, testnet ? CHAINS_TESTNET : CHAINS);
   await firstValueFrom(connectedChain);
-  await adapter.setApi(provider.getApi(chain));
+  await adapter.init(provider.getApi(chain));
 }

@@ -16,7 +16,7 @@ import { Subscription, combineLatest } from 'rxjs';
 
 import '@galacticcouncil/ui';
 import { bnum, Transaction } from '@galacticcouncil/sdk';
-import { BalanceData, Chain, ChainName, CrossChainInputConfigs } from '@galacticcouncil/bridge';
+import { BalanceData, Chain, ChainId, InputConfig } from '@galacticcouncil/bridge';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './transfer-tokens';
@@ -30,7 +30,7 @@ import { TxInfo, TxNotificationMssg } from '../transaction/types';
 export class XcmApp extends LitElement {
   private xChain = new DatabaseController<XChain>(this, xChainCursor);
 
-  private input: CrossChainInputConfigs = null;
+  private input: InputConfig = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
@@ -254,7 +254,7 @@ export class XcmApp extends LitElement {
     }
 
     const bridge = xChainCursor.deref().bridge;
-    const srcChain = this.transfer.srcChain as ChainName;
+    const srcChain = this.transfer.srcChain as ChainId;
     const adapter = bridge.findAdapter(srcChain);
     const asset = adapter.getToken(this.transfer.asset, srcChain);
     const amountFN = toFN(this.transfer.amount, asset.decimals);
@@ -312,8 +312,8 @@ export class XcmApp extends LitElement {
     const bridge = xChainCursor.deref().bridge;
     const account = accountCursor.deref();
     if (account && bridge) {
-      const srcChain = this.transfer.srcChain as ChainName;
-      const dstChain = this.transfer.dstChain as ChainName;
+      const srcChain = this.transfer.srcChain as ChainId;
+      const dstChain = this.transfer.dstChain as ChainId;
       const adapter = bridge.findAdapter(srcChain);
       const asset = adapter.getToken(this.transfer.asset, srcChain);
       const tx: any = adapter.createTx({
@@ -337,8 +337,8 @@ export class XcmApp extends LitElement {
 
   private syncChains() {
     const bridge = xChainCursor.deref().bridge;
-    const srcChain = this.transfer.srcChain as ChainName;
-    const dstChain = this.transfer.dstChain as ChainName;
+    const srcChain = this.transfer.srcChain as ChainId;
+    const dstChain = this.transfer.dstChain as ChainId;
 
     const destChainsConfig = bridge.router.getDestinationChains({ from: srcChain });
     const destChains = destChainsConfig.filter((chain: Chain) => this.chain.list.includes(chain.id));
@@ -349,7 +349,7 @@ export class XcmApp extends LitElement {
 
     const availableTokens = bridge.router.getAvailableTokens({
       from: srcChain,
-      to: validDstChain as ChainName,
+      to: validDstChain as ChainId,
     });
 
     this.chain = {
@@ -384,7 +384,7 @@ export class XcmApp extends LitElement {
       return;
     }
 
-    const srcChain = this.transfer.srcChain as ChainName;
+    const srcChain = this.transfer.srcChain as ChainId;
     const asset = this.transfer.asset;
     const adapter = bridge.findAdapter(srcChain);
     await initAdapterConnection(adapter, this.testnet);
@@ -415,21 +415,21 @@ export class XcmApp extends LitElement {
       return;
     }
 
-    const srcChain = this.transfer.srcChain as ChainName;
-    const dstChain = this.transfer.dstChain as ChainName;
+    const srcChain = this.transfer.srcChain as ChainId;
+    const dstChain = this.transfer.dstChain as ChainId;
     const adapter = bridge.findAdapter(srcChain);
     await initAdapterConnection(adapter, this.testnet);
     const nativeAsset = adapter.getApi().registry.chainTokens[0];
     const nativeAssetDecimals = adapter.getApi().registry.chainDecimals[0];
 
-    const inputConfigO = adapter.subscribeInputConfigs({
+    const inputConfigO = adapter.subscribeInputConfig({
       to: dstChain,
       token: this.transfer.asset,
       address: account.address,
       signer: account.address,
     });
 
-    this.disconnectSubscribeInput = inputConfigO.subscribe((config: CrossChainInputConfigs) => {
+    this.disconnectSubscribeInput = inputConfigO.subscribe((config: InputConfig) => {
       this.input = config;
       const srcChainFeeBN = bnum(config.estimateFee);
       const srcChainFeeFormatted = formatAmount(srcChainFeeBN, nativeAssetDecimals);
