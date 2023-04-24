@@ -367,13 +367,14 @@ export class TradeApp extends LitElement {
 
     const router = chainCursor.deref().router;
 
-    let price: Amount;
+    const price: Amount = await router.getBestSpotPrice(assetIn.id, assetOut.id);
+    let spotPrice: string;
     if (this.trade.type == TradeType.Buy) {
-      price = await router.getBestSpotPrice(assetOut.id, assetIn.id);
+      spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
     } else {
-      price = await router.getBestSpotPrice(assetIn.id, assetOut.id);
+      spotPrice = formatAmount(price.amount, price.decimals);
     }
-    const spotPrice = formatAmount(price.amount, price.decimals);
+
     this.trade = {
       ...this.trade,
       inProgress: false,
