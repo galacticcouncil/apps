@@ -23,6 +23,24 @@
       "tag": true
     }
   },
+  "overrides": {
+    "@polkadot/api": "^9.14.2",
+    "@polkadot/api-augment": "9.14.2",
+    "@polkadot/api-base": "9.14.2",
+    "@polkadot/api-derive": "9.14.2",
+    "@polkadot/keyring": "^10.4.2",
+    "@polkadot/rpc-augment": "9.14.2",
+    "@polkadot/rpc-core": "9.14.2",
+    "@polkadot/rpc-provider": "9.14.2",
+    "@polkadot/types": "9.14.2",
+    "@polkadot/typegen": "9.14.2",
+    "@polkadot/types-augment": "9.14.2",
+    "@polkadot/types-codec": "9.14.2",
+    "@polkadot/types-create": "9.14.2",
+    "@polkadot/types-known": "9.14.2",
+    "@polkadot/util": "^10.4.2",
+    "@polkadot/util-crypto": "^10.4.2"
+  },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",
     "esbuild": "^0.17.11",
