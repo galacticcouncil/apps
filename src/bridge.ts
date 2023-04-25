@@ -41,7 +41,7 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   polkadot: new PolkadotAdapter(),
   kusama: new KusamaAdapter(),
   rococo: new RococoAdapter(),
-  acala: new AcalaAdapter("wss://acala.polkawallet.io"),
+  acala: new AcalaAdapter('wss://acala.polkawallet.io'),
   karura: new KaruraAdapter(),
   hydradx: new HydradxAdapter(),
   basilisk: new BasiliskAdapter(),
