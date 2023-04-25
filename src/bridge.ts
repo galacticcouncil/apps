@@ -8,6 +8,7 @@ import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
 import { RobonomicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
 import { InterlayAdapter } from '@galacticcouncil/bridge/adapters/interlay';
 import { ZeitgeistAdapter } from '@galacticcouncil/bridge/adapters/zeitgeist';
+import { AstarAdapter } from '@galacticcouncil/bridge/adapters/astar';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -24,6 +25,7 @@ const CHAINS: Record<string, string[]> = {
   robonomics: ['wss://robonomics.api.onfinality.io/public-ws'],
   interlay: ['wss://interlay.api.onfinality.io/public-ws'],
   zeitgeist: ['wss://zeitgeist.api.onfinality.io/public-ws'],
+  astar: ['wss://rpc.astar.network'],
   hydradx: ['wss://rpc.hydradx.cloud'],
   basilisk: ['wss://rpc.basilisk.cloud'],
 };
@@ -49,6 +51,7 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   tinkernet: new TinkernetAdapter(),
   robonomics: new RobonomicsAdapter(),
   zeitgeist: new ZeitgeistAdapter(),
+  astar: new AstarAdapter(),
 };
 
 export async function initBridge(chains: string[]) {
