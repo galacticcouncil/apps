@@ -19,7 +19,7 @@ const routes = [
         component: 'gc-trade-screen',
       },
       {
-        path: '/xcm',
+        path: '/cross-chain',
         component: 'gc-xcm-screen',
       },
     ],
