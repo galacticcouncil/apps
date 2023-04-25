@@ -1,5 +1,5 @@
 import { humanizeAmount } from '../../utils/amount';
-import { IChartApi, ISeriesApi, UTCTimestamp } from 'lightweight-charts';
+import { IChartApi, ISeriesApi, LineData, UTCTimestamp } from 'lightweight-charts';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -29,7 +29,7 @@ export function subscribeCrosshair(
       actual.style.display = 'flex';
     } else {
       const asset = actual.getElementsByClassName('asset');
-      const price = param.seriesPrices.get(series);
+      const price = param.seriesData.get(series) as LineData;
       if (asset.length == 0 || !price) {
         selected.style.display = 'none';
         floating.style.display = 'none';
@@ -41,9 +41,9 @@ export function subscribeCrosshair(
       floating.style.display = 'flex';
       actual.style.display = 'none';
 
-      const usdPrice = onPriceSelection(price.toString());
+      const usdPrice = onPriceSelection(price.value.toString());
       const assetText = asset[0].textContent;
-      const priceHtml = `<div class="price">` + humanizeAmount(price.toString()) + ` ${assetText}</div>`;
+      const priceHtml = `<div class="price">` + humanizeAmount(price.value.toString()) + ` ${assetText}</div>`;
       const usdHtml = `<div class="usd"><span>` + `≈$${usdPrice}` + `</span></div>`;
       selected.innerHTML = usdPrice ? priceHtml + usdHtml : priceHtml;
 

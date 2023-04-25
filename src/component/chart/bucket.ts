@@ -71,7 +71,7 @@ export class Bucket {
   }
 
   public withRange(from: number): this {
-    const newDataset = this.data.filter((point: SingleValueData) => point.time > from);
+    const newDataset = this.data.filter((point: SingleValueData) => (point.time as number) > from);
     this._data = newDataset;
     this._from = from;
     return this;
@@ -104,7 +104,8 @@ export class Bucket {
   }
 
   public fixWhitespace(): (SingleValueData | WhitespaceData)[] {
-    if (this._first.time < this._from) {
+    const firstAsNum = this._first.time as number;
+    if (firstAsNum < this._from) {
       return this._data;
     }
 

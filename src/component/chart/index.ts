@@ -31,7 +31,7 @@ import { AssetDetail } from '../../api/asset';
 const CHART_HEIGHT = 345;
 const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
-const MIN_DATAPOINTS = 5;
+const MIN_DATAPOINTS = 6;
 
 @customElement('gc-trade-chart')
 export class TradeChart extends LitElement {
@@ -397,19 +397,19 @@ export class TradeChart extends LitElement {
   private syncChart(data: TradeData) {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
-    const priceBucket = new Bucket(data.price).withRange(rangeFrom);
-    //const volumeBucket = new Bucket(data.volume).withRange(rangeFrom);
+    const dataWithLatest = data.price.concat(lastPrice);
+    const priceBucket = new Bucket(dataWithLatest).withRange(rangeFrom);
+    // const volumeBucket = new Bucket(data.volume).withRange(rangeFrom);
 
     if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
-      //const priceBucketData = priceBucket.withGaps(true).fixWhitespace();
-      //const volumeBucketData = volumeBucket.withGaps().data;
-      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 0.5 });
+      // const priceBucketData = priceBucket.withGaps(true).fixWhitespace();
+      // const volumeBucketData = volumeBucket.withGaps().data;
       this.chartPriceSeries.setData(priceBucket.data);
-      this.chartPriceSeries.update(lastPrice);
-      //this.chartVolumeSeries.setData(volumeBucketData);
+      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
+      // this.chartVolumeSeries.setData(volumeBucketData);
     }
 
     const max = priceBucket.max();
@@ -464,7 +464,7 @@ export class TradeChart extends LitElement {
   private getLastPrice(): SingleValueData {
     return {
       time: dayjs().unix() as UTCTimestamp,
-      value: this.spotPrice,
+      value: Number(this.spotPrice),
     } as SingleValueData;
   }
 
@@ -506,6 +506,9 @@ export class TradeChart extends LitElement {
         type: 'volume',
       },
       priceScaleId: '',
+    });
+
+    this.chartVolumeSeries.priceScale().applyOptions({
       scaleMargins: {
         top: 0.8,
         bottom: 0,
