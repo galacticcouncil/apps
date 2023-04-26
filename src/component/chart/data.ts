@@ -368,7 +368,7 @@ function buildVolumeQuery(assetIn: string, assetOut: string, endOfDay: string) {
    ORDER BY 1`;
 }
 
-export function formatData(ts: number[], value: number[]) {
+export function formatData([ts, value]) {
   return ts.map((obj: number, index: number) => {
     return {
       time: Math.floor(obj / 1000) as UTCTimestamp,
@@ -399,7 +399,7 @@ export function query(
           format: 'table',
           datasourceId: datasourceId,
         },
-        /*  {
+        /* {
           refId: 'volume',
           rawSql: buildVolumeQuery(assetIn, assetOut, endOfDay),
           format: 'table',
@@ -411,9 +411,9 @@ export function query(
     .then((response) => response.json())
     .then((data) => {
       const rawPrice = data.results.price.frames[0].data.values;
-      const formattedPrice = formatData(rawPrice[0], rawPrice[1]);
-      // const rawVolume = data.results.volume.frames[0].data.values;
-      // const formattedVolume = formatData(rawVolume[0], rawVolume[1]);
+      const formattedPrice = formatData(rawPrice);
+      // const rawVolume = data.results.volume?.frames[0].data.values;
+      // const formattedVolume = formatData(rawVolume);
       onSuccess({ price: formattedPrice, volume: null });
     })
     .catch(function (res) {

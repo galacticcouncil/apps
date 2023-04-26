@@ -12,7 +12,7 @@ import { Chain, chainCursor, TradeData, tradeDataCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
-import { Bucket } from './bucket';
+import { Bucket, DAY_MS, HOUR_MS } from './bucket';
 import { DEFAULT_DATASET, INIT_DATE, query } from './data';
 import { subscribeCrosshair } from './plugins';
 import { calculateWidth } from './utils';
@@ -397,19 +397,20 @@ export class TradeChart extends LitElement {
   private syncChart(data: TradeData) {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
-    const dataWithLatest = data.price.concat(lastPrice);
-    const priceBucket = new Bucket(dataWithLatest).withRange(rangeFrom);
-    // const volumeBucket = new Bucket(data.volume).withRange(rangeFrom);
+    const priceBucket = new Bucket(data.price).withRange(rangeFrom);
+    // const priceBucket = new Bucket(data.price).withRange(rangeFrom).aggregate(HOUR_MS, Bucket.maxAggregator, true);
+    // const volumeBucket = new Bucket(data.volume).withRange(rangeFrom).aggregate(HOUR_MS, Bucket.sumAggregator, false);
+
+    priceBucket.push(lastPrice);
+    // volumeBucket.push({ time: lastPrice.time, value: 0 }); // pair with last price (Unknown volume)
 
     if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
-      // const priceBucketData = priceBucket.withGaps(true).fixWhitespace();
-      // const volumeBucketData = volumeBucket.withGaps().data;
       this.chartPriceSeries.setData(priceBucket.data);
+      //this.chartVolumeSeries.setData(volumeBucket.data);
       this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
-      // this.chartVolumeSeries.setData(volumeBucketData);
     }
 
     const max = priceBucket.max();
@@ -456,6 +457,8 @@ export class TradeChart extends LitElement {
         return dayjs().subtract(1, 'day').unix() as UTCTimestamp;
       case Range['1w']:
         return dayjs().subtract(1, 'week').unix() as UTCTimestamp;
+      case Range['1m']:
+        return dayjs().subtract(1, 'month').unix() as UTCTimestamp;
       default:
         return dayjs(INIT_DATE).unix() as UTCTimestamp;
     }
@@ -482,6 +485,7 @@ export class TradeChart extends LitElement {
     });
 
     this.chartPriceSeries = this.chart.addBaselineSeries({
+      // [Bezier] lineType: 2,
       lineWidth: 2,
       topLineColor: '#85D1FF',
       topFillColor1: 'rgba(79, 223, 255, 0.31)',
