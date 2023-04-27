@@ -409,7 +409,7 @@ export class TradeChart extends LitElement {
       return;
     } else {
       this.chartPriceSeries.setData(priceBucket.data);
-      //this.chartVolumeSeries.setData(volumeBucket.data);
+      // this.chartVolumeSeries.setData(volumeBucket.data);
       this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
     }
 

@@ -1,4 +1,4 @@
-import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
+import { SingleValueData, UTCTimestamp, WhitespaceData } from 'lightweight-charts';
 
 export const MINUTE_MS = 1 * 60;
 export const HOUR_MS = MINUTE_MS * 60;
@@ -6,6 +6,8 @@ export const DAY_MS = HOUR_MS * 24;
 
 export class Bucket {
   private _data: SingleValueData[];
+  private _first: SingleValueData;
+  private _from: number;
 
   /**
    * Create a new @see Bucket representing time series data.
@@ -14,6 +16,8 @@ export class Bucket {
   public constructor(data: SingleValueData[]) {
     if (data && data.length > 0) {
       this._data = data;
+      this._first = this.first();
+      this._from = this.first().time as number;
     } else {
       this._data = [];
     }
@@ -21,6 +25,29 @@ export class Bucket {
 
   public get data(): SingleValueData[] {
     return this._data;
+  }
+
+  /**
+   * Generate empty whitespace buckets if no data exist for given period
+   * to assure that chart is not spread across entire canvas but keep the
+   * given range.
+   *
+   * @returns chart data with whitespaces if period unknown
+   */
+  public get dataWithWhitespace(): (SingleValueData | WhitespaceData)[] {
+    const firstAsNum = this._first.time as number;
+    if (firstAsNum < this._from) {
+      return this._data;
+    }
+
+    const whiteSpace: (SingleValueData | WhitespaceData)[] = [];
+
+    let curr: number = this.first().time as number;
+    while (this._from + HOUR_MS < curr) {
+      whiteSpace.unshift({ time: (curr - HOUR_MS) as UTCTimestamp });
+      curr = whiteSpace[0].time as number;
+    }
+    return whiteSpace.concat(this._data);
   }
 
   public get length(): number {
@@ -71,12 +98,27 @@ export class Bucket {
     return Math.min(...this.values());
   }
 
+  /**
+   * Filter range of given buckets
+   *
+   * @param from - milestone from which we want to display the data
+   * @returns filtered chart data
+   */
   public withRange(from: number): this {
     const newDataset = this.data.filter((point: SingleValueData) => (point.time as number) > from);
     this._data = newDataset;
+    this._from = from;
     return this;
   }
 
+  /**
+   * Aggregate raw chart data to buckets based on given granularity.
+   *
+   * @param granularity - granularity in ms
+   * @param aggregator - bucket aggregator fn
+   * @param fillLastKnown - if true fill the bucket with last known value if empty, otherwise use zero
+   * @returns chart data aggregated in custom buckets
+   */
   public aggregate(
     granularity: number = HOUR_MS,
     aggregator: (bucketData: SingleValueData[], bucket: number) => SingleValueData = Bucket.maxAggregator,
