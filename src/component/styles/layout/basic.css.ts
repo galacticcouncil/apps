@@ -3,7 +3,6 @@ import { css } from 'lit';
 export const basicLayoutStyles = css`
   :host {
     display: block;
-    max-width: 570px;
     height: 100%;
     margin-left: auto;
     margin-right: auto;

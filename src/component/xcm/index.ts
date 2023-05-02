@@ -1,13 +1,17 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
+import { AccountElement } from '../base/AccountElement';
 import { baseStyles } from '../styles/base.css';
+import { headerStyles } from '../styles/header.css';
+import { basicLayoutStyles } from '../styles/layout/basic.css';
+
 import { initAdapterConnection, initBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
-import { Account, accountCursor, XChain, xChainCursor } from '../../db';
+import { Account, XChain, xChainCursor } from '../../db';
 import { formatAmount, humanizeAmount, toFN } from '../../utils/amount';
 import { convertAddressSS58 } from '../../utils/account';
 import { getRenderString } from '../../utils/dom';
@@ -27,7 +31,7 @@ import { TransferScreen, ChainState, TransferState, DEFAULT_CHAIN_STATE, DEFAULT
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-xcm-app')
-export class XcmApp extends LitElement {
+export class XcmApp extends AccountElement {
   private xChain = new DatabaseController<XChain>(this, xChainCursor);
 
   private input: InputConfig = null;
@@ -35,10 +39,10 @@ export class XcmApp extends LitElement {
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
       if (TransferScreen.Transfer == this.screen) {
-        const transferScreen = this.shadowRoot.getElementById('transfer-screen');
-        const tabs = this.shadowRoot.querySelectorAll('.tab:not(#transfer-screen)');
+        const defaultScreen = this.shadowRoot.getElementById('default-screen');
+        const tabs = this.shadowRoot.querySelectorAll('.tab:not(#default-screen)');
         tabs.forEach((tab: Element) => {
-          tab.setAttribute('style', `height: ${transferScreen.offsetHeight}px`);
+          tab.setAttribute('style', `height: ${defaultScreen.offsetHeight}px`);
         });
       }
     });
@@ -54,96 +58,14 @@ export class XcmApp extends LitElement {
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) dstChain: string = null;
   @property({ type: String }) chains: string = null;
-  @property({ type: String }) accountAddress: string = null;
-  @property({ type: String }) accountProvider: string = null;
-  @property({ type: String }) accountName: string = null;
 
   static styles = [
     baseStyles,
+    headerStyles,
+    basicLayoutStyles,
     css`
       :host {
-        display: block;
         max-width: 570px;
-        height: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        position: relative;
-      }
-
-      .xcm-root {
-        display: grid;
-        grid-template-areas: 'main';
-      }
-
-      uigc-paper {
-        display: none;
-        grid-area: main;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .tab.active {
-        display: block;
-      }
-
-      .header {
-        position: relative;
-        display: flex;
-        padding: 0 14px;
-        box-sizing: border-box;
-        align-items: center;
-        min-height: 84px;
-      }
-
-      .header.section {
-        justify-content: center;
-      }
-
-      .header uigc-typography[variant='title'] {
-        margin-top: 5px;
-      }
-
-      .header .back {
-        position: absolute;
-        left: 20px;
-      }
-
-      @media (max-width: 480px) {
-        .xcm-root {
-          grid-auto-columns: 1fr;
-          height: 100%;
-        }
-
-        .header {
-          min-height: 64px;
-        }
-
-        uigc-paper {
-          box-shadow: none;
-          overflow-y: auto;
-          height: 100% !important;
-        }
-
-        uigc-paper:not(#transfer-screen) {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100vh !important;
-          z-index: 10;
-        }
-      }
-
-      @media (min-width: 480px) {
-        uigc-paper {
-          border-radius: var(--uigc-app-border-radius);
-        }
-      }
-
-      @media (min-width: 768px) {
-        .header {
-          padding: 22px 28px;
-        }
       }
     `,
   ];
@@ -253,7 +175,7 @@ export class XcmApp extends LitElement {
       return;
     }
 
-    const bridge = xChainCursor.deref().bridge;
+    const bridge = this.xChain.state.bridge;
     const srcChain = this.transfer.srcChain as ChainId;
     const adapter = bridge.findAdapter(srcChain);
     const asset = adapter.getToken(this.transfer.asset, srcChain);
@@ -309,8 +231,8 @@ export class XcmApp extends LitElement {
   }
 
   async swap() {
-    const bridge = xChainCursor.deref().bridge;
-    const account = accountCursor.deref();
+    const bridge = this.xChain.state.bridge;
+    const account = this.account.state;
     if (account && bridge) {
       const srcChain = this.transfer.srcChain as ChainId;
       const dstChain = this.transfer.dstChain as ChainId;
@@ -336,7 +258,7 @@ export class XcmApp extends LitElement {
   }
 
   private syncChains() {
-    const bridge = xChainCursor.deref().bridge;
+    const bridge = this.xChain.state.bridge;
     const srcChain = this.transfer.srcChain as ChainId;
     const dstChain = this.transfer.dstChain as ChainId;
 
@@ -377,8 +299,8 @@ export class XcmApp extends LitElement {
   }
 
   private async syncBalances() {
-    const bridge = xChainCursor.deref().bridge;
-    const account = accountCursor.deref();
+    const bridge = this.xChain.state.bridge;
+    const account = this.account.state;
 
     if (!account) {
       return;
@@ -408,8 +330,8 @@ export class XcmApp extends LitElement {
   }
 
   private async syncInput() {
-    const bridge = xChainCursor.deref().bridge;
-    const account = accountCursor.deref();
+    const bridge = this.xChain.state.bridge;
+    const account = this.account.state;
 
     if (!account) {
       return;
@@ -453,35 +375,14 @@ export class XcmApp extends LitElement {
   }
 
   override async firstUpdated() {
-    const xChain = xChainCursor.deref();
+    const xChain = this.xChain.state;
     if (!xChain) {
       this.chain.list = this.chains ? this.chains.split(',') : [];
       initBridge(this.chain.list);
     }
   }
 
-  private updateAccount() {
-    if (this.accountAddress && this.accountProvider) {
-      accountCursor.reset({
-        address: this.accountAddress,
-        provider: this.accountProvider,
-        name: this.accountName,
-      } as Account);
-      this.updateAddress(this.accountAddress);
-    } else {
-      accountCursor.reset(null);
-    }
-  }
-
   override async update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
-      this.updateAccount();
-      this.resetBalances();
-      if (this.ready) {
-        await this.syncBalances();
-        await this.syncInput();
-      }
-    }
     if (changedProperties.has('srcChain') || changedProperties.has('dstChain')) {
       this.transfer = {
         ...this.transfer,
@@ -498,6 +399,16 @@ export class XcmApp extends LitElement {
       this.ready = true;
       await this.init();
       console.log('Done ✅');
+    }
+  }
+
+  protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
+    this.resetBalances();
+    curr && this.updateAddress(curr.address);
+
+    if (this.ready) {
+      await this.syncBalances();
+      await this.syncInput();
     }
   }
 
@@ -580,7 +491,7 @@ export class XcmApp extends LitElement {
       tab: true,
       active: this.screen == TransferScreen.Transfer,
     };
-    return html` <uigc-paper class=${classMap(classes)} id="transfer-screen">
+    return html` <uigc-paper class=${classMap(classes)} id="default-screen">
       <gc-xcm-app-main
         .disabled=${this.isTransferEmpty() || this.hasError()}
         .srcChain=${this.transfer.srcChain}
@@ -621,7 +532,7 @@ export class XcmApp extends LitElement {
 
   render() {
     return html`
-      <div class="xcm-root">
+      <div class="layout-root">
         ${this.transferTokensTemplate()} ${this.selectChainTemplate()} ${this.selectTokenTemplate()}
       </div>
     `;
