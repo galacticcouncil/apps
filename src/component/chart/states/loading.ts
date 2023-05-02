@@ -1,7 +1,7 @@
 import { html, css, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { baseStyles } from '../../base.css';
+import { baseStyles } from '../../styles/base.css';
 
 @customElement('gc-chart-loading')
 export class ChartLoading extends LitElement {

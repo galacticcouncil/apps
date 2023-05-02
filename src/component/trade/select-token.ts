@@ -6,7 +6,7 @@ import { map } from 'lit/directives/map.js';
 
 import * as i18n from 'i18next';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 import { AssetSelector } from './types';
 import { AssetDetail } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';

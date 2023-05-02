@@ -1,7 +1,7 @@
 import { html, css, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { baseStyles } from '../../base.css';
+import { baseStyles } from '../../styles/base.css';
 
 @customElement('uigc-range-button')
 export class RangeButton extends LitElement {

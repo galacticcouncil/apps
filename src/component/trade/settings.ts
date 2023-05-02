@@ -3,7 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 import { settingsCursor, DEFAULT_SLIPPAGE } from '../../db';
 import { debounce } from 'ts-debounce';
 import IMask from 'imask';

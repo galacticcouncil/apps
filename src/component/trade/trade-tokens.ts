@@ -6,7 +6,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 import { humanizeAmount } from '../../utils/amount';
 import { Account, accountCursor } from '../../db';
 

@@ -4,7 +4,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 import { initAdapterConnection, initBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
 import { Account, accountCursor, XChain, xChainCursor } from '../../db';

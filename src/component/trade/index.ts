@@ -5,7 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 import { createApi } from '../../chain';
 import { DatabaseController } from '../../db.ctrl';
 import { Chain, chainCursor, Account, accountCursor } from '../../db';
@@ -40,8 +40,8 @@ import '../chart';
 import {
   TradeScreen,
   AssetsState,
-  TradeState,
   DEFAULT_ASSETS_STATE,
+  TradeState,
   DEFAULT_TRADE_STATE,
   TransactionFee,
 } from './types';

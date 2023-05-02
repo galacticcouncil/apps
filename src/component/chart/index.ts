@@ -7,7 +7,7 @@ import utc from 'dayjs/plugin/utc';
 
 import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 import { Chain, chainCursor, TradeData, tradeDataCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';

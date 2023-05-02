@@ -4,7 +4,7 @@ import { HumanizeDurationLanguage, HumanizeDuration } from 'humanize-duration-ts
 
 import * as i18n from 'i18next';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 
 import '@galacticcouncil/ui';
 

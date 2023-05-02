@@ -8,7 +8,7 @@ import * as i18n from 'i18next';
 
 import { humanizeAmount } from '../../utils/amount';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 
 @customElement('gc-xcm-app-token')
 export class SelectToken extends LitElement {

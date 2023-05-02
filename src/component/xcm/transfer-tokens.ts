@@ -8,7 +8,7 @@ import * as i18n from 'i18next';
 import { Account, accountCursor, xChainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
-import { baseStyles } from '../base.css';
+import { baseStyles } from '../styles/base.css';
 import { capitalize } from '../../utils/text';
 import { isSameAddress, isValidAddress } from '../../utils/account';
 
