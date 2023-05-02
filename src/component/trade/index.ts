@@ -1,18 +1,19 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
+import { PoolElement } from '../base/PoolElement';
 import { baseStyles } from '../styles/base.css';
-import { createApi } from '../../chain';
-import { DatabaseController } from '../../db.ctrl';
-import { Chain, chainCursor, Account, accountCursor } from '../../db';
+import { headerStyles } from '../styles/header.css';
+import { tradeLayoutStyles } from '../styles/layout/trade.css';
+
+import { Account } from '../../db';
 import { calculateEffectiveBalance } from '../../api/balance';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getBestSell, getBestBuy, TradeInfo } from '../../api/trade';
-import { getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 import { updateQueryParams } from '../../utils/url';
@@ -24,7 +25,6 @@ import {
   bnum,
   ONE,
   PoolAsset,
-  PoolType,
   scale,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
@@ -37,179 +37,32 @@ import './settings';
 import './trade-tokens';
 import '../chart';
 
-import {
-  TradeScreen,
-  AssetsState,
-  DEFAULT_ASSETS_STATE,
-  TradeState,
-  DEFAULT_TRADE_STATE,
-  TransactionFee,
-} from './types';
+import { AssetSelector, TradeScreen, TradeState, DEFAULT_TRADE_STATE, TransactionFee } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-trade-app')
-export class TradeApp extends LitElement {
-  private chain = new DatabaseController<Chain>(this, chainCursor);
-
+export class TradeApp extends PoolElement {
   private tx: Transaction = null;
-  private ready: boolean = false;
-  private disconnectSubscribeNewHeads: () => void = null;
 
   @state() screen: TradeScreen = TradeScreen.TradeTokens;
-  @state() assets: AssetsState = { ...DEFAULT_ASSETS_STATE };
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
+  @state() asset = {
+    active: null as string,
+    selector: null as AssetSelector,
+  };
 
-  @property({ type: String }) apiAddress: string = null;
-  @property({ type: String }) accountAddress: string = null;
-  @property({ type: String }) accountProvider: string = null;
-  @property({ type: String }) accountName: string = null;
-  @property({ type: String }) pools: string = null;
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
-  @property({ type: String }) stableCoinAssetId: string = null;
-  @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Number }) chartDatasourceId: number = null;
+  @property({ type: Boolean }) chart: Boolean = false;
 
   static styles = [
     baseStyles,
+    headerStyles,
+    tradeLayoutStyles,
     css`
       :host {
-        display: block;
         max-width: 480px;
-        height: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        position: relative;
-      }
-
-      .trade-root {
-        display: grid;
-        grid-template-areas: 'main';
-      }
-
-      uigc-paper.main {
-        display: none;
-        grid-area: main;
-        position: relative;
-        overflow: hidden;
-      }
-
-      uigc-paper.chart {
-        display: none;
-        grid-area: main;
-        position: relative;
-      }
-
-      uigc-icon-button.chart-btn {
-        display: none;
-      }
-
-      :host([chart]) uigc-icon-button.chart-btn {
-        display: block;
-        margin-right: 12px;
-      }
-
-      .tab.active {
-        display: block;
-      }
-
-      .tab:not(#trade-screen) {
-        height: 616px;
-      }
-
-      .header {
-        position: relative;
-        display: flex;
-        padding: 0 14px;
-        box-sizing: border-box;
-        align-items: center;
-        min-height: 84px;
-      }
-
-      .header.section {
-        justify-content: center;
-      }
-
-      .header uigc-typography[variant='title'] {
-        margin-top: 5px;
-      }
-
-      .header .back {
-        position: absolute;
-        left: 20px;
-      }
-
-      @media (max-width: 480px) {
-        .trade-root {
-          grid-auto-columns: 1fr;
-          height: 100%;
-        }
-
-        .header {
-          min-height: 64px;
-        }
-
-        uigc-paper {
-          box-shadow: none;
-        }
-
-        uigc-paper.main {
-          overflow-y: auto;
-        }
-
-        uigc-paper:not(#trade-screen) {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100vh !important;
-          z-index: 10;
-          overflow: auto;
-        }
-      }
-
-      @media (min-width: 480px) {
-        uigc-paper {
-          border-radius: var(--uigc-app-border-radius);
-        }
-      }
-
-      @media (min-width: 768px) {
-        .header {
-          padding: 22px 28px;
-        }
-      }
-
-      @media (min-width: 1024px) {
-        :host([chart]) {
-          max-width: 1170px;
-        }
-
-        :host([chart]) > .trade-root {
-          display: grid;
-          padding: 0 20px 0 20px;
-          grid-template-areas:
-            'chart main'
-            'dca main';
-          grid-template-columns: 1fr minmax(414px, 480px);
-          grid-column-gap: 20px;
-        }
-
-        :host([chart]) uigc-paper.chart {
-          display: block;
-          grid-area: chart;
-          background: transparent;
-          box-shadow: none;
-          height: 456px !important;
-        }
-
-        :host([chart]) uigc-paper.chart .header {
-          display: none;
-        }
-
-        :host([chart]) uigc-icon-button.chart-btn {
-          display: none;
-        }
       }
     `,
   ];
@@ -259,14 +112,6 @@ export class TradeApp extends LitElement {
   changeScreen(active: TradeScreen) {
     this.screen = active;
     this.requestUpdate();
-  }
-
-  private calculateDollarPrice(asset: PoolAsset, amount: string) {
-    if (this.stableCoinAssetId == asset.id) {
-      return Number(amount).toFixed(2);
-    }
-    const usdPrice = this.assets.usdPrice.get(asset.id);
-    return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
   private async safeSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string): Promise<TradeInfo> {
@@ -350,9 +195,9 @@ export class TradeApp extends LitElement {
   private recalculateTrade() {
     if (!this.isSwapSelected() || this.isSwapEmpty() || this.isPoolError()) {
       return;
-    } else if (this.trade.assetIn.symbol == this.assets.active) {
+    } else if (this.trade.assetIn.symbol == this.asset.active) {
       this.recalculateBestSell();
-    } else if (this.trade.assetOut.symbol == this.assets.active) {
+    } else if (this.trade.assetOut.symbol == this.asset.active) {
       this.recalculateBestBuy();
     }
   }
@@ -365,8 +210,7 @@ export class TradeApp extends LitElement {
       return;
     }
 
-    const router = chainCursor.deref().router;
-
+    const router = this.chain.state.router;
     const price: Amount = await router.getBestSpotPrice(assetIn.id, assetOut.id);
     let spotPrice: string;
     if (this.trade.type == TradeType.Buy) {
@@ -403,10 +247,10 @@ export class TradeApp extends LitElement {
     } else if (this.isSwapEmpty()) {
       this.switchAssets(this.trade.amountOut, this.trade.amountIn, true);
       this.recalculateSpotPrice();
-    } else if (this.trade.assetOut.symbol == this.assets.active) {
+    } else if (this.trade.assetOut.symbol == this.asset.active) {
       this.switchAssets(this.trade.amountOut, null, true);
       this.recalculateBestSell();
-    } else if (this.trade.assetIn.symbol == this.assets.active) {
+    } else if (this.trade.assetIn.symbol == this.asset.active) {
       this.switchAssets(null, this.trade.amountIn, true);
       this.recalculateBestBuy();
     }
@@ -443,7 +287,7 @@ export class TradeApp extends LitElement {
       return;
     }
 
-    if (previous == this.assets.active) {
+    if (previous == this.asset.active) {
       this.trade = {
         ...this.trade,
         inProgress: true,
@@ -451,7 +295,7 @@ export class TradeApp extends LitElement {
         balanceIn: null,
         amountOut: null,
       };
-      this.assets.active = assetIn.symbol;
+      this.asset.active = assetIn.symbol;
       this.calculateBestSell(assetIn, assetOut, this.trade.amountIn);
     } else {
       this.trade = {
@@ -497,7 +341,7 @@ export class TradeApp extends LitElement {
       return;
     }
 
-    if (previous == this.assets.active) {
+    if (previous == this.asset.active) {
       this.trade = {
         ...this.trade,
         inProgress: true,
@@ -505,7 +349,7 @@ export class TradeApp extends LitElement {
         balanceOut: null,
         amountIn: null,
       };
-      this.assets.active = assetOut.symbol;
+      this.asset.active = assetOut.symbol;
       this.calculateBestBuy(assetIn, assetOut, this.trade.amountOut);
     } else {
       this.trade = {
@@ -522,8 +366,9 @@ export class TradeApp extends LitElement {
   validateEnoughBalance() {
     const assetIn = this.trade.assetIn?.id;
     const ammountIn = this.trade.amountIn;
+    const account = this.account.state;
 
-    if (!assetIn || !ammountIn || !accountCursor.deref()) {
+    if (!assetIn || !ammountIn || !account) {
       return;
     }
 
@@ -628,10 +473,9 @@ export class TradeApp extends LitElement {
   private resetBalances() {
     this.trade.balanceIn = null;
     this.trade.balanceOut = null;
-    this.assets.balance = new Map([]);
   }
 
-  updateBalances() {
+  private updateBalances() {
     const balanceIn = this.assets.balance.get(this.trade.assetIn?.id);
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
     this.trade = {
@@ -642,16 +486,11 @@ export class TradeApp extends LitElement {
   }
 
   async syncBalances() {
-    const account = accountCursor.deref();
+    const account = this.account.state
     if (account) {
-      this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
       this.updateBalances();
       this.validateEnoughBalance();
     }
-  }
-
-  async syncDolarPrice() {
-    this.assets.usdPrice = await getAssetsDollarPrice(this.assets.list, this.stableCoinAssetId);
   }
 
   async calculateTransactionFee(feeSystem: string, feeAssetId: string): Promise<TransactionFee> {
@@ -665,7 +504,7 @@ export class TradeApp extends LitElement {
       return { amount: feeSystemAmount, asset: feeAssetSymbol, ed: ed } as TransactionFee;
     }
 
-    const router = chainCursor.deref().router;
+    const router = this.chain.state.router;
     const feeAssetPrice = await router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAssetId);
     const fee = multipleAmounts(feeSystemAmount, feeAssetPrice);
     const ed = formatAmount(feeAssetEdBN, feeAssetPrice.decimals);
@@ -673,7 +512,7 @@ export class TradeApp extends LitElement {
   }
 
   async syncTransactionFee() {
-    const account = accountCursor.deref();
+    const account = this.account.state
     if (account) {
       const { partialFee } = await getPaymentInfo(this.tx, account);
       const feeAssetId = await getFeePaymentAsset(account);
@@ -684,7 +523,7 @@ export class TradeApp extends LitElement {
   }
 
   async updateMaxAmountIn(asset: PoolAsset) {
-    const account = accountCursor.deref();
+    const account = this.account.state
     const feeAssetId = await getFeePaymentAsset(account);
 
     if (asset.id !== feeAssetId) {
@@ -708,7 +547,7 @@ export class TradeApp extends LitElement {
   }
 
   async updateMaxAmountOut(asset: PoolAsset) {
-    const account = accountCursor.deref();
+    const account = this.account.state
     const feeAssetId = await getFeePaymentAsset(account);
 
     if (asset.id !== feeAssetId) {
@@ -767,7 +606,7 @@ export class TradeApp extends LitElement {
   }
 
   async swap() {
-    const account = accountCursor.deref();
+    const account = this.account.state
     if (account && this.tx) {
       this.processTx(account, this.tx, this.trade);
     }
@@ -781,7 +620,7 @@ export class TradeApp extends LitElement {
     }
   }
 
-  initAssets() {
+  protected onInit(): void {
     if (!this.assetIn && !this.assetOut) {
       this.trade.assetIn = this.assets.map.get(this.stableCoinAssetId);
       this.trade.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
@@ -793,71 +632,21 @@ export class TradeApp extends LitElement {
     this.validatePool();
   }
 
-  async init() {
-    const router = chainCursor.deref().router;
-    const assets = await router.getAllAssets();
-    const assetsPairs = await getAssetsPairs(assets);
-    const assetsDetails = await getAssetsDetail(assets);
-    this.assets = {
-      ...this.assets,
-      list: assets,
-      map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
-      pairs: assetsPairs,
-      details: assetsDetails,
-    };
-    this.initAssets();
+  protected onBlockChange(): void {
+    this.syncBalances();
+    this.recalculateTrade();
   }
 
-  async subscribe() {
-    const api = chainCursor.deref().api;
-    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      console.log('Current block: ' + lastHeader.number.toString());
-      this.syncBalances();
-      this.syncDolarPrice();
-      this.recalculateTrade();
-    });
-  }
-
-  override async firstUpdated() {
-    const pools = this.pools ? this.pools.split(',') : [];
-    const chain = chainCursor.deref();
-    if (!chain) {
-      createApi(this.apiAddress, pools as PoolType[], () => {});
-    }
-  }
-
-  private updateAccount() {
-    if (this.accountAddress && this.accountProvider) {
-      accountCursor.reset({
-        address: this.accountAddress,
-        provider: this.accountProvider,
-        name: this.accountName,
-      } as Account);
-    } else {
-      accountCursor.reset(null);
+  protected override async onAccountChange(prev: Account, curr: Account): Promise<void> {
+    await super.onAccountChange(prev, curr);
+    this.resetBalances();
+    this.syncBalances();
+    if (curr == null) {
       this.resetTrade();
     }
   }
 
-  override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
-      this.updateAccount();
-      this.resetBalances();
-    }
-    super.update(changedProperties);
-  }
-
-  override async updated() {
-    if (this.chain.state && !this.ready) {
-      console.log('Initialization...');
-      this.ready = true;
-      await this.init();
-      await this.subscribe();
-      console.log('Done ✅');
-    }
-  }
-
-  handleResize(_evt: UIEvent) {
+  private onResize(_evt: UIEvent) {
     if (window.innerWidth > 1023 && TradeScreen.TradeChart == this.screen) {
       this.changeScreen(TradeScreen.TradeTokens);
     }
@@ -865,13 +654,13 @@ export class TradeApp extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    window.addEventListener('resize', (evt) => this.handleResize(evt));
+    window.addEventListener('resize', (evt) => this.onResize(evt));
     this.resetTrade(true);
   }
 
   override disconnectedCallback() {
     this.disconnectSubscribeNewHeads?.();
-    window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('resize', this.onResize);
     super.disconnectedCallback();
   }
 
@@ -910,9 +699,9 @@ export class TradeApp extends LitElement {
         .assetIn=${this.trade.assetIn?.symbol}
         .assetOut=${this.trade.assetOut?.symbol}
         .switchAllowed=${this.isSwitchEnabled()}
-        .selector=${this.assets.selector}
+        .selector=${this.asset.selector}
         @asset-clicked=${(e: CustomEvent) => {
-          const { id, asset } = this.assets.selector;
+          const { id, asset } = this.asset.selector;
           id == 'assetIn' && this.changeAssetIn(asset, e.detail);
           id == 'assetOut' && this.changeAssetOut(asset, e.detail);
           this.updateBalances();
@@ -941,7 +730,7 @@ export class TradeApp extends LitElement {
       main: true,
       active: this.screen == TradeScreen.TradeTokens,
     };
-    return html` <uigc-paper class=${classMap(classes)} id="trade-screen">
+    return html` <uigc-paper class=${classMap(classes)} id="default-screen">
       <gc-trade-app-main
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
@@ -966,18 +755,18 @@ export class TradeApp extends LitElement {
         .error=${this.trade.error}
         .swaps=${this.trade.swaps}
         @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
-          this.assets.active = asset;
+          this.asset.active = asset;
           id == 'assetIn' && this.updateAmountIn(value);
           id == 'assetOut' && this.updateAmountOut(value);
           this.validateEnoughBalance();
         }}
         @asset-max-clicked=${({ detail: { id, asset } }: CustomEvent) => {
-          this.assets.active = asset.symbol;
+          this.asset.active = asset.symbol;
           id == 'assetIn' && this.updateMaxAmountIn(asset);
           id == 'assetOut' && this.updateMaxAmountOut(asset);
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {
-          this.assets.selector = detail;
+          this.asset.selector = detail;
           this.changeScreen(TradeScreen.SelectToken);
         }}
         @asset-switch-clicked=${() => {
@@ -1039,7 +828,7 @@ export class TradeApp extends LitElement {
 
   render() {
     return html`
-      <div class="trade-root">
+      <div class="layout-root">
         ${this.tradeChartTemplate()} ${this.tradeTokensTemplate()} ${this.settingsTemplate()}
         ${this.selectTokenTemplate()}
       </div>
