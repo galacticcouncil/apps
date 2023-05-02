@@ -185,14 +185,6 @@ Visit https://galactic-apps.netlify.app/
 
 ### Local development
 
-Live reloading is configured in 2 steps:
-
-- First step is to enable:
-  - <ins>watch mode</ins> (to automatically start a build when you edit and save a file)
-  - <ins>serve mode</ins> (to serve the latest build, but block until it's done)
-- The second step is to add some code to your JavaScript that subscribes to the `/esbuild` server-sent event source.
-  When you get the change event, the page will reload with the latest version of the app.
-
 For details see `esbuild.dev.mjs`
 
 ```sh
@@ -201,6 +193,8 @@ npm run dev # to build & serve the apps
 ```
 
 ### Production build
+
+For details see `esbuild.prod.mjs`
 
 ```sh
 npm install # to install all dependencies
