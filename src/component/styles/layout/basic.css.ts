@@ -37,7 +37,7 @@ export const basicLayoutStyles = css`
       height: 100% !important;
     }
 
-    uigc-paper:not(#default-screen) {
+    uigc-paper:not(#default-tab) {
       position: fixed;
       top: 0;
       left: 0;

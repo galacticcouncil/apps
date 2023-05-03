@@ -58,7 +58,7 @@ export const tradeLayoutStyles = css`
       overflow-y: auto;
     }
 
-    uigc-paper:not(#default-screen) {
+    uigc-paper:not(#default-tab) {
       position: fixed;
       top: 0;
       left: 0;
