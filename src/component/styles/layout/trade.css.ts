@@ -40,7 +40,7 @@ export const tradeLayoutStyles = css`
     display: block;
   }
 
-  .tab:not(#default-screen) {
+  .tab:not(#default-tab) {
     height: 616px;
   }
 

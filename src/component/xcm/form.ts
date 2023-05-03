@@ -278,19 +278,13 @@ export class XcmForm extends LitElement {
       <div class="transfer">
         <uigc-typography variant="subsection">${i18n.t('xcm.selectChains')}</uigc-typography>
         <div class="chain">
-          <uigc-chain-selector
-            title="${i18n.t('selector.chain.srcHeader')}"
-            .chain=${this.srcChain}
-          ></uigc-chain-selector>
+          <uigc-chain-selector title="${i18n.t('xcm.selectSrc')}" .chain=${this.srcChain}></uigc-chain-selector>
           <div class="switch__mobile">
             <div class="divider"></div>
             <uigc-asset-switch class="switch"> </uigc-asset-switch>
           </div>
           <uigc-asset-switch basic class="switch__desktop"> </uigc-asset-switch>
-          <uigc-chain-selector
-            title="${i18n.t('selector.chain.dstHeader')}"
-            .chain=${this.dstChain}
-          ></uigc-chain-selector>
+          <uigc-chain-selector title="${i18n.t('xcm.selectDest')}" .chain=${this.dstChain}></uigc-chain-selector>
         </div>
         <uigc-typography variant="subsection">${i18n.t('xcm.assetAmount')}</uigc-typography>
         <uigc-asset-transfer

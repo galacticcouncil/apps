@@ -61,13 +61,13 @@ export class SelectChain extends LitElement {
       <slot name="header"></slot>
       <uigc-search-bar
         class="search"
-        placeholder="${i18n.t('selector.chain.placeholder')}"
+        placeholder="Search by name"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
       ${when(
         this.chains.length > 0,
         () => html` <uigc-list>
-          <span slot="header">${i18n.t('selector.chain.subheader')}</span>
+          <span slot="header">Supported chains</span>
           ${map(this.filterChains(this.query), (chain: string) => {
             return html`
               <uigc-list-item
@@ -83,7 +83,7 @@ export class SelectChain extends LitElement {
         </uigc-list>`,
         () => html`
           <uigc-list>
-            <span slot="header">${i18n.t('selector.chain.subheader')}</span>
+            <span slot="header">Supported chains</span>
             ${map(range(3), (i) => this.loadingTemplate())}
           </uigc-list>
         `

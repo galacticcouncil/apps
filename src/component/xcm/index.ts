@@ -454,7 +454,7 @@ export class XcmApp extends BaseApp {
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
           <uigc-typography variant="section"
-            >${isDest ? i18n.t('selector.chain.dstHeader') : i18n.t('selector.chain.srcHeader')}</uigc-typography
+            >${isDest ? i18n.t('xcm.selectDest') : i18n.t('xcm.selectSrc')}</uigc-typography
           >
           <span></span>
         </div>
@@ -481,7 +481,7 @@ export class XcmApp extends BaseApp {
           <uigc-icon-button class="back" @click=${() => this.changeTab(TransferTab.TransferForm)}>
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
-          <uigc-typography variant="section">${i18n.t('selector.asset.header')}</uigc-typography>
+          <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
           <span></span>
         </div>
       </gc-select-token>

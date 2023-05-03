@@ -718,7 +718,7 @@ export class TradeApp extends PoolApp {
           <uigc-icon-button class="back" @click=${() => this.changeTab(TradeTab.TradeForm)}>
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
-          <uigc-typography variant="section">${i18n.t('selector.asset.header')}</uigc-typography>
+          <uigc-typography variant="section">${i18n.t('trade.selectAsset')}</uigc-typography>
           <span></span>
         </div>
       </gc-select-asset>

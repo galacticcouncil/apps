@@ -97,7 +97,7 @@ export class SelectAsset extends LitElement {
       <slot name="header"></slot>
       <uigc-search-bar
         class="search"
-        placeholder="${i18n.t('selector.asset.placeholder')}"
+        placeholder="Search by name"
         @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
       ${when(
