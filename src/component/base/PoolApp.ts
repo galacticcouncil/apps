@@ -8,9 +8,9 @@ import { multipleAmounts } from '../../utils/amount';
 
 import { Amount, PoolAsset, PoolType } from '@galacticcouncil/sdk';
 
-import { AccountElement } from './AccountElement';
+import { BaseApp } from './BaseApp';
 
-export abstract class PoolElement extends AccountElement {
+export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected disconnectSubscribeNewHeads: () => void = null;
 
@@ -31,14 +31,17 @@ export abstract class PoolElement extends AccountElement {
   protected abstract onBlockChange(): void;
 
   override async firstUpdated() {
-    const pools = this.pools ? this.pools.split(',') : [];
     const chain = this.chain.state;
     if (chain) {
-      this.oninit();
+      this._init();
     } else {
-      createApi(this.apiAddress, pools as PoolType[], () => {
-        this.oninit();
-      });
+      const pools = this.pools ? this.pools.split(',') : [];
+      createApi(
+        this.apiAddress,
+        pools as PoolType[],
+        () => this._init(),
+        () => {}
+      );
     }
   }
 
@@ -46,9 +49,7 @@ export abstract class PoolElement extends AccountElement {
     super.update(changedProperties);
   }
 
-  override async updated() {
-    //console.log(this.assets);
-  }
+  override async updated() {}
 
   override connectedCallback() {
     super.connectedCallback();
@@ -59,7 +60,7 @@ export abstract class PoolElement extends AccountElement {
     super.disconnectedCallback();
   }
 
-  private async oninit() {
+  private async _init() {
     await this.init();
     await this.subscribe();
   }

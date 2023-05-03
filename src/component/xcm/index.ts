@@ -4,7 +4,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { AccountElement } from '../base/AccountElement';
+import { BaseApp } from '../base/BaseApp';
 import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { basicLayoutStyles } from '../styles/layout/basic.css';
@@ -31,7 +31,7 @@ import { TransferScreen, ChainState, TransferState, DEFAULT_CHAIN_STATE, DEFAULT
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-xcm-app')
-export class XcmApp extends AccountElement {
+export class XcmApp extends BaseApp {
   private xChain = new DatabaseController<XChain>(this, xChainCursor);
 
   private input: InputConfig = null;

@@ -4,7 +4,7 @@ import { property } from 'lit/decorators.js';
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
-export abstract class AccountElement extends LitElement {
+export abstract class BaseApp extends LitElement {
   protected account = new DatabaseController<Account>(this, accountCursor);
 
   @property({ type: String }) accountAddress: string = null;

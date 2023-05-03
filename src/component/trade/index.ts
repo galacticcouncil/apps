@@ -5,7 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { PoolElement } from '../base/PoolElement';
+import { PoolApp } from '../base/PoolApp';
 import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
@@ -41,7 +41,7 @@ import { AssetSelector, TradeScreen, TradeState, DEFAULT_TRADE_STATE, Transactio
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-trade-app')
-export class TradeApp extends PoolElement {
+export class TradeApp extends PoolApp {
   private tx: Transaction = null;
 
   @state() screen: TradeScreen = TradeScreen.TradeTokens;
