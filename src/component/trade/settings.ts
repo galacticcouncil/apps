@@ -10,8 +10,8 @@ import IMask from 'imask';
 
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
-@customElement('gc-trade-app-settings')
-export class Settings extends LitElement {
+@customElement('gc-trade-settings')
+export class TradeSettings extends LitElement {
   private _slippageHandler = null;
   private _slippageMask = null;
 

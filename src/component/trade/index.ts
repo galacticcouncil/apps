@@ -32,19 +32,20 @@ import {
   Transaction,
 } from '@galacticcouncil/sdk';
 
-import './select-token';
+import './form';
 import './settings';
-import './trade-tokens';
 import '../chart';
+import '../selector/asset';
 
-import { AssetSelector, TradeScreen, TradeState, DEFAULT_TRADE_STATE, TransactionFee } from './types';
+import { TradeTab, TradeState, DEFAULT_TRADE_STATE, TransactionFee } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
+import { AssetSelector } from '../selector/types';
 
 @customElement('gc-trade-app')
 export class TradeApp extends PoolApp {
   private tx: Transaction = null;
 
-  @state() screen: TradeScreen = TradeScreen.TradeTokens;
+  @state() tab: TradeTab = TradeTab.TradeForm;
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
   @state() asset = {
     active: null as string,
@@ -109,8 +110,8 @@ export class TradeApp extends PoolApp {
     return Object.keys(this.trade.error).length > 0;
   }
 
-  changeScreen(active: TradeScreen) {
-    this.screen = active;
+  changeTab(active: TradeTab) {
+    this.tab = active;
     this.requestUpdate();
   }
 
@@ -486,7 +487,7 @@ export class TradeApp extends PoolApp {
   }
 
   async syncBalances() {
-    const account = this.account.state
+    const account = this.account.state;
     if (account) {
       this.updateBalances();
       this.validateEnoughBalance();
@@ -512,7 +513,7 @@ export class TradeApp extends PoolApp {
   }
 
   async syncTransactionFee() {
-    const account = this.account.state
+    const account = this.account.state;
     if (account) {
       const { partialFee } = await getPaymentInfo(this.tx, account);
       const feeAssetId = await getFeePaymentAsset(account);
@@ -523,7 +524,7 @@ export class TradeApp extends PoolApp {
   }
 
   async updateMaxAmountIn(asset: PoolAsset) {
-    const account = this.account.state
+    const account = this.account.state;
     const feeAssetId = await getFeePaymentAsset(account);
 
     if (asset.id !== feeAssetId) {
@@ -547,7 +548,7 @@ export class TradeApp extends PoolApp {
   }
 
   async updateMaxAmountOut(asset: PoolAsset) {
-    const account = this.account.state
+    const account = this.account.state;
     const feeAssetId = await getFeePaymentAsset(account);
 
     if (asset.id !== feeAssetId) {
@@ -606,7 +607,7 @@ export class TradeApp extends PoolApp {
   }
 
   async swap() {
-    const account = this.account.state
+    const account = this.account.state;
     if (account && this.tx) {
       this.processTx(account, this.tx, this.trade);
     }
@@ -647,8 +648,8 @@ export class TradeApp extends PoolApp {
   }
 
   private onResize(_evt: UIEvent) {
-    if (window.innerWidth > 1023 && TradeScreen.TradeChart == this.screen) {
-      this.changeScreen(TradeScreen.TradeTokens);
+    if (window.innerWidth > 1023 && TradeTab.TradeChart == this.tab) {
+      this.changeTab(TradeTab.TradeForm);
     }
   }
 
@@ -664,33 +665,33 @@ export class TradeApp extends PoolApp {
     super.disconnectedCallback();
   }
 
-  settingsTemplate() {
+  tradeSettingsTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.screen == TradeScreen.Settings,
+      active: this.tab == TradeTab.TradeSettings,
     };
     return html` <uigc-paper class=${classMap(classes)}>
-      <gc-trade-app-settings @slippage-changed=${() => this.recalculateTrade()}>
+      <gc-trade-settings @slippage-changed=${() => this.recalculateTrade()}>
         <div class="header section" slot="header">
-          <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
+          <uigc-icon-button class="back" @click=${() => this.changeTab(TradeTab.TradeForm)}>
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
           <uigc-typography variant="section">${i18n.t('trade.settings.title')}</uigc-typography>
           <span></span>
         </div>
-      </gc-trade-app-settings>
+      </gc-trade-settings>
     </uigc-paper>`;
   }
 
-  selectTokenTemplate() {
+  selectAssetTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.screen == TradeScreen.SelectToken,
+      active: this.tab == TradeTab.SelectAsset,
     };
     return html` <uigc-paper class=${classMap(classes)}>
-      <gc-trade-app-select
+      <gc-select-asset
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
         .details=${this.assets.details}
@@ -710,28 +711,28 @@ export class TradeApp extends PoolApp {
             assetIn: this.trade.assetIn?.id,
             assetOut: this.trade.assetOut?.id,
           });
-          this.changeScreen(TradeScreen.TradeTokens);
+          this.changeTab(TradeTab.TradeForm);
         }}
       >
         <div class="header section" slot="header">
-          <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
+          <uigc-icon-button class="back" @click=${() => this.changeTab(TradeTab.TradeForm)}>
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
-          <uigc-typography variant="section">${i18n.t('trade.selectAsset')}</uigc-typography>
+          <uigc-typography variant="section">${i18n.t('selector.asset.header')}</uigc-typography>
           <span></span>
         </div>
-      </gc-trade-app-select>
+      </gc-select-asset>
     </uigc-paper>`;
   }
 
-  tradeTokensTemplate() {
+  tradeFormTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.screen == TradeScreen.TradeTokens,
+      active: this.tab == TradeTab.TradeForm,
     };
-    return html` <uigc-paper class=${classMap(classes)} id="default-screen">
-      <gc-trade-app-main
+    return html` <uigc-paper class=${classMap(classes)} id="default-tab">
+      <gc-trade-form
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
         .inProgress=${this.trade.inProgress}
@@ -767,7 +768,7 @@ export class TradeApp extends PoolApp {
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {
           this.asset.selector = detail;
-          this.changeScreen(TradeScreen.SelectToken);
+          this.changeTab(TradeTab.SelectAsset);
         }}
         @asset-switch-clicked=${() => {
           this.switch();
@@ -782,22 +783,22 @@ export class TradeApp extends PoolApp {
         <div class="header" slot="header">
           <uigc-typography variant="title" gradient>${i18n.t('trade.title')}</uigc-typography>
           <span class="grow"></span>
-          <uigc-icon-button basic class="chart-btn" @click=${() => this.changeScreen(TradeScreen.TradeChart)}>
+          <uigc-icon-button basic class="chart-btn" @click=${() => this.changeTab(TradeTab.TradeChart)}>
             <uigc-icon-chart></uigc-icon-chart>
           </uigc-icon-button>
-          <uigc-icon-button basic @click=${() => this.changeScreen(TradeScreen.Settings)}>
+          <uigc-icon-button basic @click=${() => this.changeTab(TradeTab.TradeSettings)}>
             <uigc-icon-settings></uigc-icon-settings>
           </uigc-icon-button>
         </div>
-      </gc-trade-app-main>
+      </gc-trade-form>
     </uigc-paper>`;
   }
 
-  tradeChartTemplate() {
+  tradeChartTab() {
     const classes = {
       tab: true,
       chart: true,
-      active: this.screen == TradeScreen.TradeChart,
+      active: this.tab == TradeTab.TradeChart,
     };
     return html` <uigc-paper class=${classMap(classes)}>
       ${when(
@@ -814,7 +815,7 @@ export class TradeApp extends PoolApp {
             .details=${this.assets.details}
           >
             <div class="header section" slot="header">
-              <uigc-icon-button class="back" @click=${() => this.changeScreen(TradeScreen.TradeTokens)}>
+              <uigc-icon-button class="back" @click=${() => this.changeTab(TradeTab.TradeForm)}>
                 <uigc-icon-back></uigc-icon-back>
               </uigc-icon-button>
               <uigc-typography variant="section">${i18n.t('chart.title')}</uigc-typography>
@@ -829,8 +830,7 @@ export class TradeApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.tradeChartTemplate()} ${this.tradeTokensTemplate()} ${this.settingsTemplate()}
-        ${this.selectTokenTemplate()}
+        ${this.tradeChartTab()} ${this.tradeFormTab()} ${this.tradeSettingsTab()} ${this.selectAssetTab()}
       </div>
     `;
   }

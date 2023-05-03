@@ -14,8 +14,8 @@ import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 import { DatabaseController } from '../../db.ctrl';
 import { TransactionFee } from './types';
 
-@customElement('gc-trade-app-main')
-export class TradeTokens extends LitElement {
+@customElement('gc-trade-form')
+export class TradeForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);

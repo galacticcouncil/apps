@@ -1,12 +1,10 @@
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
-export type AssetSelector = { id: string; asset: string };
-
-export enum TradeScreen {
-  Settings,
-  SelectToken,
-  TradeTokens,
+export enum TradeTab {
   TradeChart,
+  TradeForm,
+  TradeSettings,
+  SelectAsset,
 }
 
 export type TransactionFee = { amount: string; asset: string; ed: string };
