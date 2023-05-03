@@ -1,6 +1,12 @@
 {
+  "selector.asset.header": "Select asset",
+  "selector.asset.placeholder": "Search by name",
+  "selector.chain.srcHeader": "Source chain",
+  "selector.chain.dstHeader": "Destination chain",
+  "selector.chain.placeholder": "Search by name",
+  "selector.chain.subheader": "Supported chains",
   "trade.title": "Trade assets",
-  "trade.txFee": "Transaction fee:",
+  "trade.txFee": "Transaction cost:",
   "trade.tradeFee": "Trade fee:",
   "trade.priceImpact": "Price impact:",
   "trade.bestRoute": "Best route",
@@ -8,8 +14,6 @@
   "trade.youGet": "You get",
   "trade.swap": "Swap",
   "trade.connect": "Connect wallet",
-  "trade.selectAsset": "Select asset",
-  "trade.searchByName": "Search by name",
   "trade.settings.title": "Trade settings",
   "trade.settings.slippage": "Slippage",
   "trade.settings.autoSlippage": "Auto slippage control",
@@ -49,10 +53,13 @@
   "xcm.tx.submitted": "submitted",
   "xcm.tx.inBlock": "in block",
   "xcm.tx.failed": "failed",
-  "xcm.source": "Source chain",
-  "xcm.dest": "Destination chain",
-  "xcm.searchByName": "Search by name",
-  "xcm.supportedChains": "Supported chains",
-  "xcm.selectAsset": "Select asset",
-  "chart.title": "Trade chart"
+
+  "chart.title": "Trade chart",
+  "dca.title": "Dollar cost average",
+  "dca.invest": "Invest",
+  "dca.endData": "Estimated end date",
+  "dca.slippage": "Fixed Slippage/Spread",
+  "dca.transactionCost": "Transaction cost",
+  "dca.tradeFee": "Trade fee",
+  "dca.schedule": "Schedule Dca Trade"
 }

@@ -1,7 +1,7 @@
-export enum TransferScreen {
+export enum TransferTab {
+  TransferForm,
   SelectChain,
   SelectToken,
-  Transfer,
 }
 
 export type TransferState = {

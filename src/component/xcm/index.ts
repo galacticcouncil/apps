@@ -23,11 +23,11 @@ import { bnum, Transaction } from '@galacticcouncil/sdk';
 import { BalanceData, Chain, ChainId, InputConfig } from '@galacticcouncil/bridge';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import './transfer-tokens';
-import './select-chain';
-import './select-token';
+import './form';
+import '../selector/token';
+import '../selector/chain';
 
-import { TransferScreen, ChainState, TransferState, DEFAULT_CHAIN_STATE, DEFAULT_TRANSFER_STATE } from './types';
+import { TransferTab, ChainState, TransferState, DEFAULT_CHAIN_STATE, DEFAULT_TRANSFER_STATE } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-xcm-app')
@@ -38,9 +38,9 @@ export class XcmApp extends BaseApp {
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
-      if (TransferScreen.Transfer == this.screen) {
-        const defaultScreen = this.shadowRoot.getElementById('default-screen');
-        const tabs = this.shadowRoot.querySelectorAll('.tab:not(#default-screen)');
+      if (TransferTab.TransferForm == this.tab) {
+        const defaultScreen = this.shadowRoot.getElementById('default-tab');
+        const tabs = this.shadowRoot.querySelectorAll('.tab:not(#default-tab)');
         tabs.forEach((tab: Element) => {
           tab.setAttribute('style', `height: ${defaultScreen.offsetHeight}px`);
         });
@@ -50,7 +50,7 @@ export class XcmApp extends BaseApp {
   private disconnectSubscribeBalance: Subscription = null;
   private disconnectSubscribeInput: Subscription = null;
 
-  @state() screen: TransferScreen = TransferScreen.Transfer;
+  @state() tab: TransferTab = TransferTab.TransferForm;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
   @state() chain: ChainState = DEFAULT_CHAIN_STATE;
 
@@ -82,8 +82,8 @@ export class XcmApp extends BaseApp {
     return Object.keys(this.transfer.error).length > 0;
   }
 
-  changeScreen(active: TransferScreen) {
-    this.screen = active;
+  changeTab(active: TransferTab) {
+    this.tab = active;
     this.requestUpdate();
   }
 
@@ -428,14 +428,14 @@ export class XcmApp extends BaseApp {
     super.disconnectedCallback();
   }
 
-  selectChainTemplate() {
+  selectChainTab() {
     const classes = {
       tab: true,
-      active: this.screen == TransferScreen.SelectChain,
+      active: this.tab == TransferTab.SelectChain,
     };
     const isDest = this.chain.selector === this.transfer.dstChain;
     return html`<uigc-paper class=${classMap(classes)}>
-      <gc-xcm-app-chain
+      <gc-select-chain
         .chains=${isDest ? this.chain.dest : this.chain.list}
         .srcChain=${this.transfer.srcChain}
         .dstChain=${this.transfer.dstChain}
@@ -446,53 +446,55 @@ export class XcmApp extends BaseApp {
           } else {
             this.changeSourceChain(item);
           }
-          this.changeScreen(TransferScreen.Transfer);
+          this.changeTab(TransferTab.TransferForm);
         }}
       >
         <div class="header section" slot="header">
-          <uigc-icon-button class="back" @click=${() => this.changeScreen(TransferScreen.Transfer)}>
+          <uigc-icon-button class="back" @click=${() => this.changeTab(TransferTab.TransferForm)}>
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
-          <uigc-typography variant="section">${isDest ? i18n.t('xcm.dest') : i18n.t('xcm.source')}</uigc-typography>
+          <uigc-typography variant="section"
+            >${isDest ? i18n.t('selector.chain.dstHeader') : i18n.t('selector.chain.srcHeader')}</uigc-typography
+          >
           <span></span>
         </div>
-      </gc-xcm-app-chain>
+      </gc-select-chain>
     </uigc-paper>`;
   }
 
-  selectTokenTemplate() {
+  selectTokenTab() {
     const classes = {
       tab: true,
-      active: this.screen == TransferScreen.SelectToken,
+      active: this.tab == TransferTab.SelectToken,
     };
     return html`<uigc-paper class=${classMap(classes)}>
-      <gc-xcm-app-token
+      <gc-select-token
         .assets=${this.chain.tokens}
         .balances=${this.chain.balance}
         .asset=${this.transfer.asset}
         @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
           this.changeAsset(symbol);
-          this.changeScreen(TransferScreen.Transfer);
+          this.changeTab(TransferTab.TransferForm);
         }}
       >
         <div class="header section" slot="header">
-          <uigc-icon-button class="back" @click=${() => this.changeScreen(TransferScreen.Transfer)}>
+          <uigc-icon-button class="back" @click=${() => this.changeTab(TransferTab.TransferForm)}>
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
-          <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
+          <uigc-typography variant="section">${i18n.t('selector.asset.header')}</uigc-typography>
           <span></span>
         </div>
-      </gc-xcm-app-token>
+      </gc-select-token>
     </uigc-paper>`;
   }
 
-  transferTokensTemplate() {
+  xcmFormTab() {
     const classes = {
       tab: true,
-      active: this.screen == TransferScreen.Transfer,
+      active: this.tab == TransferTab.TransferForm,
     };
-    return html` <uigc-paper class=${classMap(classes)} id="default-screen">
-      <gc-xcm-app-main
+    return html` <uigc-paper class=${classMap(classes)} id="default-tab">
+      <gc-xcm-form
         .disabled=${this.isTransferEmpty() || this.hasError()}
         .srcChain=${this.transfer.srcChain}
         .dstChain=${this.transfer.dstChain}
@@ -515,10 +517,10 @@ export class XcmApp extends BaseApp {
           this.validateAddress();
         }}
         @asset-switch-clicked=${this.switchChains}
-        @asset-selector-clicked=${() => this.changeScreen(TransferScreen.SelectToken)}
+        @asset-selector-clicked=${() => this.changeTab(TransferTab.SelectToken)}
         @chain-selector-clicked=${({ detail: { chain } }: CustomEvent) => {
           this.chain.selector = chain;
-          this.changeScreen(TransferScreen.SelectChain);
+          this.changeTab(TransferTab.SelectChain);
         }}
         @transfer-clicked=${() => this.swap()}
       >
@@ -526,15 +528,13 @@ export class XcmApp extends BaseApp {
           <uigc-typography gradient variant="title">${i18n.t('xcm.title')}</uigc-typography>
           <span class="grow"></span>
         </div>
-      </gc-xcm-app-main>
+      </gc-xcm-form>
     </uigc-paper>`;
   }
 
   render() {
     return html`
-      <div class="layout-root">
-        ${this.transferTokensTemplate()} ${this.selectChainTemplate()} ${this.selectTokenTemplate()}
-      </div>
+      <div class="layout-root">${this.xcmFormTab()} ${this.selectChainTab()} ${this.selectTokenTab()}</div>
     `;
   }
 }
