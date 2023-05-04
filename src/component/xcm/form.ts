@@ -5,10 +5,11 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
+import { baseStyles } from '../styles/base.css';
+import { formStyles } from '../styles/form.css';
+
 import { Account, accountCursor, xChainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-
-import { baseStyles } from '../styles/base.css';
 import { capitalize } from '../../utils/text';
 import { isSameAddress, isValidAddress } from '../../utils/account';
 
@@ -35,6 +36,7 @@ export class XcmForm extends LitElement {
 
   static styles = [
     baseStyles,
+    formStyles,
     css`
       :host {
         display: flex;
@@ -114,105 +116,6 @@ export class XcmForm extends LitElement {
       @media (min-width: 768px) {
         .transfer {
           padding: 0 28px;
-        }
-      }
-
-      .info {
-        display: flex;
-        flex-direction: column;
-        margin-top: 10px;
-        padding: 0 24px;
-        box-sizing: border-box;
-      }
-
-      @media (min-width: 768px) {
-        .info {
-          padding: 0 38px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .info {
-          padding: 0 14px;
-        }
-      }
-
-      .info .row {
-        display: flex;
-        align-items: center;
-        position: relative;
-        gap: 5px;
-        height: 24px;
-      }
-
-      .info .row:not(:last-child):after {
-        background-color: var(--uigc-divider-color);
-        bottom: 0;
-        content: ' ';
-        height: 1px;
-        position: absolute;
-        width: 100%;
-      }
-
-      .info .label {
-        font-weight: 500;
-        font-size: 12px;
-        line-height: 100%;
-        text-align: left;
-        color: var(--uigc-app-font-color__secondary);
-      }
-
-      .info .value {
-        font-weight: 500;
-        font-size: 12px;
-        line-height: 100%;
-        text-align: right;
-        color: var(--hex-white);
-      }
-
-      .warning {
-        display: none;
-        flex-direction: row;
-        align-items: center;
-        line-height: 16px;
-        margin: 5px 14px 0;
-        padding: 0 14px;
-        background: var(--uigc-app-bg-warning);
-        border-radius: var(--uigc-app-border-radius-2);
-      }
-
-      @media (min-width: 768px) {
-        .warning {
-          margin: 5px 28px 0;
-        }
-      }
-
-      .warning.show {
-        padding: 10px;
-        animation: scale 0.25s;
-        display: flex;
-      }
-
-      .warning span {
-        color: var(--hex-white);
-        font-weight: 500;
-        font-size: 12px;
-        line-height: 16px;
-      }
-
-      .warning uigc-icon-warning {
-        margin-right: 8px;
-      }
-
-      .confirm {
-        display: flex;
-        padding: 11px 14px 22px 14px;
-        box-sizing: border-box;
-      }
-
-      @media (min-width: 768px) {
-        .confirm {
-          padding: 11px 28px 22px 28px;
         }
       }
     `,
@@ -318,7 +221,7 @@ export class XcmForm extends LitElement {
           )}
         </uigc-address-input>
       </div>
-      <div class="info">
+      <div class="info show">
         <div class="row">${this.transferFeeTemplate(i18n.t('xcm.sourceFee'), this.srcChainFee, this.nativeAsset)}</div>
         <div class="row">${this.transferFeeTemplate(i18n.t('xcm.destFee'), this.dstChainFee, this.asset)}</div>
       </div>

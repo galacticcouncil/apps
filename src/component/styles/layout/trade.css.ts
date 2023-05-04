@@ -19,6 +19,7 @@ export const tradeLayoutStyles = css`
     grid-area: main;
     position: relative;
     overflow: hidden;
+    align-self: flex-start;
   }
 
   uigc-paper.chart {
@@ -85,7 +86,7 @@ export const tradeLayoutStyles = css`
       padding: 0 20px 0 20px;
       grid-template-areas:
         'chart main'
-        'list main';
+        'summary main';
       grid-template-columns: 1fr minmax(414px, 480px);
       grid-column-gap: 20px;
     }
