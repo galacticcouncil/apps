@@ -63,7 +63,7 @@ export class TradeChart extends LitElement {
   @state() chartState: ChartState = ChartState.Loading;
 
   @property({ type: Number }) datasourceId = null;
-  @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
+  @property({ attribute: false }) tradeType: TradeType = TradeType.Sell;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
