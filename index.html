@@ -74,7 +74,7 @@
       main {
         width: 100%;
         margin-top: var(--toolbar-height);
-        height: calc(100vh - var(--toolbar-height));
+        min-height: calc(100vh - var(--toolbar-height));
       }
 
       @media (min-width: 768px) {
@@ -95,6 +95,7 @@
     <header>
       <nav>
         <a href="/trade"><span>Trade</span></a>
+        <a href="/dca"><span>Dca</span></a>
         <a href="/cross-chain"><span>Cross-chain</span></a>
       </nav>
     </header>
