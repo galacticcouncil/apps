@@ -65,7 +65,7 @@
   "peerDependencies": {
     "@galacticcouncil/bridge": "0.0.2-1",
     "@galacticcouncil/sdk": "^0.1.0",
-    "@galacticcouncil/ui": "^1.2.3",
+    "@galacticcouncil/ui": "^1.2.4",
     "@polkadot/api": "^9.14.2",
     "@polkadot/extension-inject": "^0.44.6",
     "@vaadin/router": "^1.7.4",
