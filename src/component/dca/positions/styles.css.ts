@@ -98,7 +98,7 @@ export const positionsStyles = css`
   }
 
   .summary > *:last-child {
-    text-align: right;
+    margin-left: auto;
   }
 
   .pair {

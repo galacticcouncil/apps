@@ -108,7 +108,6 @@ export abstract class Datagrid<T> extends LitElement {
       }
 
       uigc-icon-dropdown {
-        color: #b2b6c5;
         opacity: 0.5;
         display: block;
         text-align: center;
