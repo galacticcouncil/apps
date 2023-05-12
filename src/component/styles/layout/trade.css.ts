@@ -12,6 +12,7 @@ export const tradeLayoutStyles = css`
   .layout-root {
     display: grid;
     grid-template-areas: 'main';
+    grid-row-gap: 20px;
   }
 
   uigc-paper.main {

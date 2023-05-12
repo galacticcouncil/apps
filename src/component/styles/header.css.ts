@@ -23,6 +23,11 @@ export const headerStyles = css`
     left: 20px;
   }
 
+  .header .close {
+    position: absolute;
+    right: 20px;
+  }
+
   @media (max-width: 480px) {
     .header {
       min-height: 64px;
