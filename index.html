@@ -14,9 +14,17 @@
         --footer-height: 60px;
       }
 
-      body {
-        background-attachment: fixed;
+      html {
         background: var(--uigc-app-background);
+      }
+
+      html[theme='hdx'] {
+        height: 474px;
+        background-repeat: no-repeat;
+        background-color: var(--uigc-app-background-color);
+      }
+
+      body {
         margin: 0;
       }
 
