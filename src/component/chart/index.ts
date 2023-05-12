@@ -45,6 +45,11 @@ export class TradeChart extends LitElement {
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       const iWidth = window.innerWidth;
+
+      if (entry.contentRect.width <= 0) {
+        return;
+      }
+
       if (iWidth > 1023) {
         this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
       } else if (iWidth < 768) {
