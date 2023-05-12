@@ -3,6 +3,7 @@ import './locales/i18n';
 
 import './root';
 import './screen/trade';
+import './screen/dca';
 import './screen/xcm';
 
 const routes = [
@@ -17,6 +18,10 @@ const routes = [
       {
         path: '/trade',
         component: 'gc-trade-screen',
+      },
+      {
+        path: '/dca',
+        component: 'gc-dca-screen',
       },
       {
         path: '/cross-chain',
