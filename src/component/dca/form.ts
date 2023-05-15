@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
@@ -12,12 +13,13 @@ import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
-
-const INTERVAL_OPTS = ['Day', 'Week', 'Month'];
+import { INVEST_INTERVAL, InvestInterval } from './types';
 
 @customElement('gc-dca-form')
 export class DcaForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
+
+  @state() advanced: boolean = false;
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
@@ -25,11 +27,11 @@ export class DcaForm extends LitElement {
   @property({ type: Boolean }) disabled = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
-  @property({ type: String }) interval = INTERVAL_OPTS[1];
+  @property({ type: String }) interval: InvestInterval = 'week';
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
-  @property({ type: String }) amountOut = null;
-  @property({ type: String }) amountOutUsd = null;
+  @property({ type: String }) amountInBudget = null;
+  @property({ type: String }) maxPrice = null;
   @property({ type: String }) slippagePct = '5';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
@@ -97,6 +99,21 @@ export class DcaForm extends LitElement {
           padding: 0 28px;
         }
       }
+
+      .advanced {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--uigc-app-font-color__primary);
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 22px;
+      }
+
+      .hidden {
+        display: none;
+      }
     `,
   ];
 
@@ -114,6 +131,49 @@ export class DcaForm extends LitElement {
       composed: true,
     };
     this.dispatchEvent(new CustomEvent('schedule-clicked', options));
+  }
+
+  onBudgetChanged(e: any) {
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { id: 'assetInBudget', asset: e.detail.asset, value: e.detail.value },
+    };
+    this.dispatchEvent(new CustomEvent('asset-input-changed', options));
+  }
+
+  onMaxPriceChanged(e: any) {
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { id: 'maxPrice', asset: e.detail.asset, value: e.detail.value },
+    };
+    this.dispatchEvent(new CustomEvent('asset-input-changed', options));
+  }
+
+  onIntervalChanged(e: any) {
+    this.interval = e.detail.value;
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { value: e.detail.value },
+    };
+    this.dispatchEvent(new CustomEvent('interval-changed', options));
+  }
+
+  private toggleAdvanced() {
+    this.advanced = !this.advanced;
+  }
+
+  infoSummaryTemplate() {
+    return html` <span class="label">${i18n.t('dca.summary')}</span>
+      <span>
+        <span class="value">I want to invest</span>
+        <span class="value highlight">${this.amountIn} ${this.assetIn?.symbol}</span>
+        <span class="value">every ${this.interval.toLowerCase()} for ${this.assetOut?.symbol} with</span>
+        <span class="value highlight">${this.amountInBudget} ${this.assetIn?.symbol}</span>
+        <span class="value">total budget.</span>
+      </span>`;
   }
 
   infoSlippageTemplate() {
@@ -157,6 +217,14 @@ export class DcaForm extends LitElement {
   }
 
   render() {
+    const summaryClasses = {
+      row: true,
+      summary: true,
+      show: this.amountIn && this.amountInBudget,
+    };
+    const advancedClasses = {
+      hidden: this.advanced == false,
+    };
     return html`
       <slot name="header"></slot>
       <div class="invest">
@@ -170,18 +238,42 @@ export class DcaForm extends LitElement {
         </uigc-asset-transfer>
         <div class="interval">
           <span> Every </span>
-          <uigc-toggle-button-group value=${this.interval} @toggle-button-clicked=${(e: CustomEvent) => {}}>
-            ${INTERVAL_OPTS.map((s: string) => html` <uigc-toggle-button tab value=${s}>${s}</uigc-toggle-button> `)}
+          <uigc-toggle-button-group
+            value=${this.interval}
+            @toggle-button-clicked=${(e: CustomEvent) => {
+              this.onIntervalChanged(e);
+            }}
+          >
+            ${INVEST_INTERVAL.map((s: string) => html` <uigc-toggle-button tab value=${s}>${s}</uigc-toggle-button> `)}
           </uigc-toggle-button-group>
         </div>
         <uigc-selector item=${this.assetOut?.symbol} title="Get">
           <uigc-asset symbol=${this.assetOut?.symbol}></uigc-asset>
         </uigc-selector>
-        <uigc-asset-input field amount=${this.amountOut} asset=${this.assetOut?.symbol}>
+        <uigc-asset-input
+          field
+          amount=${this.amountInBudget}
+          asset=${this.assetIn?.symbol}
+          @asset-input-changed=${(e: CustomEvent) => this.onBudgetChanged(e)}
+        >
           <span class="budget" slot="inputAdornment">Max budget</span>
+        </uigc-asset-input>
+        <div class="advanced">
+          <span>Advanced settings</span>
+          <uigc-switch .checked=${this.advanced} size="small" @click=${() => this.toggleAdvanced()}></uigc-switch>
+        </div>
+        <uigc-asset-input
+          class=${classMap(advancedClasses)}
+          field
+          amount=${this.maxPrice}
+          asset=${this.assetOut?.symbol}
+          @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
+        >
+          <span class="budget" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
         </uigc-asset-input>
       </div>
       <div class="info show">
+        <div class=${classMap(summaryClasses)}>${this.infoSummaryTemplate()}</div>
         <div class="row">${this.infoEstimatedEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
         <div class="row">${this.infoTransactionCostTemplate('DAI')}</div>

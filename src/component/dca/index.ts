@@ -151,10 +151,17 @@ export class DcaApp extends PoolApp {
     };
   }
 
-  updateAmountOut(amount: string) {
+  updateAmountInBudget(amount: string) {
     this.invest = {
       ...this.invest,
-      amountOut: amount,
+      amountInBudget: amount,
+    };
+  }
+
+  updateMaxPrice(amount: string) {
+    this.invest = {
+      ...this.invest,
+      maxPrice: amount,
     };
   }
 
@@ -247,15 +254,15 @@ export class DcaApp extends PoolApp {
         .assetOut=${this.invest.assetOut}
         .amountIn=${this.invest.amountIn}
         .amountInUsd=${this.invest.amountInUsd}
-        .amountOut=${this.invest.amountOut}
+        .amountInBudget=${this.invest.amountInBudget}
+        .maxPrice=${this.invest.maxPrice}
         .tradeFee=${this.invest.tradeFee}
         .tradeFeePct=${this.invest.tradeFeePct}
         @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
-          console.log(id);
-          console.log(value);
-
           id == 'assetIn' && this.updateAmountIn(value);
-          id == 'assetGet' && this.updateAmountOut(value);
+          id == 'assetInBudget' && this.updateAmountInBudget(value);
+          id == 'maxPrice' && this.updateMaxPrice(value);
+
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {
           this.asset.selector = detail;
@@ -264,6 +271,9 @@ export class DcaApp extends PoolApp {
         @selector-clicked=${({ detail }: CustomEvent) => {
           this.asset.selector = { ...detail, id: 'assetGet' };
           this.changeTab(DcaTab.SelectAsset);
+        }}
+        @interval-changed=${({ detail }: CustomEvent) => {
+          this.invest.interval = detail.value;
         }}
       >
         <div class="header" slot="header">

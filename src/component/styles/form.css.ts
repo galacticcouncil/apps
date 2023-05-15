@@ -15,11 +15,12 @@ export const formStyles = css`
 
   @media (min-width: 768px) {
     .info {
-      padding: 0 38px;
+      padding: 0 28px;
     }
   }
 
   @media (max-width: 480px) {
+    .advanced,
     .info {
       padding: 0 14px;
     }
@@ -30,7 +31,7 @@ export const formStyles = css`
     align-items: center;
     position: relative;
     gap: 5px;
-    height: 24px;
+    padding: 6px 0;
   }
 
   .info .row:not(:last-child):after {
@@ -40,6 +41,22 @@ export const formStyles = css`
     height: 1px;
     position: absolute;
     width: 100%;
+  }
+
+  .info .summary {
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info .summary.show {
+    animation: scale 0.25s;
+    display: flex;
+  }
+
+  .info .summary .value {
+    text-align: left;
+    font-size: 18px;
   }
 
   .info .label {
@@ -59,6 +76,10 @@ export const formStyles = css`
   }
 
   .info .value + .highlight {
+    color: var(--uigc-app-font-color__primary);
+  }
+
+  .highlight {
     color: var(--uigc-app-font-color__primary);
   }
 
