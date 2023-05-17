@@ -7,6 +7,7 @@ import * as i18n from 'i18next';
 import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
+import { chainCursor } from '../../db';
 import { signAndSend, signAndSendOb } from '../../api/transaction';
 import { txRecord } from '../../utils/event';
 
@@ -67,7 +68,7 @@ export class TransactionCenter extends LitElement {
       txInfo.transaction,
       txInfo.account,
       (res) => {
-        const { events, status } = res;
+        const { events, status, dispatchError } = res;
         const type = status.type.toLowerCase();
         switch (type) {
           case 'broadcast':
@@ -80,6 +81,14 @@ export class TransactionCenter extends LitElement {
             const txEvent = txRecord(events).event;
             const txError = 'ExtrinsicFailed' === txEvent.method;
             this.handleInBlock(txId, txInfo.notification, txError, meta);
+            break;
+          case 'finalized':
+            if (dispatchError) {
+              const api = chainCursor.deref().api;
+              const decoded = api.registry.findMetaError(dispatchError.asModule);
+              console.error(`${decoded.section}.${decoded.method}: ${decoded.docs.join(' ')}`);
+              this.handleError(txId, txInfo.notification);
+            }
             break;
         }
       },
@@ -223,11 +232,13 @@ export class TransactionCenter extends LitElement {
     super.connectedCallback();
     this.addEventListener('gc:tx:new', this._handleOnChainTx);
     this.addEventListener('gc:tx:newXcm', this._handleCrossChainTx);
+    this.addEventListener('gc:tx:scheduleDca', this._handleOnChainTx);
   }
 
   override disconnectedCallback() {
     this.removeEventListener('gc:tx:new', this._handleOnChainTx);
     this.removeEventListener('gc:tx:newXcm', this._handleCrossChainTx);
+    this.removeEventListener('gc:tx:scheduleDca', this._handleOnChainTx);
     super.disconnectedCallback();
   }
 
