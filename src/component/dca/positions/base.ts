@@ -4,7 +4,7 @@ import { Row } from '@tanstack/table-core';
 import { Datagrid } from '../../datagrid';
 
 import { Position } from './model';
-import { positionsStyles } from './styles.css';
+import { positionsStyles } from './base.css';
 
 export abstract class DcaBasePositions extends Datagrid<Position> {
   static styles = [
