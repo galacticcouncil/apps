@@ -25,8 +25,7 @@ import './states/error';
 import './states/empty';
 import './states/loading';
 
-import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
-import { AssetDetail } from '../../api/asset';
+import { Amount, AssetDetail, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
 const CHART_HEIGHT = 345;
 const CHART_TIME_SCALE_HEIGHT = 26;

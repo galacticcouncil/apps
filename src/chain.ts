@@ -1,5 +1,5 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { TradeRouter, PolkadotApiPoolService, PoolType } from '@galacticcouncil/sdk';
+import { TradeRouter, PoolService, PoolType } from '@galacticcouncil/sdk';
 import { chainCursor } from './db';
 
 async function info(api: ApiPromise): Promise<void> {
@@ -13,7 +13,7 @@ async function info(api: ApiPromise): Promise<void> {
 }
 
 async function initRouter(api: ApiPromise, pools: PoolType[]): Promise<TradeRouter> {
-  const poolService = new PolkadotApiPoolService(api);
+  const poolService = new PoolService(api);
   return new TradeRouter(poolService, { includeOnly: pools });
 }
 
