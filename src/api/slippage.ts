@@ -7,10 +7,14 @@ function calculateSlippage(amount: BigNumber, slippagePct: string): BigNumber {
   return slippage.decimalPlaces(0, 1);
 }
 
-export function getMinAmountOut(sell: Trade, slippagePct: string): Amount {
+export function getTradeMinAmountOut(sell: Trade, slippagePct: string): Amount {
   const assetOutDecimals = sell.swaps[sell.swaps.length - 1].assetOutDecimals;
-  const slippage = calculateSlippage(sell.amountOut, slippagePct);
-  const minAmountOut = sell.amountOut.minus(slippage);
+  return getMinAmountOut(sell.amountOut, assetOutDecimals, slippagePct);
+}
+
+export function getMinAmountOut(amountOut: BigNumber, assetOutDecimals: number, slippagePct: string): Amount {
+  const slippage = calculateSlippage(amountOut, slippagePct);
+  const minAmountOut = amountOut.minus(slippage);
 
   return {
     amount: minAmountOut,
@@ -18,10 +22,14 @@ export function getMinAmountOut(sell: Trade, slippagePct: string): Amount {
   } as Amount;
 }
 
-export function getMaxAmountIn(buy: Trade, slippagePct: string): Amount {
+export function getTradeMaxAmountIn(buy: Trade, slippagePct: string): Amount {
   const assetInDecimals = buy.swaps[0].assetInDecimals;
-  const slippage = calculateSlippage(buy.amountIn, slippagePct);
-  const maxAmountIn = buy.amountIn.plus(slippage);
+  return getMaxAmountIn(buy.amountIn, assetInDecimals, slippagePct);
+}
+
+export function getMaxAmountIn(amountIn: BigNumber, assetInDecimals: number, slippagePct: string): Amount {
+  const slippage = calculateSlippage(amountIn, slippagePct);
+  const maxAmountIn = amountIn.plus(slippage);
 
   return {
     amount: maxAmountIn,

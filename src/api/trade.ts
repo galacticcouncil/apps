@@ -1,5 +1,5 @@
 import type { PoolAsset, Transaction } from '@galacticcouncil/sdk';
-import { getMaxAmountIn, getMinAmountOut } from './slippage';
+import { getTradeMaxAmountIn, getTradeMinAmountOut } from './slippage';
 import { chainCursor, settingsCursor } from '../db';
 import { formatAmount } from '../utils/amount';
 
@@ -14,7 +14,7 @@ export async function getBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amoun
   const bestSell = await router.getBestSell(assetIn.id, assetOut.id, amountIn);
   const bestSellHuman = bestSell.toHuman();
   const slippage = settingsCursor.deref().slippage;
-  const minAmountOut = getMinAmountOut(bestSell, slippage);
+  const minAmountOut = getTradeMinAmountOut(bestSell, slippage);
   const minAmountOutHuman = formatAmount(minAmountOut.amount, minAmountOut.decimals);
   const transaction = bestSell.toTx(minAmountOut.amount);
 
@@ -30,7 +30,7 @@ export async function getBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amount
   const bestBuy = await router.getBestBuy(assetIn.id, assetOut.id, amountOut);
   const bestBuyHuman = bestBuy.toHuman();
   const slippage = settingsCursor.deref().slippage;
-  const maxAmountIn = getMaxAmountIn(bestBuy, slippage);
+  const maxAmountIn = getTradeMaxAmountIn(bestBuy, slippage);
   const maxAmountInHuman = formatAmount(maxAmountIn.amount, maxAmountIn.decimals);
   const transaction = bestBuy.toTx(maxAmountIn.amount);
 
