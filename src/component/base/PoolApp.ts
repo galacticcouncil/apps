@@ -3,10 +3,16 @@ import { property, state } from 'lit/decorators.js';
 import { createApi } from '../../chain';
 import { Account, Chain, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { AssetDetail, getAssetsBalance, getAssetsDetail, getAssetsDollarPrice, getAssetsPairs } from '../../api/asset';
+import {
+  getAssetsBalance,
+  getAssetsDetail,
+  getAssetsDollarPrice,
+  getAssetsMeta,
+  getAssetsPairs,
+} from '../../api/asset';
 import { multipleAmounts } from '../../utils/amount';
 
-import { Amount, PoolAsset, PoolType } from '@galacticcouncil/sdk';
+import { Amount, AssetDetail, AssetMetadata, PoolAsset, PoolType } from '@galacticcouncil/sdk';
 
 import { BaseApp } from './BaseApp';
 
@@ -18,6 +24,7 @@ export abstract class PoolApp extends BaseApp {
     list: [] as PoolAsset[],
     map: new Map<string, PoolAsset>([]),
     pairs: new Map<string, PoolAsset[]>([]),
+    meta: new Map<string, AssetMetadata>([]),
     details: new Map<string, AssetDetail>([]),
     usdPrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
@@ -66,23 +73,25 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async init() {
-    const router = this.chain.state.router;
-    const assets = await router.getAllAssets();
+    const chain = this.chain.state;
+    const assets = await chain.router.getAllAssets();
     const assetsPairs = await getAssetsPairs(assets);
     const assetsDetails = await getAssetsDetail(assets);
+    const assetsMeta = await getAssetsMeta(assets);
     this.assets = {
       ...this.assets,
       list: assets,
       map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
       pairs: assetsPairs,
       details: assetsDetails,
+      meta: assetsMeta,
     };
     this.onInit();
   }
 
   private async subscribe() {
-    const api = this.chain.state.api;
-    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
+    const chain = this.chain.state;
+    this.disconnectSubscribeNewHeads = await chain.api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       console.log('Current block: ' + lastHeader.number.toString());
       this.syncPoolBalances();
       this.syncDolarPrice();
@@ -101,7 +110,8 @@ export abstract class PoolApp extends BaseApp {
 
   protected async syncPoolBalances() {
     const account = this.account.state;
-    if (account) {
+    const chain = this.chain.state;
+    if (account && chain) {
       this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
     }
   }
