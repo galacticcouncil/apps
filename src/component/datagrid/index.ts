@@ -69,19 +69,29 @@ export abstract class Datagrid<T> extends LitElement {
 
       @media (min-width: 768px) {
         th {
-          padding: 10px 32px;
+          padding: 10px 16px;
           font-size: 12px;
           line-height: 16px;
           font-weight: 600;
         }
 
         td {
-          padding: 12px 32px;
+          padding: 12px 16px;
         }
 
         th:nth-last-of-type(2),
         td:nth-last-of-type(2) {
           text-align: start;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        th {
+          padding: 10px 32px;
+        }
+
+        td {
+          padding: 12px 32px;
         }
       }
 
@@ -183,7 +193,9 @@ export abstract class Datagrid<T> extends LitElement {
 
   update(changedProperties: Map<string, unknown>) {
     const isStateChange = changedProperties.has('tableState');
-    if (isStateChange) {
+    const isDataChange = changedProperties.has('defaultData');
+
+    if (isStateChange || isDataChange) {
       this.initTable();
     }
     super.update(changedProperties);
