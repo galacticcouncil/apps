@@ -13,7 +13,7 @@ import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
-import { INVEST_INTERVAL, InvestInterval } from './types';
+import { INTERVAL, Interval } from '../../api/time';
 
 @customElement('gc-dca-form')
 export class DcaForm extends LitElement {
@@ -27,7 +27,7 @@ export class DcaForm extends LitElement {
   @property({ type: Boolean }) disabled = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
-  @property({ type: String }) interval: InvestInterval = 'week';
+  @property({ type: String }) interval: Interval = 'week';
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountInBudget = null;
@@ -244,7 +244,7 @@ export class DcaForm extends LitElement {
               this.onIntervalChanged(e);
             }}
           >
-            ${INVEST_INTERVAL.map((s: string) => html` <uigc-toggle-button tab value=${s}>${s}</uigc-toggle-button> `)}
+            ${INTERVAL.map((s: string) => html` <uigc-toggle-button tab value=${s}>${s}</uigc-toggle-button> `)}
           </uigc-toggle-button-group>
         </div>
         <uigc-selector item=${this.assetOut?.symbol} title="Get">
@@ -276,8 +276,8 @@ export class DcaForm extends LitElement {
         <div class=${classMap(summaryClasses)}>${this.infoSummaryTemplate()}</div>
         <div class="row">${this.infoEstimatedEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
-        <div class="row">${this.infoTransactionCostTemplate('DAI')}</div>
         <div class="row">${this.infoTradeFeeTemplate('DAI')}</div>
+        <div class="row">${this.infoTransactionCostTemplate('DAI')}</div>
       </div>
       <uigc-button
         ?disabled=${this.disabled || !this.account.state}
