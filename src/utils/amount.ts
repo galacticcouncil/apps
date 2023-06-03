@@ -32,3 +32,8 @@ export function toFN(amount: string, decimals: number) {
   const amountBN = scale(bnum(amount), decimals);
   return FN._fromBN(amountBN, decimals);
 }
+
+export function toBn(amount: string, decimals: number) {
+  const amountBN = scale(bnum(amount), decimals);
+  return amountBN.decimalPlaces(0, 1);
+}
