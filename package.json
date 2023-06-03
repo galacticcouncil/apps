@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",
+    "@galacticcouncil/api-augment": "^0.0.1",
     "esbuild": "^0.17.11",
     "esbuild-wasm": "^0.15.2",
     "node-html-parser": "^5.4.2-0",
@@ -64,11 +65,12 @@
   },
   "peerDependencies": {
     "@galacticcouncil/bridge": "0.0.2-1",
-    "@galacticcouncil/sdk": "^0.2.1",
-    "@galacticcouncil/ui": "^1.2.4",
+    "@galacticcouncil/sdk": "0.2.1-rc2",
+    "@galacticcouncil/ui": "^1.2.5",
     "@polkadot/api": "^9.14.2",
     "@polkadot/extension-inject": "^0.44.6",
     "@vaadin/router": "^1.7.4",
+    "graphql-request": "^6.1.0",
     "jdenticon": "^3.2.0"
   }
 }
