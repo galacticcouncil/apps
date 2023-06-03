@@ -5,7 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { ColumnDef, Row } from '@tanstack/table-core';
 
 import { DcaBasePositions } from '../base';
-import { Position } from '../model';
+import { DcaPosition } from '../types';
 
 import './transactions';
 
@@ -15,27 +15,23 @@ export class DcaPositions extends DcaBasePositions {
 
   constructor() {
     super();
-    this.onRowClick = (row: Row<Position>) => {
+    this.onRowClick = (row: Row<DcaPosition>) => {
       row.toggleSelected();
     };
   }
 
-  private amountRowTemplate(row: Row<Position>) {
+  private amountRowTemplate(row: Row<DcaPosition>) {
     return html` <span>${row.original.amount + ' ' + row.original.assetIn}</span> `;
   }
 
-  private statusRowTemplate(row: Row<Position>) {
-    return html` <span class="status status__active">${row.original.status}</span>`;
-  }
-
-  private actionsRowTemplate(row: Row<Position>) {
+  private actionsRowTemplate(row: Row<DcaPosition>) {
     const classes = {
       expanded: row.getIsSelected(),
     };
     return html` <uigc-icon-dropdown class=${classMap(classes)}></uigc-icon-dropdown> `;
   }
 
-  protected defaultColumns(): ColumnDef<Position>[] {
+  protected defaultColumns(): ColumnDef<DcaPosition>[] {
     return [
       {
         id: 'pair',
@@ -64,7 +60,7 @@ export class DcaPositions extends DcaBasePositions {
     ];
   }
 
-  protected expandedRowTemplate(row: Row<Position>): TemplateResult {
+  protected expandedRowTemplate(row: Row<DcaPosition>): TemplateResult {
     return html`
       <div class="row">
         ${this.summaryTemplate(row)}

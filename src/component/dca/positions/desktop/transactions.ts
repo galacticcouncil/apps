@@ -4,10 +4,10 @@ import { customElement } from 'lit/decorators.js';
 import { ColumnDef, Row } from '@tanstack/table-core';
 import { Datagrid } from '../../../datagrid';
 
-import { PastTransactions } from '../model';
+import { DcaTransactions } from '../types';
 
 @customElement('gc-dca-past-transactions')
-export class DcaPastTransactions extends Datagrid<PastTransactions> {
+export class DcaPastTransactions extends Datagrid<DcaTransactions> {
   static styles = [
     Datagrid.styles,
     css`
@@ -21,7 +21,7 @@ export class DcaPastTransactions extends Datagrid<PastTransactions> {
     `,
   ];
 
-  protected defaultColumns(): ColumnDef<PastTransactions>[] {
+  protected defaultColumns(): ColumnDef<DcaTransactions>[] {
     return [
       {
         id: 'date',
@@ -46,7 +46,7 @@ export class DcaPastTransactions extends Datagrid<PastTransactions> {
     ];
   }
 
-  protected expandedRowTemplate(_row: Row<PastTransactions>): TemplateResult {
+  protected expandedRowTemplate(_row: Row<DcaTransactions>): TemplateResult {
     return null;
   }
 }

@@ -2,11 +2,11 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
-import { PastTransactions } from '../model';
+import { DcaTransactions } from '../types';
 
 @customElement('gc-dca-past-transactions-mob')
 export class DcaPastTransactionsMob extends LitElement {
-  @property({ attribute: false }) defaultData: PastTransactions[] = [];
+  @property({ attribute: false }) defaultData: DcaTransactions[] = [];
 
   static styles = [
     css`
@@ -57,7 +57,7 @@ export class DcaPastTransactionsMob extends LitElement {
   render() {
     return html`
       <div class="list">
-        ${map(this.defaultData, (transaction: PastTransactions) => {
+        ${map(this.defaultData, (transaction: DcaTransactions) => {
           return html`
             <div class="row">
               ${this.itemTemplate('Date', transaction.date)} ${this.itemTemplate('Amount', transaction.amount)}

@@ -8,13 +8,13 @@ import { ColumnDef, Row } from '@tanstack/table-core';
 import { headerStyles } from '../../../styles/header.css';
 
 import { DcaBasePositions } from '../base';
-import { Position } from '../model';
+import { DcaPosition } from '../types';
 
 import './transactions';
 
 @customElement('gc-dca-positions-mob')
 export class DcaPositionsMob extends DcaBasePositions {
-  @state() active: Row<Position> = null;
+  @state() active: Row<DcaPosition> = null;
 
   static styles = [
     DcaBasePositions.styles,
@@ -74,26 +74,26 @@ export class DcaPositionsMob extends DcaBasePositions {
 
   constructor() {
     super();
-    this.onRowClick = (row: Row<Position>) => {
+    this.onRowClick = (row: Row<DcaPosition>) => {
       this.active = row;
     };
   }
 
-  private infoRowTemplate(row: Row<Position>) {
+  private infoRowTemplate(row: Row<DcaPosition>) {
     return html` <div class="info">
       <span>${this.getAmount(row)}</span>
-      <span class="status status__active">${row.original.status}</span>
+      ${this.statusRowTemplate(row)}
     </div>`;
   }
 
-  private actionsRowTemplate(row: Row<Position>) {
+  private actionsRowTemplate(row: Row<DcaPosition>) {
     const classes = {
       right: true,
     };
     return html` <uigc-icon-dropdown class=${classMap(classes)}></uigc-icon-dropdown> `;
   }
 
-  protected defaultColumns(): ColumnDef<Position>[] {
+  protected defaultColumns(): ColumnDef<DcaPosition>[] {
     return [
       {
         id: 'pair',
@@ -112,7 +112,7 @@ export class DcaPositionsMob extends DcaBasePositions {
     ];
   }
 
-  protected expandedRowTemplate(_row: Row<Position>): TemplateResult {
+  protected expandedRowTemplate(_row: Row<DcaPosition>): TemplateResult {
     return null;
   }
 
@@ -149,8 +149,9 @@ export class DcaPositionsMob extends DcaBasePositions {
       <div class="row">
         <div class="overview item">
           ${this.itemTemplate('', this.pairRowTemplate(row))}
-          ${this.itemTemplate('Status', html` <span class="status__active">${row.original.status}</span> `)}
-          ${this.itemTemplate('Interval', row.original.interval)} ${this.itemTemplate('Amount', this.getAmount(row))}
+          ${this.itemTemplate('Status', this.statusRowTemplate(row))}
+          ${this.itemTemplate('Interval', row.original.interval)} 
+          ${this.itemTemplate('Amount', this.getAmount(row))}
         </div>
         ${this.summaryTemplate(row)}
         <div class="transactions">Past Transactions</div>

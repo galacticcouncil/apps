@@ -1,12 +1,14 @@
 import { html, css } from 'lit';
+import { choose } from 'lit/directives/choose.js';
 
 import { Row } from '@tanstack/table-core';
 import { Datagrid } from '../../datagrid';
+import { DcaPosition } from './types';
 
-import { Position } from './model';
+// import { Position } from './model';
 import { positionsStyles } from './base.css';
 
-export abstract class DcaBasePositions extends Datagrid<Position> {
+export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
   static styles = [
     Datagrid.styles,
     positionsStyles,
@@ -27,7 +29,7 @@ export abstract class DcaBasePositions extends Datagrid<Position> {
     `,
   ];
 
-  protected pairRowTemplate(row: Row<Position>) {
+  protected pairRowTemplate(row: Row<DcaPosition>) {
     return html`
       <div class="pair">
         <uigc-logo-asset fit asset=${row.original.assetIn}></uigc-logo-asset>
@@ -46,27 +48,29 @@ export abstract class DcaBasePositions extends Datagrid<Position> {
     `;
   }
 
-  protected getBudget(row: Row<Position>) {
-    return [row.original.budget.remaining, '/', row.original.budget.total, row.original.assetOut].join(' ');
+  protected getBudget(row: Row<DcaPosition>) {
+    return '';
+    //return [row.original.budget.remaining, '/', row.original.budget.total, row.original.assetOut].join(' ');
   }
 
-  protected getAmount(row: Row<Position>) {
+  protected getAmount(row: Row<DcaPosition>) {
     return [row.original.amount, row.original.assetIn].join(' ');
   }
 
-  protected getNextExecution(row: Row<Position>) {
-    return row.original.nextExecution;
+  protected getNextExecution(row: Row<DcaPosition>) {
+    return '';
+    //return row.original.nextExecution;
   }
 
-  protected getInterval(row: Row<Position>) {
+  protected getInterval(row: Row<DcaPosition>) {
     return row.original.interval;
   }
 
-  protected getStatus(row: Row<Position>) {
-    return row.original.status;
+  protected getStatus(row: Row<DcaPosition>) {
+    return row.original.status.type;
   }
 
-  protected summaryTemplate(row: Row<Position>) {
+  protected summaryTemplate(row: Row<DcaPosition>) {
     return html`
       <div class="summary item">
         ${this.itemTemplate('Remaining / Total Budget', this.getBudget(row))}
@@ -84,5 +88,17 @@ export abstract class DcaBasePositions extends Datagrid<Position> {
         </uigc-button>
       </div>
     `;
+  }
+
+  protected statusRowTemplate(row: Row<DcaPosition>) {
+    const status = row.original.status;
+    return html` ${choose(
+      status.type,
+      [
+        ['Terminated', () => html`<span class="status status__terminated">${status.type}</span>`],
+        ['Completed', () => html`<span class="status status__completed">${status.type}</span>`],
+      ],
+      () => html`<span class="status status__active">Active</span>`
+    )}`;
   }
 }

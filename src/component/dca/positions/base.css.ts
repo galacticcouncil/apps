@@ -21,6 +21,12 @@ export const positionsStyles = css`
 
   @media (min-width: 768px) {
     .row > div {
+      padding: 14px 16px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .row > div {
       padding: 14px 32px;
     }
   }
@@ -111,5 +117,13 @@ export const positionsStyles = css`
 
   .status__active {
     color: #4bffbb;
+  }
+
+  .status__terminated {
+    color: #30344c;
+  }
+
+  .status__completed {
+    color: rgb(166, 221, 255);
   }
 `;
