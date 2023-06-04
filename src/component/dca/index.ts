@@ -205,7 +205,9 @@ export class DcaApp extends PoolApp {
     const est = dayjs()
       .add(interval * reps, 'millisecond')
       .format('DD-MM-YYYY HH:mm');
+
     this.dca.est = est;
+    this.requestUpdate();
   }
 
   notificationTemplate(msg: String): TxNotificationMssg {
