@@ -17,11 +17,13 @@ export class DcaPositions extends DcaBasePositions {
     super();
     this.onRowClick = (row: Row<DcaPosition>) => {
       row.toggleSelected();
+      const options = {
+        bubbles: true,
+        composed: true,
+        detail: { id: row.original.id },
+      };
+      this.dispatchEvent(new CustomEvent('dca-clicked', options));
     };
-  }
-
-  private amountRowTemplate(row: Row<DcaPosition>) {
-    return html` <span>${row.original.amount + ' ' + row.original.assetIn}</span> `;
   }
 
   private actionsRowTemplate(row: Row<DcaPosition>) {
@@ -36,7 +38,7 @@ export class DcaPositions extends DcaBasePositions {
       {
         id: 'pair',
         header: () => 'Invest / Get',
-        cell: ({ row }) => this.pairRowTemplate(row),
+        cell: ({ row }) => this.pairTemplate(row.original),
       },
       {
         id: 'interval',
@@ -46,12 +48,12 @@ export class DcaPositions extends DcaBasePositions {
       {
         id: 'amount',
         header: () => 'Amount',
-        cell: ({ row }) => this.amountRowTemplate(row),
+        cell: ({ row }) => this.getAmount(row.original),
       },
       {
         id: 'status',
         header: () => 'Status',
-        cell: ({ row }) => this.statusRowTemplate(row),
+        cell: ({ row }) => this.statusTemplate(row.original),
       },
       {
         id: 'actions',
@@ -63,9 +65,12 @@ export class DcaPositions extends DcaBasePositions {
   protected expandedRowTemplate(row: Row<DcaPosition>): TemplateResult {
     return html`
       <div class="row">
-        ${this.summaryTemplate(row)}
+        ${this.summaryTemplate(row.original)}
         <div class="transactions">Past Transactions</div>
-        <gc-dca-past-transactions .defaultData=${row.original.transactions}></gc-dca-past-transactions>
+        <gc-dca-past-transactions
+          .position=${row.original}
+          .defaultData=${row.original.transactions.slice(0, 10)}
+        ></gc-dca-past-transactions>
       </div>
     `;
   }

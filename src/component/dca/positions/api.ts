@@ -1,45 +1,71 @@
 import type { RegistryError } from '@polkadot/types/types';
 import { BN, hexToU8a } from '@polkadot/util';
+import { ZERO, bnum } from '@galacticcouncil/sdk';
 
-import { queryScheduled, queryStatus } from './query';
+import { queryPlanned, queryScheduled, queryStatus, queryTrades } from './query';
 import { Account, chainCursor } from '../../../db';
 import { convertToHex } from '../../../utils/account';
 
-import { DcaPosition, DcaStatus } from './types';
+import { DcaPosition, DcaStatus, DcaTransaction } from './types';
 
 const ep = 'https://hydradx-rococo-explorer.play.hydration.cloud/graphql';
 
 export async function getScheduled(account: Account): Promise<DcaPosition[]> {
   const who = convertToHex(account.address);
   const scheduled = await queryScheduled(ep, who);
-
   const scheduledStatus = await getStatus(account);
 
-  return scheduled.events
-    .map((event) => {
-      const id = event.args.id;
-      const start = event.call.args.startExecutionBlock;
-      const { order, period, totalAmount } = event.call.args.schedule;
+  return scheduled.events.map((event) => {
+    const id = event.args.id;
+    const start = event.call.args.startExecutionBlock;
+    const { order, period, totalAmount } = event.call.args.schedule;
 
-      return {
-        id: id,
-        assetIn: order.assetIn.toString(),
-        assetOut: order.assetOut.toString(),
-        start: start,
-        interval: period,
-        amount: order.amountIn,
-        status: scheduledStatus.get(id),
-        transactions: [],
-      } as DcaPosition;
-    })
-    .sort((a, b) => {
-      if (a.start > b.start) return -1;
-      if (a.start < b.start) return 1;
-      return 0;
-    });
+    return {
+      id: id,
+      assetIn: order.assetIn.toString(),
+      assetOut: order.assetOut.toString(),
+      start: start,
+      interval: period,
+      amount: bnum(order.amountIn),
+      total: bnum(totalAmount),
+      status: scheduledStatus.get(id),
+      transactions: [],
+    } as DcaPosition;
+  });
 }
 
-export async function getStatus(account: Account): Promise<Map<number, DcaStatus>> {
+export async function getTrades(scheduleId: number): Promise<DcaTransaction[]> {
+  const trades = await queryTrades(ep, scheduleId);
+
+  return trades.events.map((event) => {
+    const { amountIn, amountOut, error } = event.args;
+    const { height, timestamp } = event.block;
+
+    const type = event.name.replace('DCA.', '');
+    let err: string;
+    let desc: string;
+    if (error) {
+      const decoded: RegistryError = decodeError(error);
+      err = decoded.method;
+      desc = decoded.docs.join(' ');
+    }
+
+    return {
+      date: timestamp,
+      block: height,
+      amountIn: error ? ZERO : bnum(amountIn),
+      amountOut: error ? ZERO : bnum(amountOut),
+      status: { type, err, desc } as DcaStatus,
+    } as DcaTransaction;
+  });
+}
+
+export async function getPlanned(scheduleId: number): Promise<number> {
+  const planned = await queryPlanned(ep, scheduleId);
+  return planned.events[0].args.block;
+}
+
+async function getStatus(account: Account): Promise<Map<number, DcaStatus>> {
   const who = convertToHex(account.address);
   const status = await queryStatus(ep, who);
 

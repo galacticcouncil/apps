@@ -4,7 +4,8 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
-import { request, batchRequests, gql } from 'graphql-request';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
 import { PoolApp } from '../base/PoolApp';
 import { baseStyles } from '../styles/base.css';
@@ -13,12 +14,12 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account } from '../../db';
 import { getMinAmountOut } from '../../api/slippage';
-import { intervalAsBlockNo } from '../../api/time';
+import { INTERVAL_MS, blocktoTs, intervalAsBlockNo } from '../../api/time';
 import { formatAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum } from '@galacticcouncil/sdk';
+import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
@@ -30,23 +31,31 @@ import { DcaTab, DcaState, DEFAULT_DCA_STATE } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
 
-import { DcaPosition } from './positions/types';
-import { getScheduled } from './positions/api';
+import { DcaPosition, DcaTransaction } from './positions/types';
+import { getPlanned, getScheduled, getTrades } from './positions/api';
 
 @customElement('gc-dca-app')
 export class DcaApp extends PoolApp {
   @state() tab: DcaTab = DcaTab.DcaForm;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
+  @state() dcaPositions: DcaPosition[] = [];
+  @state() dcaTransactions: Map<number, DcaTransaction[]> = new Map([]);
+  @state() dcaPlanned: Map<number, number> = new Map([]);
+
   @state() asset = {
     selector: null as AssetSelector,
   };
-  @state() positions: DcaPosition[] = [];
   @state() width: number = window.innerWidth;
 
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
   @property({ type: Number }) chartDatasourceId: number = null;
   @property({ type: Boolean }) chart: Boolean = false;
+
+  constructor() {
+    super();
+    dayjs.extend(utc);
+  }
 
   static styles = [
     baseStyles,
@@ -154,6 +163,7 @@ export class DcaApp extends PoolApp {
       ...this.dca,
       amountIn: amount,
     };
+    this.updateEstimated();
   }
 
   updateAmountInBudget(amount: string) {
@@ -161,6 +171,7 @@ export class DcaApp extends PoolApp {
       ...this.dca,
       amountInBudget: amount,
     };
+    this.updateEstimated();
   }
 
   updateMaxPrice(amount: string) {
@@ -176,6 +187,25 @@ export class DcaApp extends PoolApp {
     } else {
       this.dca[assetKey] = null;
     }
+  }
+
+  private async updateEstimated() {
+    const amountIn = this.dca.amountIn;
+    const amountInBudget = this.dca.amountInBudget;
+
+    if (!amountIn || !amountInBudget) {
+      this.dca.est = null;
+      return;
+    }
+
+    const aIn = Number(amountIn);
+    const aInbudget = Number(amountInBudget);
+    const reps = Math.floor(aInbudget / aIn);
+    const interval = INTERVAL_MS[this.dca.interval];
+    const est = dayjs()
+      .add(interval * reps, 'millisecond')
+      .format('DD-MM-YYYY HH:mm');
+    this.dca.est = est;
   }
 
   notificationTemplate(msg: String): TxNotificationMssg {
@@ -208,7 +238,6 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     const chain = this.chain.state;
     if (account) {
-      const block = await chain.api.query.system.number();
       const assetIn = this.dca.assetIn.id;
       const assetInMeta = this.assets.meta.get(assetIn);
       const assetOut = this.dca.assetOut.id;
@@ -230,7 +259,7 @@ export class DcaApp extends PoolApp {
       const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
         {
           owner: account.address,
-          period: 300,
+          period: period,
           totalAmount: amountInBudgetBn.toFixed(),
           order: {
             Sell: {
@@ -238,16 +267,13 @@ export class DcaApp extends PoolApp {
               assetOut: assetOut,
               amountIn: amountInBn.toFixed(),
               minLimit: '0',
-              slippage: '10000',
+              slippage: '50000',
               route: [{ pool: 'Omnipool', assetIn: assetIn, assetOut: assetOut }],
             },
           },
         },
-        block.toNumber() + 2
+        null
       );
-
-      console.log(tx.toHex());
-      console.log(tx.toHuman());
 
       const transaction = {
         hex: tx.toHex(),
@@ -260,6 +286,42 @@ export class DcaApp extends PoolApp {
     }
   }
 
+  private async syncPlanned(scheduleId: number) {
+    const chain = this.chain.state;
+    const currentBlockNo = await chain.api.query.system.number();
+
+    let nextExecutionBlock = this.dcaPlanned.get(scheduleId);
+    if (!nextExecutionBlock) {
+      nextExecutionBlock = await getPlanned(scheduleId);
+      if (nextExecutionBlock > currentBlockNo.toNumber()) {
+        const nextExecution = await blocktoTs(nextExecutionBlock);
+        this.dcaPlanned.set(scheduleId, nextExecution);
+      }
+    }
+  }
+
+  private async syncTransactions(scheduleId: number) {
+    let transactions = this.dcaTransactions.get(scheduleId);
+    if (!transactions) {
+      transactions = await getTrades(scheduleId);
+      this.dcaTransactions.set(scheduleId, transactions);
+    }
+  }
+
+  async syncSummary(scheduleId: number) {
+    await this.syncPlanned(scheduleId);
+    await this.syncTransactions(scheduleId);
+    const dcaPositionsUpdated = this.dcaPositions.map((position) => {
+      if (position.id == scheduleId) {
+        const transactions = this.dcaTransactions.get(position.id) || [];
+        const nextExecution = this.dcaPlanned.get(position.id);
+        return { ...position, transactions, nextExecution };
+      }
+      return position;
+    });
+    this.dcaPositions = dcaPositionsUpdated;
+  }
+
   async syncPositions() {
     const account = this.account.state;
     const assetMeta = this.assets.meta;
@@ -268,14 +330,17 @@ export class DcaApp extends PoolApp {
       const positions = scheduled.map((position: DcaPosition) => {
         const assetInMeta = assetMeta.get(position.assetIn);
         const assetOutMeta = assetMeta.get(position.assetOut);
+        const transactions = this.dcaTransactions.get(position.id) || [];
+        const nextExecution = this.dcaPlanned.get(position.id);
         return {
           ...position,
-          assetIn: assetInMeta.symbol,
-          assetOut: assetOutMeta.symbol,
-          amount: formatAmount(bnum(position.amount), assetInMeta.decimals),
+          assetInMeta,
+          assetOutMeta,
+          transactions,
+          nextExecution,
         } as DcaPosition;
       });
-      this.positions = positions;
+      this.dcaPositions = positions;
     }
   }
 
@@ -367,6 +432,7 @@ export class DcaApp extends PoolApp {
         .interval=${this.dca.interval}
         .tradeFee=${this.dca.tradeFee}
         .tradeFeePct=${this.dca.tradeFeePct}
+        .est=${this.dca.est}
         @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
           id == 'assetIn' && this.updateAmountIn(value);
           id == 'assetInBudget' && this.updateAmountInBudget(value);
@@ -382,6 +448,7 @@ export class DcaApp extends PoolApp {
         }}
         @interval-changed=${({ detail }: CustomEvent) => {
           this.dca.interval = detail.value;
+          this.updateEstimated();
         }}
         @schedule-clicked=${() => this.schedule()}
       >
@@ -400,16 +467,21 @@ export class DcaApp extends PoolApp {
     const classes = {
       positions: true,
     };
-    console.log(this.positions);
     return html` <div class=${classMap(classes)}>
       ${when(
         this.width > 768,
-        () => html` <gc-dca-positions .defaultData=${this.positions}>
+        () => html` <gc-dca-positions
+          @dca-clicked=${({ detail: { id } }: CustomEvent) => this.syncSummary(id)}
+          .defaultData=${this.dcaPositions}
+        >
           <uigc-typography slot="header" variant="title">Active</uigc-typography>
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Positions</uigc-typography>
         </gc-dca-positions>`,
-        () => html` <gc-dca-positions-mob .defaultData=${this.positions}>
+        () => html` <gc-dca-positions-mob
+          @dca-clicked=${({ detail: { id } }: CustomEvent) => this.syncSummary(id)}
+          .defaultData=${this.dcaPositions}
+        >
           <uigc-typography slot="header" variant="title">Active</uigc-typography>
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Positions</uigc-typography>

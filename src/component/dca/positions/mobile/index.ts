@@ -14,7 +14,7 @@ import './transactions';
 
 @customElement('gc-dca-positions-mob')
 export class DcaPositionsMob extends DcaBasePositions {
-  @state() active: Row<DcaPosition> = null;
+  @state() active: DcaPosition = null;
 
   static styles = [
     DcaBasePositions.styles,
@@ -75,18 +75,24 @@ export class DcaPositionsMob extends DcaBasePositions {
   constructor() {
     super();
     this.onRowClick = (row: Row<DcaPosition>) => {
-      this.active = row;
+      this.active = row.original;
+      const options = {
+        bubbles: true,
+        composed: true,
+        detail: { id: row.original.id },
+      };
+      this.dispatchEvent(new CustomEvent('dca-clicked', options));
     };
   }
 
-  private infoRowTemplate(row: Row<DcaPosition>) {
+  private infoTemplate(position: DcaPosition) {
     return html` <div class="info">
-      <span>${this.getAmount(row)}</span>
-      ${this.statusRowTemplate(row)}
+      <span>${this.getAmount(position)}</span>
+      ${this.statusTemplate(position)}
     </div>`;
   }
 
-  private actionsRowTemplate(row: Row<DcaPosition>) {
+  private actionsTemplate(position: DcaPosition) {
     const classes = {
       right: true,
     };
@@ -98,16 +104,16 @@ export class DcaPositionsMob extends DcaBasePositions {
       {
         id: 'pair',
         header: () => 'Invest / Get',
-        cell: ({ row }) => this.pairRowTemplate(row),
+        cell: ({ row }) => this.pairTemplate(row.original),
       },
       {
         id: 'info',
         header: () => 'Amount / Status',
-        cell: ({ row }) => this.infoRowTemplate(row),
+        cell: ({ row }) => this.infoTemplate(row.original),
       },
       {
         id: 'actions',
-        cell: ({ row }) => this.actionsRowTemplate(row),
+        cell: ({ row }) => this.actionsTemplate(row.original),
       },
     ];
   }
@@ -116,23 +122,8 @@ export class DcaPositionsMob extends DcaBasePositions {
     return null;
   }
 
-  private modalHeaderTemplate() {
-    return html`<div class="header section">
-      <span></span>
-      <uigc-typography variant="section">Position details</uigc-typography>
-      <uigc-icon-button
-        class="close"
-        @click=${() => {
-          this.active = null;
-        }}
-      >
-        <uigc-icon-close></uigc-icon-close>
-      </uigc-icon-button>
-    </div> `;
-  }
-
   private modalRowTemplate() {
-    const row = this.active;
+    const position = this.active;
     return html`
       <div class="header section">
         <span></span>
@@ -148,16 +139,23 @@ export class DcaPositionsMob extends DcaBasePositions {
       </div>
       <div class="row">
         <div class="overview item">
-          ${this.itemTemplate('', this.pairRowTemplate(row))}
-          ${this.itemTemplate('Status', this.statusRowTemplate(row))}
-          ${this.itemTemplate('Interval', row.original.interval)} 
-          ${this.itemTemplate('Amount', this.getAmount(row))}
+          ${this.itemTemplate('', this.pairTemplate(position))}
+          ${this.itemTemplate('Status', this.statusTemplate(position))}
+          ${this.itemTemplate('Interval', position.interval)} ${this.itemTemplate('Amount', this.getAmount(position))}
         </div>
-        ${this.summaryTemplate(row)}
+        ${this.summaryTemplate(position)}
         <div class="transactions">Past Transactions</div>
-        <gc-dca-past-transactions-mob .defaultData=${row.original.transactions}></gc-dca-past-transactions-mob>
+        <gc-dca-past-transactions-mob .position=${position}></gc-dca-past-transactions-mob>
       </div>
     `;
+  }
+
+  override update(changedProperties: Map<string, unknown>) {
+    super.update(changedProperties);
+    const isDataChange = changedProperties.has('defaultData');
+    if (isDataChange && this.active) {
+      this.active = this.defaultData.find((position) => position.id == this.active.id);
+    }
   }
 
   render() {

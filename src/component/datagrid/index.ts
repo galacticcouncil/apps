@@ -191,7 +191,7 @@ export abstract class Datagrid<T> extends LitElement {
     `;
   }
 
-  update(changedProperties: Map<string, unknown>) {
+  override update(changedProperties: Map<string, unknown>) {
     const isStateChange = changedProperties.has('tableState');
     const isDataChange = changedProperties.has('defaultData');
 

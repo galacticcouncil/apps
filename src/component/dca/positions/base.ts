@@ -1,22 +1,26 @@
 import { html, css } from 'lit';
 import { choose } from 'lit/directives/choose.js';
 
-import { Row } from '@tanstack/table-core';
+import { positionsStyles } from './base.css';
 import { Datagrid } from '../../datagrid';
+import { formatAmount, humanizeAmount } from '../../../utils/amount';
+
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+import { ZERO } from '@galacticcouncil/sdk';
 import { DcaPosition } from './types';
 
-// import { Position } from './model';
-import { positionsStyles } from './base.css';
-
 export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
+  constructor() {
+    super();
+    dayjs.extend(utc);
+  }
+
   static styles = [
     Datagrid.styles,
     positionsStyles,
     css`
-      uigc-button svg {
-        margin-right: -8px;
-      }
-
       uigc-button path {
         stroke: var(--uigc-app-font-color__primary);
         transition: 0.2s ease-in-out;
@@ -29,12 +33,12 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
     `,
   ];
 
-  protected pairRowTemplate(row: Row<DcaPosition>) {
+  protected pairTemplate(position: DcaPosition) {
     return html`
       <div class="pair">
-        <uigc-logo-asset fit asset=${row.original.assetIn}></uigc-logo-asset>
+        <uigc-logo-asset fit asset=${position.assetInMeta.symbol}></uigc-logo-asset>
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        <uigc-logo-asset fit asset=${row.original.assetOut}></uigc-logo-asset>
+        <uigc-logo-asset fit asset=${position.assetOutMeta.symbol}></uigc-logo-asset>
       </div>
     `;
   }
@@ -48,57 +52,70 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
     `;
   }
 
-  protected getBudget(row: Row<DcaPosition>) {
-    return '';
-    //return [row.original.budget.remaining, '/', row.original.budget.total, row.original.assetOut].join(' ');
+  protected getReceived(position: DcaPosition) {
+    const assetOutMeta = position.assetOutMeta;
+    const received = position.transactions
+      .filter((trade) => !trade.status.err)
+      .map((trade) => trade.amountOut)
+      .reduce((a, b) => a.plus(b), ZERO);
+    const receivedAmount = formatAmount(received, assetOutMeta.decimals);
+    return [humanizeAmount(receivedAmount), assetOutMeta.symbol].join(' ');
   }
 
-  protected getAmount(row: Row<DcaPosition>) {
-    return [row.original.amount, row.original.assetIn].join(' ');
+  protected getBudget(position: DcaPosition) {
+    const assetInMeta = position.assetInMeta;
+    const totalBudget = formatAmount(position.total, assetInMeta.decimals);
+    if (position.status?.type == 'Completed') {
+      return ['0', '/', totalBudget, assetInMeta.symbol].join(' ');
+    }
+
+    const swapped = position.transactions
+      .filter((trade) => !trade.status.err)
+      .map((trade) => trade.amountIn)
+      .reduce((a, b) => a.plus(b), ZERO);
+    const remaining = position.total.minus(swapped);
+    const remainingBudget = formatAmount(remaining, assetInMeta.decimals);
+    return [remainingBudget, '/', totalBudget, assetInMeta.symbol].join(' ');
   }
 
-  protected getNextExecution(row: Row<DcaPosition>) {
-    return '';
-    //return row.original.nextExecution;
+  protected getAmount(position: DcaPosition) {
+    const assetInMeta = position.assetInMeta;
+    const amount = formatAmount(position.amount, assetInMeta.decimals);
+    return [amount, assetInMeta.symbol].join(' ');
   }
 
-  protected getInterval(row: Row<DcaPosition>) {
-    return row.original.interval;
+  protected getNextExecution(position: DcaPosition) {
+    return position.nextExecution ? dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm') : '-';
   }
 
-  protected getStatus(row: Row<DcaPosition>) {
-    return row.original.status.type;
+  protected getInterval(position: DcaPosition) {
+    return position.interval;
   }
 
-  protected summaryTemplate(row: Row<DcaPosition>) {
+  protected getStatus(position: DcaPosition) {
+    return position.status.type;
+  }
+
+  protected summaryTemplate(position: DcaPosition) {
     return html`
       <div class="summary item">
-        ${this.itemTemplate('Remaining / Total Budget', this.getBudget(row))}
-        ${this.itemTemplate('Next Execution', this.getNextExecution(row))}
-        <uigc-button variant="secondary" size="small"
-          >Actions
-          <svg hdx="" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M7.99414 10.5L11.9994 13.5L16.0046 10.5"
-              stroke="#fff"
-              stroke-width="2"
-              stroke-linecap="square"
-            ></path>
-          </svg>
-        </uigc-button>
+        ${this.itemTemplate('Remaining / Total Budget', this.getBudget(position))}
+        ${this.itemTemplate('Total Received', this.getReceived(position))}
+        ${this.itemTemplate('Next Execution', this.getNextExecution(position))}
+        <uigc-button variant="secondary" size="small">Terminate</uigc-button>
       </div>
     `;
   }
 
-  protected statusRowTemplate(row: Row<DcaPosition>) {
-    const status = row.original.status;
-    return html` ${choose(
-      status.type,
-      [
+  protected statusTemplate(position: DcaPosition) {
+    const status = position.status;
+    if (status) {
+      return html` ${choose(status.type, [
         ['Terminated', () => html`<span class="status status__terminated">${status.type}</span>`],
         ['Completed', () => html`<span class="status status__completed">${status.type}</span>`],
-      ],
-      () => html`<span class="status status__active">Active</span>`
-    )}`;
+      ])}`;
+    } else {
+      return html`<span class="status status__active">Active</span>`;
+    }
   }
 }

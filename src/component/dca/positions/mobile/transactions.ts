@@ -2,11 +2,20 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
-import { DcaTransactions } from '../types';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+import { DcaPosition, DcaTransaction } from '../types';
+import { formatAmount, humanizeAmount } from '../../../../utils/amount';
 
 @customElement('gc-dca-past-transactions-mob')
 export class DcaPastTransactionsMob extends LitElement {
-  @property({ attribute: false }) defaultData: DcaTransactions[] = [];
+  @property({ attribute: false }) position: DcaPosition = null;
+
+  constructor() {
+    super();
+    dayjs.extend(utc);
+  }
 
   static styles = [
     css`
@@ -45,6 +54,17 @@ export class DcaPastTransactionsMob extends LitElement {
     `,
   ];
 
+  protected formatDate(transaction: DcaTransaction) {
+    const dateStr = transaction.date;
+    return dayjs(dateStr).format('DD-MM-YYYY HH:mm');
+  }
+
+  protected formatAmount(transaction: DcaTransaction) {
+    const assetOutMeta = this.position.assetOutMeta;
+    const amount = formatAmount(transaction.amountOut, assetOutMeta.decimals);
+    return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
+  }
+
   protected itemTemplate(label: string, value: any) {
     return html`
       <span class="item">
@@ -57,11 +77,11 @@ export class DcaPastTransactionsMob extends LitElement {
   render() {
     return html`
       <div class="list">
-        ${map(this.defaultData, (transaction: DcaTransactions) => {
+        ${map(this.position?.transactions.slice(0, 10), (transaction: DcaTransaction) => {
           return html`
             <div class="row">
-              ${this.itemTemplate('Date', transaction.date)} ${this.itemTemplate('Amount', transaction.amount)}
-              ${this.itemTemplate('Price', transaction.price)} ${this.itemTemplate('Balance', transaction.balance)}
+              ${this.itemTemplate('Date', this.formatDate(transaction))}
+              ${this.itemTemplate('Received', this.formatAmount(transaction))}
             </div>
           `;
         })}

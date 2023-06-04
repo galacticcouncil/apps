@@ -19,6 +19,7 @@ export type DcaState = {
   spotPrice: string;
   tradeFee: string;
   tradeFeePct: string;
+  est: string;
 };
 
 export const DEFAULT_DCA_STATE: DcaState = {
@@ -27,9 +28,10 @@ export const DEFAULT_DCA_STATE: DcaState = {
   amountIn: null,
   amountInBudget: null,
   amountInUsd: null,
-  interval: 'week',
+  interval: '1h',
   maxPrice: null,
   spotPrice: null,
   tradeFee: null,
   tradeFeePct: '0',
+  est: null,
 };

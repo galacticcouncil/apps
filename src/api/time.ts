@@ -7,12 +7,15 @@ export const DAY_MS = HOUR_MS * 24;
 export const WEEK_MS = DAY_MS * 7;
 export const MONTH_MS = DAY_MS * 30;
 
-export const INTERVAL = ['day', 'week', 'month'] as const;
+export const INTERVAL = ['1h', '2h', '4h', '8h', '12h', '24h'] as const;
 
-const INTERVAL_MS: Record<Interval, number> = {
-  day: DAY_MS,
-  month: MONTH_MS,
-  week: WEEK_MS,
+export const INTERVAL_MS: Record<Interval, number> = {
+  '1h': HOUR_MS,
+  '2h': HOUR_MS * 2,
+  '4h': HOUR_MS * 4,
+  '8h': HOUR_MS * 8,
+  '12h': HOUR_MS * 12,
+  '24h': HOUR_MS * 24,
 };
 
 export type Interval = (typeof INTERVAL)[number];
@@ -55,4 +58,15 @@ export async function toBlockNo(intervalMs: number) {
 export async function intervalAsBlockNo(interval: Interval) {
   const intervalMs = INTERVAL_MS[interval];
   return toBlockNo(intervalMs);
+}
+
+export async function blocktoTs(futureBlock: number) {
+  const api = chainCursor.deref().api;
+
+  const blockTime = await getBlockTime();
+  const now = await api.query.timestamp.now();
+  const blockNumber = await api.query.system.number();
+
+  const diff = (futureBlock - blockNumber.toNumber()) * blockTime;
+  return now.toNumber() + diff;
 }

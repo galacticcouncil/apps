@@ -55,7 +55,7 @@
   "dca.title": "Dollar cost average",
   "dca.invest": "Invest",
   "dca.endData": "Estimated end date",
-  "dca.slippage": "Fixed Slippage/Spread",
+  "dca.slippage": "Slippage/Spread",
   "dca.transactionCost": "Transaction cost",
   "dca.tradeFee": "Trade fee",
   "dca.summary": "Summary",

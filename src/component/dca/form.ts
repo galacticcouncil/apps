@@ -11,9 +11,9 @@ import { formStyles } from '../styles/form.css';
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
+import { INTERVAL, Interval } from '../../api/time';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
-import { INTERVAL, Interval } from '../../api/time';
 
 @customElement('gc-dca-form')
 export class DcaForm extends LitElement {
@@ -27,7 +27,7 @@ export class DcaForm extends LitElement {
   @property({ type: Boolean }) disabled = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
-  @property({ type: String }) interval: Interval = 'week';
+  @property({ type: String }) interval: Interval = '1h';
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountInBudget = null;
@@ -35,6 +35,7 @@ export class DcaForm extends LitElement {
   @property({ type: String }) slippagePct = '5';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
+  @property({ type: String }) est = null;
 
   static styles = [
     baseStyles,
@@ -192,7 +193,7 @@ export class DcaForm extends LitElement {
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
-        () => html`<span class="value">12.04.1986</span> `
+        () => html`<span class="value">${this.est || '-'}</span> `
       )}`;
   }
 
@@ -244,7 +245,9 @@ export class DcaForm extends LitElement {
               this.onIntervalChanged(e);
             }}
           >
-            ${INTERVAL.map((s: string) => html` <uigc-toggle-button tab value=${s}>${s}</uigc-toggle-button> `)}
+            ${INTERVAL.map(
+              (s: string) => html` <uigc-toggle-button tab value=${s}>${s.toUpperCase()}</uigc-toggle-button> `
+            )}
           </uigc-toggle-button-group>
         </div>
         <uigc-selector item=${this.assetOut?.symbol} title="Get">
@@ -271,13 +274,22 @@ export class DcaForm extends LitElement {
         >
           <span class="budget" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
         </uigc-asset-input>
+        <uigc-input
+          class=${classMap(advancedClasses)}
+          field
+          amount=${this.maxPrice}
+          asset=${this.assetOut?.symbol}
+          @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
+        >
+          <span class="budget" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
+        </uigc-input>
       </div>
       <div class="info show">
         <div class=${classMap(summaryClasses)}>${this.infoSummaryTemplate()}</div>
         <div class="row">${this.infoEstimatedEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
-        <div class="row">${this.infoTradeFeeTemplate('DAI')}</div>
-        <div class="row">${this.infoTransactionCostTemplate('DAI')}</div>
+        <!-- <div class="row">${this.infoTradeFeeTemplate('DAI')}</div>
+        <div class="row">${this.infoTransactionCostTemplate('DAI')}</div> -->
       </div>
       <uigc-button
         ?disabled=${this.disabled || !this.account.state}

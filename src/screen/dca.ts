@@ -25,7 +25,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
       <gc-dca-app
         chart
         chartDatasourceId="10"
-        apiAddress="wss://rpc.hydradx.cloud"
+        apiAddress="wss://rococo-hydradx-rpc.hydration.dev"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}

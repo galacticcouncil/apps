@@ -76,6 +76,8 @@ export const positionsStyles = css`
   .summary {
     display: grid;
     align-items: center;
+    grid-template-columns: 1fr 1fr 1fr;
+    justify-content: center;
     column-gap: 20px;
     row-gap: 20px;
   }
@@ -92,15 +94,8 @@ export const positionsStyles = css`
     grid-area: 1 / 2 / 3 / 3;
   }
 
-  @media (min-width: 768px) {
-    .summary {
-      grid-template-columns: 1fr 1fr 1fr;
-      justify-content: center;
-    }
-
-    .summary > * {
-      grid-area: unset !important;
-    }
+  .summary > :nth-child(4) {
+    grid-area: 1 / 3 / 3 / 4;
   }
 
   .summary > *:last-child {
@@ -120,7 +115,7 @@ export const positionsStyles = css`
   }
 
   .status__terminated {
-    color: #30344c;
+    color: var(--uigc-app-font-color__alternative);
   }
 
   .status__completed {

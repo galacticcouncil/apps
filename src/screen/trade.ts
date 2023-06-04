@@ -42,7 +42,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
       <gc-trade-app
         chart
         chartDatasourceId="10"
-        apiAddress="wss://rpc.hydradx.cloud"
+        apiAddress="wss://rococo-hydradx-rpc.hydration.dev"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
