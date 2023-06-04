@@ -4,16 +4,13 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
-import * as i18n from 'i18next';
-
 import { baseStyles } from '../styles/base.css';
 import { selectorStyles } from '../styles/selector.css';
 
-import { AssetDetail } from '../../api/asset';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
-import { Amount, PoolAsset } from '@galacticcouncil/sdk';
+import { Amount, AssetDetail, PoolAsset } from '@galacticcouncil/sdk';
 import { AssetSelector } from './types';
 
 @customElement('gc-select-asset')
