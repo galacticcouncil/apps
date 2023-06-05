@@ -4,6 +4,9 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { HumanizeDurationLanguage, HumanizeDuration } from 'humanize-duration-ts';
 
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
@@ -18,6 +21,15 @@ import { PoolAsset } from '@galacticcouncil/sdk';
 @customElement('gc-dca-form')
 export class DcaForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
+  private _langService: HumanizeDurationLanguage = null;
+  private _humanizer: HumanizeDuration = null;
+
+  constructor() {
+    super();
+    dayjs.extend(utc);
+    this._langService = new HumanizeDurationLanguage();
+    this._humanizer = new HumanizeDuration(this._langService);
+  }
 
   @state() advanced: boolean = false;
 
@@ -28,6 +40,7 @@ export class DcaForm extends LitElement {
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) interval: Interval = '1h';
+  @property({ type: String }) intervalBlock: number = null;
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountInBudget = null;
@@ -81,7 +94,7 @@ export class DcaForm extends LitElement {
         width: 100%;
       }
 
-      .budget {
+      .adornment {
         white-space: nowrap;
         font-weight: 500;
         font-size: 14px;
@@ -118,6 +131,30 @@ export class DcaForm extends LitElement {
     `,
   ];
 
+  private getEstDate(): string {
+    const aIn = Number(this.amountIn);
+    const aInbudget = Number(this.amountInBudget);
+    const reps = Math.floor(aInbudget / aIn);
+    const millis = reps > 0 ? reps * this.est : null;
+    if (millis) {
+      return dayjs().add(millis, 'millisecond').format('DD-MM-YYYY HH:mm');
+    } else {
+      return null;
+    }
+  }
+
+  private getEstTime(): string {
+    if (this.intervalBlock && this.est) {
+      return this._humanizer.humanize(this.est, { round: true, largest: 2 });
+    } else {
+      return null;
+    }
+  }
+
+  private toggleAdvanced() {
+    this.advanced = !this.advanced;
+  }
+
   onSettingsClick(e: any) {
     const options = {
       bubbles: true,
@@ -153,7 +190,6 @@ export class DcaForm extends LitElement {
   }
 
   onIntervalChanged(e: any) {
-    this.interval = e.detail.value;
     const options = {
       bubbles: true,
       composed: true,
@@ -162,16 +198,22 @@ export class DcaForm extends LitElement {
     this.dispatchEvent(new CustomEvent('interval-changed', options));
   }
 
-  private toggleAdvanced() {
-    this.advanced = !this.advanced;
+  onIntervalBlockChanged(e: any) {
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { value: e.detail.value },
+    };
+    this.dispatchEvent(new CustomEvent('interval-block-changed', options));
   }
 
   infoSummaryTemplate() {
+    const int = this.intervalBlock ? this.getEstTime() : this.interval.toLowerCase();
     return html` <span class="label">${i18n.t('dca.summary')}</span>
       <span>
         <span class="value">I want to invest</span>
         <span class="value highlight">${this.amountIn} ${this.assetIn?.symbol}</span>
-        <span class="value">every ${this.interval.toLowerCase()} for ${this.assetOut?.symbol} with</span>
+        <span class="value">every ${int} for ${this.assetOut?.symbol} with</span>
         <span class="value highlight">${this.amountInBudget} ${this.assetIn?.symbol}</span>
         <span class="value">total budget.</span>
       </span>`;
@@ -188,12 +230,13 @@ export class DcaForm extends LitElement {
   }
 
   infoEstimatedEndDateTemplate() {
+    const estDate = this.getEstDate();
     return html` <span class="label">${i18n.t('dca.endData')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
-        () => html`<span class="value">${this.est || '-'}</span> `
+        () => html`<span class="value">${estDate || '-'}</span> `
       )}`;
   }
 
@@ -238,9 +281,9 @@ export class DcaForm extends LitElement {
         >
         </uigc-asset-transfer>
         <div class="interval">
-          <span> Every </span>
+          <span>Every</span>
           <uigc-toggle-button-group
-            value=${this.interval}
+            value=${this.intervalBlock ? null : this.interval}
             @toggle-button-clicked=${(e: CustomEvent) => {
               this.onIntervalChanged(e);
             }}
@@ -259,30 +302,32 @@ export class DcaForm extends LitElement {
           asset=${this.assetIn?.symbol}
           @asset-input-changed=${(e: CustomEvent) => this.onBudgetChanged(e)}
         >
-          <span class="budget" slot="inputAdornment">Max budget</span>
+          <span class="adornment" slot="inputAdornment">Max budget</span>
         </uigc-asset-input>
         <div class="advanced">
           <span>Advanced settings</span>
           <uigc-switch .checked=${this.advanced} size="small" @click=${() => this.toggleAdvanced()}></uigc-switch>
         </div>
-        <uigc-asset-input
+        <!-- <uigc-asset-input
           class=${classMap(advancedClasses)}
           field
           amount=${this.maxPrice}
           asset=${this.assetOut?.symbol}
           @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
         >
-          <span class="budget" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
-        </uigc-asset-input>
-        <uigc-input
+          <span class="adornment" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
+        </uigc-asset-input> -->
+        <uigc-textfield
           class=${classMap(advancedClasses)}
           field
-          amount=${this.maxPrice}
-          asset=${this.assetOut?.symbol}
-          @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
+          number
+          placeholder=${0}
+          value=${this.intervalBlock}
+          desc=${this.getEstTime()}
+          @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
         >
-          <span class="budget" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
-        </uigc-input>
+          <span class="adornment" slot="inputAdornment">Block Period</span>
+        </uigc-textfield>
       </div>
       <div class="info show">
         <div class=${classMap(summaryClasses)}>${this.infoSummaryTemplate()}</div>

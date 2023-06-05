@@ -4,8 +4,6 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 
 import { PoolApp } from '../base/PoolApp';
 import { baseStyles } from '../styles/base.css';
@@ -14,7 +12,7 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account } from '../../db';
 import { getMinAmountOut } from '../../api/slippage';
-import { INTERVAL_MS, blocktoTs, intervalAsBlockNo } from '../../api/time';
+import { INTERVAL_MS, getBlockTime, toBlockNo, toTimestamp } from '../../api/time';
 import { formatAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
@@ -51,11 +49,6 @@ export class DcaApp extends PoolApp {
   @property({ type: String }) assetOut: string = null;
   @property({ type: Number }) chartDatasourceId: number = null;
   @property({ type: Boolean }) chart: Boolean = false;
-
-  constructor() {
-    super();
-    dayjs.extend(utc);
-  }
 
   static styles = [
     baseStyles,
@@ -190,23 +183,14 @@ export class DcaApp extends PoolApp {
   }
 
   private async updateEstimated() {
-    const amountIn = this.dca.amountIn;
-    const amountInBudget = this.dca.amountInBudget;
+    const { interval, intervalBlock } = this.dca;
 
-    if (!amountIn || !amountInBudget) {
-      this.dca.est = null;
-      return;
+    let periodMsec = INTERVAL_MS[interval];
+    if (intervalBlock) {
+      const blockTime = await getBlockTime();
+      periodMsec = intervalBlock * blockTime;
     }
-
-    const aIn = Number(amountIn);
-    const aInbudget = Number(amountInBudget);
-    const reps = Math.floor(aInbudget / aIn);
-    const interval = INTERVAL_MS[this.dca.interval];
-    const est = dayjs()
-      .add(interval * reps, 'millisecond')
-      .format('DD-MM-YYYY HH:mm');
-
-    this.dca.est = est;
+    this.dca.est = periodMsec;
     this.requestUpdate();
   }
 
@@ -240,33 +224,30 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     const chain = this.chain.state;
     if (account) {
-      const assetIn = this.dca.assetIn.id;
-      const assetInMeta = this.assets.meta.get(assetIn);
-      const assetOut = this.dca.assetOut.id;
-      const assetOutMeta = this.assets.meta.get(assetOut);
+      const { assetIn, assetOut, spotPrice, amountIn, amountInBudget, interval, intervalBlock } = this.dca;
 
-      const spotPrice = this.dca.spotPrice;
-      const amountIn = this.dca.amountIn;
+      const assetInMeta = this.assets.meta.get(assetIn.id);
+      const assetOutMeta = this.assets.meta.get(assetOut.id);
+
       const amountInBn = toBn(this.dca.amountIn, assetInMeta.decimals);
-      const amountInBudget = this.dca.amountInBudget;
       const amountInBudgetBn = toBn(amountInBudget, assetInMeta.decimals);
 
       const amountOut = new BigNumber(amountIn).multipliedBy(new BigNumber(spotPrice)).toString();
       const amountOutBn = toBn(amountOut, assetOutMeta.decimals);
       const minAmount = getMinAmountOut(amountOutBn, assetOutMeta.decimals, '0');
 
-      const interval = this.dca.interval;
-      const period = await intervalAsBlockNo(interval);
+      const periodMsec = INTERVAL_MS[interval];
+      const periodBlock = await toBlockNo(periodMsec);
 
       const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
         {
           owner: account.address,
-          period: period,
+          period: intervalBlock ? intervalBlock : periodBlock,
           totalAmount: amountInBudgetBn.toFixed(),
           order: {
             Sell: {
-              assetIn: assetIn,
-              assetOut: assetOut,
+              assetIn: assetIn.id,
+              assetOut: assetOut.id,
               amountIn: amountInBn.toFixed(),
               minLimit: '0',
               slippage: '50000',
@@ -296,7 +277,7 @@ export class DcaApp extends PoolApp {
     if (!nextExecutionBlock) {
       nextExecutionBlock = await getPlanned(scheduleId);
       if (nextExecutionBlock > currentBlockNo.toNumber()) {
-        const nextExecution = await blocktoTs(nextExecutionBlock);
+        const nextExecution = await toTimestamp(nextExecutionBlock);
         this.dcaPlanned.set(scheduleId, nextExecution);
       }
     }
@@ -432,6 +413,7 @@ export class DcaApp extends PoolApp {
         .amountInBudget=${this.dca.amountInBudget}
         .maxPrice=${this.dca.maxPrice}
         .interval=${this.dca.interval}
+        .intervalBlock=${this.dca.intervalBlock}
         .tradeFee=${this.dca.tradeFee}
         .tradeFeePct=${this.dca.tradeFeePct}
         .est=${this.dca.est}
@@ -450,6 +432,10 @@ export class DcaApp extends PoolApp {
         }}
         @interval-changed=${({ detail }: CustomEvent) => {
           this.dca.interval = detail.value;
+          this.updateEstimated();
+        }}
+        @interval-block-changed=${({ detail }: CustomEvent) => {
+          this.dca.intervalBlock = detail.value;
           this.updateEstimated();
         }}
         @schedule-clicked=${() => this.schedule()}

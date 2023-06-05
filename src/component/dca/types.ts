@@ -15,11 +15,12 @@ export type DcaState = {
   amountInBudget: string;
   amountInUsd: string;
   interval: Interval;
+  intervalBlock: number;
   maxPrice: string;
   spotPrice: string;
   tradeFee: string;
   tradeFeePct: string;
-  est: string;
+  est: number;
 };
 
 export const DEFAULT_DCA_STATE: DcaState = {
@@ -29,6 +30,7 @@ export const DEFAULT_DCA_STATE: DcaState = {
   amountInBudget: null,
   amountInUsd: null,
   interval: '1h',
+  intervalBlock: null,
   maxPrice: null,
   spotPrice: null,
   tradeFee: null,

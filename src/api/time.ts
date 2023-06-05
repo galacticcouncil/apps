@@ -49,24 +49,19 @@ export async function getBlockTime(blockNumberSub = 100000) {
   return diff.divn(blockNumberSub).toNumber();
 }
 
-export async function toBlockNo(intervalMs: number) {
+export async function toBlockNo(msec: number) {
   const blockTime = await getBlockTime();
-  const noOfBlocks = intervalMs / blockTime;
+  const noOfBlocks = msec / blockTime;
   return Math.floor(noOfBlocks);
 }
 
-export async function intervalAsBlockNo(interval: Interval) {
-  const intervalMs = INTERVAL_MS[interval];
-  return toBlockNo(intervalMs);
-}
-
-export async function blocktoTs(futureBlock: number) {
+export async function toTimestamp(blockNumberAt: number) {
   const api = chainCursor.deref().api;
 
   const blockTime = await getBlockTime();
   const now = await api.query.timestamp.now();
-  const blockNumber = await api.query.system.number();
+  const blockNumberNow = await api.query.system.number();
 
-  const diff = (futureBlock - blockNumber.toNumber()) * blockTime;
+  const diff = (blockNumberAt - blockNumberNow.toNumber()) * blockTime;
   return now.toNumber() + diff;
 }
