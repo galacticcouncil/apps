@@ -251,7 +251,7 @@ export class DcaApp extends PoolApp {
               amountIn: amountInBn.toFixed(),
               minLimit: '0',
               slippage: '50000',
-              route: [{ pool: 'Omnipool', assetIn: assetIn, assetOut: assetOut }],
+              route: [{ pool: 'Omnipool', assetIn: assetIn.id, assetOut: assetOut.id }],
             },
           },
         },

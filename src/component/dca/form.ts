@@ -132,15 +132,16 @@ export class DcaForm extends LitElement {
   ];
 
   private getEstDate(): string {
+    if (!this.amountIn || !this.amountInBudget) {
+      return null;
+    }
+
     const aIn = Number(this.amountIn);
     const aInbudget = Number(this.amountInBudget);
     const reps = Math.floor(aInbudget / aIn);
-    const millis = reps > 0 ? reps * this.est : null;
-    if (millis) {
-      return dayjs().add(millis, 'millisecond').format('DD-MM-YYYY HH:mm');
-    } else {
-      return null;
-    }
+    return dayjs()
+      .add(reps * this.est, 'millisecond')
+      .format('DD-MM-YYYY HH:mm');
   }
 
   private getEstTime(): string {
