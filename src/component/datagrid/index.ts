@@ -62,9 +62,18 @@ export abstract class Datagrid<T> extends LitElement {
         vertical-align: middle;
       }
 
+      td.actions {
+        width: 0px;
+        padding-right: 10px;
+      }
+
       th:nth-last-of-type(2),
       td:nth-last-of-type(2) {
         text-align: right;
+      }
+
+      tr.subRow > td {
+        padding: 0 16px;
       }
 
       @media (min-width: 768px) {
@@ -83,6 +92,10 @@ export abstract class Datagrid<T> extends LitElement {
         td:nth-last-of-type(2) {
           text-align: start;
         }
+
+        tr.subRow > td {
+          padding: 0 16px;
+        }
       }
 
       @media (min-width: 1024px) {
@@ -93,9 +106,13 @@ export abstract class Datagrid<T> extends LitElement {
         td {
           padding: 12px 32px;
         }
+
+        tr.nested > td {
+          padding: 0 32px;
+        }
       }
 
-      tr {
+      tr:not(.hasNested) {
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       }
 
@@ -110,11 +127,6 @@ export abstract class Datagrid<T> extends LitElement {
 
       tr.expanded td[colspan] {
         padding: 0;
-      }
-
-      td.actions {
-        width: 0px;
-        padding-right: 10px;
       }
 
       uigc-icon-dropdown {
@@ -137,8 +149,10 @@ export abstract class Datagrid<T> extends LitElement {
 
   protected abstract defaultColumns(): ColumnDef<T>[];
   protected abstract expandedRowTemplate(row: Row<T>): TemplateResult;
+  protected abstract nestedRowTemplate(row: Row<T>): TemplateResult;
 
   protected onRowClick: (row: Row<T>) => void = null;
+  protected onRowRenderExpand: (row: Row<T>) => boolean = null;
 
   protected initTable() {
     this.table = useLitTable<T>({
@@ -168,9 +182,25 @@ export abstract class Datagrid<T> extends LitElement {
     `;
   }
 
+  rowExpandTemplate(row: Row<T>) {
+    return html`<tr class="expanded sub">
+      <td colspan=${row.getAllCells().length}>${this.expandedRowTemplate(row)}</td>
+    </tr> `;
+  }
+
+  rowNestedTemplate(row: Row<T>) {
+    return html`<tr class="nested disabled">
+      <td colspan=${row.getAllCells().length}>${this.nestedRowTemplate(row)}</td>
+    </tr> `;
+  }
+
   rowTemplate(row: Row<T>, i: number) {
+    const expandOnRender = this.onRowRenderExpand?.(row) || false;
+    const isNested = !!this.nestedRowTemplate(row);
+    const isExpanded = row.getIsSelected() || expandOnRender;
     const classes = {
-      expanded: row.getIsSelected(),
+      hasNested: isNested,
+      expanded: isExpanded,
       disabled: !this.onRowClick,
     };
     return html`
@@ -181,13 +211,8 @@ export abstract class Datagrid<T> extends LitElement {
           return html` <td class=${tdClass}>${flexRender(collDef.cell, cell.getContext())}</td> `;
         })}
       </tr>
-      ${when(
-        row.getIsSelected(),
-        () =>
-          html`<tr class="expanded sub">
-            <td colspan=${row.getAllCells().length}>${this.expandedRowTemplate(row)}</td>
-          </tr> `
-      )}
+      ${when(isNested, () => this.rowNestedTemplate(row))}
+      ${when(isExpanded, () => this.rowExpandTemplate(row))}
     `;
   }
 
