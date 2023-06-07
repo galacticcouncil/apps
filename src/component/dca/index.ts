@@ -12,7 +12,7 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account } from '../../db';
 import { getMinAmountOut } from '../../api/slippage';
-import { INTERVAL_MS, getBlockTime, toBlockNo, toTimestamp } from '../../api/time';
+import { INTERVAL_MS, getBlockTime, toBlockPeriod, toTimestamp } from '../../api/time';
 import { formatAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
@@ -237,7 +237,7 @@ export class DcaApp extends PoolApp {
       const minAmount = getMinAmountOut(amountOutBn, assetOutMeta.decimals, '0');
 
       const periodMsec = INTERVAL_MS[interval];
-      const periodBlock = await toBlockNo(periodMsec);
+      const periodBlock = await toBlockPeriod(this.blockTime, periodMsec);
 
       const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
         {
@@ -277,7 +277,7 @@ export class DcaApp extends PoolApp {
     if (!nextExecutionBlock) {
       nextExecutionBlock = await getPlanned(scheduleId);
       if (nextExecutionBlock > currentBlockNo.toNumber()) {
-        const nextExecution = await toTimestamp(nextExecutionBlock);
+        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
         this.dcaPlanned.set(scheduleId, nextExecution);
       }
     }

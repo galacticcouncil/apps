@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { classMap } from 'lit/directives/class-map.js';
+import { classMap, ClassInfo } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 import dayjs from 'dayjs';
@@ -261,6 +261,80 @@ export class DcaForm extends LitElement {
       )}`;
   }
 
+  formAssetInTemplate() {
+    return html` <uigc-asset-transfer
+      id="assetIn"
+      title="${i18n.t('dca.invest')}"
+      .asset=${this.assetIn?.symbol}
+      .amount=${this.amountIn}
+      .amountUsd=${this.amountInUsd}
+    >
+    </uigc-asset-transfer>`;
+  }
+
+  formIntervalTemplate() {
+    return html` <div class="interval">
+      <span>Every</span>
+      <uigc-toggle-button-group
+        value=${this.intervalBlock ? null : this.interval}
+        @toggle-button-clicked=${(e: CustomEvent) => {
+          this.onIntervalChanged(e);
+        }}
+      >
+        ${INTERVAL.map(
+          (s: string) => html` <uigc-toggle-button tab value=${s}>${s.toUpperCase()}</uigc-toggle-button> `
+        )}
+      </uigc-toggle-button-group>
+    </div>`;
+  }
+
+  formAssetOutTemplate() {
+    return html` <uigc-selector item=${this.assetOut?.symbol} title="Get">
+      <uigc-asset symbol=${this.assetOut?.symbol}></uigc-asset>
+    </uigc-selector>`;
+  }
+
+  formMaxBudgetTemplate() {
+    return html` <uigc-asset-input
+      field
+      amount=${this.amountInBudget}
+      asset=${this.assetIn?.symbol}
+      @asset-input-changed=${(e: CustomEvent) => this.onBudgetChanged(e)}
+    >
+      <span class="adornment" slot="inputAdornment">Max budget</span>
+    </uigc-asset-input>`;
+  }
+
+  formMaxBuyPriceTemplate(classInfo: ClassInfo) {
+    return html`
+      <uigc-asset-input
+        class=${classMap(classInfo)}
+        field
+        amount=${this.maxPrice}
+        asset=${this.assetOut?.symbol}
+        @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
+      >
+        <span class="adornment" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
+      </uigc-asset-input>
+    `;
+  }
+
+  formBlockPeriodTemplate(classInfo: ClassInfo) {
+    return html`
+      <uigc-textfield
+        class=${classMap(classInfo)}
+        field
+        number
+        placeholder=${0}
+        value=${this.intervalBlock}
+        desc=${this.getEstTime()}
+        @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
+      >
+        <span class="adornment" slot="inputAdornment">Block Period</span>
+      </uigc-textfield>
+    `;
+  }
+
   render() {
     const summaryClasses = {
       row: true,
@@ -273,69 +347,18 @@ export class DcaForm extends LitElement {
     return html`
       <slot name="header"></slot>
       <div class="invest">
-        <uigc-asset-transfer
-          id="assetIn"
-          title="${i18n.t('dca.invest')}"
-          .asset=${this.assetIn?.symbol}
-          .amount=${this.amountIn}
-          .amountUsd=${this.amountInUsd}
-        >
-        </uigc-asset-transfer>
-        <div class="interval">
-          <span>Every</span>
-          <uigc-toggle-button-group
-            value=${this.intervalBlock ? null : this.interval}
-            @toggle-button-clicked=${(e: CustomEvent) => {
-              this.onIntervalChanged(e);
-            }}
-          >
-            ${INTERVAL.map(
-              (s: string) => html` <uigc-toggle-button tab value=${s}>${s.toUpperCase()}</uigc-toggle-button> `
-            )}
-          </uigc-toggle-button-group>
-        </div>
-        <uigc-selector item=${this.assetOut?.symbol} title="Get">
-          <uigc-asset symbol=${this.assetOut?.symbol}></uigc-asset>
-        </uigc-selector>
-        <uigc-asset-input
-          field
-          amount=${this.amountInBudget}
-          asset=${this.assetIn?.symbol}
-          @asset-input-changed=${(e: CustomEvent) => this.onBudgetChanged(e)}
-        >
-          <span class="adornment" slot="inputAdornment">Max budget</span>
-        </uigc-asset-input>
+        ${this.formAssetInTemplate()} ${this.formIntervalTemplate()} ${this.formAssetOutTemplate()}
+        ${this.formMaxBudgetTemplate()}
         <div class="advanced">
           <span>Advanced settings</span>
           <uigc-switch .checked=${this.advanced} size="small" @click=${() => this.toggleAdvanced()}></uigc-switch>
         </div>
-        <!-- <uigc-asset-input
-          class=${classMap(advancedClasses)}
-          field
-          amount=${this.maxPrice}
-          asset=${this.assetOut?.symbol}
-          @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
-        >
-          <span class="adornment" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
-        </uigc-asset-input> -->
-        <uigc-textfield
-          class=${classMap(advancedClasses)}
-          field
-          number
-          placeholder=${0}
-          value=${this.intervalBlock}
-          desc=${this.getEstTime()}
-          @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
-        >
-          <span class="adornment" slot="inputAdornment">Block Period</span>
-        </uigc-textfield>
+        ${this.formBlockPeriodTemplate(advancedClasses)}
       </div>
       <div class="info show">
         <div class=${classMap(summaryClasses)}>${this.infoSummaryTemplate()}</div>
         <div class="row">${this.infoEstimatedEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
-        <!-- <div class="row">${this.infoTradeFeeTemplate('DAI')}</div>
-        <div class="row">${this.infoTransactionCostTemplate('DAI')}</div> -->
       </div>
       <uigc-button
         ?disabled=${this.disabled || !this.account.state}

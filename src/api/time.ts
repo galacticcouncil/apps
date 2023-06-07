@@ -42,23 +42,20 @@ export async function getBlockTime(blockNumberSub = 100000) {
   const blockNumber = await api.query.system.number();
   const blockNumberAt = blockNumber.subn(blockNumberSub);
   const blockHashAt = await api.rpc.chain.getBlockHash(blockNumberAt);
-
   const apiAt = await api.at(blockHashAt);
   const apiAtTs = await apiAt.query.timestamp.now();
   const diff = now.sub(apiAtTs);
   return diff.divn(blockNumberSub).toNumber();
 }
 
-export async function toBlockNo(msec: number) {
-  const blockTime = await getBlockTime();
+export async function toBlockNo(blockTime: number, msec: number) {
   const noOfBlocks = msec / blockTime;
   return Math.floor(noOfBlocks);
 }
 
-export async function toTimestamp(blockNumberAt: number) {
+export async function toTimestamp(blockTime: number, blockNumberAt: number) {
   const api = chainCursor.deref().api;
 
-  const blockTime = await getBlockTime();
   const now = await api.query.timestamp.now();
   const blockNumberNow = await api.query.system.number();
 
