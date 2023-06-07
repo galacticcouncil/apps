@@ -15,10 +15,14 @@ import { multipleAmounts } from '../../utils/amount';
 import { Amount, AssetDetail, AssetMetadata, PoolAsset, PoolType } from '@galacticcouncil/sdk';
 
 import { BaseApp } from './BaseApp';
+import { getBlockTime } from '../../api/time';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected disconnectSubscribeNewHeads: () => void = null;
+
+  protected blockNumber: number = null;
+  protected blockTime: number = null;
 
   @state() assets = {
     list: [] as PoolAsset[],
@@ -35,7 +39,7 @@ export abstract class PoolApp extends BaseApp {
   @property({ type: String }) stableCoinAssetId: string = null;
 
   protected abstract onInit(): void;
-  protected abstract onBlockChange(): void;
+  protected abstract onBlockChange(blockNumber: number): void;
 
   override async firstUpdated() {
     const chain = this.chain.state;
@@ -86,16 +90,21 @@ export abstract class PoolApp extends BaseApp {
       details: assetsDetails,
       meta: assetsMeta,
     };
+    getBlockTime().then((time: number) => {
+      this.blockTime = time;
+    });
     this.onInit();
   }
 
   private async subscribe() {
     const chain = this.chain.state;
     this.disconnectSubscribeNewHeads = await chain.api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      console.log('Current block: ' + lastHeader.number.toString());
+      const blockTime = lastHeader.number.toNumber();
+      console.log('Current block: ' + blockTime);
+      this.blockTime = blockTime;
       this.syncPoolBalances();
       this.syncDolarPrice();
-      this.onBlockChange();
+      this.onBlockChange(blockTime);
     });
   }
 
