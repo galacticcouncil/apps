@@ -17,7 +17,7 @@ import { formatAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber } from '@galacticcouncil/sdk';
+import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
@@ -85,6 +85,18 @@ export class DcaApp extends PoolApp {
 
   isEmptyAmount(amount: string): boolean {
     return amount == '' || amount == '0';
+  }
+
+  isSwapSelected(): boolean {
+    return this.dca.assetIn != null && this.dca.assetOut != null;
+  }
+
+  isSwapEmpty(): boolean {
+    return this.dca.amountIn == null || this.dca.amountInBudget == null;
+  }
+
+  hasError(): boolean {
+    return Object.keys(this.dca.error).length > 0;
   }
 
   changeTab(active: DcaTab) {
@@ -192,6 +204,42 @@ export class DcaApp extends PoolApp {
     }
     this.dca.est = periodMsec;
     this.requestUpdate();
+  }
+
+  validateMaxBudget() {
+    if (this.isSwapEmpty()) {
+      delete this.dca.error['maxBudgetTooLow'];
+      return;
+    }
+
+    const { amountIn, amountInBudget, assetIn } = this.dca;
+
+    const amountInBN = bnum(amountIn);
+    const amountInBudgetBN = bnum(amountInBudget);
+    const assetInMeta = this.assets.meta.get(assetIn.id);
+
+    if (amountInBN.isGreaterThan(amountInBudgetBN)) {
+      this.dca.error['maxBudgetTooLow'] = i18n.t('dca.error.maxBudgetTooLow', {
+        amount: amountIn,
+        asset: assetInMeta.symbol,
+      });
+    } else {
+      delete this.dca.error['maxBudgetTooLow'];
+    }
+  }
+
+  validateBlockPeriod() {
+    const blockPeriod = this.dca.intervalBlock;
+    if (!blockPeriod) {
+      delete this.dca.error['blockPeriodInvalid'];
+      return;
+    }
+
+    if (blockPeriod < 1) {
+      this.dca.error['blockPeriodInvalid'] = i18n.t('dca.error.blockPeriodInvalid');
+    } else {
+      delete this.dca.error['blockPeriodInvalid'];
+    }
   }
 
   notificationTemplate(msg: String): TxNotificationMssg {
@@ -406,6 +454,7 @@ export class DcaApp extends PoolApp {
       <gc-dca-form
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
+        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError()}
         .assetIn=${this.dca.assetIn}
         .assetOut=${this.dca.assetOut}
         .amountIn=${this.dca.amountIn}
@@ -417,10 +466,12 @@ export class DcaApp extends PoolApp {
         .tradeFee=${this.dca.tradeFee}
         .tradeFeePct=${this.dca.tradeFeePct}
         .est=${this.dca.est}
+        .error=${this.dca.error}
         @asset-input-changed=${({ detail: { id, asset, value } }: CustomEvent) => {
           id == 'assetIn' && this.updateAmountIn(value);
           id == 'assetInBudget' && this.updateAmountInBudget(value);
           id == 'maxPrice' && this.updateMaxPrice(value);
+          this.validateMaxBudget();
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {
           this.asset.selector = detail;
@@ -437,6 +488,7 @@ export class DcaApp extends PoolApp {
         @interval-block-changed=${({ detail }: CustomEvent) => {
           this.dca.intervalBlock = detail.value;
           this.updateEstimated();
+          this.validateBlockPeriod();
         }}
         @schedule-clicked=${() => this.schedule()}
       >

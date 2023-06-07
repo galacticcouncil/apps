@@ -21,6 +21,7 @@ export type DcaState = {
   tradeFee: string;
   tradeFeePct: string;
   est: number;
+  error: {};
 };
 
 export const DEFAULT_DCA_STATE: DcaState = {
@@ -36,4 +37,5 @@ export const DEFAULT_DCA_STATE: DcaState = {
   tradeFee: null,
   tradeFeePct: '0',
   est: null,
+  error: {},
 };

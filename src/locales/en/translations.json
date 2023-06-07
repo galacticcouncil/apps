@@ -53,12 +53,14 @@
   "xcm.selectAsset": "Select asset",
   "chart.title": "Trade chart",
   "dca.title": "Dollar cost average",
-  "dca.invest": "Invest",
+  "dca.spend": "Pay with",
   "dca.endData": "Estimated end date",
   "dca.slippage": "Slippage/Spread",
   "dca.transactionCost": "Transaction cost",
   "dca.tradeFee": "Trade fee",
   "dca.summary": "Summary",
   "dca.schedule": "Schedule Dca Trade",
-  "dca.selectAsset": "Select asset"
+  "dca.selectAsset": "Select asset",
+  "dca.error.maxBudgetTooLow": "The minimum budget amount is {{amount}} {{asset}}.",
+  "dca.error.blockPeriodInvalid": "The minimum block period is 1."
 }

@@ -49,6 +49,7 @@ export class DcaForm extends LitElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) est = null;
+  @property({ attribute: false }) error = {};
 
   static styles = [
     baseStyles,
@@ -212,7 +213,7 @@ export class DcaForm extends LitElement {
     const int = this.intervalBlock ? this.getEstTime() : this.interval.toLowerCase();
     return html` <span class="label">${i18n.t('dca.summary')}</span>
       <span>
-        <span class="value">I want to invest</span>
+        <span class="value">I want to trade</span>
         <span class="value highlight">${this.amountIn} ${this.assetIn?.symbol}</span>
         <span class="value">every ${int} for ${this.assetOut?.symbol} with</span>
         <span class="value highlight">${this.amountInBudget} ${this.assetIn?.symbol}</span>
@@ -264,7 +265,7 @@ export class DcaForm extends LitElement {
   formAssetInTemplate() {
     return html` <uigc-asset-transfer
       id="assetIn"
-      title="${i18n.t('dca.invest')}"
+      title="${i18n.t('dca.spend')}"
       .asset=${this.assetIn?.symbol}
       .amount=${this.amountIn}
       .amountUsd=${this.amountInUsd}
@@ -276,7 +277,7 @@ export class DcaForm extends LitElement {
     return html` <div class="interval">
       <span>Every</span>
       <uigc-toggle-button-group
-        value=${this.intervalBlock ? null : this.interval}
+        .value=${this.intervalBlock ? null : this.interval}
         @toggle-button-clicked=${(e: CustomEvent) => {
           this.onIntervalChanged(e);
         }}
@@ -297,8 +298,10 @@ export class DcaForm extends LitElement {
   formMaxBudgetTemplate() {
     return html` <uigc-asset-input
       field
-      amount=${this.amountInBudget}
-      asset=${this.assetIn?.symbol}
+      ?error=${this.error['maxBudgetTooLow']}
+      .error=${this.error['maxBudgetTooLow']}
+      .amount=${this.amountInBudget}
+      .asset=${this.assetIn?.symbol}
       @asset-input-changed=${(e: CustomEvent) => this.onBudgetChanged(e)}
     >
       <span class="adornment" slot="inputAdornment">Max budget</span>
@@ -310,8 +313,8 @@ export class DcaForm extends LitElement {
       <uigc-asset-input
         class=${classMap(classInfo)}
         field
-        amount=${this.maxPrice}
-        asset=${this.assetOut?.symbol}
+        .amount=${this.maxPrice}
+        .asset=${this.assetOut?.symbol}
         @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
       >
         <span class="adornment" slot="inputAdornment">Max <span class="highlight">Buy</span> Price</span>
@@ -325,9 +328,11 @@ export class DcaForm extends LitElement {
         class=${classMap(classInfo)}
         field
         number
-        placeholder=${0}
-        value=${this.intervalBlock}
-        desc=${this.getEstTime()}
+        ?error=${this.error['blockPeriodInvalid']}
+        .error=${this.error['blockPeriodInvalid']}
+        .placeholder=${0}
+        .value=${this.intervalBlock}
+        .desc=${this.getEstTime()}
         @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
       >
         <span class="adornment" slot="inputAdornment">Block Period</span>
@@ -339,7 +344,7 @@ export class DcaForm extends LitElement {
     const summaryClasses = {
       row: true,
       summary: true,
-      show: this.amountIn && this.amountInBudget,
+      show: this.amountIn && this.amountInBudget && Object.keys(this.error).length == 0,
     };
     const advancedClasses = {
       hidden: this.advanced == false,
