@@ -76,30 +76,14 @@ export const positionsStyles = css`
   .summary {
     display: grid;
     align-items: center;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     justify-content: center;
     column-gap: 20px;
     row-gap: 20px;
   }
 
-  .summary > :nth-child(1) {
-    grid-area: 1 / 1 / 2 / 2;
-  }
-
-  .summary > :nth-child(2) {
-    grid-area: 2 / 1 / 3 / 2;
-  }
-
-  .summary > :nth-child(3) {
-    grid-area: 1 / 2 / 3 / 3;
-  }
-
-  .summary > :nth-child(4) {
-    grid-area: 1 / 3 / 3 / 4;
-  }
-
-  .summary > *:last-child {
-    margin-left: auto;
+  .execution {
+    background: rgba(0, 1, 7, 0.4);
   }
 
   .pair {
@@ -115,7 +99,7 @@ export const positionsStyles = css`
   }
 
   .status__terminated {
-    color: var(--uigc-app-font-color__alternative);
+    color: #b2b6c5;
   }
 
   .status__completed {

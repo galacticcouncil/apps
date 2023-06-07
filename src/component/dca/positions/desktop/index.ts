@@ -75,6 +75,10 @@ export class DcaPositions extends DcaBasePositions {
     `;
   }
 
+  protected nestedRowTemplate(_row: Row<DcaPosition>): TemplateResult {
+    return null;
+  }
+
   render() {
     return html`
       <slot name="header"></slot>

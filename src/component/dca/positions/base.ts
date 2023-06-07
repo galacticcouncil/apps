@@ -1,5 +1,6 @@
 import { html, css } from 'lit';
 import { choose } from 'lit/directives/choose.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import { positionsStyles } from './base.css';
 import { Datagrid } from '../../datagrid';
@@ -58,6 +59,7 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
       .filter((trade) => !trade.status.err)
       .map((trade) => trade.amountOut)
       .reduce((a, b) => a.plus(b), ZERO);
+
     const receivedAmount = formatAmount(received, assetOutMeta.decimals);
     return [humanizeAmount(receivedAmount), assetOutMeta.symbol].join(' ');
   }
@@ -85,7 +87,7 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
   }
 
   protected getNextExecution(position: DcaPosition) {
-    return position.nextExecution ? dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm') : '-';
+    return dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm');
   }
 
   protected getInterval(position: DcaPosition) {
@@ -97,10 +99,18 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
   }
 
   protected summaryTemplate(position: DcaPosition) {
+    const classes = {
+      summary: !position.status,
+      hidden: !!position.status,
+      item: true,
+      execution: true,
+    };
     return html`
       <div class="summary item">
         ${this.itemTemplate('Remaining / Total Budget', this.getBudget(position))}
         ${this.itemTemplate('Total Received', this.getReceived(position))}
+      </div>
+      <div class=${classMap(classes)}>
         ${this.itemTemplate('Next Execution', this.getNextExecution(position))}
         <uigc-button variant="secondary" size="small">Terminate</uigc-button>
       </div>

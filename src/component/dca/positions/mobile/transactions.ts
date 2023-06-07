@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
+import { when } from 'lit/directives/when.js';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -20,7 +21,7 @@ export class DcaPastTransactionsMob extends LitElement {
   static styles = [
     css`
       .row {
-        padding: 16px;
+        padding: 8px 16px;
         background-color: rgba(255, 255, 255, 0.03);
       }
 
@@ -50,6 +51,22 @@ export class DcaPastTransactionsMob extends LitElement {
         line-height: 100%;
         text-align: left;
         color: var(--hex-white);
+      }
+
+      .error {
+        margin-top: 5px;
+        font-size: 10px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+      }
+
+      .error span {
+        color: #ffec8a;
+      }
+
+      uigc-icon-warning {
+        margin-right: 5px;
       }
     `,
   ];
@@ -82,6 +99,15 @@ export class DcaPastTransactionsMob extends LitElement {
             <div class="row">
               ${this.itemTemplate('Date', this.formatDate(transaction))}
               ${this.itemTemplate('Received', this.formatAmount(transaction))}
+              ${when(
+                transaction.status.type === 'TradeFailed',
+                () => html`
+                  <div class="error">
+                    <uigc-icon-warning></uigc-icon-warning>
+                    <span>${transaction.status.desc}</span>
+                  </div>
+                `
+              )}
             </div>
           `;
         })}

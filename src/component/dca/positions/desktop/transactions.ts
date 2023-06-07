@@ -1,5 +1,6 @@
-import { css, TemplateResult } from 'lit';
+import { css, html, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
 
@@ -10,6 +11,7 @@ import { Datagrid } from '../../../datagrid';
 import { formatAmount, humanizeAmount } from '../../../../utils/amount';
 
 import { DcaPosition, DcaTransaction } from '../types';
+import { ZERO } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-past-transactions')
 export class DcaPastTransactions extends Datagrid<DcaTransaction> {
@@ -34,6 +36,21 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
       tr {
         cursor: default;
       }
+
+      .error {
+        font-size: 10px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+      }
+
+      .error span {
+        color: #ffec8a;
+      }
+
+      uigc-icon-warning {
+        margin-right: 5px;
+      }
     `,
   ];
 
@@ -43,6 +60,10 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
   }
 
   protected formatAmount(row: Row<DcaTransaction>) {
+    const received = row.original.amountOut;
+    if (received.isEqualTo(ZERO)) {
+      return '-';
+    }
     const assetOutMeta = this.position.assetOutMeta;
     const amount = formatAmount(row.original.amountOut, assetOutMeta.decimals);
     return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
@@ -60,15 +81,27 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
         header: () => 'Received',
         cell: ({ row }) => this.formatAmount(row),
       },
-      {
-        id: 'status',
-        header: () => '',
-        cell: ({ row }) => row.original.status.err,
-      },
     ];
   }
 
-  protected expandedRowTemplate(_row: Row<DcaTransaction>): TemplateResult {
+  protected expandedRowTemplate(row: Row<DcaTransaction>): TemplateResult {
+    return html`
+      <div class="error">
+        <uigc-icon-warning red></uigc-icon-warning>
+        <span>${row.original.status.desc}</span>
+      </div>
+    `;
+  }
+
+  protected nestedRowTemplate(row: Row<DcaTransaction>): TemplateResult {
+    if (row.original.status.type == 'TradeFailed') {
+      return html`
+        <div class="error">
+          <uigc-icon-warning></uigc-icon-warning>
+          <span>${row.original.status.desc}</span>
+        </div>
+      `;
+    }
     return null;
   }
 }
