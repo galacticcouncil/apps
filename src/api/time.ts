@@ -48,7 +48,7 @@ export async function getBlockTime(blockNumberSub = 100000) {
   return diff.divn(blockNumberSub).toNumber();
 }
 
-export async function toBlockNo(blockTime: number, msec: number) {
+export async function toBlockPeriod(blockTime: number, msec: number) {
   const noOfBlocks = msec / blockTime;
   return Math.floor(noOfBlocks);
 }
