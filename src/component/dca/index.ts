@@ -85,7 +85,7 @@ export class DcaApp extends PoolApp {
   ];
 
   isEmptyAmount(amount: string): boolean {
-    return amount == '' || amount == '0';
+    return amount == null || amount == '' || amount == '0';
   }
 
   isSwapSelected(): boolean {
@@ -93,7 +93,8 @@ export class DcaApp extends PoolApp {
   }
 
   isSwapEmpty(): boolean {
-    return this.dca.amountIn == null || this.dca.amountInBudget == null;
+    const { amountIn, amountInBudget } = this.dca;
+    return this.isEmptyAmount(amountIn) || this.isEmptyAmount(amountInBudget);
   }
 
   hasError(): boolean {

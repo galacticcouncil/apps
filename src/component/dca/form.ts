@@ -233,7 +233,7 @@ export class DcaForm extends LitElement {
       )}`;
   }
 
-  infoEstimatedEndDateTemplate() {
+  infoEstEndDateTemplate() {
     const estDate = this.getEstDate();
     return html` <span class="label">${i18n.t('dca.endData')}</span>
       <span class="grow"></span>
@@ -343,10 +343,15 @@ export class DcaForm extends LitElement {
   }
 
   render() {
+    const isValid = this.amountIn && this.amountInBudget && Object.keys(this.error).length == 0;
     const summaryClasses = {
       row: true,
       summary: true,
-      show: this.amountIn && this.amountInBudget && Object.keys(this.error).length == 0,
+      show: isValid,
+    };
+    const estClasses = {
+      row: isValid,
+      hidden: !isValid,
     };
     const advancedClasses = {
       hidden: this.advanced == false,
@@ -364,7 +369,7 @@ export class DcaForm extends LitElement {
       </div>
       <div class="info show">
         <div class=${classMap(summaryClasses)}>${this.infoSummaryTemplate()}</div>
-        <div class="row">${this.infoEstimatedEndDateTemplate()}</div>
+        <div class=${classMap(estClasses)}>${this.infoEstEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
       </div>
       <uigc-button
