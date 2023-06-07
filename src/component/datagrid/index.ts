@@ -44,7 +44,7 @@ export abstract class Datagrid<T> extends LitElement {
       }
 
       th {
-        padding: 10px 0 10px 16px;
+        padding: 10px 0;
         line-height: 14px;
         font-size: 11px;
         font-weight: 500;
@@ -56,7 +56,7 @@ export abstract class Datagrid<T> extends LitElement {
       }
 
       td {
-        padding: 12px 16px;
+        padding: 12px 0;
         padding-right: 0;
         text-align: start;
         vertical-align: middle;
@@ -65,6 +65,11 @@ export abstract class Datagrid<T> extends LitElement {
       td.actions {
         width: 0px;
         padding-right: 10px;
+      }
+
+      th:first-of-type,
+      td:first-of-type {
+        padding-left: 16px;
       }
 
       th:nth-last-of-type(2),
@@ -78,14 +83,19 @@ export abstract class Datagrid<T> extends LitElement {
 
       @media (min-width: 768px) {
         th {
-          padding: 10px 16px;
+          padding: 10px 0;
           font-size: 12px;
           line-height: 16px;
           font-weight: 600;
         }
 
         td {
-          padding: 12px 16px;
+          padding: 12px 0;
+        }
+
+        th:first-of-type,
+        td:first-of-type {
+          padding-left: 16px;
         }
 
         th:nth-last-of-type(2),
@@ -100,11 +110,16 @@ export abstract class Datagrid<T> extends LitElement {
 
       @media (min-width: 1024px) {
         th {
-          padding: 10px 32px;
+          padding: 10px 0;
         }
 
         td {
-          padding: 12px 32px;
+          padding: 12px 0;
+        }
+
+        th:first-of-type,
+        td:first-of-type {
+          padding-left: 32px;
         }
 
         tr.nested > td {
@@ -211,8 +226,7 @@ export abstract class Datagrid<T> extends LitElement {
           return html` <td class=${tdClass}>${flexRender(collDef.cell, cell.getContext())}</td> `;
         })}
       </tr>
-      ${when(isNested, () => this.rowNestedTemplate(row))}
-      ${when(isExpanded, () => this.rowExpandTemplate(row))}
+      ${when(isNested, () => this.rowNestedTemplate(row))} ${when(isExpanded, () => this.rowExpandTemplate(row))}
     `;
   }
 
