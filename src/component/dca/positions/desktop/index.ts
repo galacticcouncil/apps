@@ -37,12 +37,12 @@ export class DcaPositions extends DcaBasePositions {
     return [
       {
         id: 'pair',
-        header: () => 'Invest / Get',
+        header: () => 'Pay With / Get',
         cell: ({ row }) => this.pairTemplate(row.original),
       },
       {
         id: 'interval',
-        header: () => 'Interval',
+        header: () => 'Block Interval',
         accessorKey: 'interval',
       },
       {

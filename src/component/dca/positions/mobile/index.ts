@@ -145,7 +145,7 @@ export class DcaPositionsMob extends DcaBasePositions {
         <div class="overview item">
           ${this.itemTemplate('', this.pairTemplate(position))}
           ${this.itemTemplate('Status', this.statusTemplate(position))}
-          ${this.itemTemplate('Interval', position.interval)} ${this.itemTemplate('Amount', this.getAmount(position))}
+          ${this.itemTemplate('Block Interval', position.interval)} ${this.itemTemplate('Amount', this.getAmount(position))}
         </div>
         ${this.summaryTemplate(position)}
         <div class="transactions">Past Transactions</div>
