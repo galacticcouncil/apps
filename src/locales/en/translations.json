@@ -61,6 +61,11 @@
   "dca.summary": "Summary",
   "dca.schedule": "Schedule Dca Trade",
   "dca.selectAsset": "Select asset",
+  "dca.settings.title": "DCA settings",
+  "dca.settings.slippage": "Slippage",
+  "dca.settings.custom": "Custom",
+  "dca.settings.slippageInfo1": "Desc line 1 here",
+  "dca.settings.slippageInfo2": "Desc line 2 here",
   "dca.error.maxBudgetTooLow": "The minimum budget amount is {{amount}} {{asset}}.",
   "dca.error.blockPeriodInvalid": "The minimum block period is 1."
 }

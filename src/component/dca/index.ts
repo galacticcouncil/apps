@@ -10,7 +10,7 @@ import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
-import { Account } from '../../db';
+import { Account, dcaSettingsCursor } from '../../db';
 import { getMinAmountOut } from '../../api/slippage';
 import { INTERVAL_MS, getBlockTime, toBlockPeriod, toTimestamp } from '../../api/time';
 import { formatAmount, toBn } from '../../utils/amount';
@@ -21,6 +21,7 @@ import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum } from
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
+import './settings';
 import './positions/desktop';
 import './positions/mobile';
 import '../selector/asset';
@@ -286,19 +287,20 @@ export class DcaApp extends PoolApp {
 
       const periodMsec = INTERVAL_MS[interval];
       const periodBlock = await toBlockPeriod(this.blockTime, periodMsec);
+      const slippage = dcaSettingsCursor.deref().slippage;
 
       const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
         {
           owner: account.address,
           period: intervalBlock ? intervalBlock : periodBlock,
           totalAmount: amountInBudgetBn.toFixed(),
+          slippage: Number(slippage) * 10000,
           order: {
             Sell: {
               assetIn: assetIn.id,
               assetOut: assetOut.id,
               amountIn: amountInBn.toFixed(),
               minLimit: '0',
-              slippage: '50000',
               route: [{ pool: 'Omnipool', assetIn: assetIn.id, assetOut: assetOut.id }],
             },
           },
@@ -411,6 +413,25 @@ export class DcaApp extends PoolApp {
     super.disconnectedCallback();
   }
 
+  dcaSettingsTab() {
+    const classes = {
+      tab: true,
+      main: true,
+      active: this.tab == DcaTab.DcaSettings,
+    };
+    return html` <uigc-paper class=${classMap(classes)}>
+      <gc-dca-settings @slippage-changed=${() => {}}>
+        <div class="header section" slot="header">
+          <uigc-icon-button class="back" @click=${() => this.changeTab(DcaTab.DcaForm)}>
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section">${i18n.t('dca.settings.title')}</uigc-typography>
+          <span></span>
+        </div>
+      </gc-dca-settings>
+    </uigc-paper>`;
+  }
+
   selectAssetTab() {
     const classes = {
       tab: true,
@@ -444,7 +465,7 @@ export class DcaApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  investFormTab() {
+  dcaFormTab() {
     const classes = {
       tab: true,
       main: true,
@@ -498,12 +519,15 @@ export class DcaApp extends PoolApp {
           <uigc-icon-button basic class="chart-btn" @click=${() => this.changeTab(DcaTab.TradeChart)}>
             <uigc-icon-chart></uigc-icon-chart>
           </uigc-icon-button>
+          <uigc-icon-button basic @click=${() => this.changeTab(DcaTab.DcaSettings)}>
+            <uigc-icon-settings></uigc-icon-settings>
+          </uigc-icon-button>
         </div>
       </gc-dca-form>
     </uigc-paper>`;
   }
 
-  investPositionsSummary() {
+  dcaPositionsSummary() {
     const classes = {
       positions: true,
     };
@@ -564,7 +588,8 @@ export class DcaApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.tradeChartTab()} ${this.investFormTab()} ${this.investPositionsSummary()} ${this.selectAssetTab()}
+        ${this.tradeChartTab()} ${this.dcaFormTab()} ${this.dcaSettingsTab()} ${this.dcaPositionsSummary()}
+        ${this.selectAssetTab()}
       </div>
     `;
   }

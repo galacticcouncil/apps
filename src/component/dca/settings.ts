@@ -4,14 +4,14 @@ import { customElement, state } from 'lit/decorators.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { tradeSettingsCursor, TRADE_SLIPPAGE } from '../../db';
+import { dcaSettingsCursor, DCA_SLIPPAGE } from '../../db';
 import { debounce } from 'ts-debounce';
 import IMask from 'imask';
 
-const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
+const SLIPPAGE_OPTS = ['0.1', '0.5', '1.5', '2'];
 
-@customElement('gc-trade-settings')
-export class TradeSettings extends LitElement {
+@customElement('gc-dca-settings')
+export class DcaSettings extends LitElement {
   private _slippageHandler = null;
   private _slippageMask = null;
 
@@ -26,7 +26,7 @@ export class TradeSettings extends LitElement {
 
   private initSlippage() {
     const slippageOpts = new Set(SLIPPAGE_OPTS);
-    const slippage = tradeSettingsCursor.deref().slippage;
+    const slippage = dcaSettingsCursor.deref().slippage;
     this.slippage = slippage;
     if (!slippageOpts.has(slippage)) {
       this.customSlippage = slippage;
@@ -124,16 +124,16 @@ export class TradeSettings extends LitElement {
 
   onSlippageChange() {
     const value = this.customSlippage ? this._slippageMask.unmaskedValue : this.slippage;
-    const currentValue = tradeSettingsCursor.deref();
+    const currentValue = dcaSettingsCursor.deref();
     if (currentValue == value) {
       return;
     }
 
     if (value) {
-      tradeSettingsCursor.resetIn(['slippage'], value);
+      dcaSettingsCursor.resetIn(['slippage'], value);
     } else {
-      this.slippage = TRADE_SLIPPAGE;
-      tradeSettingsCursor.resetIn(['slippage'], TRADE_SLIPPAGE);
+      this.slippage = DCA_SLIPPAGE;
+      dcaSettingsCursor.resetIn(['slippage'], DCA_SLIPPAGE);
     }
 
     const options = {
@@ -187,12 +187,8 @@ export class TradeSettings extends LitElement {
   render() {
     return html`
       <slot name="header"></slot>
-      <div class="section">${i18n.t('trade.settings.slippage')}</div>
+      <div class="section">${i18n.t('dca.settings.slippage')}</div>
       <div class="settings">
-        <div class="row">
-          <span class="label">${i18n.t('trade.settings.autoSlippage')}</span>
-          <uigc-switch size="small" disabled></uigc-switch>
-        </div>
         <uigc-toggle-button-group
           value=${this.slippage}
           @toggle-button-clicked=${(e: CustomEvent) => {
@@ -210,11 +206,11 @@ export class TradeSettings extends LitElement {
             class="slippage-input"
             type="text"
             value=${this.customSlippage}
-            placeholder="${i18n.t('trade.settings.custom')}"
+            placeholder="${i18n.t('dca.settings.custom')}"
           ></uigc-input>
         </uigc-toggle-button-group>
-        <div class="desc">${i18n.t('trade.settings.slippageInfo1')}</div>
-        <div class="desc">${i18n.t('trade.settings.slippageInfo2')}</div>
+        <div class="desc">${i18n.t('dca.settings.slippageInfo1')}</div>
+        <div class="desc">${i18n.t('dca.settings.slippageInfo2')}</div>
       </div>
     `;
   }

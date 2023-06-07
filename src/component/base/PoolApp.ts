@@ -99,12 +99,12 @@ export abstract class PoolApp extends BaseApp {
   private async subscribe() {
     const chain = this.chain.state;
     this.disconnectSubscribeNewHeads = await chain.api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      const blockTime = lastHeader.number.toNumber();
-      console.log('Current block: ' + blockTime);
-      this.blockTime = blockTime;
+      const blockNumber = lastHeader.number.toNumber();
+      console.log('Current block: ' + blockNumber);
+      this.blockNumber = blockNumber;
       this.syncPoolBalances();
       this.syncDolarPrice();
-      this.onBlockChange(blockTime);
+      this.onBlockChange(blockNumber);
     });
   }
 

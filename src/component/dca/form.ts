@@ -11,7 +11,7 @@ import { HumanizeDurationLanguage, HumanizeDuration } from 'humanize-duration-ts
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
-import { Account, accountCursor } from '../../db';
+import { Account, accountCursor, DcaConfig, dcaSettingsCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
 import { INTERVAL, Interval } from '../../api/time';
@@ -21,6 +21,8 @@ import { PoolAsset } from '@galacticcouncil/sdk';
 @customElement('gc-dca-form')
 export class DcaForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
+  private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
+
   private _langService: HumanizeDurationLanguage = null;
   private _humanizer: HumanizeDuration = null;
 
@@ -227,7 +229,7 @@ export class DcaForm extends LitElement {
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
-        () => html`<span class="value">5%</span> `
+        () => html`<span class="value">${this.settings.state.slippage}%</span> `
       )}`;
   }
 

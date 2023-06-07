@@ -8,13 +8,22 @@ import { TLRUCache } from '@thi.ng/cache';
 import { getObj, setObj } from './storage';
 import { SingleValueData } from 'lightweight-charts';
 
-export const DEFAULT_SLIPPAGE = '1';
-const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
+export const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
+export const TRADE_SLIPPAGE = '1';
+export const DCA_SLIPPAGE = '1.5';
 
 export type TradeData = {
   price: SingleValueData[];
   volume: SingleValueData[];
 };
+
+export interface TradeConfig {
+  slippage: string;
+}
+
+export interface DcaConfig {
+  slippage: string;
+}
 
 export interface Chain {
   api: ApiPromise;
@@ -26,10 +35,6 @@ export interface XChain {
   bridge: Bridge;
 }
 
-export interface Settings {
-  slippage: string;
-}
-
 export interface Account {
   name: string;
   address: string;
@@ -39,37 +44,43 @@ export interface Account {
 export interface State {
   chain: Chain;
   xChain: XChain;
-  settings: Settings;
   account: Account;
+  tradeSettings: TradeConfig;
   tradeData: TLRUCache<string, TradeData>;
+  dcaSettings: DcaConfig;
 }
 
 const db = defAtom<State>({
   chain: null,
   xChain: null,
-  settings: null,
   account: null,
   tradeData: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
+  tradeSettings: null,
+  dcaSettings: null,
 });
 
 // Cursors (Direct & Immutable access to a nested value)
 export const chainCursor = defCursor(db, ['chain']);
 export const xChainCursor = defCursor(db, ['xChain']);
-export const settingsCursor = defCursor(db, ['settings']);
 export const accountCursor = defCursor(db, ['account']);
+export const tradeSettingsCursor = defCursor(db, ['tradeSettings']);
 export const tradeDataCursor = defCursor(db, ['tradeData']);
+export const dcaSettingsCursor = defCursor(db, ['dcaSettings']);
 
 // Storage keys
 const ACCOUNT_KEY = 'trade.account';
-const SETTINGS_KEY = 'trade.settings';
+const TRADE_SETTINGS_KEY = 'trade.settings';
+const DCA_SETTINGS_KEY = 'dca.settings';
 
 // Load storage values
 const storedAccount = getObj<Account>(ACCOUNT_KEY);
-const storedSettings = getObj<Settings>(SETTINGS_KEY);
+const storedTradeSettings = getObj<TradeConfig>(TRADE_SETTINGS_KEY);
+const storedDcaSettings = getObj<DcaConfig>(DCA_SETTINGS_KEY);
 
 // Initialize state from storage
 accountCursor.reset(storedAccount);
-settingsCursor.resetIn(['slippage'], storedSettings?.slippage || DEFAULT_SLIPPAGE);
+tradeSettingsCursor.resetIn(['slippage'], storedTradeSettings?.slippage || TRADE_SLIPPAGE);
+dcaSettingsCursor.resetIn(['slippage'], storedDcaSettings?.slippage || DCA_SLIPPAGE);
 
 /**
  * Create watchdog to update storage on state change
@@ -86,5 +97,6 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
 }
 
 // Update storage on state change
-addWatch(settingsCursor, SETTINGS_KEY, 'settings-update');
+addWatch(tradeSettingsCursor, TRADE_SETTINGS_KEY, 'trade-settings-update');
+addWatch(dcaSettingsCursor, DCA_SETTINGS_KEY, 'dca-settings-update');
 addWatch(accountCursor, ACCOUNT_KEY, 'account-update');

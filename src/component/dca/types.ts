@@ -4,6 +4,7 @@ import { Interval } from '../../api/time';
 export enum DcaTab {
   TradeChart,
   DcaForm,
+  DcaSettings,
   DcaPositions,
   SelectAsset,
 }
