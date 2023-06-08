@@ -7,6 +7,7 @@ import { DcaPosition, DcaTransaction } from '../types';
 import { formatAmount, humanizeAmount } from '../../../../utils/amount';
 
 import { BaseElement } from '../../../base/BaseElement';
+import { ZERO } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-past-transactions-mob')
 export class DcaPastTransactionsMob extends BaseElement {
@@ -27,7 +28,7 @@ export class DcaPastTransactionsMob extends BaseElement {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        padding: 2px 0;
+        padding: 3px 0;
       }
 
       .item .label {
@@ -71,9 +72,28 @@ export class DcaPastTransactionsMob extends BaseElement {
   }
 
   protected formatAmount(transaction: DcaTransaction) {
+    const received = transaction.amountOut;
+    if (received.isEqualTo(ZERO)) {
+      return '-';
+    }
     const assetOutMeta = this.position.assetOutMeta;
     const amount = formatAmount(transaction.amountOut, assetOutMeta.decimals);
     return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
+  }
+
+  protected formatPrice(transaction: DcaTransaction) {
+    const received = transaction.amountOut;
+    if (received.isEqualTo(ZERO)) {
+      return '-';
+    }
+
+    const { assetInMeta, assetOutMeta } = this.position;
+
+    const aIn = transaction.amountIn.shiftedBy(-1 * assetInMeta.decimals);
+    const aOut = transaction.amountOut.shiftedBy(-1 * assetOutMeta.decimals);
+
+    const price = aOut.div(aIn);
+    return [humanizeAmount(price.toFixed()), assetOutMeta.symbol].join(' ');
   }
 
   protected itemTemplate(label: string, value: any) {
@@ -93,6 +113,7 @@ export class DcaPastTransactionsMob extends BaseElement {
             <div class="row">
               ${this.itemTemplate('Date', this.formatDate(transaction))}
               ${this.itemTemplate('Received', this.formatAmount(transaction))}
+              ${this.itemTemplate('Price', this.formatPrice(transaction))}
               ${when(
                 transaction.status.type === 'TradeFailed',
                 () => html`

@@ -28,15 +28,25 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
         cursor: default;
       }
 
-      .error {
-        font-size: 10px;
-        font-size: 12px;
+      .status {
+        font-weight: 500;
+        font-size: 13px;
+        line-height: 100%;
         display: flex;
         align-items: center;
+        height: 20px;
       }
 
       .error span {
         color: #ffec8a;
+      }
+
+      .success span {
+        color: #30ffb1;
+      }
+
+      uigc-icon-success {
+        width: 30px;
       }
 
       uigc-icon-warning {
@@ -75,6 +85,25 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
     return [humanizeAmount(price.toFixed()), assetOutMeta.symbol].join(' ');
   }
 
+  protected getStatus(row: Row<DcaTransaction>) {
+    const err = row.original.status.err;
+    if (err) {
+      return html`
+        <div class="status error">
+          <uigc-icon-warning fit></uigc-icon-warning>
+          <span>${err}</span>
+        </div>
+      `;
+    } else {
+      return html`
+        <div class="status success">
+          <uigc-icon-success></uigc-icon-success>
+          <span>Success</span>
+        </div>
+      `;
+    }
+  }
+
   protected defaultColumns(): ColumnDef<DcaTransaction>[] {
     return [
       {
@@ -92,27 +121,15 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
         header: () => 'Price',
         cell: ({ row }) => this.formatPrice(row),
       },
+      {
+        id: 'status',
+        header: () => 'Status',
+        cell: ({ row }) => this.getStatus(row),
+      },
     ];
   }
 
-  protected expandedRowTemplate(row: Row<DcaTransaction>): TemplateResult {
-    return html`
-      <div class="error">
-        <uigc-icon-warning red></uigc-icon-warning>
-        <span>${row.original.status.desc}</span>
-      </div>
-    `;
-  }
-
-  protected nestedRowTemplate(row: Row<DcaTransaction>): TemplateResult {
-    if (row.original.status.type == 'TradeFailed') {
-      return html`
-        <div class="error">
-          <uigc-icon-warning></uigc-icon-warning>
-          <span>${row.original.status.desc}</span>
-        </div>
-      `;
-    }
+  protected expandedRowTemplate(_row: Row<DcaTransaction>): TemplateResult {
     return null;
   }
 }

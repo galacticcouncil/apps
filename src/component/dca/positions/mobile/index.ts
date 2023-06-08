@@ -122,10 +122,6 @@ export class DcaPositionsMob extends DcaBasePositions {
     return null;
   }
 
-  protected nestedRowTemplate(_row: Row<DcaPosition>): TemplateResult {
-    return null;
-  }
-
   private modalRowTemplate() {
     const position = this.active;
     return html`

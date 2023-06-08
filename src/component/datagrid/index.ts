@@ -123,13 +123,9 @@ export abstract class Datagrid<T> extends BaseElement {
         td:first-of-type {
           padding-left: 32px;
         }
-
-        tr.nested > td {
-          padding: 0 32px;
-        }
       }
 
-      tr:not(.hasNested) {
+      tr {
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       }
 
@@ -166,7 +162,6 @@ export abstract class Datagrid<T> extends BaseElement {
 
   protected abstract defaultColumns(): ColumnDef<T>[];
   protected abstract expandedRowTemplate(row: Row<T>): TemplateResult;
-  protected abstract nestedRowTemplate(row: Row<T>): TemplateResult;
 
   protected onRowClick: (row: Row<T>) => void = null;
   protected onRowRenderExpand: (row: Row<T>) => boolean = null;
@@ -205,18 +200,10 @@ export abstract class Datagrid<T> extends BaseElement {
     </tr> `;
   }
 
-  rowNestedTemplate(row: Row<T>) {
-    return html`<tr class="nested disabled">
-      <td colspan=${row.getAllCells().length}>${this.nestedRowTemplate(row)}</td>
-    </tr> `;
-  }
-
   rowTemplate(row: Row<T>, i: number) {
     const expandOnRender = this.onRowRenderExpand?.(row) || false;
-    const isNested = !!this.nestedRowTemplate(row);
     const isExpanded = row.getIsSelected() || expandOnRender;
     const classes = {
-      hasNested: isNested,
       expanded: isExpanded,
       disabled: !this.onRowClick,
     };
@@ -228,7 +215,7 @@ export abstract class Datagrid<T> extends BaseElement {
           return html` <td class=${tdClass}>${flexRender(collDef.cell, cell.getContext())}</td> `;
         })}
       </tr>
-      ${when(isNested, () => this.rowNestedTemplate(row))} ${when(isExpanded, () => this.rowExpandTemplate(row))}
+      ${when(isExpanded, () => this.rowExpandTemplate(row))}
     `;
   }
 

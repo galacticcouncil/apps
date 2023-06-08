@@ -344,15 +344,11 @@ export class DcaForm extends LitElement {
 
   render() {
     const isValid = this.amountIn && this.amountInBudget && Object.keys(this.error).length == 0;
-    const summaryClasses = {
-      row: true,
-      summary: true,
+    const infoClasses = {
+      info: true,
       show: isValid,
     };
-    const estClasses = {
-      row: isValid,
-      hidden: !isValid,
-    };
+
     const advancedClasses = {
       hidden: this.advanced == false,
     };
@@ -367,9 +363,9 @@ export class DcaForm extends LitElement {
         </div>
         ${this.formBlockPeriodTemplate(advancedClasses)}
       </div>
-      <div class="info show">
-        <div class=${classMap(summaryClasses)}>${this.infoSummaryTemplate()}</div>
-        <div class=${classMap(estClasses)}>${this.infoEstEndDateTemplate()}</div>
+      <div class=${classMap(infoClasses)}>
+        <div class="row summary show">${this.infoSummaryTemplate()}</div>
+        <div class="row">${this.infoEstEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
       </div>
       <uigc-button
