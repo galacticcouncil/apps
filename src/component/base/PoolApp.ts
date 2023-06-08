@@ -108,6 +108,10 @@ export abstract class PoolApp extends BaseApp {
     });
   }
 
+  protected isApiReady() {
+    return !!this.chain.state;
+  }
+
   protected async onAccountChange(_prev: Account, _curr: Account): Promise<void> {
     this.assets.balance = new Map([]);
     await this.syncPoolBalances();
@@ -119,8 +123,7 @@ export abstract class PoolApp extends BaseApp {
 
   protected async syncPoolBalances() {
     const account = this.account.state;
-    const chain = this.chain.state;
-    if (account && chain) {
+    if (account && this.isApiReady()) {
       this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
     }
   }

@@ -366,8 +366,11 @@ export class DcaApp extends PoolApp {
   }
 
   async syncPositions() {
-    const account = this.account.state;
+    if (!this.isApiReady()) {
+      return;
+    }
 
+    const account = this.account.state;
     if (!account) {
       this.dcaPositions = [];
       return;
