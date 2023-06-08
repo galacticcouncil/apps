@@ -367,6 +367,12 @@ export class DcaApp extends PoolApp {
 
   async syncPositions() {
     const account = this.account.state;
+
+    if (!account) {
+      this.dcaPositions = [];
+      return;
+    }
+
     const assetMeta = this.assets.meta;
     const scheduled = await getScheduled(account);
     if (assetMeta) {
@@ -406,6 +412,7 @@ export class DcaApp extends PoolApp {
 
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
     super.onAccountChange(prev, curr);
+    this.syncPositions();
   }
 
   onResize(_evt: UIEvent) {
