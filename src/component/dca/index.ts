@@ -244,8 +244,20 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  notificationTemplate(msg: String): TxNotificationMssg {
-    const template = html` <span>${msg}</span> `;
+  notificationTemplate(dca: DcaState, status: string): TxNotificationMssg {
+    const int = this.dca.intervalBlock
+      ? this._humanizer.humanize(this.dca.est, { round: true, largest: 2 })
+      : this.dca.interval.toLowerCase();
+    const template = html`
+      <span>${'Trade'}</span>
+      <span class="highlight">${dca.amountIn}</span>
+      <span class="highlight">${dca.assetIn.symbol}</span>
+      <span>${`every ${int} for ${dca.assetOut.symbol} with`}</span>
+      <span class="highlight">${dca.amountInBudget}</span>
+      <span class="highlight">${dca.assetIn.symbol}</span>
+      <span>${`total budget`}</span>
+      <span>${status}</span>
+    `;
     return {
       message: template,
       rawHtml: getRenderString(template),
@@ -254,9 +266,9 @@ export class DcaApp extends PoolApp {
 
   processTx(account: Account, transaction: Transaction) {
     const notification = {
-      processing: this.notificationTemplate('processing'),
-      success: this.notificationTemplate('In block'),
-      failure: this.notificationTemplate('Failed'),
+      processing: this.notificationTemplate(this.dca, 'submitted'),
+      success: this.notificationTemplate(this.dca, 'scheduled'),
+      failure: this.notificationTemplate(this.dca, 'failed'),
     };
     const options = {
       bubbles: true,
@@ -270,7 +282,7 @@ export class DcaApp extends PoolApp {
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
   }
 
-  async schedule() {
+  private async schedule() {
     const account = this.account.state;
     const chain = this.chain.state;
     if (account) {
@@ -321,15 +333,11 @@ export class DcaApp extends PoolApp {
   }
 
   private async syncPlanned(scheduleId: number) {
-    const chain = this.chain.state;
-    const currentBlockNo = await chain.api.query.system.number();
-
     let nextExecutionBlock = this.dcaPlanned.get(scheduleId);
     if (!nextExecutionBlock) {
       nextExecutionBlock = await getPlanned(scheduleId);
-      if (nextExecutionBlock > currentBlockNo.toNumber()) {
-        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
-        this.dcaPlanned.set(scheduleId, nextExecution);
+      if (nextExecutionBlock > this.blockNumber) {
+        this.dcaPlanned.set(scheduleId, nextExecutionBlock);
       }
     }
   }
@@ -345,15 +353,16 @@ export class DcaApp extends PoolApp {
   async syncSummary(scheduleId: number) {
     await this.syncPlanned(scheduleId);
     await this.syncTransactions(scheduleId);
-    const dcaPositionsUpdated = this.dcaPositions.map((position) => {
+    const dcaPositionsUpdated = this.dcaPositions.map(async (position) => {
       if (position.id == scheduleId) {
         const transactions = this.dcaTransactions.get(position.id) || [];
-        const nextExecution = this.dcaPlanned.get(position.id);
-        return { ...position, transactions, nextExecution };
+        const nextExecutionBlock = this.dcaPlanned.get(position.id);
+        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
+        return { ...position, transactions, nextExecutionBlock, nextExecution };
       }
       return position;
     });
-    this.dcaPositions = dcaPositionsUpdated;
+    this.dcaPositions = await Promise.all(dcaPositionsUpdated);
   }
 
   async syncPositions() {
@@ -361,20 +370,22 @@ export class DcaApp extends PoolApp {
     const assetMeta = this.assets.meta;
     const scheduled = await getScheduled(account);
     if (assetMeta) {
-      const positions = scheduled.map((position: DcaPosition) => {
+      const positions = scheduled.map(async (position: DcaPosition) => {
         const assetInMeta = assetMeta.get(position.assetIn);
         const assetOutMeta = assetMeta.get(position.assetOut);
         const transactions = this.dcaTransactions.get(position.id) || [];
-        const nextExecution = this.dcaPlanned.get(position.id);
+        const nextExecutionBlock = this.dcaPlanned.get(position.id);
+        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
         return {
           ...position,
           assetInMeta,
           assetOutMeta,
           transactions,
           nextExecution,
+          nextExecutionBlock,
         } as DcaPosition;
       });
-      this.dcaPositions = positions;
+      this.dcaPositions = await Promise.all(positions);
     }
   }
 

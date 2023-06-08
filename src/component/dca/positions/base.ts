@@ -3,20 +3,22 @@ import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { positionsStyles } from './base.css';
+
 import { Datagrid } from '../../datagrid';
+import { Account, Chain, accountCursor, chainCursor } from '../../../db';
+import { DatabaseController } from '../../../db.ctrl';
 import { formatAmount, humanizeAmount } from '../../../utils/amount';
+import { getRenderString } from '../../../utils/dom';
 
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import { ZERO, Transaction } from '@galacticcouncil/sdk';
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { ZERO } from '@galacticcouncil/sdk';
 import { DcaPosition } from './types';
+import { TxInfo, TxNotificationMssg } from '../../transaction/types';
 
 export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
-  constructor() {
-    super();
-    dayjs.extend(utc);
-  }
+  protected chain = new DatabaseController<Chain>(this, chainCursor);
+  protected account = new DatabaseController<Account>(this, accountCursor);
 
   static styles = [
     Datagrid.styles,
@@ -33,6 +35,47 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
       }
     `,
   ];
+
+  notificationTemplate(mssg: string): TxNotificationMssg {
+    const template = html` <span>${mssg}</span> `;
+    return {
+      message: template,
+      rawHtml: getRenderString(template),
+    } as TxNotificationMssg;
+  }
+
+  processTx(account: Account, transaction: Transaction) {
+    const notification = {
+      processing: this.notificationTemplate('Terminating DCA schedule'),
+      success: this.notificationTemplate('DCA schedule terminated'),
+      failure: this.notificationTemplate('Termination of DCA schedule failed'),
+    };
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        account: account,
+        transaction: transaction,
+        notification: notification,
+      } as TxInfo,
+    };
+    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:terminateDca', options));
+  }
+
+  private async terminate(position: DcaPosition) {
+    const chain = this.chain.state;
+    const account = this.account.state;
+
+    const tx: SubmittableExtrinsic = chain.api.tx.dca.terminate(position.id, position.nextExecutionBlock);
+    const transaction = {
+      hex: tx.toHex(),
+      name: 'dcaTerminate',
+      get: (): SubmittableExtrinsic => {
+        return tx;
+      },
+    } as Transaction;
+    this.processTx(account, transaction);
+  }
 
   protected pairTemplate(position: DcaPosition) {
     return html`
@@ -87,7 +130,7 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
   }
 
   protected getNextExecution(position: DcaPosition) {
-    return dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm');
+    return this._dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm');
   }
 
   protected getInterval(position: DcaPosition) {
@@ -112,7 +155,7 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
       </div>
       <div class=${classMap(classes)}>
         ${this.itemTemplate('Next Execution', this.getNextExecution(position))}
-        <uigc-button variant="secondary" size="small">Terminate</uigc-button>
+        <uigc-button variant="error" size="small" @click=${() => this.terminate(position)}>Terminate</uigc-button>
       </div>
     `;
   }

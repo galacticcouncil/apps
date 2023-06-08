@@ -1,11 +1,7 @@
 import { css, html, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
-
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 
 import { Datagrid } from '../../../datagrid';
 import { formatAmount, humanizeAmount } from '../../../../utils/amount';
@@ -16,11 +12,6 @@ import { ZERO } from '@galacticcouncil/sdk';
 @customElement('gc-dca-past-transactions')
 export class DcaPastTransactions extends Datagrid<DcaTransaction> {
   @property({ attribute: false }) position: DcaPosition = null;
-
-  constructor() {
-    super();
-    dayjs.extend(utc);
-  }
 
   static styles = [
     Datagrid.styles,
@@ -56,7 +47,7 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
 
   protected formatDate(row: Row<DcaTransaction>) {
     const dateStr = row.original.date;
-    return dayjs(dateStr).format('DD-MM-YYYY HH:mm');
+    return this._dayjs(dateStr).format('DD-MM-YYYY HH:mm');
   }
 
   protected formatAmount(row: Row<DcaTransaction>) {
@@ -67,6 +58,21 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
     const assetOutMeta = this.position.assetOutMeta;
     const amount = formatAmount(row.original.amountOut, assetOutMeta.decimals);
     return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
+  }
+
+  protected formatPrice(row: Row<DcaTransaction>) {
+    const received = row.original.amountOut;
+    if (received.isEqualTo(ZERO)) {
+      return '-';
+    }
+
+    const { assetInMeta, assetOutMeta } = this.position;
+
+    const aIn = row.original.amountIn.shiftedBy(-1 * assetInMeta.decimals);
+    const aOut = row.original.amountOut.shiftedBy(-1 * assetOutMeta.decimals);
+
+    const price = aOut.div(aIn);
+    return [humanizeAmount(price.toFixed()), assetOutMeta.symbol].join(' ');
   }
 
   protected defaultColumns(): ColumnDef<DcaTransaction>[] {
@@ -80,6 +86,11 @@ export class DcaPastTransactions extends Datagrid<DcaTransaction> {
         id: 'received',
         header: () => 'Received',
         cell: ({ row }) => this.formatAmount(row),
+      },
+      {
+        id: 'price',
+        header: () => 'Price',
+        cell: ({ row }) => this.formatPrice(row),
       },
     ];
   }

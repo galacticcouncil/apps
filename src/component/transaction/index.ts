@@ -233,12 +233,14 @@ export class TransactionCenter extends LitElement {
     this.addEventListener('gc:tx:new', this._handleOnChainTx);
     this.addEventListener('gc:tx:newXcm', this._handleCrossChainTx);
     this.addEventListener('gc:tx:scheduleDca', this._handleOnChainTx);
+    this.addEventListener('gc:tx:terminateDca', this._handleOnChainTx);
   }
 
   override disconnectedCallback() {
     this.removeEventListener('gc:tx:new', this._handleOnChainTx);
     this.removeEventListener('gc:tx:newXcm', this._handleCrossChainTx);
     this.removeEventListener('gc:tx:scheduleDca', this._handleOnChainTx);
+    this.removeEventListener('gc:tx:terminateDca', this._handleOnChainTx);
     super.disconnectedCallback();
   }
 

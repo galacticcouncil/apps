@@ -8,7 +8,7 @@ import { dcaSettingsCursor, DCA_SLIPPAGE } from '../../db';
 import { debounce } from 'ts-debounce';
 import IMask from 'imask';
 
-const SLIPPAGE_OPTS = ['0.1', '0.5', '1.5', '2'];
+const SLIPPAGE_OPTS = ['0.5', '1', '1.5', '3'];
 
 @customElement('gc-dca-settings')
 export class DcaSettings extends LitElement {
@@ -210,7 +210,6 @@ export class DcaSettings extends LitElement {
           ></uigc-input>
         </uigc-toggle-button-group>
         <div class="desc">${i18n.t('dca.settings.slippageInfo1')}</div>
-        <div class="desc">${i18n.t('dca.settings.slippageInfo2')}</div>
       </div>
     `;
   }

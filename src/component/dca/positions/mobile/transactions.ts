@@ -1,22 +1,16 @@
-import { LitElement, css, html } from 'lit';
+import { css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
 
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-
 import { DcaPosition, DcaTransaction } from '../types';
 import { formatAmount, humanizeAmount } from '../../../../utils/amount';
 
-@customElement('gc-dca-past-transactions-mob')
-export class DcaPastTransactionsMob extends LitElement {
-  @property({ attribute: false }) position: DcaPosition = null;
+import { BaseElement } from '../../../base/BaseElement';
 
-  constructor() {
-    super();
-    dayjs.extend(utc);
-  }
+@customElement('gc-dca-past-transactions-mob')
+export class DcaPastTransactionsMob extends BaseElement {
+  @property({ attribute: false }) position: DcaPosition = null;
 
   static styles = [
     css`
@@ -73,7 +67,7 @@ export class DcaPastTransactionsMob extends LitElement {
 
   protected formatDate(transaction: DcaTransaction) {
     const dateStr = transaction.date;
-    return dayjs(dateStr).format('DD-MM-YYYY HH:mm');
+    return this._dayjs(dateStr).format('DD-MM-YYYY HH:mm');
   }
 
   protected formatAmount(transaction: DcaTransaction) {

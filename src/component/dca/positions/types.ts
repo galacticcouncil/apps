@@ -22,6 +22,7 @@ export type DcaPosition = {
   assetOutMeta: AssetMetadata;
   start: number;
   nextExecution: number;
+  nextExecutionBlock: number;
   interval: number;
   amount: BigNumber;
   total: BigNumber;

@@ -99,7 +99,7 @@ export const positionsStyles = css`
   }
 
   .status__terminated {
-    color: #b2b6c5;
+    color: #F87171;
   }
 
   .status__completed {
