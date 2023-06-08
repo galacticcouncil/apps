@@ -1,4 +1,5 @@
 export { TradeApp } from './component/trade';
+export { DcaApp } from './component/dca';
 export { XcmApp } from './component/xcm';
 export { NotificationCenter } from './component/notification';
 export { TransactionCenter } from './component/transaction';
