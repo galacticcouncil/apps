@@ -1,9 +1,6 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 
 import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
@@ -27,13 +24,15 @@ import './states/loading';
 
 import { Amount, AssetDetail, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
+import { BaseElement } from '../base/BaseElement';
+
 const CHART_HEIGHT = 345;
 const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
 const MIN_DATAPOINTS = 6;
 
 @customElement('gc-trade-chart')
-export class TradeChart extends LitElement {
+export class TradeChart extends BaseElement {
   private chain = new DatabaseController<Chain>(this, chainCursor);
 
   private chart: IChartApi = null;
@@ -74,11 +73,6 @@ export class TradeChart extends LitElement {
   @property({ type: String }) spotPrice = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) details: Map<string, AssetDetail> = new Map([]);
-
-  constructor() {
-    super();
-    dayjs.extend(utc);
-  }
 
   static styles = [
     baseStyles,
@@ -380,7 +374,7 @@ export class TradeChart extends LitElement {
       return;
     }
 
-    const endOfDay = dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
+    const endOfDay = this._dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
     this.chartState = ChartState.Loading;
     query(
       this.datasourceId,
@@ -458,19 +452,19 @@ export class TradeChart extends LitElement {
     const range = this.range;
     switch (range) {
       case Range['1d']:
-        return dayjs().subtract(1, 'day').unix() as UTCTimestamp;
+        return this._dayjs().subtract(1, 'day').unix() as UTCTimestamp;
       case Range['1w']:
-        return dayjs().subtract(1, 'week').unix() as UTCTimestamp;
+        return this._dayjs().subtract(1, 'week').unix() as UTCTimestamp;
       case Range['1m']:
-        return dayjs().subtract(1, 'month').unix() as UTCTimestamp;
+        return this._dayjs().subtract(1, 'month').unix() as UTCTimestamp;
       default:
-        return dayjs(INIT_DATE).unix() as UTCTimestamp;
+        return this._dayjs(INIT_DATE).unix() as UTCTimestamp;
     }
   }
 
   private getLastPrice(): SingleValueData {
     return {
-      time: dayjs().unix() as UTCTimestamp,
+      time: this._dayjs().unix() as UTCTimestamp,
       value: Number(this.spotPrice),
     } as SingleValueData;
   }
@@ -481,7 +475,7 @@ export class TradeChart extends LitElement {
       layout: layoutOptions,
       rightPriceScale: rightPriceScale,
       leftPriceScale: leftPriceScale,
-      timeScale: timeScale(this.range, dayjs),
+      timeScale: timeScale(this.range, this._dayjs),
       grid: grid,
       crosshair: crosshair,
       handleScale: false,

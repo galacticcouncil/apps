@@ -1,4 +1,4 @@
-import { LitElement, html, css, TemplateResult, CSSResultGroup } from 'lit';
+import { html, css, TemplateResult, CSSResultGroup } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -19,7 +19,9 @@ import {
 } from '@tanstack/table-core';
 import { useLitTable, flexRender } from './utils';
 
-export abstract class Datagrid<T> extends LitElement {
+import { BaseElement } from '../base/BaseElement';
+
+export abstract class Datagrid<T> extends BaseElement {
   @state() table: Table<T> = null;
   @state() tableState: TableState | {} = {};
 

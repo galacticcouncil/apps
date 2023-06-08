@@ -33,7 +33,7 @@ export const rightPriceScale = {
   visible: false,
 } as PriceScaleOptions;
 
-export const timeScale = (range: Range, dayjs) => {
+export const timeScale = (range: Range, dayjs: any) => {
   return {
     visible: true,
     fixLeftEdge: true,
