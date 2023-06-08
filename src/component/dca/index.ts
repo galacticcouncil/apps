@@ -550,7 +550,6 @@ export class DcaApp extends PoolApp {
           @dca-clicked=${({ detail: { id } }: CustomEvent) => this.syncSummary(id)}
           .defaultData=${this.dcaPositions}
         >
-          <uigc-typography slot="header" variant="title">Active</uigc-typography>
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Positions</uigc-typography>
         </gc-dca-positions>`,
@@ -558,7 +557,6 @@ export class DcaApp extends PoolApp {
           @dca-clicked=${({ detail: { id } }: CustomEvent) => this.syncSummary(id)}
           .defaultData=${this.dcaPositions}
         >
-          <uigc-typography slot="header" variant="title">Active</uigc-typography>
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Positions</uigc-typography>
         </gc-dca-positions-mob>`
