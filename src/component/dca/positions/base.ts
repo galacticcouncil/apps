@@ -150,11 +150,11 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
     };
     return html`
       <div class="summary item">
-        ${this.itemTemplate('Remaining / Total Budget', this.getBudget(position))}
-        ${this.itemTemplate('Total Received', this.getReceived(position))}
+        ${this.itemTemplate('Remaining / Budget', this.getBudget(position))}
+        ${this.itemTemplate('Received', this.getReceived(position))}
       </div>
       <div class=${classMap(classes)}>
-        ${this.itemTemplate('Next Execution', this.getNextExecution(position))}
+        ${this.itemTemplate('Next execution', this.getNextExecution(position))}
         <uigc-button variant="error" size="small" @click=${() => this.terminate(position)}>Terminate</uigc-button>
       </div>
     `;

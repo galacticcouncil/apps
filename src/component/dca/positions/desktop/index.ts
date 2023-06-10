@@ -37,12 +37,12 @@ export class DcaPositions extends DcaBasePositions {
     return [
       {
         id: 'pair',
-        header: () => 'Pay With / Get',
+        header: () => 'Pay with / Get',
         cell: ({ row }) => this.pairTemplate(row.original),
       },
       {
         id: 'interval',
-        header: () => 'Block Interval',
+        header: () => 'Interval (blocks)',
         accessorKey: 'interval',
       },
       {
@@ -66,7 +66,7 @@ export class DcaPositions extends DcaBasePositions {
     return html`
       <div class="row">
         ${this.summaryTemplate(row.original)}
-        <div class="transactions">Past Transactions</div>
+        <div class="transactions">Past transactions</div>
         <gc-dca-past-transactions
           .position=${row.original}
           .defaultData=${row.original.transactions.slice(0, 10)}
