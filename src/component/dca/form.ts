@@ -329,11 +329,7 @@ export class DcaForm extends BaseElement {
         .desc=${this.getEstTime()}
         @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
       >
-        <<<<<<< HEAD
         <span class="adornment" slot="inputAdornment">${i18n.t('dca.settings.interval')}</span>
-        =======
-        <span class="adornment" slot="inputAdornment">Block Interval</span>
-        >>>>>>> 39c86f6b67 (Balance validators)
       </uigc-textfield>
     `;
   }

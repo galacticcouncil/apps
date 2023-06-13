@@ -63,7 +63,7 @@
   "dca.schedule": "Schedule DCA trades",
   "dca.selectAsset": "Select asset",
   "dca.settings.title": "DCA settings",
-  "dca.settings.budget": "Your total budget",
+  "dca.settings.budget": "Total budget",
   "dca.settings.interval": "Interval (blocks)",
   "dca.settings.slippage": "Price impact (max.)",
   "dca.settings.custom": "Custom",

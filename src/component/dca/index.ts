@@ -283,13 +283,12 @@ export class DcaApp extends PoolApp {
       ? this._humanizer.humanize(this.dca.est, { round: true, largest: 2 })
       : this.dca.interval.toLowerCase();
     const template = html`
-      <span>${'Swap'}</span>
+      <span>${'Spend'}</span>
       <span class="highlight">${dca.amountIn}</span>
       <span class="highlight">${dca.assetIn.symbol}</span>
-      <span>${`every ${int} for ${dca.assetOut.symbol} with`}</span>
+      <span>${`every ~${int} to buy ${dca.assetOut.symbol} with a total budget of`}</span>
       <span class="highlight">${dca.amountInBudget}</span>
       <span class="highlight">${dca.assetIn.symbol}</span>
-      <span>${`total budget`}</span>
       <span>${status}</span>
     `;
     return {
