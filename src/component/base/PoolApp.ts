@@ -15,6 +15,8 @@ export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected disconnectSubscribeNewHeads: () => void = null;
 
+  private isReady: boolean = false;
+
   protected blockNumber: number = null;
   protected blockTime: number = null;
 
@@ -67,6 +69,7 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async _init() {
+    this.isReady = true;
     await this.init();
     await this.syncPoolBalances();
     await this.subscribe();
@@ -107,7 +110,9 @@ export abstract class PoolApp extends BaseApp {
 
   protected async onAccountChange(_prev: Account, _curr: Account): Promise<void> {
     this.assets.balance = new Map([]);
-    await this.syncPoolBalances();
+    if (this.isReady) {
+      await this.syncPoolBalances();
+    }
   }
 
   protected async syncDolarPrice() {
