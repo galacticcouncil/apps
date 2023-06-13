@@ -30,12 +30,12 @@ export async function getAssetsBalance(address: string, assets: PoolAsset[]) {
   return pairs2Map(balances);
 }
 
-export async function getAssetsDollarPrice(assets: PoolAsset[], stableCoinAssetId: string) {
+export async function getAssetsPrice(assets: PoolAsset[], stableCoinAssetId: string) {
   const router = chainCursor.deref().router;
-  const dolarPrices: [string, Amount][] = await Promise.all(
+  const prices: [string, Amount][] = await Promise.all(
     assets.map(async (asset: PoolAsset) => [asset.id, await router.getBestSpotPrice(asset.id, stableCoinAssetId)])
   );
-  return pairs2Map(dolarPrices);
+  return pairs2Map(prices);
 }
 
 export async function getAssetsPairs(assets: PoolAsset[]) {

@@ -13,11 +13,20 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 import { Account, dcaSettingsCursor } from '../../db';
 import { getMinAmountOut } from '../../api/slippage';
 import { INTERVAL_MS, getBlockTime, toBlockPeriod, toTimestamp } from '../../api/time';
-import { formatAmount, toBn } from '../../utils/amount';
+import { formatAmount, humanizeAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
+import {
+  PoolAsset,
+  Transaction,
+  SYSTEM_ASSET_ID,
+  Amount,
+  BigNumber,
+  bnum,
+  scale,
+  SYSTEM_ASSET_DECIMALS,
+} from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
@@ -228,7 +237,8 @@ export class DcaApp extends PoolApp {
     const ammountIn = this.dca.amountInBudget;
     const account = this.account.state;
 
-    if (!assetIn || !ammountIn || !account) {
+    if (this.isEmptyAmount(ammountIn) || !account) {
+      delete this.dca.error['balanceTooLow'];
       return;
     }
 
@@ -242,25 +252,52 @@ export class DcaApp extends PoolApp {
     this.requestUpdate();
   }
 
-  validateMaxBudget() {
+  async validateMinBudget() {
+    const { api } = this.chain.state;
     if (this.isSwapEmpty()) {
-      delete this.dca.error['maxBudgetTooLow'];
+      delete this.dca.error['minBudgetTooLow'];
       return;
     }
 
-    const { amountIn, amountInBudget, assetIn } = this.dca;
+    const { amountInBudget, assetIn } = this.dca;
 
-    const amountInBN = bnum(amountIn);
-    const amountInBudgetBN = bnum(amountInBudget);
     const assetInMeta = this.assets.meta.get(assetIn.id);
+    const assetInNativePrice = this.assets.nativePrice.get(assetIn.id);
+    const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
 
-    if (amountInBN.isGreaterThan(amountInBudgetBN)) {
-      this.dca.error['maxBudgetTooLow'] = i18n.t('dca.error.maxBudgetTooLow', {
-        amount: amountIn,
+    let minBudget: BigNumber;
+    if (assetIn.id === SYSTEM_ASSET_ID) {
+      minBudget = bnum(minBudgetNative).shiftedBy(-1 * SYSTEM_ASSET_DECIMALS);
+    } else {
+      minBudget = new BigNumber(minBudgetNative).div(new BigNumber(assetInNativePrice.amount));
+    }
+
+    const budget = new BigNumber(amountInBudget);
+    if (minBudget.isGreaterThan(budget)) {
+      this.dca.error['minBudgetTooLow'] = i18n.t('dca.error.minBudgetTooLow', {
+        amount: humanizeAmount(minBudget.toString()),
         asset: assetInMeta.symbol,
       });
     } else {
-      delete this.dca.error['maxBudgetTooLow'];
+      delete this.dca.error['minBudgetTooLow'];
+    }
+  }
+
+  validateBudget() {
+    if (this.isSwapEmpty()) {
+      delete this.dca.error['budgetTooLow'];
+      return;
+    }
+
+    const { amountIn, amountInBudget } = this.dca;
+
+    const amountInBN = bnum(amountIn);
+    const amountInBudgetBN = bnum(amountInBudget);
+
+    if (amountInBN.isGreaterThan(amountInBudgetBN)) {
+      this.dca.error['budgetTooLow'] = i18n.t('dca.error.budgetTooLow');
+    } else {
+      delete this.dca.error['budgetTooLow'];
     }
   }
 
@@ -542,6 +579,7 @@ export class DcaApp extends PoolApp {
           id == 'assetIn' && this.changeAssetIn(asset, e.detail);
           id == 'assetGet' && this.changeAssetOut(asset, e.detail);
           this.syncBalance();
+          this.validateMinBudget();
           this.changeTab(DcaTab.DcaForm);
         }}
       >
@@ -584,7 +622,8 @@ export class DcaApp extends PoolApp {
           id == 'assetIn' && this.updateAmountIn(value);
           id == 'assetInBudget' && this.updateAmountInBudget(value);
           id == 'maxPrice' && this.updateMaxPrice(value);
-          this.validateMaxBudget();
+          this.validateBudget();
+          this.validateMinBudget();
           this.validateEnoughBalance();
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {

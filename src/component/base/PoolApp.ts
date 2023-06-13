@@ -3,16 +3,10 @@ import { property, state } from 'lit/decorators.js';
 import { createApi } from '../../chain';
 import { Account, Chain, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import {
-  getAssetsBalance,
-  getAssetsDetail,
-  getAssetsDollarPrice,
-  getAssetsMeta,
-  getAssetsPairs,
-} from '../../api/asset';
+import { getAssetsBalance, getAssetsDetail, getAssetsPrice, getAssetsMeta, getAssetsPairs } from '../../api/asset';
 import { multipleAmounts } from '../../utils/amount';
 
-import { Amount, AssetDetail, AssetMetadata, PoolAsset, PoolType } from '@galacticcouncil/sdk';
+import { Amount, AssetDetail, AssetMetadata, PoolAsset, PoolType, SYSTEM_ASSET_ID } from '@galacticcouncil/sdk';
 
 import { BaseApp } from './BaseApp';
 import { getBlockTime } from '../../api/time';
@@ -31,6 +25,7 @@ export abstract class PoolApp extends BaseApp {
     meta: new Map<string, AssetMetadata>([]),
     details: new Map<string, AssetDetail>([]),
     usdPrice: new Map<string, Amount>([]),
+    nativePrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
   };
 
@@ -105,6 +100,7 @@ export abstract class PoolApp extends BaseApp {
       this.blockNumber = blockNumber;
       this.syncPoolBalances();
       this.syncDolarPrice();
+      this.syncNativePrice();
       this.onBlockChange(blockNumber);
     });
   }
@@ -115,7 +111,11 @@ export abstract class PoolApp extends BaseApp {
   }
 
   protected async syncDolarPrice() {
-    this.assets.usdPrice = await getAssetsDollarPrice(this.assets.list, this.stableCoinAssetId);
+    this.assets.usdPrice = await getAssetsPrice(this.assets.list, this.stableCoinAssetId);
+  }
+
+  protected async syncNativePrice() {
+    this.assets.nativePrice = await getAssetsPrice(this.assets.list, SYSTEM_ASSET_ID);
   }
 
   protected async syncPoolBalances() {

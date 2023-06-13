@@ -15,7 +15,7 @@ export type DcaState = {
   amountIn: string;
   amountInBudget: string;
   amountInUsd: string;
-  balanceIn: string,
+  balanceIn: string;
   interval: Interval;
   intervalBlock: number;
   maxPrice: string;

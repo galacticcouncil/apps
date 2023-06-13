@@ -282,7 +282,7 @@ export class DcaForm extends BaseElement {
   }
 
   formMaxBudgetTemplate() {
-    const error = this.error['balanceTooLow'] || this.error['maxBudgetTooLow'];
+    const error = this.error['balanceTooLow'] || this.error['budgetTooLow'] || this.error['minBudgetTooLow'];
     return html` <uigc-asset-transfer
       id="assetInBudget"
       title=${i18n.t('dca.settings.budget')}
