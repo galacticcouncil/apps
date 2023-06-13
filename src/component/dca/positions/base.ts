@@ -80,9 +80,9 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
   protected pairTemplate(position: DcaPosition) {
     return html`
       <div class="pair">
-        <uigc-logo-asset fit asset=${position.assetInMeta.symbol}></uigc-logo-asset>
+        <uigc-logo-asset fit asset=${position.assetInMeta?.symbol}></uigc-logo-asset>
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        <uigc-logo-asset fit asset=${position.assetOutMeta.symbol}></uigc-logo-asset>
+        <uigc-logo-asset fit asset=${position.assetOutMeta?.symbol}></uigc-logo-asset>
       </div>
     `;
   }
@@ -130,7 +130,10 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
   }
 
   protected getNextExecution(position: DcaPosition) {
-    return this._dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm');
+    if (position.nextExecutionBlock) {
+      return this._dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm');
+    }
+    return '-';
   }
 
   protected getInterval(position: DcaPosition) {

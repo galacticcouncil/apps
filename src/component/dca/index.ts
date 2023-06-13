@@ -17,7 +17,7 @@ import { formatAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum } from '@galacticcouncil/sdk';
+import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
@@ -37,9 +37,12 @@ import { getPlanned, getScheduled, getTrades } from './positions/api';
 export class DcaApp extends PoolApp {
   @state() tab: DcaTab = DcaTab.DcaForm;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
-  @state() dcaPositions: DcaPosition[] = [];
-  @state() dcaTransactions: Map<number, DcaTransaction[]> = new Map([]);
-  @state() dcaPlanned: Map<number, number> = new Map([]);
+  @state() dcaPositions = {
+    list: [] as DcaPosition[],
+    tx: new Map<number, DcaTransaction[]>([]),
+    next: new Map<number, number>([]),
+    open: new Set<number>([]),
+  };
 
   @state() asset = {
     selector: null as AssetSelector,
@@ -208,6 +211,37 @@ export class DcaApp extends PoolApp {
     this.requestUpdate();
   }
 
+  private resetBalance() {
+    this.dca.balanceIn = null;
+  }
+
+  private updateBalance() {
+    const balanceIn = this.assets.balance.get(this.dca.assetIn?.id);
+    this.dca = {
+      ...this.dca,
+      balanceIn: balanceIn && formatAmount(balanceIn.amount, balanceIn.decimals),
+    };
+  }
+
+  validateEnoughBalance() {
+    const assetIn = this.dca.assetIn?.id;
+    const ammountIn = this.dca.amountInBudget;
+    const account = this.account.state;
+
+    if (!assetIn || !ammountIn || !account) {
+      return;
+    }
+
+    const balanceIn = this.assets.balance.get(assetIn);
+    const amount = scale(bnum(ammountIn), balanceIn.decimals);
+    if (amount.gt(balanceIn.amount)) {
+      this.dca.error['balanceTooLow'] = i18n.t('trade.error.balance');
+    } else {
+      delete this.dca.error['balanceTooLow'];
+    }
+    this.requestUpdate();
+  }
+
   validateMaxBudget() {
     if (this.isSwapEmpty()) {
       delete this.dca.error['maxBudgetTooLow'];
@@ -249,7 +283,7 @@ export class DcaApp extends PoolApp {
       ? this._humanizer.humanize(this.dca.est, { round: true, largest: 2 })
       : this.dca.interval.toLowerCase();
     const template = html`
-      <span>${'Trade'}</span>
+      <span>${'Swap'}</span>
       <span class="highlight">${dca.amountIn}</span>
       <span class="highlight">${dca.assetIn.symbol}</span>
       <span>${`every ${int} for ${dca.assetOut.symbol} with`}</span>
@@ -332,47 +366,70 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  private async syncPlanned(scheduleId: number) {
-    let nextExecutionBlock = this.dcaPlanned.get(scheduleId);
+  private async syncBalance() {
+    const account = this.account.state;
+    if (account) {
+      this.updateBalance();
+      this.validateEnoughBalance();
+    }
+  }
+
+  private async syncNext(scheduleId: number) {
+    let nextExecutionBlock = this.dcaPositions.next.get(scheduleId);
     if (!nextExecutionBlock) {
       nextExecutionBlock = await getPlanned(scheduleId);
       if (nextExecutionBlock > this.blockNumber) {
-        this.dcaPlanned.set(scheduleId, nextExecutionBlock);
+        this.dcaPositions.next.set(scheduleId, nextExecutionBlock);
       }
     }
   }
 
   private async syncTransactions(scheduleId: number) {
-    let transactions = this.dcaTransactions.get(scheduleId);
+    let transactions = this.dcaPositions.tx.get(scheduleId);
     if (!transactions) {
       transactions = await getTrades(scheduleId);
-      this.dcaTransactions.set(scheduleId, transactions);
+      this.dcaPositions.tx.set(scheduleId, transactions);
     }
   }
 
-  async syncSummary(scheduleId: number) {
-    await this.syncPlanned(scheduleId);
-    await this.syncTransactions(scheduleId);
-    const dcaPositionsUpdated = this.dcaPositions.map(async (position) => {
+  private async syncSummary(scheduleId: number) {
+    const dcaPositionsUpdated = this.dcaPositions.list.map(async (position) => {
       if (position.id == scheduleId) {
-        const transactions = this.dcaTransactions.get(position.id) || [];
-        const nextExecutionBlock = this.dcaPlanned.get(position.id);
+        const transactions = this.dcaPositions.tx.get(position.id) || [];
+        const nextExecutionBlock = this.dcaPositions.next.get(position.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
         return { ...position, transactions, nextExecutionBlock, nextExecution };
       }
       return position;
     });
-    this.dcaPositions = await Promise.all(dcaPositionsUpdated);
+    this.dcaPositions = {
+      ...this.dcaPositions,
+      list: await Promise.all(dcaPositionsUpdated),
+    };
   }
 
-  async syncPositions() {
-    if (!this.isApiReady()) {
-      return;
-    }
+  private togglePosition(scheduleId: number) {
+    const open = this.dcaPositions.open;
+    open.has(scheduleId) ? open.delete(scheduleId) : open.add(scheduleId);
+  }
 
+  private async syncPosition(scheduleId: number) {
+    const open = this.dcaPositions.open.has(scheduleId);
+    if (open) {
+      await this.syncNext(scheduleId);
+      await this.syncTransactions(scheduleId);
+      await this.syncSummary(scheduleId);
+    }
+  }
+
+  private resetPositions() {
+    this.dcaPositions.list = [];
+  }
+
+  private async syncPositions() {
     const account = this.account.state;
+
     if (!account) {
-      this.dcaPositions = [];
       return;
     }
 
@@ -382,9 +439,10 @@ export class DcaApp extends PoolApp {
       const positions = scheduled.map(async (position: DcaPosition) => {
         const assetInMeta = assetMeta.get(position.assetIn);
         const assetOutMeta = assetMeta.get(position.assetOut);
-        const transactions = this.dcaTransactions.get(position.id) || [];
-        const nextExecutionBlock = this.dcaPlanned.get(position.id);
+        const transactions = this.dcaPositions.tx.get(position.id) || [];
+        const nextExecutionBlock = this.dcaPositions.next.get(position.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
+        await this.syncPosition(position.id);
         return {
           ...position,
           assetInMeta,
@@ -394,7 +452,10 @@ export class DcaApp extends PoolApp {
           nextExecutionBlock,
         } as DcaPosition;
       });
-      this.dcaPositions = await Promise.all(positions);
+      this.dcaPositions = {
+        ...this.dcaPositions,
+        list: await Promise.all(positions),
+      };
     }
   }
 
@@ -407,15 +468,23 @@ export class DcaApp extends PoolApp {
       this.updateAsset(this.assetOut, 'assetOut');
     }
     this.recalculateSpotPrice();
+    this.syncBalance();
   }
 
   protected onBlockChange(): void {
+    this.syncBalance();
     this.syncPositions();
   }
 
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
-    super.onAccountChange(prev, curr);
-    this.syncPositions();
+    await super.onAccountChange(prev, curr);
+    if (curr) {
+      this.syncBalance();
+      this.syncPositions();
+    } else {
+      this.resetBalance();
+      this.resetPositions();
+    }
   }
 
   onResize(_evt: UIEvent) {
@@ -473,6 +542,7 @@ export class DcaApp extends PoolApp {
           const { id, asset } = this.asset.selector;
           id == 'assetIn' && this.changeAssetIn(asset, e.detail);
           id == 'assetGet' && this.changeAssetOut(asset, e.detail);
+          this.syncBalance();
           this.changeTab(DcaTab.DcaForm);
         }}
       >
@@ -503,6 +573,7 @@ export class DcaApp extends PoolApp {
         .amountIn=${this.dca.amountIn}
         .amountInUsd=${this.dca.amountInUsd}
         .amountInBudget=${this.dca.amountInBudget}
+        .balanceIn=${this.dca.balanceIn}
         .maxPrice=${this.dca.maxPrice}
         .interval=${this.dca.interval}
         .intervalBlock=${this.dca.intervalBlock}
@@ -515,6 +586,7 @@ export class DcaApp extends PoolApp {
           id == 'assetInBudget' && this.updateAmountInBudget(value);
           id == 'maxPrice' && this.updateMaxPrice(value);
           this.validateMaxBudget();
+          this.validateEnoughBalance();
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {
           this.asset.selector = detail;
@@ -526,7 +598,9 @@ export class DcaApp extends PoolApp {
         }}
         @interval-changed=${({ detail }: CustomEvent) => {
           this.dca.interval = detail.value;
+          this.dca.intervalBlock = null;
           this.updateEstimated();
+          this.validateBlockPeriod();
         }}
         @interval-block-changed=${({ detail }: CustomEvent) => {
           this.dca.intervalBlock = detail.value;
@@ -557,15 +631,21 @@ export class DcaApp extends PoolApp {
       ${when(
         this.width > 768,
         () => html` <gc-dca-positions
-          @dca-clicked=${({ detail: { id } }: CustomEvent) => this.syncSummary(id)}
-          .defaultData=${this.dcaPositions}
+          .defaultData=${this.dcaPositions.list}
+          @dca-clicked=${({ detail: { id } }: CustomEvent) => {
+            this.togglePosition(id);
+            this.syncPosition(id);
+          }}
         >
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Orders</uigc-typography>
         </gc-dca-positions>`,
         () => html` <gc-dca-positions-mob
-          @dca-clicked=${({ detail: { id } }: CustomEvent) => this.syncSummary(id)}
-          .defaultData=${this.dcaPositions}
+          .defaultData=${this.dcaPositions.list}
+          @dca-clicked=${({ detail: { id } }: CustomEvent) => {
+            this.togglePosition(id);
+            this.syncPosition(id);
+          }}
         >
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Orders</uigc-typography>

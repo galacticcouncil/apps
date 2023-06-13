@@ -15,6 +15,7 @@ export type DcaState = {
   amountIn: string;
   amountInBudget: string;
   amountInUsd: string;
+  balanceIn: string,
   interval: Interval;
   intervalBlock: number;
   maxPrice: string;
@@ -31,6 +32,7 @@ export const DEFAULT_DCA_STATE: DcaState = {
   amountIn: null,
   amountInBudget: null,
   amountInUsd: null,
+  balanceIn: null,
   interval: '1h',
   intervalBlock: null,
   maxPrice: null,

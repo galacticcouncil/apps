@@ -1,12 +1,9 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap, ClassInfo } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import { HumanizeDurationLanguage, HumanizeDuration } from 'humanize-duration-ts';
 
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
@@ -17,21 +14,12 @@ import { humanizeAmount } from '../../utils/amount';
 import { INTERVAL, Interval } from '../../api/time';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
+import { BaseElement } from '../base/BaseElement';
 
 @customElement('gc-dca-form')
-export class DcaForm extends LitElement {
+export class DcaForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
   private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
-
-  private _langService: HumanizeDurationLanguage = null;
-  private _humanizer: HumanizeDuration = null;
-
-  constructor() {
-    super();
-    dayjs.extend(utc);
-    this._langService = new HumanizeDurationLanguage();
-    this._humanizer = new HumanizeDuration(this._langService);
-  }
 
   @state() advanced: boolean = false;
 
@@ -46,6 +34,7 @@ export class DcaForm extends LitElement {
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountInBudget = null;
+  @property({ type: String }) balanceIn = null;
   @property({ type: String }) maxPrice = null;
   @property({ type: String }) slippagePct = '5';
   @property({ type: String }) tradeFee = '0';
@@ -131,6 +120,10 @@ export class DcaForm extends LitElement {
       .hidden {
         display: none;
       }
+
+      uigc-asset {
+        padding: 5px;
+      }
     `,
   ];
 
@@ -142,7 +135,7 @@ export class DcaForm extends LitElement {
     const aIn = Number(this.amountIn);
     const aInbudget = Number(this.amountInBudget);
     const reps = Math.floor(aInbudget / aIn);
-    return dayjs()
+    return this._dayjs()
       .add(reps * this.est, 'millisecond')
       .format('DD-MM-YYYY HH:mm');
   }
@@ -173,15 +166,6 @@ export class DcaForm extends LitElement {
       composed: true,
     };
     this.dispatchEvent(new CustomEvent('schedule-clicked', options));
-  }
-
-  onBudgetChanged(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-      detail: { id: 'assetInBudget', asset: e.detail.asset, value: e.detail.value },
-    };
-    this.dispatchEvent(new CustomEvent('asset-input-changed', options));
   }
 
   onMaxPriceChanged(e: any) {
@@ -266,7 +250,8 @@ export class DcaForm extends LitElement {
   formAssetInTemplate() {
     return html` <uigc-asset-transfer
       id="assetIn"
-      title="${i18n.t('dca.spend')}"
+      title="Swap"
+      dense
       .asset=${this.assetIn?.symbol}
       .amount=${this.amountIn}
       .amountUsd=${this.amountInUsd}
@@ -291,22 +276,30 @@ export class DcaForm extends LitElement {
   }
 
   formAssetOutTemplate() {
-    return html` <uigc-selector item=${this.assetOut?.symbol} title="Get">
+    return html` <uigc-selector item=${this.assetOut?.symbol} title="For">
       <uigc-asset symbol=${this.assetOut?.symbol}></uigc-asset>
     </uigc-selector>`;
   }
 
   formMaxBudgetTemplate() {
-    return html` <uigc-asset-input
-      field
-      ?error=${this.error['maxBudgetTooLow']}
-      .error=${this.error['maxBudgetTooLow']}
-      .amount=${this.amountInBudget}
-      .asset=${this.assetIn?.symbol}
-      @asset-input-changed=${(e: CustomEvent) => this.onBudgetChanged(e)}
+    const error = this.error['balanceTooLow'] || this.error['maxBudgetTooLow'];
+    return html` <uigc-asset-transfer
+      id="assetInBudget"
+      title=${i18n.t('dca.settings.budget')}
+      ?error=${error}
+      .error=${error}
+      dense
+      asset=${this.assetIn?.symbol}
+      amount=${this.amountInBudget}
+      .selectable=${false}
     >
-      <span class="adornment" slot="inputAdornment">${i18n.t('dca.settings.budget')}</span>
-    </uigc-asset-input>`;
+      <uigc-asset-balance
+        slot="balance"
+        .balance=${this.balanceIn}
+        .visible=${false}
+        .formatter=${humanizeAmount}
+      ></uigc-asset-balance>
+    </uigc-asset-transfer>`;
   }
 
   formMaxBuyPriceTemplate(classInfo: ClassInfo) {
@@ -336,7 +329,11 @@ export class DcaForm extends LitElement {
         .desc=${this.getEstTime()}
         @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
       >
+        <<<<<<< HEAD
         <span class="adornment" slot="inputAdornment">${i18n.t('dca.settings.interval')}</span>
+        =======
+        <span class="adornment" slot="inputAdornment">Block Interval</span>
+        >>>>>>> 39c86f6b67 (Balance validators)
       </uigc-textfield>
     `;
   }
