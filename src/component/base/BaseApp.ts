@@ -35,7 +35,7 @@ export abstract class BaseApp extends BaseElement {
   override connectedCallback() {
     super.connectedCallback();
     accountCursor.addWatch('account-watch', (_id, prev, curr) => {
-      if (prev.address !== curr.address) {
+      if (prev?.address !== curr?.address) {
         this.onAccountChange(prev, curr);
       }
     });
