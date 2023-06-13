@@ -73,7 +73,9 @@ export abstract class PoolApp extends BaseApp {
 
   private async _init() {
     await this.init();
+    await this.syncPoolBalances();
     await this.subscribe();
+    this.onInit();
   }
 
   private async init() {
@@ -93,7 +95,6 @@ export abstract class PoolApp extends BaseApp {
     getBlockTime().then((time: number) => {
       this.blockTime = time;
     });
-    this.onInit();
   }
 
   private async subscribe() {
@@ -108,10 +109,6 @@ export abstract class PoolApp extends BaseApp {
     });
   }
 
-  protected isApiReady() {
-    return !!this.chain.state;
-  }
-
   protected async onAccountChange(_prev: Account, _curr: Account): Promise<void> {
     this.assets.balance = new Map([]);
     await this.syncPoolBalances();
@@ -123,7 +120,7 @@ export abstract class PoolApp extends BaseApp {
 
   protected async syncPoolBalances() {
     const account = this.account.state;
-    if (account && this.isApiReady()) {
+    if (account) {
       this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
     }
   }
