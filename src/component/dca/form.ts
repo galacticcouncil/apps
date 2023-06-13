@@ -215,16 +215,15 @@ export class DcaForm extends LitElement {
     const int = this.intervalBlock ? this.getEstTime() : this.interval.toLowerCase();
     return html` <span class="label">${i18n.t('dca.summary')}</span>
       <span>
-        <span class="value">I want to trade</span>
+        <span class="value">Spend</span>
         <span class="value highlight">${this.amountIn} ${this.assetIn?.symbol}</span>
-        <span class="value">every ${int} for ${this.assetOut?.symbol} with</span>
+        <span class="value">every ~${int} to buy ${this.assetOut?.symbol} with a total budget of</span>
         <span class="value highlight">${this.amountInBudget} ${this.assetIn?.symbol}</span>
-        <span class="value">total budget.</span>
       </span>`;
   }
 
   infoSlippageTemplate() {
-    return html` <span class="label">${i18n.t('dca.slippage')}</span>
+    return html` <span class="label">${i18n.t('dca.priceImpact')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -306,7 +305,7 @@ export class DcaForm extends LitElement {
       .asset=${this.assetIn?.symbol}
       @asset-input-changed=${(e: CustomEvent) => this.onBudgetChanged(e)}
     >
-      <span class="adornment" slot="inputAdornment">Max budget</span>
+      <span class="adornment" slot="inputAdornment">${i18n.t('dca.settings.budget')}</span>
     </uigc-asset-input>`;
   }
 
@@ -337,7 +336,7 @@ export class DcaForm extends LitElement {
         .desc=${this.getEstTime()}
         @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
       >
-        <span class="adornment" slot="inputAdornment">Block Period</span>
+        <span class="adornment" slot="inputAdornment">${i18n.t('dca.settings.interval')}</span>
       </uigc-textfield>
     `;
   }

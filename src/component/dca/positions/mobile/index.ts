@@ -103,7 +103,7 @@ export class DcaPositionsMob extends DcaBasePositions {
     return [
       {
         id: 'pair',
-        header: () => 'Pay With / Get',
+        header: () => 'Pay with / Get',
         cell: ({ row }) => this.pairTemplate(row.original),
       },
       {
