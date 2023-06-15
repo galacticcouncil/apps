@@ -1,8 +1,8 @@
 import { ApiProvider, Bridge, ChainId } from '@galacticcouncil/bridge';
 import { BaseCrossChainAdapter } from '@galacticcouncil/bridge/base-chain-adapter';
-import { KusamaAdapter, PolkadotAdapter, RococoAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
+import { KusamaAdapter, PolkadotAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
 import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/acala';
-import { HydradxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
+import { HydraDxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
 import { StatemineAdapter, StatemintAdapter } from '@galacticcouncil/bridge/adapters/statemint';
 import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
 import { RobonomicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
@@ -10,8 +10,10 @@ import { InterlayAdapter } from '@galacticcouncil/bridge/adapters/interlay';
 import { ZeitgeistAdapter } from '@galacticcouncil/bridge/adapters/zeitgeist';
 import { AstarAdapter } from '@galacticcouncil/bridge/adapters/astar';
 
-import { firstValueFrom } from 'rxjs';
+import { Wallet } from '@acala-network/sdk/wallet';
+import { EvmRpcProvider } from '@acala-network/eth-providers';
 
+import { firstValueFrom } from 'rxjs';
 import { xChainCursor } from './db';
 
 const CHAINS: Record<string, string[]> = {
@@ -40,10 +42,9 @@ const CHAINS_TESTNET: Record<string, string[]> = {
 const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   polkadot: new PolkadotAdapter(),
   kusama: new KusamaAdapter(),
-  rococo: new RococoAdapter(),
-  acala: new AcalaAdapter('wss://acala.polkawallet.io'),
+  acala: new AcalaAdapter(),
   karura: new KaruraAdapter(),
-  hydradx: new HydradxAdapter(),
+  hydradx: new HydraDxAdapter(),
   basilisk: new BasiliskAdapter(),
   interlay: new InterlayAdapter(),
   statemine: new StatemineAdapter(),
@@ -53,6 +54,18 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   zeitgeist: new ZeitgeistAdapter(),
   astar: new AstarAdapter(),
 };
+
+const BASILISK_SUPPORTED_TOKENS = ['KSM', 'BSX', 'aUSD', 'XRT', 'TNKR', 'USDT'];
+const HYDRADX_SUPPORTED_TOKENS = ['DOT', 'HDX', 'DAI', 'WETH', 'WBTC', 'IBTC', 'USDT', 'ZTG', 'ASTR'];
+
+export function getSupportedTokens() {
+  try {
+    xChainCursor.deref().bridge.findAdapter('hydradx');
+    return HYDRADX_SUPPORTED_TOKENS;
+  } catch {
+    return BASILISK_SUPPORTED_TOKENS;
+  }
+}
 
 export async function initBridge(chains: string[]) {
   const adapters = chains.map((chain: string) => ADAPTERS[chain]);
@@ -74,5 +87,14 @@ export async function initAdapterConnection(adapter: BaseCrossChainAdapter, test
   const notConnectedChain = [chain] as ChainId[];
   const connectedChain = provider.connectFromChain(notConnectedChain, testnet ? CHAINS_TESTNET : CHAINS);
   await firstValueFrom(connectedChain);
-  await adapter.init(provider.getApi(chain));
+
+  if (chain == 'acala') {
+    const acalaApi = provider.getApi(chain);
+    const wallet = new Wallet(acalaApi, {
+      evmProvider: new EvmRpcProvider('wss://acala.polkawallet.io'),
+    });
+    await adapter.init(acalaApi, wallet);
+  } else {
+    await adapter.init(provider.getApi(chain));
+  }
 }

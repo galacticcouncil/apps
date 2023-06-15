@@ -9,7 +9,7 @@ import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { basicLayoutStyles } from '../styles/layout/basic.css';
 
-import { initAdapterConnection, initBridge } from '../../bridge';
+import { getSupportedTokens, initAdapterConnection, initBridge } from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
 import { Account, XChain, xChainCursor } from '../../db';
 import { formatAmount, humanizeAmount, toFN } from '../../utils/amount';
@@ -243,7 +243,6 @@ export class XcmApp extends BaseApp {
         token: asset.symbol,
         amount: toFN(this.transfer.amount, asset.decimals),
         address: this.transfer.address,
-        signer: this.transfer.address,
       });
 
       const transaction = {
@@ -269,10 +268,12 @@ export class XcmApp extends BaseApp {
     const isDestValid = destChainsList.includes(dstChain);
     const validDstChain = isDestValid ? dstChain : destChains[0].id;
 
-    const availableTokens = bridge.router.getAvailableTokens({
-      from: srcChain,
-      to: validDstChain as ChainId,
-    });
+    const availableTokens = bridge.router
+      .getAvailableTokens({
+        from: srcChain,
+        to: validDstChain as ChainId,
+      })
+      .filter((token: string) => getSupportedTokens().includes(token));
 
     this.chain = {
       ...this.chain,
@@ -369,7 +370,9 @@ export class XcmApp extends BaseApp {
   }
 
   async init() {
+    const account = this.account.state;
     this.syncChains();
+    this.updateAddress(account.address);
     await this.syncBalances();
     await this.syncInput();
   }

@@ -22,5 +22,5 @@ const options = {
 const ctx = await esbuild.context({ ...options, plugins });
 await ctx.rebuild();
 await ctx.watch();
-const localServer = await ctx.serve({ servedir: './',  host: '127.0.0.1' });
+const localServer = await ctx.serve({ servedir: './', host: '127.0.0.1' });
 createProxyServer(localServer);
