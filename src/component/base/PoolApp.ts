@@ -15,8 +15,6 @@ export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected disconnectSubscribeNewHeads: () => void = null;
 
-  private isReady: boolean = false;
-
   protected blockNumber: number = null;
   protected blockTime: number = null;
 
@@ -38,9 +36,12 @@ export abstract class PoolApp extends BaseApp {
   protected abstract onInit(): void;
   protected abstract onBlockChange(blockNumber: number): void;
 
+  isApiReady(): boolean {
+    return !!this.chain.state;
+  }
+
   override async firstUpdated() {
-    const chain = this.chain.state;
-    if (chain) {
+    if (this.isApiReady()) {
       this._init();
     } else {
       const pools = this.pools ? this.pools.split(',') : [];
@@ -69,7 +70,6 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async _init() {
-    this.isReady = true;
     await this.init();
     await this.syncPoolBalances();
     await this.subscribe();
@@ -110,7 +110,7 @@ export abstract class PoolApp extends BaseApp {
 
   protected async onAccountChange(_prev: Account, _curr: Account): Promise<void> {
     this.assets.balance = new Map([]);
-    if (this.isReady) {
+    if (this.isApiReady()) {
       await this.syncPoolBalances();
     }
   }

@@ -235,9 +235,8 @@ export class DcaApp extends PoolApp {
   validateEnoughBalance() {
     const assetIn = this.dca.assetIn?.id;
     const ammountIn = this.dca.amountInBudget;
-    const account = this.account.state;
 
-    if (this.isEmptyAmount(ammountIn) || !account) {
+    if (this.isEmptyAmount(ammountIn) || !this.hasAccount()) {
       delete this.dca.error['balanceTooLow'];
       return;
     }
@@ -459,17 +458,19 @@ export class DcaApp extends PoolApp {
   }
 
   private resetPositions() {
-    this.dcaPositions.list = [];
+    this.dcaPositions = {
+      ...this.dcaPositions,
+      list: [],
+    };
   }
 
   private async syncPositions() {
-    const account = this.account.state;
-
-    if (!account) {
+    if (!this.hasAccount()) {
       return;
     }
 
     const assetMeta = this.assets.meta;
+    const account = this.account.state;
     const scheduled = await getScheduled(account);
     if (assetMeta) {
       const positions = scheduled.map(async (position: DcaPosition) => {
@@ -516,7 +517,7 @@ export class DcaApp extends PoolApp {
     await super.onAccountChange(prev, curr);
     if (curr) {
       this.syncBalance();
-      this.syncPositions();
+      this.isApiReady() && this.syncPositions();
     } else {
       this.resetBalance();
       this.resetPositions();

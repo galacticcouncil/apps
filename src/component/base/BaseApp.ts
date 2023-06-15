@@ -13,6 +13,10 @@ export abstract class BaseApp extends BaseElement {
 
   protected abstract onAccountChange(prev: Account, curr: Account): Promise<void>;
 
+  hasAccount(): boolean {
+    return !!this.account.state;
+  }
+
   private updateAccount() {
     if (this.accountAddress && this.accountProvider) {
       accountCursor.reset({
