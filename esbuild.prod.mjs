@@ -17,6 +17,11 @@ readdirSync('node_modules/@polkadot').forEach((pckg) => {
   polkadotDeps.push('@polkadot/' + pckg);
 });
 
+const acalaDeps = [];
+readdirSync('node_modules/@acala-network').forEach((pckg) => {
+  acalaDeps.push('@acala-network/' + pckg);
+});
+
 const indexDOM = parse(indexTemplate);
 indexDOM.getElementsByTagName('script').forEach((script) => script.remove());
 
@@ -58,5 +63,5 @@ esbuild.build({
   ...common,
   entryPoints: ['src/index.ts'],
   outfile: 'dist/index.esm.js',
-  external: Object.keys(packageJson.peerDependencies).concat(polkadotDeps),
+  external: Object.keys(packageJson.peerDependencies).concat(polkadotDeps).concat(acalaDeps),
 });
