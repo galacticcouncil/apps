@@ -370,7 +370,6 @@ export class DcaApp extends PoolApp {
       const periodMsec = INTERVAL_MS[interval];
       const periodBlock = await toBlockPeriod(this.blockTime, periodMsec);
       const slippage = dcaSettingsCursor.deref().slippage;
-
       const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
         {
           owner: account.address,

@@ -1,5 +1,4 @@
 import esbuild from 'esbuild';
-import { fixTalismanEsm } from './talisman.mjs';
 import { readFileSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -24,8 +23,6 @@ readdirSync('node_modules/@acala-network').forEach((pckg) => {
 
 const indexDOM = parse(indexTemplate);
 indexDOM.getElementsByTagName('script').forEach((script) => script.remove());
-
-fixTalismanEsm();
 
 const common = {
   preserveSymlinks: true,

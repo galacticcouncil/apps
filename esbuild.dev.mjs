@@ -1,8 +1,5 @@
 import esbuild from 'esbuild';
-import { fixTalismanEsm } from './talisman.mjs';
 import { createProxyServer } from './server.dev.mjs';
-
-fixTalismanEsm();
 
 const plugins = [];
 
