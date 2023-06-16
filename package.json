@@ -12,6 +12,7 @@
     "build:prod": "node ./esbuild.prod.mjs && tsc --emitDeclarationOnly --outDir dist/types/",
     "cleanup": "rimraf out && rimraf dist",
     "dev": "npm run cleanup & npm run build",
+    "postinstall": "patch-package",
     "pckg:assets": "cp -R ./assets/ ./dist/assets/ && cp ./dist/index.html ./dist/404.html",
     "pckg:build": "npm run cleanup && npm run build:prod && npm run pckg:assets",
     "pckg:release": "npm run pckg:build && standard-version",
@@ -60,6 +61,7 @@
     "humanize-duration-ts": "^2.1.1",
     "i18next": "^22.4.8",
     "lightweight-charts": "^4.0.1",
+    "patch-package": "^7.0.0",
     "short-uuid": "^4.2.0"
   },
   "peerDependencies": {
