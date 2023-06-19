@@ -160,6 +160,7 @@ export class DcaApp extends PoolApp {
       ...this.dca,
       assetIn: asset,
     };
+    this.recalculateSpotPrice();
   }
 
   private async changeAssetOut(previous: string, asset: PoolAsset) {
@@ -176,6 +177,7 @@ export class DcaApp extends PoolApp {
       ...this.dca,
       assetOut: asset,
     };
+    this.recalculateSpotPrice();
   }
 
   updateAmountIn(amount: string) {
