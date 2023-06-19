@@ -8,12 +8,10 @@ import { convertToHex } from '../../../utils/account';
 
 import { DcaPosition, DcaStatus, DcaTransaction } from './types';
 
-const ep = 'https://hydradx-rococo-explorer.play.hydration.cloud/graphql';
-
-export async function getScheduled(account: Account): Promise<DcaPosition[]> {
+export async function getScheduled(indexerUrl: string, account: Account): Promise<DcaPosition[]> {
   const who = convertToHex(account.address);
-  const scheduled = await queryScheduled(ep, who);
-  const scheduledStatus = await getStatus(account);
+  const scheduled = await queryScheduled(indexerUrl, who);
+  const scheduledStatus = await getStatus(indexerUrl, account);
 
   return scheduled.events.map((event) => {
     const id = event.args.id;
@@ -34,8 +32,8 @@ export async function getScheduled(account: Account): Promise<DcaPosition[]> {
   });
 }
 
-export async function getTrades(scheduleId: number): Promise<DcaTransaction[]> {
-  const trades = await queryTrades(ep, scheduleId);
+export async function getTrades(indexerUrl: string, scheduleId: number): Promise<DcaTransaction[]> {
+  const trades = await queryTrades(indexerUrl, scheduleId);
 
   return trades.events.map((event) => {
     const { amountIn, amountOut, error } = event.args;
@@ -60,14 +58,14 @@ export async function getTrades(scheduleId: number): Promise<DcaTransaction[]> {
   });
 }
 
-export async function getPlanned(scheduleId: number): Promise<number> {
-  const planned = await queryPlanned(ep, scheduleId);
+export async function getPlanned(indexerUrl: string, scheduleId: number): Promise<number> {
+  const planned = await queryPlanned(indexerUrl, scheduleId);
   return planned.events[0].args.block;
 }
 
-async function getStatus(account: Account): Promise<Map<number, DcaStatus>> {
+async function getStatus(indexerUrl: string, account: Account): Promise<Map<number, DcaStatus>> {
   const who = convertToHex(account.address);
-  const status = await queryStatus(ep, who);
+  const status = await queryStatus(indexerUrl, who);
 
   const statuses: Map<number, DcaStatus> = new Map([]);
   status.events.map((event) => {

@@ -60,6 +60,7 @@ export class DcaApp extends PoolApp {
 
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
+  @property({ type: String }) indexerUrl: string = null;
   @property({ type: Number }) chartDatasourceId: number = null;
   @property({ type: Boolean }) chart: Boolean = false;
 
@@ -430,14 +431,14 @@ export class DcaApp extends PoolApp {
   }
 
   private async syncNext(scheduleId: number) {
-    const nextExecutionBlock = await getPlanned(scheduleId);
+    const nextExecutionBlock = await getPlanned(this.indexerUrl, scheduleId);
     if (nextExecutionBlock > this.blockNumber) {
       this.dcaPositions.next.set(scheduleId, nextExecutionBlock);
     }
   }
 
   private async syncTransactions(scheduleId: number) {
-    const transactions = await getTrades(scheduleId);
+    const transactions = await getTrades(this.indexerUrl, scheduleId);
     this.dcaPositions.tx.set(scheduleId, transactions);
   }
 
@@ -495,7 +496,7 @@ export class DcaApp extends PoolApp {
 
     const assetMeta = this.assets.meta;
     const account = this.account.state;
-    const scheduled = await getScheduled(account);
+    const scheduled = await getScheduled(this.indexerUrl, account);
     if (assetMeta) {
       const positions = scheduled.map(async (position: DcaPosition) => {
         const assetInMeta = assetMeta.get(position.assetIn);

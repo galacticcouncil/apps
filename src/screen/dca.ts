@@ -31,6 +31,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         accountName=${this.account.state?.name}
         pools="Omni"
         stableCoinAssetId="2"
+        indexerUrl=${'https://hydradx-rococo-explorer.play.hydration.cloud/graphql'}
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
       ></gc-dca-app>
