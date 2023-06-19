@@ -207,7 +207,7 @@ export class DcaForm extends BaseElement {
   }
 
   infoSlippageTemplate() {
-    return html` <span class="label">${i18n.t('dca.priceImpact')}</span>
+    return html` <span class="label">${i18n.t('dca.slippage')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
