@@ -6,7 +6,17 @@ import { DatabaseController } from '../../db.ctrl';
 import { getAssetsBalance, getAssetsDetail, getAssetsPrice, getAssetsMeta, getAssetsPairs } from '../../api/asset';
 import { multipleAmounts } from '../../utils/amount';
 
-import { Amount, AssetDetail, AssetMetadata, PoolAsset, PoolType, SYSTEM_ASSET_ID } from '@galacticcouncil/sdk';
+import {
+  Amount,
+  AssetDetail,
+  AssetMetadata,
+  BigNumber,
+  PoolAsset,
+  PoolType,
+  SYSTEM_ASSET_DECIMALS,
+  SYSTEM_ASSET_ID,
+  bnum,
+} from '@galacticcouncil/sdk';
 
 import { BaseApp } from './BaseApp';
 import { getBlockTime } from '../../api/time';
@@ -136,5 +146,14 @@ export abstract class PoolApp extends BaseApp {
     }
     const usdPrice = this.assets.usdPrice.get(asset.id);
     return multipleAmounts(amount, usdPrice).toFixed(2);
+  }
+
+  protected calculateAssetPrice(asset: PoolAsset, nativeAmount: string) {
+    if (SYSTEM_ASSET_ID == asset.id) {
+      return bnum(nativeAmount).shiftedBy(-1 * SYSTEM_ASSET_DECIMALS);
+    }
+
+    const assetNativePrice = this.assets.nativePrice.get(asset.id);
+    return new BigNumber(nativeAmount).div(assetNativePrice.amount);
   }
 }

@@ -248,9 +248,12 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetInTemplate() {
+    const error = this.error['minAmountTooLow'];
     return html` <uigc-asset-transfer
       id="assetIn"
       title="Swap"
+      ?error=${error}
+      .error=${error}
       dense
       .asset=${this.assetIn?.symbol}
       .amount=${this.amountIn}

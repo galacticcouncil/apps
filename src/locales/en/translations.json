@@ -70,5 +70,6 @@
   "dca.settings.slippageInfo1": "Tolerated price deviation from the last known price.",
   "dca.error.budgetTooLow": "The minimum budget must be bigger than swap.",
   "dca.error.minBudgetTooLow": "The minimum budget is {{amount}} {{asset}}.",
+  "dca.error.minAmountTooLow": "The minimum swap amount is {{amount}} {{asset}}.",
   "dca.error.blockPeriodInvalid": "The minimum interval is 1 block."
 }

@@ -251,6 +251,30 @@ export class DcaApp extends PoolApp {
     this.requestUpdate();
   }
 
+  async validateMinAmount() {
+    const { api } = this.chain.state;
+    if (this.isSwapEmpty()) {
+      delete this.dca.error['minAmountTooLow'];
+      return;
+    }
+
+    const { amountIn, assetIn } = this.dca;
+
+    const assetInMeta = this.assets.meta.get(assetIn.id);
+    const minAmountNative = '500000000000000';
+
+    const minAmount = this.calculateAssetPrice(assetIn, minAmountNative);
+    const amount = new BigNumber(amountIn);
+    if (minAmount.isGreaterThan(amount)) {
+      this.dca.error['minAmountTooLow'] = i18n.t('dca.error.minAmountTooLow', {
+        amount: humanizeAmount(minAmount.toString()),
+        asset: assetInMeta.symbol,
+      });
+    } else {
+      delete this.dca.error['minAmountTooLow'];
+    }
+  }
+
   async validateMinBudget() {
     const { api } = this.chain.state;
     if (this.isSwapEmpty()) {
@@ -261,16 +285,8 @@ export class DcaApp extends PoolApp {
     const { amountInBudget, assetIn } = this.dca;
 
     const assetInMeta = this.assets.meta.get(assetIn.id);
-    const assetInNativePrice = this.assets.nativePrice.get(assetIn.id);
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
-
-    let minBudget: BigNumber;
-    if (assetIn.id === SYSTEM_ASSET_ID) {
-      minBudget = bnum(minBudgetNative).shiftedBy(-1 * SYSTEM_ASSET_DECIMALS);
-    } else {
-      minBudget = new BigNumber(minBudgetNative).div(new BigNumber(assetInNativePrice.amount));
-    }
-
+    const minBudget = this.calculateAssetPrice(assetIn, minBudgetNative);
     const budget = new BigNumber(amountInBudget);
     if (minBudget.isGreaterThan(budget)) {
       this.dca.error['minBudgetTooLow'] = i18n.t('dca.error.minBudgetTooLow', {
@@ -592,6 +608,7 @@ export class DcaApp extends PoolApp {
           id == 'assetGet' && this.changeAssetOut(asset, e.detail);
           this.syncBalance();
           this.validateMinBudget();
+          this.validateMinAmount();
           this.changeTab(DcaTab.DcaForm);
         }}
       >
@@ -636,6 +653,7 @@ export class DcaApp extends PoolApp {
           id == 'maxPrice' && this.updateMaxPrice(value);
           this.validateBudget();
           this.validateMinBudget();
+          this.validateMinAmount();
           this.validateEnoughBalance();
         }}
         @asset-selector-clicked=${({ detail }: CustomEvent) => {
