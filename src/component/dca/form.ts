@@ -30,7 +30,7 @@ export class DcaForm extends BaseElement {
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) interval: Interval = '1h';
-  @property({ type: String }) intervalBlock: number = null;
+  @property({ type: Number }) intervalBlock: number = null;
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountInBudget = null;
