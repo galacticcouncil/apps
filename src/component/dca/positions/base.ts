@@ -110,17 +110,14 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
   protected getBudget(position: DcaPosition) {
     const assetInMeta = position.assetInMeta;
     const totalBudget = formatAmount(position.total, assetInMeta.decimals);
+    const totalBudgetHuman = humanizeAmount(totalBudget);
     if (position.status?.type == 'Completed') {
-      return ['0', '/', totalBudget, assetInMeta.symbol].join(' ');
+      return ['0', '/', totalBudgetHuman, assetInMeta.symbol].join(' ');
     }
 
-    const swapped = position.transactions
-      .filter((trade) => !trade.status.err)
-      .map((trade) => trade.amountIn)
-      .reduce((a, b) => a.plus(b), ZERO);
-    const remaining = position.total.minus(swapped);
-    const remainingBudget = formatAmount(remaining, assetInMeta.decimals);
-    return [remainingBudget, '/', totalBudget, assetInMeta.symbol].join(' ');
+    const remainingBudget = formatAmount(position.remaining, assetInMeta.decimals);
+    const remainingBudgetHuman = humanizeAmount(remainingBudget);
+    return [remainingBudgetHuman, '/', totalBudgetHuman, assetInMeta.symbol].join(' ');
   }
 
   protected getAmount(position: DcaPosition) {

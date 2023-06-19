@@ -400,6 +400,11 @@ export class DcaApp extends PoolApp {
     }
   }
 
+  private togglePosition(scheduleId: number) {
+    const open = this.dcaPositions.open;
+    open.has(scheduleId) ? open.delete(scheduleId) : open.add(scheduleId);
+  }
+
   private async syncBalance() {
     const account = this.account.state;
     if (account) {
@@ -409,30 +414,31 @@ export class DcaApp extends PoolApp {
   }
 
   private async syncNext(scheduleId: number) {
-    let nextExecutionBlock = this.dcaPositions.next.get(scheduleId);
-    if (!nextExecutionBlock) {
-      nextExecutionBlock = await getPlanned(scheduleId);
-      if (nextExecutionBlock > this.blockNumber) {
-        this.dcaPositions.next.set(scheduleId, nextExecutionBlock);
-      }
+    const nextExecutionBlock = await getPlanned(scheduleId);
+    if (nextExecutionBlock > this.blockNumber) {
+      this.dcaPositions.next.set(scheduleId, nextExecutionBlock);
     }
   }
 
   private async syncTransactions(scheduleId: number) {
-    let transactions = this.dcaPositions.tx.get(scheduleId);
-    if (!transactions) {
-      transactions = await getTrades(scheduleId);
-      this.dcaPositions.tx.set(scheduleId, transactions);
-    }
+    const transactions = await getTrades(scheduleId);
+    this.dcaPositions.tx.set(scheduleId, transactions);
+  }
+
+  private async getRemaining(scheduleId: number) {
+    const chain = this.chain.state;
+    const remainingAmount = await chain.api.query.dca.remainingAmounts(scheduleId);
+    return bnum(remainingAmount.unwrapOr(0).toString());
   }
 
   private async syncSummary(scheduleId: number) {
     const dcaPositionsUpdated = this.dcaPositions.list.map(async (position) => {
       if (position.id == scheduleId) {
         const transactions = this.dcaPositions.tx.get(position.id) || [];
+        const remaining = await this.getRemaining(position.id);
         const nextExecutionBlock = this.dcaPositions.next.get(position.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
-        return { ...position, transactions, nextExecutionBlock, nextExecution };
+        return { ...position, remaining, transactions, nextExecutionBlock, nextExecution };
       }
       return position;
     });
@@ -442,11 +448,6 @@ export class DcaApp extends PoolApp {
     };
   }
 
-  private togglePosition(scheduleId: number) {
-    const open = this.dcaPositions.open;
-    open.has(scheduleId) ? open.delete(scheduleId) : open.add(scheduleId);
-  }
-
   private async syncPosition(scheduleId: number) {
     const open = this.dcaPositions.open.has(scheduleId);
     if (open) {
@@ -454,6 +455,14 @@ export class DcaApp extends PoolApp {
       await this.syncTransactions(scheduleId);
       await this.syncSummary(scheduleId);
     }
+  }
+
+  private async syncOpenPositions() {
+    this.dcaPositions.open.forEach(async (scheduleId: number) => {
+      await this.syncNext(scheduleId);
+      await this.syncTransactions(scheduleId);
+      await this.syncSummary(scheduleId);
+    });
   }
 
   private resetPositions() {
@@ -475,12 +484,13 @@ export class DcaApp extends PoolApp {
       const positions = scheduled.map(async (position: DcaPosition) => {
         const assetInMeta = assetMeta.get(position.assetIn);
         const assetOutMeta = assetMeta.get(position.assetOut);
+        const remaining = await this.getRemaining(position.id);
         const transactions = this.dcaPositions.tx.get(position.id) || [];
         const nextExecutionBlock = this.dcaPositions.next.get(position.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
-        await this.syncPosition(position.id);
         return {
           ...position,
+          remaining,
           assetInMeta,
           assetOutMeta,
           transactions,
@@ -509,7 +519,9 @@ export class DcaApp extends PoolApp {
 
   protected onBlockChange(): void {
     this.syncBalance();
-    this.syncPositions();
+    this.syncPositions().then(() => {
+      this.syncOpenPositions();
+    });
   }
 
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {

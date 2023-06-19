@@ -1,4 +1,4 @@
-import { AssetMetadata, BigNumber } from "@galacticcouncil/sdk";
+import { AssetMetadata, BigNumber } from '@galacticcouncil/sdk';
 
 export type DcaStatus = {
   type: string;
@@ -9,8 +9,8 @@ export type DcaStatus = {
 export type DcaTransaction = {
   date: string;
   block: number;
-  amountIn: BigNumber
-  amountOut: BigNumber
+  amountIn: BigNumber;
+  amountOut: BigNumber;
   status: DcaStatus;
 };
 
@@ -26,6 +26,7 @@ export type DcaPosition = {
   interval: number;
   amount: BigNumber;
   total: BigNumber;
+  remaining: BigNumber;
   status: DcaStatus;
   transactions: DcaTransaction[];
 };
