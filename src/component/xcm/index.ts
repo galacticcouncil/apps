@@ -372,7 +372,7 @@ export class XcmApp extends BaseApp {
   async init() {
     const account = this.account.state;
     this.syncChains();
-    this.updateAddress(account.address);
+    this.updateAddress(account?.address);
     await this.syncBalances();
     await this.syncInput();
   }
