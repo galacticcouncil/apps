@@ -17,16 +17,7 @@ import { formatAmount, humanizeAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import {
-  PoolAsset,
-  Transaction,
-  SYSTEM_ASSET_ID,
-  Amount,
-  BigNumber,
-  bnum,
-  scale,
-  SYSTEM_ASSET_DECIMALS,
-} from '@galacticcouncil/sdk';
+import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
@@ -40,10 +31,12 @@ import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
 
 import { DcaPosition, DcaTransaction } from './positions/types';
-import { getPlanned, getScheduled, getTrades } from './positions/api';
+import { DcaOrdersApi } from './positions/api';
 
 @customElement('gc-dca-app')
 export class DcaApp extends PoolApp {
+  private dcaApi: DcaOrdersApi = null;
+
   @state() tab: DcaTab = DcaTab.DcaForm;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
   @state() dcaPositions = {
@@ -433,14 +426,14 @@ export class DcaApp extends PoolApp {
   }
 
   private async syncNext(scheduleId: number) {
-    const nextExecutionBlock = await getPlanned(this.indexerUrl, scheduleId);
+    const nextExecutionBlock = await this.dcaApi.getPlanned(scheduleId);
     if (nextExecutionBlock > this.blockNumber) {
       this.dcaPositions.next.set(scheduleId, nextExecutionBlock);
     }
   }
 
   private async syncTransactions(scheduleId: number) {
-    const transactions = await getTrades(this.indexerUrl, scheduleId);
+    const transactions = await this.dcaApi.getTrades(scheduleId);
     this.dcaPositions.tx.set(scheduleId, transactions);
   }
 
@@ -498,7 +491,7 @@ export class DcaApp extends PoolApp {
 
     const assetMeta = this.assets.meta;
     const account = this.account.state;
-    const scheduled = await getScheduled(this.indexerUrl, account);
+    const scheduled = await this.dcaApi.getScheduled(account);
     if (assetMeta) {
       const positions = scheduled.map(async (position: DcaPosition) => {
         const assetInMeta = assetMeta.get(position.assetIn);
@@ -525,6 +518,7 @@ export class DcaApp extends PoolApp {
   }
 
   protected onInit(): void {
+    this.dcaApi = new DcaOrdersApi(this.indexerUrl);
     if (!this.assetIn && !this.assetOut) {
       this.dca.assetIn = this.assets.map.get(this.stableCoinAssetId);
       this.dca.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
@@ -559,6 +553,10 @@ export class DcaApp extends PoolApp {
       this.changeTab(DcaTab.DcaForm);
     }
     this.width = window.innerWidth;
+  }
+
+  override isApiReady() {
+    return super.isApiReady() && !!this.dcaApi;
   }
 
   override connectedCallback() {
