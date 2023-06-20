@@ -9,8 +9,8 @@ import { formatAmount, humanizeAmount } from '../../../../utils/amount';
 import { BaseElement } from '../../../base/BaseElement';
 import { ZERO } from '@galacticcouncil/sdk';
 
-@customElement('gc-dca-transactions-mob')
-export class DcaTransactionsMob extends BaseElement {
+@customElement('gc-dca-list-tx')
+export class DcaOrdersListTx extends BaseElement {
   @property({ attribute: false }) position: DcaOrder = null;
 
   static styles = [

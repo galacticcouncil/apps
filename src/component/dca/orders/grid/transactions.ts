@@ -9,8 +9,8 @@ import { formatAmount, humanizeAmount } from '../../../../utils/amount';
 import { DcaOrder, DcaTransaction } from '../types';
 import { ZERO } from '@galacticcouncil/sdk';
 
-@customElement('gc-dca-transactions')
-export class DcaTransactions extends Datagrid<DcaTransaction> {
+@customElement('gc-dca-grid-tx')
+export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
   @property({ attribute: false }) position: DcaOrder = null;
 
   static styles = [

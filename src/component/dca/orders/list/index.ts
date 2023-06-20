@@ -7,17 +7,17 @@ import { ColumnDef, Row } from '@tanstack/table-core';
 
 import { headerStyles } from '../../../styles/header.css';
 
-import { DcaBaseOrders } from '../base';
+import { DcaBaseDatagrid } from '../datagrid';
 import { DcaOrder } from '../types';
 
 import './transactions';
 
-@customElement('gc-dca-orders-mob')
-export class DcaOrdersMob extends DcaBaseOrders {
+@customElement('gc-dca-list')
+export class DcaOrdersList extends DcaBaseDatagrid {
   @state() active: DcaOrder = null;
 
   static styles = [
-    DcaBaseOrders.styles,
+    DcaBaseDatagrid.styles,
     headerStyles,
     css`
       .modal {
@@ -144,7 +144,7 @@ export class DcaOrdersMob extends DcaBaseOrders {
         </div>
         ${this.summaryTemplate(order)}
         <div class="transactions">Past Transactions</div>
-        <gc-dca-transactions-mob .position=${order}></gc-dca-transactions-mob>
+        <gc-dca-list-tx .position=${order}></gc-dca-list-tx>
       </div>
     `;
   }

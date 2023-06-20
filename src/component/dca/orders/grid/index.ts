@@ -4,14 +4,14 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
 
-import { DcaBaseOrders } from '../base';
+import { DcaBaseDatagrid } from '../datagrid';
 import { DcaOrder } from '../types';
 
 import './transactions';
 
-@customElement('gc-dca-orders')
-export class DcaOrders extends DcaBaseOrders {
-  static styles = [DcaBaseOrders.styles];
+@customElement('gc-dca-grid')
+export class DcaOrdersGrid extends DcaBaseDatagrid {
+  static styles = [DcaBaseDatagrid.styles];
 
   constructor() {
     super();
@@ -67,10 +67,10 @@ export class DcaOrders extends DcaBaseOrders {
       <div class="row">
         ${this.summaryTemplate(row.original)}
         <div class="transactions">Past transactions</div>
-        <gc-dca-transactions
+        <gc-dca-grid-tx
           .position=${row.original}
           .defaultData=${row.original.transactions.slice(0, 10)}
-        ></gc-dca-transactions>
+        ></gc-dca-grid-tx>
       </div>
     `;
   }

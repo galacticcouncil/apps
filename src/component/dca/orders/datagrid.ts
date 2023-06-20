@@ -2,7 +2,7 @@ import { html, css } from 'lit';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { positionsStyles } from './base.css';
+import { positionsStyles } from './datagrid.css';
 
 import { Datagrid } from '../../datagrid';
 import { Account, Chain, accountCursor, chainCursor } from '../../../db';
@@ -16,7 +16,7 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { DcaOrder } from './types';
 import { TxInfo, TxNotificationMssg } from '../../transaction/types';
 
-export abstract class DcaBaseOrders extends Datagrid<DcaOrder> {
+export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected account = new DatabaseController<Account>(this, accountCursor);
 
