@@ -65,7 +65,7 @@
     "short-uuid": "^4.2.0"
   },
   "peerDependencies": {
-    "@galacticcouncil/bridge": "0.0.4",
+    "@galacticcouncil/bridge": "0.0.5",
     "@galacticcouncil/sdk": "0.3.0",
     "@galacticcouncil/ui": "^1.2.12",
     "@polkadot/api": "^10.9.1",
