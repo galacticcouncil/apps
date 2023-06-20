@@ -6,7 +6,7 @@ import { queryPlanned, queryScheduled, queryStatus, queryTrades } from './query'
 import { Account, chainCursor } from '../../../db';
 import { convertToHex } from '../../../utils/account';
 
-import { DcaPosition, DcaStatus, DcaTransaction } from './types';
+import { DcaOrder, DcaStatus, DcaTransaction } from './types';
 
 export class DcaOrdersApi {
   private _indexerUrl: string;
@@ -15,7 +15,7 @@ export class DcaOrdersApi {
     this._indexerUrl = indexerUrl;
   }
 
-  async getScheduled(account: Account): Promise<DcaPosition[]> {
+  async getScheduled(account: Account): Promise<DcaOrder[]> {
     const who = convertToHex(account.address);
     const scheduled = await queryScheduled(this._indexerUrl, who);
     const scheduledStatus = await this.getStatus(account);
@@ -35,7 +35,7 @@ export class DcaOrdersApi {
         total: bnum(totalAmount),
         status: scheduledStatus.get(id),
         transactions: [],
-      } as DcaPosition;
+      } as DcaOrder;
     });
   }
 

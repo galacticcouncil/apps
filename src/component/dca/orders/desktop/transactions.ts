@@ -6,12 +6,12 @@ import { ColumnDef, Row } from '@tanstack/table-core';
 import { Datagrid } from '../../../datagrid';
 import { formatAmount, humanizeAmount } from '../../../../utils/amount';
 
-import { DcaPosition, DcaTransaction } from '../types';
+import { DcaOrder, DcaTransaction } from '../types';
 import { ZERO } from '@galacticcouncil/sdk';
 
-@customElement('gc-dca-past-transactions')
-export class DcaPastTransactions extends Datagrid<DcaTransaction> {
-  @property({ attribute: false }) position: DcaPosition = null;
+@customElement('gc-dca-transactions')
+export class DcaTransactions extends Datagrid<DcaTransaction> {
+  @property({ attribute: false }) position: DcaOrder = null;
 
   static styles = [
     Datagrid.styles,

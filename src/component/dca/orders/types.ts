@@ -14,7 +14,7 @@ export type DcaTransaction = {
   status: DcaStatus;
 };
 
-export type DcaPosition = {
+export type DcaOrder = {
   id: number;
   assetIn: string;
   assetOut: string;

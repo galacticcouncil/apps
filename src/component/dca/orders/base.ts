@@ -13,10 +13,10 @@ import { getRenderString } from '../../../utils/dom';
 import { ZERO, Transaction } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { DcaPosition } from './types';
+import { DcaOrder } from './types';
 import { TxInfo, TxNotificationMssg } from '../../transaction/types';
 
-export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
+export abstract class DcaBaseOrders extends Datagrid<DcaOrder> {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected account = new DatabaseController<Account>(this, accountCursor);
 
@@ -62,7 +62,7 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:terminateDca', options));
   }
 
-  private async terminate(position: DcaPosition) {
+  private async terminate(position: DcaOrder) {
     const chain = this.chain.state;
     const account = this.account.state;
 
@@ -77,12 +77,12 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
     this.processTx(account, transaction);
   }
 
-  protected pairTemplate(position: DcaPosition) {
+  protected pairTemplate(order: DcaOrder) {
     return html`
       <div class="pair">
-        <uigc-logo-asset fit asset=${position.assetInMeta?.symbol}></uigc-logo-asset>
+        <uigc-logo-asset fit asset=${order.assetInMeta?.symbol}></uigc-logo-asset>
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        <uigc-logo-asset fit asset=${position.assetOutMeta?.symbol}></uigc-logo-asset>
+        <uigc-logo-asset fit asset=${order.assetOutMeta?.symbol}></uigc-logo-asset>
       </div>
     `;
   }
@@ -96,9 +96,9 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
     `;
   }
 
-  protected getReceived(position: DcaPosition) {
-    const assetOutMeta = position.assetOutMeta;
-    const received = position.transactions
+  protected getReceived(order: DcaOrder) {
+    const assetOutMeta = order.assetOutMeta;
+    const received = order.transactions
       .filter((trade) => !trade.status.err)
       .map((trade) => trade.amountOut)
       .reduce((a, b) => a.plus(b), ZERO);
@@ -107,61 +107,61 @@ export abstract class DcaBasePositions extends Datagrid<DcaPosition> {
     return [humanizeAmount(receivedAmount), assetOutMeta.symbol].join(' ');
   }
 
-  protected getBudget(position: DcaPosition) {
-    const assetInMeta = position.assetInMeta;
-    const totalBudget = formatAmount(position.total, assetInMeta.decimals);
+  protected getBudget(order: DcaOrder) {
+    const assetInMeta = order.assetInMeta;
+    const totalBudget = formatAmount(order.total, assetInMeta.decimals);
     const totalBudgetHuman = humanizeAmount(totalBudget);
-    if (position.status?.type == 'Completed') {
+    if (order.status?.type == 'Completed') {
       return ['0', '/', totalBudgetHuman, assetInMeta.symbol].join(' ');
     }
 
-    const remainingBudget = formatAmount(position.remaining, assetInMeta.decimals);
+    const remainingBudget = formatAmount(order.remaining, assetInMeta.decimals);
     const remainingBudgetHuman = humanizeAmount(remainingBudget);
     return [remainingBudgetHuman, '/', totalBudgetHuman, assetInMeta.symbol].join(' ');
   }
 
-  protected getAmount(position: DcaPosition) {
-    const assetInMeta = position.assetInMeta;
-    const amount = formatAmount(position.amount, assetInMeta.decimals);
+  protected getAmount(order: DcaOrder) {
+    const assetInMeta = order.assetInMeta;
+    const amount = formatAmount(order.amount, assetInMeta.decimals);
     return [amount, assetInMeta.symbol].join(' ');
   }
 
-  protected getNextExecution(position: DcaPosition) {
-    if (position.nextExecutionBlock) {
-      return this._dayjs(position.nextExecution).format('DD-MM-YYYY HH:mm');
+  protected getNextExecution(order: DcaOrder) {
+    if (order.nextExecutionBlock) {
+      return this._dayjs(order.nextExecution).format('DD-MM-YYYY HH:mm');
     }
     return '-';
   }
 
-  protected getInterval(position: DcaPosition) {
-    return position.interval;
+  protected getInterval(order: DcaOrder) {
+    return order.interval;
   }
 
-  protected getStatus(position: DcaPosition) {
-    return position.status.type;
+  protected getStatus(order: DcaOrder) {
+    return order.status.type;
   }
 
-  protected summaryTemplate(position: DcaPosition) {
+  protected summaryTemplate(order: DcaOrder) {
     const classes = {
-      summary: !position.status,
-      hidden: !!position.status,
+      summary: !order.status,
+      hidden: !!order.status,
       item: true,
       execution: true,
     };
     return html`
       <div class="summary item">
-        ${this.itemTemplate('Remaining / Budget', this.getBudget(position))}
-        ${this.itemTemplate('Received', this.getReceived(position))}
+        ${this.itemTemplate('Remaining / Budget', this.getBudget(order))}
+        ${this.itemTemplate('Received', this.getReceived(order))}
       </div>
       <div class=${classMap(classes)}>
-        ${this.itemTemplate('Next execution', this.getNextExecution(position))}
-        <uigc-button variant="error" size="small" @click=${() => this.terminate(position)}>Terminate</uigc-button>
+        ${this.itemTemplate('Next execution', this.getNextExecution(order))}
+        <uigc-button variant="error" size="small" @click=${() => this.terminate(order)}>Terminate</uigc-button>
       </div>
     `;
   }
 
-  protected statusTemplate(position: DcaPosition) {
-    const status = position.status;
+  protected statusTemplate(order: DcaOrder) {
+    const status = order.status;
     if (status) {
       return html` ${choose(status.type, [
         ['Terminated', () => html`<span class="status status__terminated">${status.type}</span>`],

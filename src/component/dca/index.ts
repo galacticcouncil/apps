@@ -22,16 +22,16 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
 import './settings';
-import './positions/desktop';
-import './positions/mobile';
+import './orders/desktop';
+import './orders/mobile';
 import '../selector/asset';
 
 import { DcaTab, DcaState, DEFAULT_DCA_STATE } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
 
-import { DcaPosition, DcaTransaction } from './positions/types';
-import { DcaOrdersApi } from './positions/api';
+import { DcaOrder, DcaTransaction } from './orders/types';
+import { DcaOrdersApi } from './orders/api';
 
 @customElement('gc-dca-app')
 export class DcaApp extends PoolApp {
@@ -39,10 +39,8 @@ export class DcaApp extends PoolApp {
 
   @state() tab: DcaTab = DcaTab.DcaForm;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
-  @state() dcaPositions = {
-    list: [] as DcaPosition[],
-    tx: new Map<number, DcaTransaction[]>([]),
-    next: new Map<number, number>([]),
+  @state() dcaOrders = {
+    list: [] as DcaOrder[],
     open: new Set<number>([]),
   };
 
@@ -412,11 +410,6 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  private togglePosition(scheduleId: number) {
-    const open = this.dcaPositions.open;
-    open.has(scheduleId) ? open.delete(scheduleId) : open.add(scheduleId);
-  }
-
   private async syncBalance() {
     const account = this.account.state;
     if (account) {
@@ -425,66 +418,67 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  private async syncNext(scheduleId: number) {
+  private async getNextExecutionBlock(scheduleId: number): Promise<number> {
     const nextExecutionBlock = await this.dcaApi.getPlanned(scheduleId);
     if (nextExecutionBlock > this.blockNumber) {
-      this.dcaPositions.next.set(scheduleId, nextExecutionBlock);
+      return nextExecutionBlock;
+    } else {
+      return null;
     }
   }
 
-  private async syncTransactions(scheduleId: number) {
-    const transactions = await this.dcaApi.getTrades(scheduleId);
-    this.dcaPositions.tx.set(scheduleId, transactions);
+  private async getTransactions(scheduleId: number): Promise<DcaTransaction[]> {
+    const trades = await this.dcaApi.getTrades(scheduleId);
+    return trades ?? [];
   }
 
-  private async getRemaining(scheduleId: number) {
+  private async getRemaining(scheduleId: number): Promise<BigNumber> {
     const chain = this.chain.state;
     const remainingAmount = await chain.api.query.dca.remainingAmounts(scheduleId);
     return bnum(remainingAmount.unwrapOr(0).toString());
   }
 
   private async syncSummary(scheduleId: number) {
-    const dcaPositionsUpdated = this.dcaPositions.list.map(async (position) => {
-      if (position.id == scheduleId) {
-        const transactions = this.dcaPositions.tx.get(position.id) || [];
-        const remaining = await this.getRemaining(position.id);
-        const nextExecutionBlock = this.dcaPositions.next.get(position.id);
+    const dcaOrdersUpdated = this.dcaOrders.list.map(async (order) => {
+      if (order.id == scheduleId) {
+        const transactions = await this.getTransactions(order.id);
+        const remaining = await this.getRemaining(order.id);
+        const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
-        return { ...position, remaining, transactions, nextExecutionBlock, nextExecution };
+        return { ...order, remaining, transactions, nextExecutionBlock, nextExecution };
       }
-      return position;
+      return order;
     });
-    this.dcaPositions = {
-      ...this.dcaPositions,
-      list: await Promise.all(dcaPositionsUpdated),
+    this.dcaOrders = {
+      ...this.dcaOrders,
+      list: await Promise.all(dcaOrdersUpdated),
     };
   }
 
-  private async syncPosition(scheduleId: number) {
-    const open = this.dcaPositions.open.has(scheduleId);
-    if (open) {
-      await this.syncNext(scheduleId);
-      await this.syncTransactions(scheduleId);
-      await this.syncSummary(scheduleId);
-    }
+  private toggleOrder(scheduleId: number) {
+    const open = this.dcaOrders.open;
+    open.has(scheduleId) ? open.delete(scheduleId) : open.add(scheduleId);
   }
 
-  private async syncOpenPositions() {
-    this.dcaPositions.open.forEach(async (scheduleId: number) => {
-      await this.syncNext(scheduleId);
-      await this.syncTransactions(scheduleId);
-      await this.syncSummary(scheduleId);
+  private syncOrder(scheduleId: number) {
+    const open = this.dcaOrders.open.has(scheduleId);
+    open && this.syncSummary(scheduleId);
+  }
+
+  private syncOpenOrders() {
+    this.dcaOrders.open.forEach((scheduleId: number) => {
+      this.syncSummary(scheduleId);
     });
   }
 
-  private resetPositions() {
-    this.dcaPositions = {
-      ...this.dcaPositions,
+  private resetOrders() {
+    this.dcaOrders = {
+      ...this.dcaOrders,
       list: [],
     };
   }
 
-  private async syncPositions() {
+  private async syncOrders() {
     if (!this.hasAccount()) {
       return;
     }
@@ -493,25 +487,25 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     const scheduled = await this.dcaApi.getScheduled(account);
     if (assetMeta) {
-      const positions = scheduled.map(async (position: DcaPosition) => {
-        const assetInMeta = assetMeta.get(position.assetIn);
-        const assetOutMeta = assetMeta.get(position.assetOut);
-        const remaining = await this.getRemaining(position.id);
-        const transactions = this.dcaPositions.tx.get(position.id) || [];
-        const nextExecutionBlock = this.dcaPositions.next.get(position.id);
+      const positions = scheduled.map(async (order: DcaOrder) => {
+        const assetInMeta = assetMeta.get(order.assetIn);
+        const assetOutMeta = assetMeta.get(order.assetOut);
+        const transactions = await this.getTransactions(order.id);
+        const remaining = await this.getRemaining(order.id);
+        const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
         return {
-          ...position,
+          ...order,
           remaining,
           assetInMeta,
           assetOutMeta,
           transactions,
           nextExecution,
           nextExecutionBlock,
-        } as DcaPosition;
+        } as DcaOrder;
       });
-      this.dcaPositions = {
-        ...this.dcaPositions,
+      this.dcaOrders = {
+        ...this.dcaOrders,
         list: await Promise.all(positions),
       };
     }
@@ -532,8 +526,8 @@ export class DcaApp extends PoolApp {
 
   protected onBlockChange(): void {
     this.syncBalance();
-    this.syncPositions().then(() => {
-      this.syncOpenPositions();
+    this.syncOrders().then(() => {
+      this.syncOpenOrders();
     });
   }
 
@@ -541,10 +535,10 @@ export class DcaApp extends PoolApp {
     await super.onAccountChange(prev, curr);
     if (curr) {
       this.syncBalance();
-      this.isApiReady() && this.syncPositions();
+      this.isApiReady() && this.syncOrders();
     } else {
       this.resetBalance();
-      this.resetPositions();
+      this.resetOrders();
     }
   }
 
@@ -699,26 +693,26 @@ export class DcaApp extends PoolApp {
     return html` <div class=${classMap(classes)}>
       ${when(
         this.width > 768,
-        () => html` <gc-dca-positions
-          .defaultData=${this.dcaPositions.list}
-          @dca-clicked=${({ detail: { id } }: CustomEvent) => {
-            this.togglePosition(id);
-            this.syncPosition(id);
+        () => html` <gc-dca-orders
+          .defaultData=${this.dcaOrders.list}
+          @order-clicked=${({ detail: { id } }: CustomEvent) => {
+            this.toggleOrder(id);
+            this.syncOrder(id);
           }}
         >
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Orders</uigc-typography>
-        </gc-dca-positions>`,
-        () => html` <gc-dca-positions-mob
-          .defaultData=${this.dcaPositions.list}
-          @dca-clicked=${({ detail: { id } }: CustomEvent) => {
-            this.togglePosition(id);
-            this.syncPosition(id);
+        </gc-dca-orders>`,
+        () => html` <gc-dca-orders-mob
+          .defaultData=${this.dcaOrders.list}
+          @order-clicked=${({ detail: { id } }: CustomEvent) => {
+            this.toggleOrder(id);
+            this.syncOrder(id);
           }}
         >
           <uigc-typography slot="header" class="title">DCA</uigc-typography>
           <uigc-typography slot="header" variant="title">Orders</uigc-typography>
-        </gc-dca-positions-mob>`
+        </gc-dca-orders-mob>`
       )}
     </div>`;
   }
