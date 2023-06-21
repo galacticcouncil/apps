@@ -7,17 +7,17 @@ import { ColumnDef, Row } from '@tanstack/table-core';
 
 import { headerStyles } from '../../../styles/header.css';
 
-import { DcaBasePositions } from '../base';
-import { DcaPosition } from '../types';
+import { DcaBaseDatagrid } from '../datagrid';
+import { DcaOrder } from '../types';
 
 import './transactions';
 
-@customElement('gc-dca-positions-mob')
-export class DcaPositionsMob extends DcaBasePositions {
-  @state() active: DcaPosition = null;
+@customElement('gc-dca-list')
+export class DcaOrdersList extends DcaBaseDatagrid {
+  @state() active: DcaOrder = null;
 
   static styles = [
-    DcaBasePositions.styles,
+    DcaBaseDatagrid.styles,
     headerStyles,
     css`
       .modal {
@@ -74,32 +74,32 @@ export class DcaPositionsMob extends DcaBasePositions {
 
   constructor() {
     super();
-    this.onRowClick = (row: Row<DcaPosition>) => {
+    this.onRowClick = (row: Row<DcaOrder>) => {
       this.active = row.original;
       const options = {
         bubbles: true,
         composed: true,
         detail: { id: row.original.id },
       };
-      this.dispatchEvent(new CustomEvent('dca-clicked', options));
+      this.dispatchEvent(new CustomEvent('order-clicked', options));
     };
   }
 
-  private infoTemplate(position: DcaPosition) {
+  private infoTemplate(order: DcaOrder) {
     return html` <div class="info">
-      <span>${this.getAmount(position)}</span>
-      ${this.statusTemplate(position)}
+      <span>${this.getAmount(order)}</span>
+      ${this.statusTemplate(order)}
     </div>`;
   }
 
-  private actionsTemplate(position: DcaPosition) {
+  private actionsTemplate(order: DcaOrder) {
     const classes = {
       right: true,
     };
     return html` <uigc-icon-dropdown class=${classMap(classes)}></uigc-icon-dropdown> `;
   }
 
-  protected defaultColumns(): ColumnDef<DcaPosition>[] {
+  protected defaultColumns(): ColumnDef<DcaOrder>[] {
     return [
       {
         id: 'pair',
@@ -118,12 +118,12 @@ export class DcaPositionsMob extends DcaBasePositions {
     ];
   }
 
-  protected expandedRowTemplate(_row: Row<DcaPosition>): TemplateResult {
+  protected expandedRowTemplate(_row: Row<DcaOrder>): TemplateResult {
     return null;
   }
 
   private modalRowTemplate() {
-    const position = this.active;
+    const order = this.active;
     return html`
       <div class="header section">
         <span></span>
@@ -139,13 +139,12 @@ export class DcaPositionsMob extends DcaBasePositions {
       </div>
       <div class="row">
         <div class="overview item">
-          ${this.itemTemplate('', this.pairTemplate(position))}
-          ${this.itemTemplate('Status', this.statusTemplate(position))}
-          ${this.itemTemplate('Block Interval', position.interval)} ${this.itemTemplate('Amount', this.getAmount(position))}
+          ${this.itemTemplate('', this.pairTemplate(order))} ${this.itemTemplate('Status', this.statusTemplate(order))}
+          ${this.itemTemplate('Block Interval', order.interval)} ${this.itemTemplate('Amount', this.getAmount(order))}
         </div>
-        ${this.summaryTemplate(position)}
+        ${this.summaryTemplate(order)}
         <div class="transactions">Past Transactions</div>
-        <gc-dca-past-transactions-mob .position=${position}></gc-dca-past-transactions-mob>
+        <gc-dca-list-tx .order=${order}></gc-dca-list-tx>
       </div>
     `;
   }
@@ -154,7 +153,7 @@ export class DcaPositionsMob extends DcaBasePositions {
     super.update(changedProperties);
     const isDataChange = changedProperties.has('defaultData');
     if (isDataChange && this.active) {
-      this.active = this.defaultData.find((position) => position.id == this.active.id);
+      this.active = this.defaultData.find((order) => order.id == this.active.id);
     }
   }
 

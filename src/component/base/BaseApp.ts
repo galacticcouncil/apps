@@ -4,12 +4,21 @@ import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { BaseElement } from './BaseElement';
 
+import short from 'short-uuid';
+
 export abstract class BaseApp extends BaseElement {
   protected account = new DatabaseController<Account>(this, accountCursor);
+  private watchId: string;
 
   @property({ type: String }) accountAddress: string = null;
   @property({ type: String }) accountProvider: string = null;
   @property({ type: String }) accountName: string = null;
+  @property({ type: String }) indexerUrl: string = null;
+
+  constructor() {
+    super();
+    this.watchId = 'account-watch-' + short.generate();
+  }
 
   protected abstract onAccountChange(prev: Account, curr: Account): Promise<void>;
 
@@ -38,7 +47,7 @@ export abstract class BaseApp extends BaseElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    accountCursor.addWatch('account-watch', (_id, prev, curr) => {
+    accountCursor.addWatch(this.watchId, (_id, prev, curr) => {
       if (prev?.address !== curr?.address) {
         this.onAccountChange(prev, curr);
       }
@@ -46,7 +55,7 @@ export abstract class BaseApp extends BaseElement {
   }
 
   override disconnectedCallback() {
-    accountCursor.removeWatch('account-watch');
+    accountCursor.removeWatch(this.watchId);
     super.disconnectedCallback();
   }
 }

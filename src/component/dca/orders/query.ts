@@ -2,7 +2,11 @@ import { gql, request } from 'graphql-request';
 
 const QUERY_SCHEDULED = gql`
   query ($who: String!) {
-    events(where: { args_jsonContains: { who: $who }, AND: { name_eq: "DCA.Scheduled" } }, orderBy: block_height_DESC, limit: 1000) {
+    events(
+      where: { args_jsonContains: { who: $who }, AND: { name_eq: "DCA.Scheduled" } }
+      orderBy: block_height_DESC
+      limit: 1000
+    ) {
       name
       args
       call {

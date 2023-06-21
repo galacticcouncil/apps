@@ -12,55 +12,33 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, dcaSettingsCursor } from '../../db';
 import { getMinAmountOut } from '../../api/slippage';
-import { INTERVAL_MS, getBlockTime, toBlockPeriod, toTimestamp } from '../../api/time';
+import { INTERVAL_MS, getBlockTime, toBlockPeriod } from '../../api/time';
 import { formatAmount, humanizeAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import {
-  PoolAsset,
-  Transaction,
-  SYSTEM_ASSET_ID,
-  Amount,
-  BigNumber,
-  bnum,
-  scale,
-  SYSTEM_ASSET_DECIMALS,
-} from '@galacticcouncil/sdk';
+import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
 import './settings';
-import './positions/desktop';
-import './positions/mobile';
+import './orders';
 import '../selector/asset';
 
 import { DcaTab, DcaState, DEFAULT_DCA_STATE } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
 
-import { DcaPosition, DcaTransaction } from './positions/types';
-import { getPlanned, getScheduled, getTrades } from './positions/api';
-
 @customElement('gc-dca-app')
 export class DcaApp extends PoolApp {
   @state() tab: DcaTab = DcaTab.DcaForm;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
-  @state() dcaPositions = {
-    list: [] as DcaPosition[],
-    tx: new Map<number, DcaTransaction[]>([]),
-    next: new Map<number, number>([]),
-    open: new Set<number>([]),
-  };
-
   @state() asset = {
     selector: null as AssetSelector,
   };
-  @state() width: number = window.innerWidth;
 
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
-  @property({ type: String }) indexerUrl: string = null;
   @property({ type: Number }) chartDatasourceId: number = null;
   @property({ type: Boolean }) chart: Boolean = false;
 
@@ -71,28 +49,6 @@ export class DcaApp extends PoolApp {
     css`
       :host {
         max-width: 480px;
-      }
-
-      .positions {
-        background: var(--uigc-app-background-color);
-        overflow: hidden;
-      }
-
-      .positions .title {
-        color: var(--uigc-app-font-color__primary);
-        font-family: var(--uigc-app-font-secondary);
-        font-weight: var(--uigc-typography__title-font-weight);
-        padding: 0 5px;
-      }
-
-      .positions uigc-typography {
-        font-size: 15px;
-      }
-
-      @media (min-width: 480px) {
-        .positions {
-          border-radius: var(--uigc-app-border-radius);
-        }
       }
     `,
   ];
@@ -419,108 +375,11 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  private togglePosition(scheduleId: number) {
-    const open = this.dcaPositions.open;
-    open.has(scheduleId) ? open.delete(scheduleId) : open.add(scheduleId);
-  }
-
   private async syncBalance() {
     const account = this.account.state;
     if (account) {
       this.updateBalance();
       this.validateEnoughBalance();
-    }
-  }
-
-  private async syncNext(scheduleId: number) {
-    const nextExecutionBlock = await getPlanned(this.indexerUrl, scheduleId);
-    if (nextExecutionBlock > this.blockNumber) {
-      this.dcaPositions.next.set(scheduleId, nextExecutionBlock);
-    }
-  }
-
-  private async syncTransactions(scheduleId: number) {
-    const transactions = await getTrades(this.indexerUrl, scheduleId);
-    this.dcaPositions.tx.set(scheduleId, transactions);
-  }
-
-  private async getRemaining(scheduleId: number) {
-    const chain = this.chain.state;
-    const remainingAmount = await chain.api.query.dca.remainingAmounts(scheduleId);
-    return bnum(remainingAmount.unwrapOr(0).toString());
-  }
-
-  private async syncSummary(scheduleId: number) {
-    const dcaPositionsUpdated = this.dcaPositions.list.map(async (position) => {
-      if (position.id == scheduleId) {
-        const transactions = this.dcaPositions.tx.get(position.id) || [];
-        const remaining = await this.getRemaining(position.id);
-        const nextExecutionBlock = this.dcaPositions.next.get(position.id);
-        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
-        return { ...position, remaining, transactions, nextExecutionBlock, nextExecution };
-      }
-      return position;
-    });
-    this.dcaPositions = {
-      ...this.dcaPositions,
-      list: await Promise.all(dcaPositionsUpdated),
-    };
-  }
-
-  private async syncPosition(scheduleId: number) {
-    const open = this.dcaPositions.open.has(scheduleId);
-    if (open) {
-      await this.syncNext(scheduleId);
-      await this.syncTransactions(scheduleId);
-      await this.syncSummary(scheduleId);
-    }
-  }
-
-  private async syncOpenPositions() {
-    this.dcaPositions.open.forEach(async (scheduleId: number) => {
-      await this.syncNext(scheduleId);
-      await this.syncTransactions(scheduleId);
-      await this.syncSummary(scheduleId);
-    });
-  }
-
-  private resetPositions() {
-    this.dcaPositions = {
-      ...this.dcaPositions,
-      list: [],
-    };
-  }
-
-  private async syncPositions() {
-    if (!this.hasAccount()) {
-      return;
-    }
-
-    const assetMeta = this.assets.meta;
-    const account = this.account.state;
-    const scheduled = await getScheduled(this.indexerUrl, account);
-    if (assetMeta) {
-      const positions = scheduled.map(async (position: DcaPosition) => {
-        const assetInMeta = assetMeta.get(position.assetIn);
-        const assetOutMeta = assetMeta.get(position.assetOut);
-        const remaining = await this.getRemaining(position.id);
-        const transactions = this.dcaPositions.tx.get(position.id) || [];
-        const nextExecutionBlock = this.dcaPositions.next.get(position.id);
-        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
-        return {
-          ...position,
-          remaining,
-          assetInMeta,
-          assetOutMeta,
-          transactions,
-          nextExecution,
-          nextExecutionBlock,
-        } as DcaPosition;
-      });
-      this.dcaPositions = {
-        ...this.dcaPositions,
-        list: await Promise.all(positions),
-      };
     }
   }
 
@@ -538,19 +397,14 @@ export class DcaApp extends PoolApp {
 
   protected onBlockChange(): void {
     this.syncBalance();
-    this.syncPositions().then(() => {
-      this.syncOpenPositions();
-    });
   }
 
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
     await super.onAccountChange(prev, curr);
     if (curr) {
       this.syncBalance();
-      this.isApiReady() && this.syncPositions();
     } else {
       this.resetBalance();
-      this.resetPositions();
     }
   }
 
@@ -558,7 +412,6 @@ export class DcaApp extends PoolApp {
     if (window.innerWidth > 1023 && DcaTab.TradeChart == this.tab) {
       this.changeTab(DcaTab.DcaForm);
     }
-    this.width = window.innerWidth;
   }
 
   override connectedCallback() {
@@ -694,35 +547,15 @@ export class DcaApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  dcaPositionsSummary() {
-    const classes = {
-      positions: true,
-    };
-    return html` <div class=${classMap(classes)}>
-      ${when(
-        this.width > 768,
-        () => html` <gc-dca-positions
-          .defaultData=${this.dcaPositions.list}
-          @dca-clicked=${({ detail: { id } }: CustomEvent) => {
-            this.togglePosition(id);
-            this.syncPosition(id);
-          }}
-        >
-          <uigc-typography slot="header" class="title">DCA</uigc-typography>
-          <uigc-typography slot="header" variant="title">Orders</uigc-typography>
-        </gc-dca-positions>`,
-        () => html` <gc-dca-positions-mob
-          .defaultData=${this.dcaPositions.list}
-          @dca-clicked=${({ detail: { id } }: CustomEvent) => {
-            this.togglePosition(id);
-            this.syncPosition(id);
-          }}
-        >
-          <uigc-typography slot="header" class="title">DCA</uigc-typography>
-          <uigc-typography slot="header" variant="title">Orders</uigc-typography>
-        </gc-dca-positions-mob>`
-      )}
-    </div>`;
+  dcaOrdersSummary() {
+    const account = this.account.state;
+    return html` <gc-dca-orders
+      .meta=${this.assets.meta}
+      .indexerUrl=${this.indexerUrl}
+      .accountAddress=${account?.address}
+      .accountProvider=${account?.provider}
+      .accountName=${account?.name}
+    ></gc-dca-orders>`;
   }
 
   tradeChartTab() {
@@ -759,7 +592,7 @@ export class DcaApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.tradeChartTab()} ${this.dcaFormTab()} ${this.dcaSettingsTab()} ${this.dcaPositionsSummary()}
+        ${this.tradeChartTab()} ${this.dcaFormTab()} ${this.dcaSettingsTab()} ${this.dcaOrdersSummary()}
         ${this.selectAssetTab()}
       </div>
     `;

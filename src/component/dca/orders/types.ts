@@ -14,13 +14,12 @@ export type DcaTransaction = {
   status: DcaStatus;
 };
 
-export type DcaPosition = {
+export type DcaOrder = {
   id: number;
   assetIn: string;
   assetOut: string;
   assetInMeta: AssetMetadata;
   assetOutMeta: AssetMetadata;
-  start: number;
   nextExecution: number;
   nextExecutionBlock: number;
   interval: number;
@@ -29,4 +28,5 @@ export type DcaPosition = {
   remaining: BigNumber;
   status: DcaStatus;
   transactions: DcaTransaction[];
+  hasPendingTx(): boolean;
 };
