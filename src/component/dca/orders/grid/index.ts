@@ -68,7 +68,7 @@ export class DcaOrdersGrid extends DcaBaseDatagrid {
         ${this.summaryTemplate(row.original)}
         <div class="transactions">Past transactions</div>
         <gc-dca-grid-tx
-          .position=${row.original}
+          .order=${row.original}
           .defaultData=${row.original.transactions.slice(0, 10)}
         ></gc-dca-grid-tx>
       </div>

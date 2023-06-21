@@ -11,7 +11,7 @@ import { ZERO } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-grid-tx')
 export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
-  @property({ attribute: false }) position: DcaOrder = null;
+  @property({ attribute: false }) order: DcaOrder = null;
 
   static styles = [
     Datagrid.styles,
@@ -65,7 +65,7 @@ export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
     if (received.isEqualTo(ZERO)) {
       return '-';
     }
-    const assetOutMeta = this.position.assetOutMeta;
+    const assetOutMeta = this.order.assetOutMeta;
     const amount = formatAmount(row.original.amountOut, assetOutMeta.decimals);
     return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
   }
@@ -76,7 +76,7 @@ export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
       return '-';
     }
 
-    const { assetInMeta, assetOutMeta } = this.position;
+    const { assetInMeta, assetOutMeta } = this.order;
 
     const aIn = row.original.amountIn.shiftedBy(-1 * assetInMeta.decimals);
     const aOut = row.original.amountOut.shiftedBy(-1 * assetOutMeta.decimals);

@@ -144,7 +144,7 @@ export class DcaOrdersList extends DcaBaseDatagrid {
         </div>
         ${this.summaryTemplate(order)}
         <div class="transactions">Past Transactions</div>
-        <gc-dca-list-tx .position=${order}></gc-dca-list-tx>
+        <gc-dca-list-tx .order=${order}></gc-dca-list-tx>
       </div>
     `;
   }

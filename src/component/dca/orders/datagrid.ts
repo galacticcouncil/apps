@@ -1,4 +1,5 @@
 import { html, css } from 'lit';
+import { property } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -20,6 +21,8 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected account = new DatabaseController<Account>(this, accountCursor);
 
+  @property({ type: Number }) blockNumber: number = null;
+
   static styles = [
     Datagrid.styles,
     positionsStyles,
@@ -32,6 +35,25 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
       uigc-button:hover path {
         stroke: #fff;
         transition: 0.2s ease-in-out;
+      }
+
+      .pulsate {
+        animation: pulsate 3s ease-out;
+        animation-iteration-count: infinite;
+        opacity: 0.5;
+        color: rgb(166, 221, 255);
+      }
+
+      @keyframes pulsate {
+        0% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.5;
+        }
       }
     `,
   ];
@@ -75,6 +97,10 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
       },
     } as Transaction;
     this.processTx(account, transaction);
+  }
+
+  hasPendingTx(order: DcaOrder) {
+    return order.nextExecutionBlock > this.blockNumber;
   }
 
   protected pairTemplate(order: DcaOrder) {
@@ -127,10 +153,12 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   }
 
   protected getNextExecution(order: DcaOrder) {
-    if (order.nextExecutionBlock) {
+    console.log(order.hasPendingTx())
+    if (this.hasPendingTx(order)) {
       return this._dayjs(order.nextExecution).format('DD-MM-YYYY HH:mm');
+    } else {
+      return html`<span class="pulsate">Pending</span>`;
     }
-    return '-';
   }
 
   protected getInterval(order: DcaOrder) {

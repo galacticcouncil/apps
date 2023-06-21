@@ -1,5 +1,5 @@
 import { html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 
 import { BaseApp } from '../../base/BaseApp';
 
@@ -33,8 +33,6 @@ export class DcaOrders extends BaseApp {
 
   @state() width: number = window.innerWidth;
   @state() meta: Map<string, AssetMetadata> = new Map([]);
-
-  @property({ type: String }) indexerUrl: string = null;
 
   static styles = [
     css`
@@ -129,10 +127,14 @@ export class DcaOrders extends BaseApp {
         const assetInMeta = this.meta.get(order.assetIn);
         const assetOutMeta = this.meta.get(order.assetOut);
         const transactions = await this.getTransactions(order.id);
-
         const remaining = await this.getRemaining(order.id);
         const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
+
+        const hasPendingTx = (): boolean => {
+          return order.nextExecutionBlock > this.blockNumber;
+        };
+
         return {
           ...order,
           remaining,
@@ -141,6 +143,7 @@ export class DcaOrders extends BaseApp {
           transactions,
           nextExecution,
           nextExecutionBlock,
+          hasPendingTx,
         } as DcaOrder;
       });
       this.orders = {
@@ -206,7 +209,7 @@ export class DcaOrders extends BaseApp {
   }
 
   private headerTemplate() {
-    return html` <uigc-typography slot="header" class="title highlight">DCA</uigc-typography>
+    return html` <uigc-typography slot="header" class="title">DCA</uigc-typography>
       <uigc-typography slot="header" variant="title">Orders</uigc-typography>`;
   }
 
@@ -215,25 +218,25 @@ export class DcaOrders extends BaseApp {
       return html` <gc-dca-grid
         class="orders"
         .defaultData=${this.orders.list}
+        .blockNumber=${this.blockNumber}
         @order-clicked=${({ detail: { id } }: CustomEvent) => {
           this.toggleOrder(id);
           this.syncOrder(id);
         }}
       >
-        <uigc-typography slot="header" class="title highlight">DCA</uigc-typography>
-        <uigc-typography slot="header" variant="title">Orders</uigc-typography>
+        ${this.headerTemplate()}
       </gc-dca-grid>`;
     } else {
       return html` <gc-dca-list
         class="orders"
         .defaultData=${this.orders.list}
+        .blockNumber=${this.blockNumber}
         @order-clicked=${({ detail: { id } }: CustomEvent) => {
           this.toggleOrder(id);
           this.syncOrder(id);
         }}
       >
-        <uigc-typography slot="header" class="title highlight">DCA</uigc-typography>
-        <uigc-typography slot="header" variant="title">Orders</uigc-typography>
+        ${this.headerTemplate()}
       </gc-dca-list>`;
     }
   }

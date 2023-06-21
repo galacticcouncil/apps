@@ -11,7 +11,7 @@ import { ZERO } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-list-tx')
 export class DcaOrdersListTx extends BaseElement {
-  @property({ attribute: false }) position: DcaOrder = null;
+  @property({ attribute: false }) order: DcaOrder = null;
 
   static styles = [
     css`
@@ -76,7 +76,7 @@ export class DcaOrdersListTx extends BaseElement {
     if (received.isEqualTo(ZERO)) {
       return '-';
     }
-    const assetOutMeta = this.position.assetOutMeta;
+    const assetOutMeta = this.order.assetOutMeta;
     const amount = formatAmount(transaction.amountOut, assetOutMeta.decimals);
     return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
   }
@@ -87,7 +87,7 @@ export class DcaOrdersListTx extends BaseElement {
       return '-';
     }
 
-    const { assetInMeta, assetOutMeta } = this.position;
+    const { assetInMeta, assetOutMeta } = this.order;
 
     const aIn = transaction.amountIn.shiftedBy(-1 * assetInMeta.decimals);
     const aOut = transaction.amountOut.shiftedBy(-1 * assetOutMeta.decimals);
@@ -108,7 +108,7 @@ export class DcaOrdersListTx extends BaseElement {
   render() {
     return html`
       <div class="list">
-        ${map(this.position?.transactions.slice(0, 10), (transaction: DcaTransaction) => {
+        ${map(this.order?.transactions.slice(0, 10), (transaction: DcaTransaction) => {
           return html`
             <div class="row">
               ${this.itemTemplate('Date', this.formatDate(transaction))}
