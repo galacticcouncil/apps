@@ -22,14 +22,12 @@ export class DcaOrdersApi {
 
     return scheduled.events.map((event) => {
       const id = event.args.id;
-      const start = event.call.args.startExecutionBlock;
       const { order, period, totalAmount } = event.call.args.schedule;
 
       return {
         id: id,
         assetIn: order.assetIn.toString(),
         assetOut: order.assetOut.toString(),
-        start: start,
         interval: period,
         amount: bnum(order.amountIn),
         total: bnum(totalAmount),
