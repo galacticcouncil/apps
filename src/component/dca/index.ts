@@ -39,7 +39,6 @@ export class DcaApp extends PoolApp {
 
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
-  @property({ type: String }) indexerUrl: string = null;
   @property({ type: Number }) chartDatasourceId: number = null;
   @property({ type: Boolean }) chart: Boolean = false;
 
