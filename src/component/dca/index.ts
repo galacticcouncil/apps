@@ -17,7 +17,7 @@ import { formatAmount, humanizeAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
+import { PoolAsset, Transaction, SYSTEM_ASSET_ID, Amount, BigNumber, bnum, scale, ONE } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
@@ -84,8 +84,10 @@ export class DcaApp extends PoolApp {
     }
 
     const router = this.chain.state.router;
+
+
     const price: Amount = await router.getBestSpotPrice(assetIn.id, assetOut.id);
-    const spotPrice: string = formatAmount(price.amount, price.decimals);
+    const spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
 
     this.dca = {
       ...this.dca,
@@ -330,17 +332,12 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     const chain = this.chain.state;
     if (account) {
-      const { assetIn, assetOut, spotPrice, amountIn, amountInBudget, interval, intervalBlock } = this.dca;
+      const { assetIn, assetOut, amountInBudget, interval, intervalBlock } = this.dca;
 
       const assetInMeta = this.assets.meta.get(assetIn.id);
-      const assetOutMeta = this.assets.meta.get(assetOut.id);
 
       const amountInBn = toBn(this.dca.amountIn, assetInMeta.decimals);
       const amountInBudgetBn = toBn(amountInBudget, assetInMeta.decimals);
-
-      const amountOut = new BigNumber(amountIn).multipliedBy(new BigNumber(spotPrice)).toString();
-      const amountOutBn = toBn(amountOut, assetOutMeta.decimals);
-      const minAmount = getMinAmountOut(amountOutBn, assetOutMeta.decimals, '0');
 
       const periodMsec = INTERVAL_MS[interval];
       const periodBlock = await toBlockPeriod(this.blockTime, periodMsec);
