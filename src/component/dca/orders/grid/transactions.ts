@@ -97,8 +97,8 @@ export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
     const aIn = row.original.amountIn.shiftedBy(-1 * assetInMeta.decimals);
     const aOut = row.original.amountOut.shiftedBy(-1 * assetOutMeta.decimals);
 
-    const price = aOut.div(aIn);
-    return [humanizeAmount(price.toFixed()), assetOutMeta.symbol].join(' ');
+    const price = aIn.div(aOut);
+    return [humanizeAmount(price.toFixed()), assetInMeta.symbol].join(' ');
   }
 
   errorStatusTemplate(error: string) {
