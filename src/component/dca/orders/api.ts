@@ -1,5 +1,7 @@
 import type { RegistryError } from '@polkadot/types/types';
 import { BN, hexToU8a } from '@polkadot/util';
+import { ApiPromise } from '@polkadot/api';
+
 import { ZERO, bnum } from '@galacticcouncil/sdk';
 
 import { queryPlanned, queryScheduled, queryStatus, queryTrades } from './query';
@@ -10,9 +12,11 @@ import { DcaOrder, DcaStatus, DcaTransaction } from './types';
 
 export class DcaOrdersApi {
   private _indexerUrl: string;
+  private _api: ApiPromise;
 
-  public constructor(indexerUrl: string) {
+  public constructor(indexerUrl: string, api: ApiPromise) {
     this._indexerUrl = indexerUrl;
+    this._api = api;
   }
 
   async getScheduled(account: Account): Promise<DcaOrder[]> {
@@ -20,9 +24,27 @@ export class DcaOrdersApi {
     const scheduled = await queryScheduled(this._indexerUrl, who);
     const scheduledStatus = await this.getStatus(account);
 
-    return scheduled.events.map((event) => {
+    const orders = scheduled.events.map(async (event) => {
       const id = event.args.id;
-      const { order, period, totalAmount } = event.call.args.schedule;
+
+      let order: any;
+      let period: number;
+      let totalAmount: string;
+      if (event.call) {
+        const schedule = event.call.args.schedule;
+        order = schedule.order;
+        period = schedule.period;
+        totalAmount = schedule.totalAmount;
+      } else {
+        // Fallback for batch orders and orders unable to match 1:1 with event
+        const apiAt = await this._api.at(event.block.hash);
+        const scheduleOpt = await apiAt.query.dca.schedules(id);
+        const schedule = scheduleOpt.unwrap();
+        const scheduleOrder = schedule.order.isSell ? schedule.order.asSell : schedule.order.asBuy;
+        order = scheduleOrder;
+        period = schedule.period.toNumber();
+        totalAmount = schedule.totalAmount.toString();
+      }
 
       return {
         id: id,
@@ -35,6 +57,7 @@ export class DcaOrdersApi {
         transactions: [],
       } as DcaOrder;
     });
+    return await Promise.all(orders);
   }
 
   async getTrades(scheduleId: number): Promise<DcaTransaction[]> {

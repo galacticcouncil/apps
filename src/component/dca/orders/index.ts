@@ -168,7 +168,7 @@ export class DcaOrders extends BaseApp {
     const chain = this.chain.state;
     const assets = await chain.router.getAllAssets();
     this.meta = await getAssetsMeta(assets);
-    this.ordersApi = new DcaOrdersApi(this.indexerUrl);
+    this.ordersApi = new DcaOrdersApi(this.indexerUrl, chain.api);
     getBlockTime().then((time: number) => {
       this.blockTime = time;
     });

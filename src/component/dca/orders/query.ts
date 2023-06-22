@@ -14,6 +14,7 @@ const QUERY_SCHEDULED = gql`
       }
       block {
         height
+        hash
       }
     }
   }
@@ -42,6 +43,10 @@ interface Scheduled {
         };
         startExecutionBlock: number;
       };
+    };
+    block: {
+      height: number;
+      hash: string;
     };
   }>;
 }

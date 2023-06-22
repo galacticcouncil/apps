@@ -20,7 +20,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
     this.assetOut = queryParams.get('assetOut');
   }
 
-  hdxTemplate() {
+  /*     hdxTemplate() {
     return html`
       <gc-dca-app
         chart
@@ -36,9 +36,9 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         assetOut=${this.assetOut}
       ></gc-dca-app>
     `;
-  }
+  }  */
 
-  /*   hdxTemplate() {
+  hdxTemplate() {
     return html`
       <gc-dca-app
         chart
@@ -54,7 +54,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         assetOut=${this.assetOut}
       ></gc-dca-app>
     `;
-  } */
+  }
 
   render() {
     return this.hdxTemplate();
