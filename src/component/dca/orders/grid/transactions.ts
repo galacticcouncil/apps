@@ -45,19 +45,35 @@ export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
         color: #30ffb1;
       }
 
+      .pending span {
+        color: #85d1ff;
+      }
+
       uigc-icon-success {
         width: 30px;
+        margin-left: -3px;
       }
 
       uigc-icon-warning {
-        margin-right: 5px;
+        margin-right: 3px;
+      }
+
+      uigc-circular-progress {
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+        margin-left: 3px;
       }
     `,
   ];
 
   protected formatDate(row: Row<DcaTransaction>) {
     const dateStr = row.original.date;
-    return this._dayjs(dateStr).format('DD-MM-YYYY HH:mm');
+    if (dateStr) {
+      return this._dayjs(dateStr).format('DD-MM-YYYY HH:mm');
+    } else {
+      return 'Now';
+    }
   }
 
   protected formatAmount(row: Row<DcaTransaction>) {
@@ -85,23 +101,47 @@ export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
     return [humanizeAmount(price.toFixed()), assetOutMeta.symbol].join(' ');
   }
 
+  errorStatusTemplate(error: string) {
+    return html`
+      <div class="status error">
+        <uigc-icon-warning fit></uigc-icon-warning>
+        <span>${error}</span>
+      </div>
+    `;
+  }
+
+  successStatusTemplate() {
+    return html`
+      <div class="status success">
+        <uigc-icon-success></uigc-icon-success>
+        <span>Success</span>
+      </div>
+    `;
+  }
+
+  pendingStatusTemplate() {
+    return html`
+      <div class="status pending">
+        <uigc-circular-progress></uigc-circular-progress>
+        <span>Pending</span>
+      </div>
+    `;
+  }
+
   protected getStatus(row: Row<DcaTransaction>) {
-    const err = row.original.status.err;
+    const tx = row.original;
+    const err = tx.status.err;
+    const type = tx.status.type;
+
     if (err) {
-      return html`
-        <div class="status error">
-          <uigc-icon-warning fit></uigc-icon-warning>
-          <span>${err}</span>
-        </div>
-      `;
-    } else {
-      return html`
-        <div class="status success">
-          <uigc-icon-success></uigc-icon-success>
-          <span>Success</span>
-        </div>
-      `;
+      return this.errorStatusTemplate(err);
     }
+
+    if ('TradePending' === type) {
+      return this.pendingStatusTemplate();
+    }
+
+    return this.successStatusTemplate();
   }
 
   protected defaultColumns(): ColumnDef<DcaTransaction>[] {

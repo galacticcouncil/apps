@@ -1,4 +1,4 @@
-import { AssetMetadata, BigNumber } from '@galacticcouncil/sdk';
+import { AssetMetadata, BigNumber, ZERO } from '@galacticcouncil/sdk';
 
 export type DcaStatus = {
   type: string;
@@ -30,3 +30,11 @@ export type DcaOrder = {
   transactions: DcaTransaction[];
   hasPendingTx(): boolean;
 };
+
+export const PLACEHOLDER = {
+  date: null,
+  block: 0,
+  amountIn: ZERO,
+  amountOut: ZERO,
+  status: { type: 'TradePending' } as DcaStatus,
+} as DcaTransaction;

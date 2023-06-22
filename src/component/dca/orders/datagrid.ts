@@ -1,5 +1,4 @@
 import { html, css } from 'lit';
-import { property } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -20,8 +19,6 @@ import { TxInfo, TxNotificationMssg } from '../../transaction/types';
 export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
   protected account = new DatabaseController<Account>(this, accountCursor);
-
-  @property({ type: Number }) blockNumber: number = null;
 
   static styles = [
     Datagrid.styles,
@@ -99,10 +96,6 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
     this.processTx(account, transaction);
   }
 
-  hasPendingTx(order: DcaOrder) {
-    return order.nextExecutionBlock > this.blockNumber;
-  }
-
   protected pairTemplate(order: DcaOrder) {
     return html`
       <div class="pair">
@@ -153,11 +146,12 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   }
 
   protected getNextExecution(order: DcaOrder) {
-    console.log(order.hasPendingTx())
-    if (this.hasPendingTx(order)) {
-      return this._dayjs(order.nextExecution).format('DD-MM-YYYY HH:mm');
+    if (order.hasPendingTx()) {
+      const humanized = this._humanizer.humanize(0, { round: true, largest: 2 });
+      return html`<span class="pulsate">${humanized}</span>`;
     } else {
-      return html`<span class="pulsate">Pending</span>`;
+      const diff = Date.now() - order.nextExecution;
+      return this._humanizer.humanize(diff, { round: true, largest: 2 });
     }
   }
 
@@ -182,7 +176,7 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
         ${this.itemTemplate('Received', this.getReceived(order))}
       </div>
       <div class=${classMap(classes)}>
-        ${this.itemTemplate('Next execution', this.getNextExecution(order))}
+        ${this.itemTemplate('Next execution in', this.getNextExecution(order))}
         <uigc-button variant="error" size="small" @click=${() => this.terminate(order)}>Terminate</uigc-button>
       </div>
     `;

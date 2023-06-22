@@ -5,7 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { ColumnDef, Row } from '@tanstack/table-core';
 
 import { DcaBaseDatagrid } from '../datagrid';
-import { DcaOrder } from '../types';
+import { DcaOrder, PLACEHOLDER } from '../types';
 
 import './transactions';
 
@@ -63,14 +63,15 @@ export class DcaOrdersGrid extends DcaBaseDatagrid {
   }
 
   protected expandedRowTemplate(row: Row<DcaOrder>): TemplateResult {
+    let tx = row.original.transactions;
+    if (row.original.hasPendingTx()) {
+      tx = [PLACEHOLDER].concat(tx);
+    }
     return html`
       <div class="row">
         ${this.summaryTemplate(row.original)}
         <div class="transactions">Past transactions</div>
-        <gc-dca-grid-tx
-          .order=${row.original}
-          .defaultData=${row.original.transactions.slice(0, 10)}
-        ></gc-dca-grid-tx>
+        <gc-dca-grid-tx .order=${row.original} .defaultData=${tx.slice(0, 10)}></gc-dca-grid-tx>
       </div>
     `;
   }

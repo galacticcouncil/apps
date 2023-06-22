@@ -417,7 +417,7 @@ export function query(
       onSuccess({ price: formattedPrice, volume: null });
     })
     .catch(function (res) {
-      console.error(res);
+      console.error(res.message);
       onError(res);
     });
 }

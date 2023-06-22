@@ -82,7 +82,12 @@ export class DcaOrders extends BaseApp {
         const remaining = await this.getRemaining(order.id);
         const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
-        return { ...order, remaining, transactions, nextExecutionBlock, nextExecution };
+        const orderStatus = order.status;
+        const hasPendingTx = (): boolean => {
+          return nextExecutionBlock <= this.blockNumber && !orderStatus;
+        };
+
+        return { ...order, remaining, transactions, nextExecutionBlock, nextExecution, hasPendingTx };
       }
       return order;
     });
@@ -100,12 +105,6 @@ export class DcaOrders extends BaseApp {
   private syncOrder(scheduleId: number) {
     const open = this.orders.open.has(scheduleId);
     open && this.syncSummary(scheduleId);
-  }
-
-  private syncOpenOrders() {
-    this.orders.open.forEach((scheduleId: number) => {
-      this.syncSummary(scheduleId);
-    });
   }
 
   private resetOrders() {
@@ -126,24 +125,36 @@ export class DcaOrders extends BaseApp {
       const orders = scheduled.map(async (order: DcaOrder) => {
         const assetInMeta = this.meta.get(order.assetIn);
         const assetOutMeta = this.meta.get(order.assetOut);
-        const transactions = await this.getTransactions(order.id);
         const remaining = await this.getRemaining(order.id);
-        const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
-        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
 
-        const hasPendingTx = (): boolean => {
-          return order.nextExecutionBlock > this.blockNumber;
-        };
+        const open = this.orders.open.has(order.id);
+        if (open) {
+          const transactions = await this.getTransactions(order.id);
+          const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
+          const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
+          const orderStatus = order.status;
+          const hasPendingTx = (): boolean => {
+            return nextExecutionBlock <= this.blockNumber && !orderStatus;
+          };
+
+          return {
+            ...order,
+            remaining,
+            assetInMeta,
+            assetOutMeta,
+            transactions,
+            nextExecution,
+            nextExecutionBlock,
+            hasPendingTx,
+          } as DcaOrder;
+        }
 
         return {
           ...order,
           remaining,
           assetInMeta,
           assetOutMeta,
-          transactions,
-          nextExecution,
-          nextExecutionBlock,
-          hasPendingTx,
+          hasPendingTx: () => false,
         } as DcaOrder;
       });
       this.orders = {
@@ -168,9 +179,7 @@ export class DcaOrders extends BaseApp {
     this.disconnectSubscribeNewHeads = await chain.api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       const blockNumber = lastHeader.number.toNumber();
       this.blockNumber = blockNumber;
-      this.syncOrders().then(() => {
-        this.syncOpenOrders();
-      });
+      this.syncOrders();
     });
   }
 
@@ -218,7 +227,6 @@ export class DcaOrders extends BaseApp {
       return html` <gc-dca-grid
         class="orders"
         .defaultData=${this.orders.list}
-        .blockNumber=${this.blockNumber}
         @order-clicked=${({ detail: { id } }: CustomEvent) => {
           this.toggleOrder(id);
           this.syncOrder(id);
@@ -230,7 +238,6 @@ export class DcaOrders extends BaseApp {
       return html` <gc-dca-list
         class="orders"
         .defaultData=${this.orders.list}
-        .blockNumber=${this.blockNumber}
         @order-clicked=${({ detail: { id } }: CustomEvent) => {
           this.toggleOrder(id);
           this.syncOrder(id);
