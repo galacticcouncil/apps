@@ -26,6 +26,7 @@ export type DcaOrder = {
   amount: BigNumber;
   total: BigNumber;
   remaining: BigNumber;
+  received: BigNumber;
   status: DcaStatus;
   transactions: DcaTransaction[];
   hasPendingTx(): boolean;

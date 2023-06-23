@@ -547,6 +547,8 @@ export class DcaApp extends PoolApp {
     return html` <gc-dca-orders
       .meta=${this.assets.meta}
       .indexerUrl=${this.indexerUrl}
+      .grafanaUrl=${this.grafanaUrl}
+      .grafanaDsn=${this.grafanaDsn}
       .accountAddress=${account?.address}
       .accountProvider=${account?.provider}
       .accountName=${account?.name}

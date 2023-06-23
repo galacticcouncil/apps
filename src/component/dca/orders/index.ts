@@ -80,6 +80,7 @@ export class DcaOrders extends BaseApp {
       if (order.id == scheduleId) {
         const transactions = await this.getTransactions(order.id);
         const remaining = await this.getRemaining(order.id);
+        const received = await this.ordersApi.getReceived(order.id);
         const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
         const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
         const orderStatus = order.status;
@@ -87,7 +88,7 @@ export class DcaOrders extends BaseApp {
           return nextExecutionBlock <= this.blockNumber && !orderStatus;
         };
 
-        return { ...order, remaining, transactions, nextExecutionBlock, nextExecution, hasPendingTx };
+        return { ...order, remaining, received, transactions, nextExecutionBlock, nextExecution, hasPendingTx };
       }
       return order;
     });
@@ -130,6 +131,7 @@ export class DcaOrders extends BaseApp {
         const open = this.orders.open.has(order.id);
         if (open) {
           const transactions = await this.getTransactions(order.id);
+          const received = await this.ordersApi.getReceived(order.id);
           const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
           const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
           const orderStatus = order.status;
@@ -140,6 +142,7 @@ export class DcaOrders extends BaseApp {
           return {
             ...order,
             remaining,
+            received,
             assetInMeta,
             assetOutMeta,
             transactions,

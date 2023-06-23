@@ -2,9 +2,9 @@ import type { RegistryError } from '@polkadot/types/types';
 import { BN, hexToU8a } from '@polkadot/util';
 import { ApiPromise } from '@polkadot/api';
 
-import { ZERO, bnum } from '@galacticcouncil/sdk';
+import { BigNumber, ZERO, bnum } from '@galacticcouncil/sdk';
 
-import { queryPlanned, queryScheduled, queryStatus, queryTrades } from './query';
+import { buildReceivedAmountQuery, queryPlanned, queryScheduled, queryStatus, queryTrades } from './query';
 import { Account, chainCursor } from '../../../db';
 import { convertToHex } from '../../../utils/account';
 
@@ -90,9 +90,31 @@ export class DcaOrdersApi {
     });
   }
 
-  async getRemaining(scheduleId: number): Promise<number> {
-    const planned = await queryPlanned(this._indexerUrl, scheduleId);
-    return planned.events[0].args.block;
+  async getReceived(scheduleId: number): Promise<BigNumber> {
+    const data = await fetch(this._grafanaUrl, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        queries: [
+          {
+            refId: 'events',
+            rawSql: buildReceivedAmountQuery(scheduleId),
+            format: 'table',
+            datasourceId: this._grafanaDsn,
+          },
+        ],
+      }),
+    });
+    const dataJson = await data.json();
+    try {
+      const received = dataJson.results.events?.frames[0].data.values[0][0];
+      return new BigNumber(received);
+    } catch {
+      return ZERO;
+    }
   }
 
   async getPlanned(scheduleId: number): Promise<number> {

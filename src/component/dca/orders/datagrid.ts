@@ -10,7 +10,7 @@ import { DatabaseController } from '../../../db.ctrl';
 import { formatAmount, humanizeAmount } from '../../../utils/amount';
 import { getRenderString } from '../../../utils/dom';
 
-import { ZERO, Transaction } from '@galacticcouncil/sdk';
+import { Transaction } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { DcaOrder } from './types';
@@ -117,13 +117,13 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
 
   protected getReceived(order: DcaOrder) {
     const assetOutMeta = order.assetOutMeta;
-    const received = order.transactions
-      .filter((trade) => !trade.status.err)
-      .map((trade) => trade.amountOut)
-      .reduce((a, b) => a.plus(b), ZERO);
-
-    const receivedAmount = formatAmount(received, assetOutMeta.decimals);
-    return [humanizeAmount(receivedAmount), assetOutMeta.symbol].join(' ');
+    const received = order.received;
+    if (received) {
+      const receivedAmount = formatAmount(received, assetOutMeta.decimals);
+      return [humanizeAmount(receivedAmount), assetOutMeta.symbol].join(' ');
+    } else {
+      return '-';
+    }
   }
 
   protected getBudget(order: DcaOrder) {

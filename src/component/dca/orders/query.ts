@@ -5,7 +5,7 @@ const QUERY_SCHEDULED = gql`
     events(
       where: { args_jsonContains: { who: $who }, AND: { name_eq: "DCA.Scheduled" } }
       orderBy: block_height_DESC
-      limit: 1000
+      limit: 100
     ) {
       name
       args
@@ -62,7 +62,7 @@ const QUERY_STATUS = gql`
     events(
       where: { args_jsonContains: { who: $who }, AND: { name_in: ["DCA.Terminated", "DCA.Completed"] } }
       orderBy: block_height_DESC
-      limit: 1000
+      limit: 100
     ) {
       name
       args
@@ -92,7 +92,8 @@ const QUERY_TRADES = gql`
     events(
       where: { args_jsonContains: { id: $id }, AND: { name_in: ["DCA.TradeExecuted", "DCA.TradeFailed"] } }
       orderBy: block_height_DESC
-      limit: 1000
+      offset: 0
+      limit: 10
     ) {
       name
       args
@@ -155,4 +156,11 @@ export async function queryPlanned(indexerUrl: string, id: number) {
   return await request<Planned>(indexerUrl, QUERY_PLANNED, {
     id: id,
   });
+}
+
+export function buildReceivedAmountQuery(id: number) {
+  return `SELECT 
+    SUM(CAST(event.args->>'amountOut' as bigint))
+  FROM event 
+  WHERE event.args->>'id' = '${id}' AND event.name = 'DCA.TradeExecuted'`;
 }
