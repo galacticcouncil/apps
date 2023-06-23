@@ -3,15 +3,13 @@ import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
 import { TradeData } from '../../db';
 import { buildPriceQuery, buildVolumeQuery } from './query';
 
-const GRAFANA_DS = 'https://grafana-api.play.hydration.cloud/api/ds/query';
-
 export class ChartApi {
   private _grafanaUrl: string;
-  private _datasourceId: number;
+  private _grafanaDsn: number;
 
-  public constructor(grafanaUrl: string, datasourceId: number) {
-    this._grafanaUrl = grafanaUrl || GRAFANA_DS;
-    this._datasourceId = datasourceId;
+  public constructor(grafanaUrl: string, grafanaDsn: number) {
+    this._grafanaUrl = grafanaUrl;
+    this._grafanaDsn = grafanaDsn;
   }
 
   getTradeData(
@@ -33,7 +31,7 @@ export class ChartApi {
             refId: 'price',
             rawSql: buildPriceQuery(assetIn, assetOut, endOfDay),
             format: 'table',
-            datasourceId: this._datasourceId,
+            datasourceId: this._grafanaDsn,
           },
           /* {
             refId: 'volume',

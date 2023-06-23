@@ -70,7 +70,8 @@ export class TradeChart extends BaseElement {
   @state() range: Range = Range['1w'];
   @state() chartState: ChartState = ChartState.Loading;
 
-  @property({ type: Number }) datasourceId = null;
+  @property({ type: String }) grafanaUrl = null;
+  @property({ type: Number }) grafanaDsn = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
@@ -245,7 +246,7 @@ export class TradeChart extends BaseElement {
   }
 
   override async firstUpdated() {
-    this.chartApi = new ChartApi(null, this.datasourceId);
+    this.chartApi = new ChartApi(this.grafanaUrl, this.grafanaDsn);
     this.chartContainer = this.shadowRoot.getElementById('chart');
     this.chart = createChart(this.chartContainer, {
       layout: layoutOptions,

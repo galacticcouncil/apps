@@ -20,38 +20,40 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
     this.assetOut = queryParams.get('assetOut');
   }
 
-  /*     hdxTemplate() {
-    return html`
-      <gc-dca-app
-        chart
-        chartDatasourceId="10"
-        apiAddress="wss://rococo-hydradx-rpc.hydration.dev"
-        accountAddress=${this.account.state?.address}
-        accountProvider=${this.account.state?.provider}
-        accountName=${this.account.state?.name}
-        pools="Omni"
-        stableCoinAssetId="2"
-        indexerUrl="https://hydradx-rococo-explorer.play.hydration.cloud/graphql"
-        assetIn=${this.assetIn}
-        assetOut=${this.assetOut}
-      ></gc-dca-app>
-    `;
-  }  */
-
   hdxTemplate() {
     return html`
       <gc-dca-app
         chart
-        chartDatasourceId="10"
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
         apiAddress="wss://rpc.hydradx.cloud"
+        pools="Omni"
+        stableCoinAssetId="2"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        pools="Omni"
-        stableCoinAssetId="2"
-        indexerUrl=${'https://hydradx-explorer.play.hydration.cloud/graphql'}
+        indexerUrl="https://hydradx-explorer.play.hydration.cloud/graphql"
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="10"
+      ></gc-dca-app>
+    `;
+  }
+
+  hdxTemplateRococo() {
+    return html`
+      <gc-dca-app
+        chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
+        apiAddress="wss://rococo-hydradx-rpc.hydration.dev"
+        pools="Omni"
+        stableCoinAssetId="2"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
+        indexerUrl="https://hydradx-rococo-explorer.play.hydration.cloud/graphql"
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="11"
       ></gc-dca-app>
     `;
   }

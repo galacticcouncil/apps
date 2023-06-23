@@ -52,10 +52,9 @@ export class TradeApp extends PoolApp {
     selector: null as AssetSelector,
   };
 
+  @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
-  @property({ type: Number }) chartDatasourceId: number = null;
-  @property({ type: Boolean }) chart: Boolean = false;
 
   static styles = [
     baseStyles,
@@ -805,7 +804,8 @@ export class TradeApp extends PoolApp {
         this.chart,
         () => html`
           <gc-trade-chart
-            .datasourceId=${this.chartDatasourceId}
+            .grafanaUrl=${this.grafanaUrl}
+            .grafanaDsn=${this.grafanaDsn}
             .tradeType=${this.trade.type}
             .tradeProgress=${this.trade.inProgress}
             .assetIn=${this.trade.assetIn}

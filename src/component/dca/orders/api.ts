@@ -11,12 +11,16 @@ import { convertToHex } from '../../../utils/account';
 import { DcaOrder, DcaStatus, DcaTransaction } from './types';
 
 export class DcaOrdersApi {
-  private _indexerUrl: string;
   private _api: ApiPromise;
+  private _indexerUrl: string;
+  private _grafanaUrl: string;
+  private _grafanaDsn: number;
 
-  public constructor(indexerUrl: string, api: ApiPromise) {
-    this._indexerUrl = indexerUrl;
+  public constructor(api: ApiPromise, indexerUrl: string, grafanaUrl: string, grafanaDsn: number) {
     this._api = api;
+    this._indexerUrl = indexerUrl;
+    this._grafanaUrl = grafanaUrl;
+    this._grafanaDsn = grafanaDsn;
   }
 
   async getScheduled(account: Account): Promise<DcaOrder[]> {
@@ -84,6 +88,11 @@ export class DcaOrdersApi {
         status: { type, err, desc } as DcaStatus,
       } as DcaTransaction;
     });
+  }
+
+  async getRemaining(scheduleId: number): Promise<number> {
+    const planned = await queryPlanned(this._indexerUrl, scheduleId);
+    return planned.events[0].args.block;
   }
 
   async getPlanned(scheduleId: number): Promise<number> {

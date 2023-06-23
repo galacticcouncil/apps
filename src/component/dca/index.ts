@@ -11,7 +11,6 @@ import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, dcaSettingsCursor } from '../../db';
-import { getMinAmountOut } from '../../api/slippage';
 import { INTERVAL_MS, getBlockTime, toBlockPeriod } from '../../api/time';
 import { formatAmount, humanizeAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
@@ -38,10 +37,9 @@ export class DcaApp extends PoolApp {
     selector: null as AssetSelector,
   };
 
+  @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
-  @property({ type: Number }) chartDatasourceId: number = null;
-  @property({ type: Boolean }) chart: Boolean = false;
 
   static styles = [
     baseStyles,
@@ -85,7 +83,6 @@ export class DcaApp extends PoolApp {
     }
 
     const router = this.chain.state.router;
-
 
     const price: Amount = await router.getBestSpotPrice(assetIn.id, assetOut.id);
     const spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
@@ -567,7 +564,8 @@ export class DcaApp extends PoolApp {
         this.chart,
         () => html`
           <gc-trade-chart
-            .datasourceId=${this.chartDatasourceId}
+            .grafanaUrl=${this.grafanaUrl}
+            .grafanaDsn=${this.grafanaDsn}
             .assetIn=${this.dca.assetIn}
             .assetOut=${this.dca.assetOut}
             .spotPrice=${this.dca.spotPrice}

@@ -25,14 +25,14 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
   bsxTemplate() {
     return html`
       <gc-trade-app
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
         apiAddress="wss://rpc.basilisk.cloud"
+        pools="XYK"
+        stableCoinAssetId="14"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        pools="XYK"
-        stableCoinAssetId="14"
-        assetIn=${this.assetIn}
-        assetOut=${this.assetOut}
       ></gc-trade-app>
     `;
   }
@@ -41,15 +41,16 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     return html`
       <gc-trade-app
         chart
-        chartDatasourceId="10"
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
         apiAddress="wss://rpc.hydradx.cloud"
+        pools="Omni"
+        stableCoinAssetId="2"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        pools="Omni"
-        stableCoinAssetId="2"
-        assetIn=${this.assetIn}
-        assetOut=${this.assetOut}
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="10"
       ></gc-trade-app>
     `;
   }
