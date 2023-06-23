@@ -23,6 +23,7 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import './form';
 import './settings';
 import './orders';
+import '../chart';
 import '../selector/asset';
 
 import { DcaTab, DcaState, DEFAULT_DCA_STATE } from './types';
