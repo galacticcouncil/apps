@@ -111,7 +111,7 @@ export class DcaOrdersApi {
     const dataJson = await data.json();
     try {
       const received = dataJson.results.events?.frames[0].data.values[0][0];
-      return new BigNumber(received);
+      return received ? new BigNumber(received) : ZERO;
     } catch {
       return ZERO;
     }
