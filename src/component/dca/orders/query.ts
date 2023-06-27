@@ -160,7 +160,7 @@ export async function queryPlanned(indexerUrl: string, id: number) {
 
 export function buildReceivedAmountQuery(id: number) {
   return `SELECT 
-    SUM(CAST(event.args->>'amountOut' as bigint))
+    SUM(CAST(event.args->>'amountOut' as numeric))
   FROM event 
   WHERE event.args->>'id' = '${id}' AND event.name = 'DCA.TradeExecuted'`;
 }
