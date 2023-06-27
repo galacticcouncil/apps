@@ -26,10 +26,7 @@ export class SelectAsset extends LitElement {
   @property({ type: Boolean }) switchAllowed = true;
   @property({ type: String }) query = '';
 
-  static styles = [
-    baseStyles,
-    selectorStyles
-  ];
+  static styles = [baseStyles, selectorStyles];
 
   updateSearch(searchDetail: any) {
     this.query = searchDetail.value;
@@ -48,7 +45,24 @@ export class SelectAsset extends LitElement {
   }
 
   filterAssets(query: string) {
-    return this.assets.filter((a) => a.symbol.toLowerCase().includes(query.toLowerCase()));
+    return this.assets
+      .filter((a) => {
+        const assetDetail = this.details.get(a.id);
+        const symbolEq = a.symbol.toLowerCase().includes(query.toLowerCase());
+        const nameEq = assetDetail.name.toLowerCase().includes(query.toLowerCase());
+        return symbolEq || nameEq;
+      })
+      .map((a) => {
+        const balance = this.balances.get(a.id);
+        const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
+        const balanceUsd = balance ? this.calculateDollarPrice(a, balanceFormated) : null;
+        return {
+          asset: a,
+          balance: balanceFormated,
+          balanceUsd: balanceUsd,
+        };
+      })
+      .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
   }
 
   isDisabled(asset: PoolAsset): boolean {
@@ -100,10 +114,7 @@ export class SelectAsset extends LitElement {
       ${when(
         this.assets.length > 0,
         () => html` <uigc-asset-list>
-          ${map(this.filterAssets(this.query), (asset: PoolAsset) => {
-            const balance = this.balances.get(asset.id);
-            const balanceFormated = balance ? formatAmount(balance.amount, balance.decimals) : null;
-            const balanceUsd = balance ? this.calculateDollarPrice(asset, balanceFormated) : null;
+          ${map(this.filterAssets(this.query), ({ asset, balance, balanceUsd }) => {
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
@@ -111,7 +122,7 @@ export class SelectAsset extends LitElement {
                 ?disabled=${this.isDisabled(asset)}
                 .asset=${asset}
                 .desc=${this.details.get(asset.id).name}
-                .balance=${humanizeAmount(balanceFormated)}
+                .balance=${humanizeAmount(balance)}
                 .balanceUsd=${humanizeAmount(balanceUsd)}
               ></uigc-asset-list-item>
             `;
