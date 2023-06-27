@@ -31,13 +31,13 @@ export class ChartApi {
             refId: 'price',
             rawSql: buildPriceQuery(assetIn, assetOut, endOfDay),
             format: 'table',
-            datasourceId: this._grafanaDsn,
+            datasourceId: Number(this._grafanaDsn),
           },
           /* {
             refId: 'volume',
             rawSql: buildVolumeQuery(assetIn, assetOut, endOfDay),
             format: 'table',
-            datasourceId: datasourceId,
+            datasourceId: Number(this._grafanaDsn),
           }, */
         ],
       }),

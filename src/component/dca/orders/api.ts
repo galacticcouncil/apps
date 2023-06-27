@@ -103,7 +103,7 @@ export class DcaOrdersApi {
             refId: 'events',
             rawSql: buildReceivedAmountQuery(scheduleId),
             format: 'table',
-            datasourceId: this._grafanaDsn,
+            datasourceId: Number(this._grafanaDsn),
           },
         ],
       }),
