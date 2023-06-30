@@ -200,7 +200,7 @@ export const chartStyles = css`
     position: absolute;
     left: 0;
     color: red;
-    border-top: 1px dashed #000524;
+    border-top: 1px dashed #fff;
     width: 100%;
     z-index: 2;
   }
@@ -219,7 +219,8 @@ export const chartStyles = css`
   }
 
   .price-tag:hover {
-    background: #000524;
+    background: #fff;
+    color: #000524;
     cursor: pointer;
   }
 
