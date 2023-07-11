@@ -39,6 +39,7 @@ export class TradeForm extends LitElement {
   @property({ type: String }) priceImpactPct = '0';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
+  @property({ attribute: false }) tradeFeeRange = null;
   @property({ attribute: false }) transactionFee: TransactionFee = null;
   @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
@@ -151,6 +152,32 @@ export class TradeForm extends LitElement {
       .info uigc-icon-route {
         margin-left: 12px;
       }
+
+      .indicator {
+        display: flex;
+        padding: 1px 2px;
+        align-items: flex-start;
+        gap: 1px;
+      }
+
+      .indicator > span {
+        width: 16px;
+        height: 6px;
+        background: rgba(135, 139, 163, 0.2);
+      }
+
+      .indicator.low > span:nth-of-type(1) {
+        background: #30ffb1;
+      }
+
+      .indicator.medium span:nth-of-type(1),
+      .indicator.medium span:nth-of-type(2) {
+        background: #30ffb1;
+      }
+
+      .indicator.high span {
+        background: #f7bf06;
+      }
     `,
   ];
 
@@ -207,15 +234,43 @@ export class TradeForm extends LitElement {
       )}`;
   }
 
+  infoTradeFeeDetail(assetSymbol: string) {
+    if (this.inProgress) {
+      return html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`;
+    }
+
+    if (this.tradeFeeRange) {
+      const max = this.tradeFeeRange[1];
+      const min = this.tradeFeeRange[0];
+      const fraction = (max - min) / 3;
+      const mediumLow = min + fraction;
+      const mediumHigh = max - fraction;
+      const fee = Number(this.tradeFeePct);
+      const indicatorClasses = {
+        indicator: true,
+        low: fee < mediumLow,
+        medium: fee >= mediumLow && fee <= mediumHigh,
+        high: fee > mediumHigh,
+      };
+      return html` <span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
+        <span class="value highlight"> (${this.tradeFeePct}%) </span>
+        <span class=${classMap(indicatorClasses)}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>`;
+    }
+
+    return html`<span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
+      <span class="value highlight"> (${this.tradeFeePct}%) </span> `;
+  }
+
   infoTradeFeeTemplate(assetSymbol: string) {
-    return html` <span class="label">${i18n.t('trade.tradeFee')}</span>
+    return html`
+      <span class="label">${i18n.t('trade.tradeFee')}</span>
       <span class="grow"></span>
-      ${when(
-        this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
-        () => html`<span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
-          <span class="value highlight"> (${this.tradeFeePct}%) </span> `
-      )}`;
+      ${this.infoTradeFeeDetail(assetSymbol)}
+    `;
   }
 
   infoTransactionFeeTemplate() {

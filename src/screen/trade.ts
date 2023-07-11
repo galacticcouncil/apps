@@ -55,6 +55,24 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     `;
   }
 
+  hdxTemplateRococo() {
+    return html`
+      <gc-trade-app
+        chart
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
+        apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
+        pools="Omni"
+        stableCoinAssetId="2"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="11"
+      ></gc-trade-app>
+    `;
+  }
+
   render() {
     if (this.theme.state == 'hdx') {
       return this.hdxTemplate();

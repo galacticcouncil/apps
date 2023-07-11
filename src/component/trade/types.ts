@@ -25,6 +25,7 @@ export type TradeState = {
   priceImpactPct: string;
   tradeFee: string;
   tradeFeePct: string;
+  tradeFeeRange: [number, number];
   transactionFee: TransactionFee;
   swaps: [];
   error: {};
@@ -46,6 +47,7 @@ export const DEFAULT_TRADE_STATE: TradeState = {
   priceImpactPct: '0',
   tradeFee: null,
   tradeFeePct: '0',
+  tradeFeeRange: null,
   transactionFee: null,
   swaps: [],
   error: {},

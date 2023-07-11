@@ -751,6 +751,7 @@ export class TradeApp extends PoolApp {
         .priceImpactPct=${this.trade.priceImpactPct}
         .tradeFee=${this.trade.tradeFee}
         .tradeFeePct=${this.trade.tradeFeePct}
+        .tradeFeeRange=${this.trade.tradeFeeRange}
         .transactionFee=${this.trade.transactionFee}
         .error=${this.trade.error}
         .swaps=${this.trade.swaps}
