@@ -170,13 +170,12 @@ export class TradeForm extends LitElement {
         background: #30ffb1;
       }
 
-      .indicator.medium span:nth-of-type(1),
       .indicator.medium span:nth-of-type(2) {
-        background: #30ffb1;
+        background: #f7bf06;
       }
 
-      .indicator.high span {
-        background: #f7bf06;
+      .indicator.high span:nth-of-type(3) {
+        background: #ff931e;
       }
     `,
   ];
