@@ -133,6 +133,8 @@ export class TradeApp extends PoolApp {
     const tradeState = Object.assign({}, trade);
     delete tradeState.amountIn;
 
+    const isSmartSplit = this.smartSplit && tradeSplit;
+
     this.trade = {
       ...this.trade,
       tradeSplitInfo: null,

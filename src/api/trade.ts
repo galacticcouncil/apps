@@ -21,7 +21,11 @@ export async function getBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amoun
   const minAmountOut = getTradeMinAmountOut(bestSell, slippage);
   const minAmountOutHuman = formatAmount(minAmountOut.amount, minAmountOut.decimals);
   const transaction = bestSell.toTx(minAmountOut.amount);
+
   const tradeSplit = smartSplit && bestSell.priceImpactPct > Number(priceImpactThreshold);
+  if (tradeSplit) {
+    bestSell.amountOut.dividedBy(bestSell.priceImpactPct)
+  }
 
   return {
     trade: bestSellHuman,
