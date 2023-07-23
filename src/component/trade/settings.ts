@@ -4,7 +4,7 @@ import { customElement, state } from 'lit/decorators.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { tradeSettingsCursor, TRADE_SLIPPAGE } from '../../db';
+import { tradeSettingsCursor, DEFAULT_TRADE_CONFIG } from '../../db';
 import { debounce } from 'ts-debounce';
 import IMask from 'imask';
 
@@ -14,20 +14,29 @@ const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 export class TradeSettings extends LitElement {
   private _slippageHandler = null;
   private _slippageMask = null;
+  private _priceImpactHandler = null;
 
   @state() slippage: String = null;
   @state() customSlippage: String = null;
+  @state() pricaImpactThreshold: String = null;
 
   constructor() {
     super();
+    this.init();
     this.initSlippage();
     this._slippageHandler = debounce(this.onSlippageChange, 300);
+    this._priceImpactHandler = debounce(this.onPriceImpactChange, 300);
+  }
+
+  private init() {
+    const { slippage, priceImpactThreshold } = tradeSettingsCursor.deref();
+    this.slippage = slippage;
+    this.pricaImpactThreshold = priceImpactThreshold;
   }
 
   private initSlippage() {
     const slippageOpts = new Set(SLIPPAGE_OPTS);
-    const slippage = tradeSettingsCursor.deref().slippage;
-    this.slippage = slippage;
+    const slippage = this.slippage as string;
     if (!slippageOpts.has(slippage)) {
       this.customSlippage = slippage;
     }
@@ -42,6 +51,10 @@ export class TradeSettings extends LitElement {
         height: 100%;
       }
 
+      .content {
+        overflow-y: auto;
+      }
+
       .section {
         height: 40px;
         background: var(--uigc-app-bg-section);
@@ -53,6 +66,8 @@ export class TradeSettings extends LitElement {
         box-sizing: border-box;
         align-items: center;
         display: flex;
+        top: 0px;
+        position: sticky;
       }
 
       @media (min-width: 768px) {
@@ -109,38 +124,52 @@ export class TradeSettings extends LitElement {
         box-sizing: border-box;
         justify-content: space-between;
       }
+
+      .adornment {
+        white-space: nowrap;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 14px;
+        color: #ffffff;
+      }
     `,
   ];
 
-  changeSlippage(changeDetails: any) {
-    this.slippage = changeDetails.value;
-    this.customSlippage = null;
-  }
-
-  changeSlippageCustom(changeDetails: any) {
-    this.slippage = changeDetails.value;
-    this.customSlippage = changeDetails.value;
-  }
-
-  onSlippageChange() {
-    const value = this.customSlippage ? this._slippageMask.unmaskedValue : this.slippage;
-    const currentValue = tradeSettingsCursor.deref();
+  private onChange(value: any, propName: any) {
+    const currentValue = tradeSettingsCursor.deref()[propName];
     if (currentValue == value) {
       return;
     }
 
     if (value) {
-      tradeSettingsCursor.resetIn(['slippage'], value);
+      tradeSettingsCursor.resetIn([propName], value);
     } else {
-      this.slippage = TRADE_SLIPPAGE;
-      tradeSettingsCursor.resetIn(['slippage'], TRADE_SLIPPAGE);
+      const defaultValue = DEFAULT_TRADE_CONFIG[propName];
+      this[propName] = defaultValue;
+      tradeSettingsCursor.resetIn([propName], defaultValue);
     }
+  }
+
+  onSlippageChange() {
+    const value = this.customSlippage ? this._slippageMask.unmaskedValue : this.slippage;
+    this.onChange(value, 'slippage');
 
     const options = {
       bubbles: true,
       composed: true,
     };
     this.dispatchEvent(new CustomEvent('slippage-changed', options));
+  }
+
+  onPriceImpactChange() {
+    const value = this.pricaImpactThreshold;
+    this.onChange(value, 'priceImpactThreshold');
+
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('priceImpactThreshold-changed', options));
   }
 
   onBackClick(e: any) {
@@ -184,37 +213,67 @@ export class TradeSettings extends LitElement {
     }
   }
 
+  formSlippageTemplate() {
+    return html` <div class="settings">
+      <div class="row">
+        <span class="label">${i18n.t('trade.settings.autoSlippage')}</span>
+        <uigc-switch size="small" disabled></uigc-switch>
+      </div>
+      <uigc-toggle-button-group
+        value=${this.slippage}
+        @toggle-button-clicked=${(e: CustomEvent) => {
+          this.slippage = e.detail.value;
+          this.customSlippage = null;
+          this._slippageHandler();
+        }}
+        @input-changed=${(e: CustomEvent) => {
+          this.slippage = e.detail.value;
+          this.customSlippage = e.detail.value;
+          this._slippageHandler();
+        }}
+      >
+        ${SLIPPAGE_OPTS.map((s: string) => html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `)}
+        <uigc-input
+          id="slippage"
+          class="slippage-input"
+          type="text"
+          value=${this.customSlippage}
+          placeholder="${i18n.t('trade.settings.custom')}"
+        ></uigc-input>
+      </uigc-toggle-button-group>
+      <div class="desc">${i18n.t('trade.settings.slippageInfo1')}</div>
+      <div class="desc">${i18n.t('trade.settings.slippageInfo2')}</div>
+    </div>`;
+  }
+
+  formPriceImpactTemplate() {
+    return html` <div class="settings">
+      <div class="desc">${i18n.t('trade.settings.smartSplitInfo1')}</div>
+      <uigc-textfield
+        field
+        number
+        min="0"
+        max="100"
+        .placeholder=${0.5}
+        .value=${this.pricaImpactThreshold}
+        @input-changed=${(e: CustomEvent) => {
+          this.pricaImpactThreshold = e.detail.value;
+          this._priceImpactHandler();
+        }}
+      >
+        <span class="adornment" slot="inputAdornment">Price impact (threshold)</span>
+      </uigc-textfield>
+    </div>`;
+  }
+
   render() {
     return html`
       <slot name="header"></slot>
-      <div class="section">${i18n.t('trade.settings.slippage')}</div>
-      <div class="settings">
-        <div class="row">
-          <span class="label">${i18n.t('trade.settings.autoSlippage')}</span>
-          <uigc-switch size="small" disabled></uigc-switch>
-        </div>
-        <uigc-toggle-button-group
-          value=${this.slippage}
-          @toggle-button-clicked=${(e: CustomEvent) => {
-            this.changeSlippage(e.detail);
-            this._slippageHandler();
-          }}
-          @input-changed=${(e: CustomEvent) => {
-            this.changeSlippageCustom(e.detail);
-            this._slippageHandler();
-          }}
-        >
-          ${SLIPPAGE_OPTS.map((s: string) => html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `)}
-          <uigc-input
-            id="slippage"
-            class="slippage-input"
-            type="text"
-            value=${this.customSlippage}
-            placeholder="${i18n.t('trade.settings.custom')}"
-          ></uigc-input>
-        </uigc-toggle-button-group>
-        <div class="desc">${i18n.t('trade.settings.slippageInfo1')}</div>
-        <div class="desc">${i18n.t('trade.settings.slippageInfo2')}</div>
+      <div class="content">
+        <div class="section">${i18n.t('trade.settings.slippage')}</div>
+        ${this.formSlippageTemplate()}
+        <div class="section">${i18n.t('trade.settings.smartSplit')}</div>
+        ${this.formPriceImpactTemplate()}
       </div>
     `;
   }

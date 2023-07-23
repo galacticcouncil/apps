@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -10,15 +10,26 @@ import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
 import { humanizeAmount } from '../../utils/amount';
-import { Account, accountCursor } from '../../db';
+import { Account, accountCursor, tradeSettingsCursor } from '../../db';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 import { DatabaseController } from '../../db.ctrl';
-import { TransactionFee } from './types';
+import { TradeSplit, TransactionFee } from './types';
 
 @customElement('gc-trade-form')
 export class TradeForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
+
+  @state() smartSplit: boolean = false;
+
+  constructor() {
+    super();
+    this.init();
+  }
+
+  private init() {
+    this.smartSplit = tradeSettingsCursor.deref().smartSplit;
+  }
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
@@ -26,6 +37,7 @@ export class TradeForm extends LitElement {
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) switchAllowed = true;
+  @property({ type: Boolean }) smartSplitAllowed = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) amountIn = null;
@@ -40,6 +52,7 @@ export class TradeForm extends LitElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ attribute: false }) tradeFeeRange = null;
+  @property({ attribute: false }) tradeSplitInfo: TradeSplit = null;
   @property({ attribute: false }) transactionFee: TransactionFee = null;
   @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
@@ -177,8 +190,58 @@ export class TradeForm extends LitElement {
       .indicator.high span:nth-of-type(3) {
         background: #ff931e;
       }
+
+      .cta {
+        overflow: hidden;
+        width: 100%;
+        height: 50px;
+        margin: -16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+
+      .cta > span {
+        position: absolute;
+        transition: top 0.3s;
+        -moz-transition: top 0.3s;
+        -webkit-transition: top 0.3s;
+        -o-transition: top 0.3s;
+        -ms-transition: top 0.3s;
+      }
+
+      .cta > span.swap {
+        top: 16px;
+      }
+
+      .cta > span.split {
+        top: 56px;
+      }
+
+      .cta__split > span.swap {
+        top: -56px;
+      }
+
+      .cta__split > span.split {
+        top: 16px;
+      }
+
+      .hidden {
+        display: none;
+      }
     `,
   ];
+
+  private toggleSmartSplit() {
+    this.smartSplit = !this.smartSplit;
+    tradeSettingsCursor.resetIn(['smartSplit'], this.smartSplit);
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('smartSplit-toggled', options));
+  }
 
   onSettingsClick(e: any) {
     const options = {
@@ -188,12 +251,26 @@ export class TradeForm extends LitElement {
     this.dispatchEvent(new CustomEvent('settings-clicked', options));
   }
 
-  onSwapClick(e: any) {
+  onCtaClick(e: any) {
     const options = {
       bubbles: true,
       composed: true,
     };
-    this.dispatchEvent(new CustomEvent('swap-clicked', options));
+
+    const isSmartSplit = this.smartSplit && Number(this.priceImpactPct) > 0.5;
+    if (isSmartSplit) {
+      this.dispatchEvent(new CustomEvent('smartSplit-clicked', options));
+    } else {
+      this.dispatchEvent(new CustomEvent('swap-clicked', options));
+    }
+  }
+
+  onSetupClick(e: any) {
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('setup-clicked', options));
   }
 
   maxClickHandler(id: string, asset: PoolAsset) {
@@ -317,15 +394,96 @@ export class TradeForm extends LitElement {
     `;
   }
 
-  render() {
-    const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
-    const infoClasses = {
-      info: true,
-      show: this.swaps.length > 0,
-    };
+  infoSmartSplitTemplate() {
+    return html` <span class="label">${i18n.t('dca.summary')}</span>
+      <span>
+        <span class="value">Spend</span>
+        <span class="value highlight">${this.amountIn} ${this.assetIn?.symbol}</span>
+        <span class="value">every ~5 to buy ${this.assetOut?.symbol} with a total budget of</span>
+        <span class="value highlight">10 ${this.assetIn?.symbol}</span>
+      </span>`;
+  }
+
+  formAssetInTemplate() {
+    return html` <uigc-asset-transfer
+      id="assetIn"
+      title="${i18n.t('trade.payWith')}"
+      .asset=${this.assetIn?.symbol}
+      .amount=${this.amountIn}
+      .amountUsd=${this.amountInUsd}
+    >
+      <uigc-asset-balance
+        slot="balance"
+        .balance=${this.balanceIn}
+        .formatter=${humanizeAmount}
+        .onMaxClick=${this.maxClickHandler('assetIn', this.assetIn)}
+      ></uigc-asset-balance>
+    </uigc-asset-transfer>`;
+  }
+
+  formAssetOutTemplate() {
+    return html` <uigc-asset-transfer
+      id="assetOut"
+      title="${i18n.t('trade.youGet')}"
+      .asset=${this.assetOut?.symbol}
+      .amount=${this.amountOut}
+      .amountUsd=${this.amountOutUsd}
+    >
+      <uigc-asset-balance
+        slot="balance"
+        .balance=${this.balanceOut}
+        .formatter=${humanizeAmount}
+        .onMaxClick=${this.maxClickHandler('assetOut', this.assetOut)}
+      ></uigc-asset-balance>
+    </uigc-asset-transfer>`;
+  }
+
+  formSwitch() {
     const spotPriceClasses = {
       'spot-price': true,
       show: this.spotPrice || this.inProgress,
+    };
+    return html`
+      <div class="switch">
+        <div class="divider"></div>
+        <uigc-asset-switch class="switch-button" ?disabled=${!this.switchAllowed}> </uigc-asset-switch>
+        <uigc-asset-price
+          class=${classMap(spotPriceClasses)}
+          .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol}
+          .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}
+          .outputBalance=${this.spotPrice}
+          .loading=${this.inProgress}
+        >
+        </uigc-asset-price>
+      </div>
+    `;
+  }
+
+  formSmartSplitSwitch() {
+    const smartSplitClasses = {
+      'form-switch': true,
+      hidden: !this.smartSplitAllowed,
+    };
+    return html`
+      <div class=${classMap(smartSplitClasses)}>
+        <div>
+          <span class="title">Enable SmartSplit</span>
+          <span class="desc">Propose trade splitting when price impact is excessively high.</span>
+        </div>
+        <uigc-switch .checked=${this.smartSplit} size="small" @click=${() => this.toggleSmartSplit()}></uigc-switch>
+      </div>
+    `;
+  }
+
+  render() {
+    const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
+    const ctaClasses = {
+      cta: true,
+      cta__split: this.smartSplit && !!this.tradeSplitInfo,
+    };
+    const infoClasses = {
+      info: true,
+      show: this.swaps.length > 0,
     };
     const errorClasses = {
       error: true,
@@ -334,46 +492,10 @@ export class TradeForm extends LitElement {
     return html`
       <slot name="header"></slot>
       <div class="transfer">
-        <uigc-asset-transfer
-          id="assetIn"
-          title="${i18n.t('trade.payWith')}"
-          .asset=${this.assetIn?.symbol}
-          .amount=${this.amountIn}
-          .amountUsd=${this.amountInUsd}
-        >
-          <uigc-asset-balance
-            slot="balance"
-            .balance=${this.balanceIn}
-            .formatter=${humanizeAmount}
-            .onMaxClick=${this.maxClickHandler('assetIn', this.assetIn)}
-          ></uigc-asset-balance>
-        </uigc-asset-transfer>
-        <div class="switch">
-          <div class="divider"></div>
-          <uigc-asset-switch class="switch-button" ?disabled=${!this.switchAllowed}> </uigc-asset-switch>
-          <uigc-asset-price
-            class=${classMap(spotPriceClasses)}
-            .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol}
-            .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}
-            .outputBalance=${this.spotPrice}
-            .loading=${this.inProgress}
-          >
-          </uigc-asset-price>
-        </div>
-        <uigc-asset-transfer
-          id="assetOut"
-          title="${i18n.t('trade.youGet')}"
-          .asset=${this.assetOut?.symbol}
-          .amount=${this.amountOut}
-          .amountUsd=${this.amountOutUsd}
-        >
-          <uigc-asset-balance
-            slot="balance"
-            .balance=${this.balanceOut}
-            .formatter=${humanizeAmount}
-            .onMaxClick=${this.maxClickHandler('assetOut', this.assetOut)}
-          ></uigc-asset-balance>
-        </uigc-asset-transfer>
+        ${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()} ${this.formSmartSplitSwitch()}
+      </div>
+      <div class=${classMap(infoClasses)}>
+        <div class="row summary show">${this.infoSmartSplitTemplate()}</div>
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
@@ -391,9 +513,13 @@ export class TradeForm extends LitElement {
         class="confirm"
         variant="primary"
         fullWidth
-        @click=${this.onSwapClick}
-        >${this.account.state ? i18n.t('trade.swap') : i18n.t('trade.connect')}</uigc-button
+        @click=${this.onCtaClick}
       >
+        <div class=${classMap(ctaClasses)}>
+          <span class="swap">${this.account.state ? i18n.t('trade.swap') : i18n.t('trade.connect')}</span>
+          <span class="split">${this.account.state ? i18n.t('trade.split') : i18n.t('trade.connect')}</span>
+        </div>
+      </uigc-button>
     `;
   }
 }

@@ -1,6 +1,34 @@
 import { css } from 'lit';
 
 export const formStyles = css`
+  .form-switch {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--uigc-divider-color);
+  }
+
+  .form-switch > div {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+  }
+
+  .form-switch > div span.title {
+    color: var(--uigc-app-font-color__primary);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 22px;
+  }
+
+  .form-switch > div span.desc {
+    color: var(--basic-500, #878c9e);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 130%;
+  }
+
   .info {
     display: none;
     flex-direction: column;
@@ -20,7 +48,7 @@ export const formStyles = css`
   }
 
   @media (max-width: 480px) {
-    .advanced,
+    .form-switch,
     .info {
       padding: 0 14px;
     }

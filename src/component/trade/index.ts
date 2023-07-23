@@ -10,7 +10,7 @@ import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
-import { Account } from '../../db';
+import { Account, tradeSettingsCursor } from '../../db';
 import { calculateEffectiveBalance } from '../../api/balance';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getBestSell, getBestBuy, TradeInfo } from '../../api/trade';
@@ -53,6 +53,7 @@ export class TradeApp extends PoolApp {
   };
 
   @property({ type: Boolean }) chart: Boolean = false;
+  @property({ type: Boolean }) smartSplit: Boolean = false;
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
 
@@ -124,7 +125,7 @@ export class TradeApp extends PoolApp {
   }
 
   async calculateBestSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string) {
-    const { trade, transaction, slippage } = await this.safeSell(assetIn, assetOut, amountIn);
+    const { trade, tradeSplit, transaction, slippage } = await this.safeSell(assetIn, assetOut, amountIn);
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
@@ -134,6 +135,7 @@ export class TradeApp extends PoolApp {
 
     this.trade = {
       ...this.trade,
+      tradeSplitInfo: null,
       inProgress: false,
       assetIn: assetIn,
       amountInUsd: humanizeAmount(amountInUsd),
@@ -159,7 +161,7 @@ export class TradeApp extends PoolApp {
   }
 
   async calculateBestBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string) {
-    const { trade, transaction, slippage } = await this.safeBuy(assetIn, assetOut, amountOut);
+    const { trade, tradeSplit, transaction, slippage } = await this.safeBuy(assetIn, assetOut, amountOut);
     const amountInUsd = this.calculateDollarPrice(assetIn, trade.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, trade.amountOut);
 
@@ -612,6 +614,13 @@ export class TradeApp extends PoolApp {
     }
   }
 
+  async schedule() {
+    const account = this.account.state;
+    if (account && this.tx) {
+      this.processTx(account, this.tx, this.trade);
+    }
+  }
+
   private updateAsset(asset: string, assetKey: string) {
     if (asset) {
       this.trade[assetKey] = this.assets.map.get(asset);
@@ -671,7 +680,10 @@ export class TradeApp extends PoolApp {
       active: this.tab == TradeTab.TradeSettings,
     };
     return html` <uigc-paper class=${classMap(classes)}>
-      <gc-trade-settings @slippage-changed=${() => this.recalculateTrade()}>
+      <gc-trade-settings
+        @slippage-changed=${() => this.recalculateTrade()}
+        @priceImpactThreshold-changed=${() => this.recalculateTrade()}
+      >
         <div class="header section" slot="header">
           <uigc-icon-button class="back" @click=${() => this.changeTab(TradeTab.TradeForm)}>
             <uigc-icon-back></uigc-icon-back>
@@ -737,6 +749,7 @@ export class TradeApp extends PoolApp {
         .inProgress=${this.trade.inProgress}
         .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError() || !this.tx}
         .switchAllowed=${this.isSwitchEnabled()}
+        .smartSplitAllowed=${!!this.smartSplit}
         .tradeType=${this.trade.type}
         .assetIn=${this.trade.assetIn}
         .assetOut=${this.trade.assetOut}
@@ -752,6 +765,7 @@ export class TradeApp extends PoolApp {
         .tradeFee=${this.trade.tradeFee}
         .tradeFeePct=${this.trade.tradeFeePct}
         .tradeFeeRange=${this.trade.tradeFeeRange}
+        .tradeSplitInfo=${this.trade.tradeSplitInfo}
         .transactionFee=${this.trade.transactionFee}
         .error=${this.trade.error}
         .swaps=${this.trade.swaps}

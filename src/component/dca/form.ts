@@ -106,17 +106,6 @@ export class DcaForm extends BaseElement {
         }
       }
 
-      .advanced {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--uigc-app-font-color__primary);
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 22px;
-      }
-
       .hidden {
         display: none;
       }
@@ -319,6 +308,18 @@ export class DcaForm extends BaseElement {
     `;
   }
 
+  formAdvancedSwitch() {
+    return html`
+      <div class="form-switch">
+        <div>
+          <span class="title">Advanced settings</span>
+          <span class="desc">Customize your trades to an even greater extent.</span>
+        </div>
+        <uigc-switch .checked=${this.advanced} size="small" @click=${() => this.toggleAdvanced()}></uigc-switch>
+      </div>
+    `;
+  }
+
   formBlockPeriodTemplate(classInfo: ClassInfo) {
     return html`
       <uigc-textfield
@@ -343,7 +344,6 @@ export class DcaForm extends BaseElement {
       info: true,
       show: isValid,
     };
-
     const advancedClasses = {
       hidden: this.advanced == false,
     };
@@ -351,12 +351,7 @@ export class DcaForm extends BaseElement {
       <slot name="header"></slot>
       <div class="invest">
         ${this.formAssetInTemplate()} ${this.formIntervalTemplate()} ${this.formAssetOutTemplate()}
-        ${this.formMaxBudgetTemplate()}
-        <div class="advanced">
-          <span>Advanced settings</span>
-          <uigc-switch .checked=${this.advanced} size="small" @click=${() => this.toggleAdvanced()}></uigc-switch>
-        </div>
-        ${this.formBlockPeriodTemplate(advancedClasses)}
+        ${this.formMaxBudgetTemplate()} ${this.formAdvancedSwitch()} ${this.formBlockPeriodTemplate(advancedClasses)}
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row summary show">${this.infoSummaryTemplate()}</div>

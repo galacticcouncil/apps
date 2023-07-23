@@ -9,8 +9,16 @@ import { getObj, setObj } from './storage';
 import { SingleValueData } from 'lightweight-charts';
 
 export const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
-export const TRADE_SLIPPAGE = '1';
-export const DCA_SLIPPAGE = '1.5';
+
+export const DEFAULT_TRADE_CONFIG: TradeConfig = {
+  slippage: '1',
+  smartSplit: false,
+  priceImpactThreshold: '0.5',
+};
+
+export const DEFAULT_DCA_CONFIG: DcaConfig = {
+  slippage: '1.5',
+};
 
 export type TradeData = {
   price: SingleValueData[];
@@ -19,6 +27,8 @@ export type TradeData = {
 
 export interface TradeConfig {
   slippage: string;
+  smartSplit: boolean;
+  priceImpactThreshold: string;
 }
 
 export interface DcaConfig {
@@ -79,8 +89,8 @@ const storedDcaSettings = getObj<DcaConfig>(DCA_SETTINGS_KEY);
 
 // Initialize state from storage
 accountCursor.reset(storedAccount);
-tradeSettingsCursor.resetIn(['slippage'], storedTradeSettings?.slippage || TRADE_SLIPPAGE);
-dcaSettingsCursor.resetIn(['slippage'], storedDcaSettings?.slippage || DCA_SLIPPAGE);
+tradeSettingsCursor.reset(storedTradeSettings || DEFAULT_TRADE_CONFIG);
+dcaSettingsCursor.reset(storedDcaSettings || DEFAULT_DCA_CONFIG);
 
 /**
  * Create watchdog to update storage on state change

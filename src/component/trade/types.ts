@@ -1,4 +1,4 @@
-import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { PoolAsset, Trade, TradeType } from '@galacticcouncil/sdk';
 
 export enum TradeTab {
   TradeChart,
@@ -8,6 +8,8 @@ export enum TradeTab {
 }
 
 export type TransactionFee = { amount: string; asset: string; ed: string };
+
+export type TradeSplit = { amount: string; noOfTrades: number };
 
 export type TradeState = {
   inProgress: boolean;
@@ -26,6 +28,7 @@ export type TradeState = {
   tradeFee: string;
   tradeFeePct: string;
   tradeFeeRange: [number, number];
+  tradeSplitInfo: TradeSplit;
   transactionFee: TransactionFee;
   swaps: [];
   error: {};
@@ -48,6 +51,7 @@ export const DEFAULT_TRADE_STATE: TradeState = {
   tradeFee: null,
   tradeFeePct: '0',
   tradeFeeRange: null,
+  tradeSplitInfo: null,
   transactionFee: null,
   swaps: [],
   error: {},

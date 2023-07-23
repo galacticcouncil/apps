@@ -4,7 +4,7 @@ import { customElement, state } from 'lit/decorators.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { dcaSettingsCursor, DCA_SLIPPAGE } from '../../db';
+import { dcaSettingsCursor, DEFAULT_DCA_CONFIG } from '../../db';
 import { debounce } from 'ts-debounce';
 import IMask from 'imask';
 
@@ -132,8 +132,9 @@ export class DcaSettings extends LitElement {
     if (value) {
       dcaSettingsCursor.resetIn(['slippage'], value);
     } else {
-      this.slippage = DCA_SLIPPAGE;
-      dcaSettingsCursor.resetIn(['slippage'], DCA_SLIPPAGE);
+      const defaultSlippage = DEFAULT_DCA_CONFIG.slippage;
+      this.slippage = defaultSlippage;
+      dcaSettingsCursor.resetIn(['slippage'], defaultSlippage);
     }
 
     const options = {
