@@ -9,27 +9,20 @@ import * as i18n from 'i18next';
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
-import { humanizeAmount } from '../../utils/amount';
-import { Account, accountCursor, tradeSettingsCursor } from '../../db';
+import { Account, accountCursor } from '../../db';
+import { DatabaseController } from '../../db.ctrl';
+import { TradeTwap } from '../../api/trade';
+import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
-import { DatabaseController } from '../../db.ctrl';
-import { TradeSplit, TransactionFee } from './types';
+import { TransactionFee } from './types';
+import { calculatePercentageDifference } from '../../utils/math';
 
 @customElement('gc-trade-form')
 export class TradeForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
-  @state() smartSplit: boolean = false;
-
-  constructor() {
-    super();
-    this.init();
-  }
-
-  private init() {
-    this.smartSplit = tradeSettingsCursor.deref().smartSplit;
-  }
+  @state() twapEnabled: boolean = false;
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
@@ -37,7 +30,9 @@ export class TradeForm extends LitElement {
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) switchAllowed = true;
-  @property({ type: Boolean }) smartSplitAllowed = false;
+  @property({ attribute: false }) twap: TradeTwap = null;
+  @property({ type: Boolean }) twapAllowed = false;
+  @property({ type: Boolean }) twapProgress = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) amountIn = null;
@@ -52,7 +47,6 @@ export class TradeForm extends LitElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ attribute: false }) tradeFeeRange = null;
-  @property({ attribute: false }) tradeSplitInfo: TradeSplit = null;
   @property({ attribute: false }) transactionFee: TransactionFee = null;
   @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
@@ -191,6 +185,14 @@ export class TradeForm extends LitElement {
         background: #ff931e;
       }
 
+      .info .positive {
+        color: #30ffb1;
+      }
+
+      .info .negative {
+        color: #ff6868;
+      }
+
       .cta {
         overflow: hidden;
         width: 100%;
@@ -215,32 +217,57 @@ export class TradeForm extends LitElement {
         top: 16px;
       }
 
-      .cta > span.split {
+      .cta > span.twap {
         top: 56px;
       }
 
-      .cta__split > span.swap {
+      .cta__twap > span.swap {
         top: -56px;
       }
 
-      .cta__split > span.split {
+      .cta__twap > span.twap {
         top: 16px;
       }
 
       .hidden {
         display: none;
       }
+
+      .summary div.skeleton {
+        gap: 5px;
+        display: flex;
+        flex-direction: column;
+      }
     `,
   ];
 
-  private toggleSmartSplit() {
-    this.smartSplit = !this.smartSplit;
-    tradeSettingsCursor.resetIn(['smartSplit'], this.smartSplit);
+  isDisabled() {
+    if (this.twap) {
+      return this.disabled || !this.account.state || !this.twap;
+    }
+    return this.disabled || !this.account.state;
+  }
+
+  private toggleTwap() {
+    this.twapEnabled = !this.twapEnabled;
     const options = {
       bubbles: true,
       composed: true,
+      detail: { active: this.twapEnabled },
     };
-    this.dispatchEvent(new CustomEvent('smartSplit-toggled', options));
+    this.dispatchEvent(new CustomEvent('twap-toggled', options));
+  }
+
+  private calculateTwapPrice() {
+    const { tradeReps, orderSlippage } = this.twap;
+    return multipleAmounts(tradeReps.toString(), orderSlippage);
+  }
+
+  private calculateTwapPriceDiff(twapPrice: number) {
+    const swapPrice = Number(this.afterSlippage);
+    const neg = this.tradeType === TradeType.Sell ? swapPrice > twapPrice : swapPrice < twapPrice;
+    const diff = calculatePercentageDifference(swapPrice, twapPrice);
+    return neg ? -diff : diff;
   }
 
   onSettingsClick(e: any) {
@@ -257,9 +284,8 @@ export class TradeForm extends LitElement {
       composed: true,
     };
 
-    const isSmartSplit = this.smartSplit && Number(this.priceImpactPct) > 0.5;
-    if (isSmartSplit) {
-      this.dispatchEvent(new CustomEvent('smartSplit-clicked', options));
+    if (this.twap) {
+      this.dispatchEvent(new CustomEvent('twap-clicked', options));
     } else {
       this.dispatchEvent(new CustomEvent('swap-clicked', options));
     }
@@ -394,14 +420,60 @@ export class TradeForm extends LitElement {
     `;
   }
 
-  infoSmartSplitTemplate() {
-    return html` <span class="label">${i18n.t('dca.summary')}</span>
-      <span>
-        <span class="value">Spend</span>
-        <span class="value highlight">${this.amountIn} ${this.assetIn?.symbol}</span>
-        <span class="value">every ~5 to buy ${this.assetOut?.symbol} with a total budget of</span>
-        <span class="value highlight">10 ${this.assetIn?.symbol}</span>
-      </span>`;
+  infoTwapSummaryTemplate() {
+    if (this.twapProgress || !this.twap) {
+      return html` <span class="label">${i18n.t('dca.summary')}</span>
+        <div class="skeleton">
+          <uigc-skeleton progress rectangle width="200px" height="21px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="250px" height="14px"></uigc-skeleton>
+        </div>`;
+    } else {
+      const { tradeReps, trade, budget } = this.twap;
+      const tradeHuman = trade.toHuman();
+
+      return html`
+        <span class="label">${i18n.t('dca.summary')}</span>
+        <span>
+          <span class="value">${tradeReps} trades</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="6" height="7" viewBox="0 0 6 7" fill="none">
+            <line x1="0.353553" y1="1.16671" x2="5.13786" y2="5.95101" stroke="#878C9E" />
+            <line x1="5.22074" y1="1.07743" x2="0.436439" y2="5.86173" stroke="#878C9E" />
+          </svg>
+          <span class="value">${humanizeAmount(tradeHuman.amountIn)} ${this.assetIn?.symbol}</span>
+        </span>
+        <span class="value small"
+          >at max total cost of trade at ${humanizeAmount(budget.toString())} ${this.assetIn?.symbol}</span
+        >
+      `;
+    }
+  }
+
+  infoTwapSlippageTemplate(assetSymbol: string) {
+    return html` ${choose(this.tradeType, [
+        [TradeType.Sell, () => html` <span class="label">Minimum received:</span>`],
+        [TradeType.Buy, () => html` <span class="label">Maximum sent:</span>`],
+      ])}
+      <span class="grow"></span>
+      ${when(
+        this.twapProgress || !this.twap,
+        () => html`<uigc-skeleton progress rectangle width="150px" height="12px"></uigc-skeleton>`,
+        () => {
+          const twapPrice = this.calculateTwapPrice();
+          const twapDiff = this.calculateTwapPriceDiff(twapPrice);
+          const twapDiffAbs = Math.abs(twapDiff);
+          const twapSellSymbol = twapDiff > 0 ? '+' : '-';
+          const twapBuySymbol = twapDiff > 0 ? '-' : '+';
+          const twapSymbol = this.tradeType === TradeType.Sell ? twapSellSymbol : twapBuySymbol;
+          const twapClasses = {
+            value: true,
+            positive: twapDiff > 0,
+            negative: twapDiff < 0,
+          };
+
+          return html`<span class="value">${humanizeAmount(twapPrice.toString())} ${assetSymbol} </span>
+            <span class=${classMap(twapClasses)}>(${twapSymbol}${twapDiffAbs}%)</span>`;
+        }
+      )}`;
   }
 
   formAssetInTemplate() {
@@ -459,18 +531,24 @@ export class TradeForm extends LitElement {
     `;
   }
 
-  formSmartSplitSwitch() {
+  formTwapSwitch() {
     const smartSplitClasses = {
       'form-switch': true,
-      hidden: !this.smartSplitAllowed,
+      hidden: !(this.swaps.length > 0 && this.twapAllowed),
     };
     return html`
       <div class=${classMap(smartSplitClasses)}>
         <div>
-          <span class="title">Enable SmartSplit</span>
-          <span class="desc">Propose trade splitting when price impact is excessively high.</span>
+          <span class="title">Spread your trade</span>
+          <span class="desc">Reduce the cost for larger orders with a high price impact</span>
+          <span></span>
         </div>
-        <uigc-switch .checked=${this.smartSplit} size="small" @click=${() => this.toggleSmartSplit()}></uigc-switch>
+        <uigc-switch
+          .checked=${this.twapEnabled}
+          ?disabled=${!this.transactionFee}
+          size="small"
+          @click=${() => this.transactionFee && this.toggleTwap()}
+        ></uigc-switch>
       </div>
     `;
   }
@@ -479,11 +557,15 @@ export class TradeForm extends LitElement {
     const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
     const ctaClasses = {
       cta: true,
-      cta__split: this.smartSplit && !!this.tradeSplitInfo,
+      cta__twap: this.twapEnabled,
     };
-    const infoClasses = {
+    const twapClasses = {
       info: true,
-      show: this.swaps.length > 0,
+      show: this.swaps.length > 0 && this.twapEnabled,
+    };
+    const swapClasses = {
+      info: true,
+      show: this.swaps.length > 0 && !this.twapEnabled,
     };
     const errorClasses = {
       error: true,
@@ -492,12 +574,13 @@ export class TradeForm extends LitElement {
     return html`
       <slot name="header"></slot>
       <div class="transfer">
-        ${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()} ${this.formSmartSplitSwitch()}
+        ${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()} ${this.formTwapSwitch()}
       </div>
-      <div class=${classMap(infoClasses)}>
-        <div class="row summary show">${this.infoSmartSplitTemplate()}</div>
+      <div class=${classMap(twapClasses)}>
+        <div class="row summary show">${this.infoTwapSummaryTemplate()}</div>
+        <div class="row">${this.infoTwapSlippageTemplate(assetSymbol)}</div>
       </div>
-      <div class=${classMap(infoClasses)}>
+      <div class=${classMap(swapClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
@@ -508,16 +591,10 @@ export class TradeForm extends LitElement {
         <uigc-icon-error></uigc-icon-error>
         <span> ${this.error['pool'] || this.error['trade'] || this.error['balance']} </span>
       </div>
-      <uigc-button
-        ?disabled=${this.disabled || !this.account.state}
-        class="confirm"
-        variant="primary"
-        fullWidth
-        @click=${this.onCtaClick}
-      >
+      <uigc-button ?disabled=${this.isDisabled()} class="confirm" variant="primary" fullWidth @click=${this.onCtaClick}>
         <div class=${classMap(ctaClasses)}>
           <span class="swap">${this.account.state ? i18n.t('trade.swap') : i18n.t('trade.connect')}</span>
-          <span class="split">${this.account.state ? i18n.t('trade.split') : i18n.t('trade.connect')}</span>
+          <span class="twap">${this.account.state ? i18n.t('trade.twap') : i18n.t('trade.connect')}</span>
         </div>
       </uigc-button>
     `;

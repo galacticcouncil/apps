@@ -12,8 +12,6 @@ export const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
 export const DEFAULT_TRADE_CONFIG: TradeConfig = {
   slippage: '1',
-  smartSplit: false,
-  priceImpactThreshold: '0.5',
 };
 
 export const DEFAULT_DCA_CONFIG: DcaConfig = {
@@ -27,8 +25,6 @@ export type TradeData = {
 
 export interface TradeConfig {
   slippage: string;
-  smartSplit: boolean;
-  priceImpactThreshold: string;
 }
 
 export interface DcaConfig {

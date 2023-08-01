@@ -59,7 +59,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     return html`
       <gc-trade-app
         chart
-        smartSplit
+        twap
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"

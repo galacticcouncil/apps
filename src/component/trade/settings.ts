@@ -14,24 +14,20 @@ const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 export class TradeSettings extends LitElement {
   private _slippageHandler = null;
   private _slippageMask = null;
-  private _priceImpactHandler = null;
 
   @state() slippage: String = null;
   @state() customSlippage: String = null;
-  @state() pricaImpactThreshold: String = null;
 
   constructor() {
     super();
     this.init();
     this.initSlippage();
     this._slippageHandler = debounce(this.onSlippageChange, 300);
-    this._priceImpactHandler = debounce(this.onPriceImpactChange, 300);
   }
 
   private init() {
-    const { slippage, priceImpactThreshold } = tradeSettingsCursor.deref();
+    const { slippage } = tradeSettingsCursor.deref();
     this.slippage = slippage;
-    this.pricaImpactThreshold = priceImpactThreshold;
   }
 
   private initSlippage() {
@@ -161,17 +157,6 @@ export class TradeSettings extends LitElement {
     this.dispatchEvent(new CustomEvent('slippage-changed', options));
   }
 
-  onPriceImpactChange() {
-    const value = this.pricaImpactThreshold;
-    this.onChange(value, 'priceImpactThreshold');
-
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('priceImpactThreshold-changed', options));
-  }
-
   onBackClick(e: any) {
     const options = {
       bubbles: true,
@@ -246,34 +231,12 @@ export class TradeSettings extends LitElement {
     </div>`;
   }
 
-  formPriceImpactTemplate() {
-    return html` <div class="settings">
-      <div class="desc">${i18n.t('trade.settings.smartSplitInfo1')}</div>
-      <uigc-textfield
-        field
-        number
-        min="0"
-        max="100"
-        .placeholder=${0.5}
-        .value=${this.pricaImpactThreshold}
-        @input-changed=${(e: CustomEvent) => {
-          this.pricaImpactThreshold = e.detail.value;
-          this._priceImpactHandler();
-        }}
-      >
-        <span class="adornment" slot="inputAdornment">Price impact (threshold)</span>
-      </uigc-textfield>
-    </div>`;
-  }
-
   render() {
     return html`
       <slot name="header"></slot>
       <div class="content">
         <div class="section">${i18n.t('trade.settings.slippage')}</div>
         ${this.formSlippageTemplate()}
-        <div class="section">${i18n.t('trade.settings.smartSplit')}</div>
-        ${this.formPriceImpactTemplate()}
       </div>
     `;
   }

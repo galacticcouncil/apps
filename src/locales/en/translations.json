@@ -7,7 +7,7 @@
   "trade.payWith": "Pay with",
   "trade.youGet": "You get",
   "trade.swap": "Swap",
-  "trade.split": "Setup SmartSplit",
+  "trade.twap": "Setup SmartSplit",
   "trade.connect": "Connect wallet",
   "trade.selectAsset": "Select asset",
   "trade.settings.title": "Trade settings",

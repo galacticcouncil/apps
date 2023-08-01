@@ -82,9 +82,19 @@ export const formStyles = css`
     display: flex;
   }
 
+  .info .summary .label {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
   .info .summary .value {
     text-align: left;
     font-size: 18px;
+    text-align: center;
+  }
+
+  .info .summary .value.small {
+    font-size: 14px;
   }
 
   .info .label {

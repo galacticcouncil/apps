@@ -140,6 +140,13 @@ export abstract class PoolApp extends BaseApp {
     }
   }
 
+  /**
+   * Get pool asset balance in $
+   *
+   * @param asset - asset entry
+   * @param amount - asset amount
+   * @returns - balance in $ (stablecoin)
+   */
   protected calculateDollarPrice(asset: PoolAsset, amount: string) {
     if (this.stableCoinAssetId == asset.id) {
       return Number(amount).toFixed(2);
@@ -148,11 +155,17 @@ export abstract class PoolApp extends BaseApp {
     return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
+  /**
+   * Get pool asset balance from native amount
+   *
+   * @param asset - asset entry
+   * @param nativeAmount - asset amount represented by native token value
+   * @returns - balance in pool asset
+   */
   protected calculateAssetPrice(asset: PoolAsset, nativeAmount: string) {
     if (SYSTEM_ASSET_ID == asset.id) {
       return bnum(nativeAmount).shiftedBy(-1 * SYSTEM_ASSET_DECIMALS);
     }
-
     const assetNativePrice = this.assets.nativePrice.get(asset.id);
     return new BigNumber(nativeAmount).div(assetNativePrice.amount);
   }
