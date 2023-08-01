@@ -151,6 +151,10 @@ export class TradeForm extends LitElement {
         margin-left: 12px;
       }
 
+      .info .summary {
+        min-height: 69px;
+      }
+
       .info uigc-icon-chevron-right {
         width: 22px;
         height: 22px;
@@ -243,7 +247,7 @@ export class TradeForm extends LitElement {
 
   isDisabled() {
     if (this.twap) {
-      return this.disabled || !this.account.state || !this.twap;
+      return this.disabled || !this.account.state || !this.twap || !this.twap.tradeOk;
     }
     return this.disabled || !this.account.state;
   }
@@ -259,8 +263,12 @@ export class TradeForm extends LitElement {
   }
 
   private calculateTwapPrice() {
-    const { tradeReps, orderSlippage } = this.twap;
-    return multipleAmounts(tradeReps.toString(), orderSlippage);
+    const { tradeReps, orderSlippage, budget } = this.twap;
+    if (this.tradeType === TradeType.Sell) {
+      return multipleAmounts(tradeReps.toString(), orderSlippage);
+    } else {
+      return budget;
+    }
   }
 
   private calculateTwapPriceDiff(twapPrice: number) {
@@ -427,10 +435,12 @@ export class TradeForm extends LitElement {
           <uigc-skeleton progress rectangle width="200px" height="21px"></uigc-skeleton>
           <uigc-skeleton progress rectangle width="250px" height="14px"></uigc-skeleton>
         </div>`;
-    } else {
-      const { tradeReps, trade, budget } = this.twap;
-      const tradeHuman = trade.toHuman();
+    }
 
+    const { tradeReps, trade, tradeOk, budget } = this.twap;
+    const tradeHuman = trade.toHuman();
+
+    if (tradeOk) {
       return html`
         <span class="label">${i18n.t('dca.summary')}</span>
         <span>
@@ -445,6 +455,16 @@ export class TradeForm extends LitElement {
           >at max total cost of trade at ${humanizeAmount(budget.toString())} ${this.assetIn?.symbol}</span
         >
       `;
+    } else {
+      return html`
+        <span class="label">${i18n.t('dca.summary')}</span>
+        <span class="message">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
+          </svg>
+          <span>Sorry but trade amount is too small to execute order.</span>
+        </span>
+      `;
     }
   }
 
@@ -458,19 +478,21 @@ export class TradeForm extends LitElement {
         this.twapProgress || !this.twap,
         () => html`<uigc-skeleton progress rectangle width="150px" height="12px"></uigc-skeleton>`,
         () => {
+          const { tradeOk } = this.twap;
           const twapPrice = this.calculateTwapPrice();
           const twapDiff = this.calculateTwapPriceDiff(twapPrice);
           const twapDiffAbs = Math.abs(twapDiff);
-          const twapSellSymbol = twapDiff > 0 ? '+' : '-';
+          const twapSellSymbol = twapDiff >= 0 ? '+' : '-';
           const twapBuySymbol = twapDiff > 0 ? '-' : '+';
           const twapSymbol = this.tradeType === TradeType.Sell ? twapSellSymbol : twapBuySymbol;
           const twapClasses = {
+            hidden: !tradeOk,
             value: true,
             positive: twapDiff > 0,
             negative: twapDiff < 0,
           };
 
-          return html`<span class="value">${humanizeAmount(twapPrice.toString())} ${assetSymbol} </span>
+          return html`<span class="value">${tradeOk ? humanizeAmount(twapPrice.toString()) + assetSymbol : 'N/A'}</span>
             <span class=${classMap(twapClasses)}>(${twapSymbol}${twapDiffAbs}%)</span>`;
         }
       )}`;

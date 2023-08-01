@@ -14,7 +14,7 @@ import { Account, tradeSettingsCursor } from '../../db';
 import { calculateEffectiveBalance } from '../../api/balance';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { getSell, getBuy, getSellTwap, getBuyTwap, TradeInfo } from '../../api/trade';
-import { formatAmount, humanizeAmount, multipleAmounts, toBn } from '../../utils/amount';
+import { formatAmount, humanizeAmount, MIN_NATIVE_AMOUNT, multipleAmounts, toBn } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 import { updateQueryParams } from '../../utils/url';
 import { getRenderString } from '../../utils/dom';
@@ -138,7 +138,15 @@ export class TradeApp extends PoolApp {
     const { active } = this.tradeTwap;
     if (this.twap && active) {
       const txFee = this.calculateAssetPrice(assetIn, transactionFee.amountNative);
-      const twap = await getSellTwap(assetIn, assetOut, Number(amountIn), Number(priceImpactPct), txFee.toNumber());
+      const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
+      const twap = await getSellTwap(
+        assetIn,
+        assetOut,
+        Number(amountIn),
+        Number(priceImpactPct),
+        minAmount.toNumber(),
+        txFee.toNumber()
+      );
       this.tradeTwap = {
         ...this.tradeTwap,
         inProgress: false,
@@ -186,16 +194,17 @@ export class TradeApp extends PoolApp {
   }
 
   private async calculateBuyTwap() {
-    const { transactionFee, assetIn, assetOut, amountIn, amountOut, priceImpactPct } = this.trade;
+    const { transactionFee, assetIn, assetOut, amountOut, priceImpactPct } = this.trade;
     const { active } = this.tradeTwap;
     if (this.twap && active) {
       const txFee = this.calculateAssetPrice(assetIn, transactionFee.amountNative);
+      const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
       const twap = await getBuyTwap(
         assetIn,
         assetOut,
-        Number(amountIn),
         Number(amountOut),
         Number(priceImpactPct),
+        minAmount.toNumber(),
         txFee.toNumber()
       );
       this.tradeTwap = {
@@ -741,7 +750,7 @@ export class TradeApp extends PoolApp {
         null
       );
 
-      //console.log(tx.toHuman())
+      console.log(tx.toHuman())
 
       const transaction = {
         hex: tx.toHex(),

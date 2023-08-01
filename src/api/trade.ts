@@ -14,6 +14,7 @@ export type TradeInfo = {
 export type TradeTwap = {
   trade: Trade;
   tradeReps: number;
+  tradeOk: boolean;
   budget: number;
   orderSlippage: Amount;
   order: PalletDcaOrder;
@@ -54,6 +55,7 @@ export async function getSellTwap(
   assetOut: PoolAsset,
   amountIn: number,
   priceImpact: number,
+  amountMin: number,
   txFee: number
 ): Promise<TradeTwap> {
   const noOfTrades = Math.round(priceImpact * 10) || 1;
@@ -62,7 +64,6 @@ export async function getSellTwap(
   const twapTxFees = twapTxFeeWithRetries * noOfTrades;
 
   const amountInPerTrade = (amountIn - twapTxFees) / noOfTrades;
-  const maxBudget = amountIn;
 
   const router = chainCursor.deref().router;
   const bestSell = await router.getBestSell(assetIn.id, assetOut.id, amountInPerTrade.toString());
@@ -72,11 +73,13 @@ export async function getSellTwap(
 
   const slippage = tradeSettingsCursor.deref().slippage;
   const minAmountOut = getTradeMinAmountOut(bestSell, slippage);
+  const isValid = amountInPerTrade > amountMin && noOfTrades > 1;
 
   return {
     trade: bestSell,
     tradeReps: noOfTrades,
-    budget: maxBudget,
+    tradeOk: isValid,
+    budget: amountIn,
     orderSlippage: minAmountOut,
     order: {
       Sell: {
@@ -93,9 +96,9 @@ export async function getSellTwap(
 export async function getBuyTwap(
   assetIn: PoolAsset,
   assetOut: PoolAsset,
-  amountIn: number,
   amountOut: number,
   priceImpact: number,
+  amountMin: number,
   txFee: number
 ): Promise<TradeTwap> {
   const noOfTrades = Math.round(priceImpact * 10) || 1;
@@ -104,7 +107,6 @@ export async function getBuyTwap(
   const twapTxFees = twapTxFeeWithRetries * noOfTrades;
 
   const amountOutPerTrade = amountOut / noOfTrades;
-  const maxBudget = amountIn + twapTxFees;
 
   const router = chainCursor.deref().router;
   const bestBuy = await router.getBestBuy(assetIn.id, assetOut.id, amountOutPerTrade.toString());
@@ -114,10 +116,14 @@ export async function getBuyTwap(
 
   const slippage = tradeSettingsCursor.deref().slippage;
   const maxAmountIn = getTradeMaxAmountIn(bestBuy, slippage);
+  const maxAmountInStr = formatAmount(maxAmountIn.amount, maxAmountIn.decimals);
+  const maxBudget = Number(maxAmountInStr) * noOfTrades + twapTxFees;
+  const isValid = Number(maxAmountInStr) > amountMin && noOfTrades > 1;
 
   return {
     trade: bestBuy,
     tradeReps: noOfTrades,
+    tradeOk: isValid,
     budget: maxBudget,
     orderSlippage: maxAmountIn,
     order: {

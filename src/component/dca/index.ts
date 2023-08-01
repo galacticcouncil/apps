@@ -12,7 +12,7 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, dcaSettingsCursor } from '../../db';
 import { INTERVAL_MS, getBlockTime, toBlockPeriod } from '../../api/time';
-import { formatAmount, humanizeAmount, toBn } from '../../utils/amount';
+import { formatAmount, humanizeAmount, toBn, MIN_NATIVE_AMOUNT } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
@@ -218,11 +218,9 @@ export class DcaApp extends PoolApp {
     }
 
     const { amountIn, assetIn } = this.dca;
-
     const assetInMeta = this.assets.meta.get(assetIn.id);
-    const minAmountNative = '500000000000000';
 
-    const minAmount = this.calculateAssetPrice(assetIn, minAmountNative);
+    const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
     const amount = new BigNumber(amountIn);
     if (minAmount.isGreaterThan(amount)) {
       this.dca.error['minAmountTooLow'] = i18n.t('dca.error.minAmountTooLow', {

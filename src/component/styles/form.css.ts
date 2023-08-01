@@ -97,6 +97,22 @@ export const formStyles = css`
     font-size: 14px;
   }
 
+  .info .summary .message {
+    font-size: 14px;
+    color: #ff6868;
+    align-items: flex-start;
+    display: flex;
+  }
+
+  .info .summary .message > span {
+    margin-top: 4px;
+    line-height: 100%;
+  }
+
+  .info .summary .message > svg {
+    margin-right: 5px;
+  }
+
   .info .label {
     font-weight: 500;
     font-size: 12px;
