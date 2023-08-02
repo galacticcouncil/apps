@@ -99,7 +99,6 @@ export const formStyles = css`
 
   .info .summary .message {
     font-size: 14px;
-    color: #ff6868;
     align-items: flex-start;
     display: flex;
   }
@@ -186,5 +185,9 @@ export const formStyles = css`
     .confirm {
       padding: 11px 28px 22px 28px;
     }
+  }
+
+  .info .text_error {
+    color: #ff6868;
   }
 `;

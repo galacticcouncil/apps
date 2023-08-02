@@ -245,11 +245,15 @@ export class TradeForm extends LitElement {
     `,
   ];
 
-  isDisabled() {
+  private isDisabled(): boolean {
     if (this.twap) {
       return this.disabled || !this.account.state || !this.twap || !this.twap.tradeOk;
     }
     return this.disabled || !this.account.state;
+  }
+
+  private isSignificantPriceImpact(): boolean {
+    return Number(this.priceImpactPct) >= 5;
   }
 
   private toggleTwap() {
@@ -335,12 +339,16 @@ export class TradeForm extends LitElement {
   }
 
   infoPriceImpactTemplate() {
+    const priceImpactClasses = {
+      value: true,
+      text_error: this.isSignificantPriceImpact(),
+    };
     return html` <span class="label">${i18n.t('trade.priceImpact')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
         () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
-        () => html`<span class="value">${this.priceImpactPct}%</span>`
+        () => html`<span class=${classMap(priceImpactClasses)}>${this.priceImpactPct}%</span>`
       )}`;
   }
 
@@ -462,7 +470,7 @@ export class TradeForm extends LitElement {
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
           </svg>
-          <span>Sorry but trade amount is too small to execute order.</span>
+          <span class="text_error">Sorry but trade amount is too small to execute order.</span>
         </span>
       `;
     }
@@ -568,6 +576,7 @@ export class TradeForm extends LitElement {
         <uigc-switch
           .checked=${this.twapEnabled}
           ?disabled=${!this.transactionFee}
+          ?highlight=${this.isSignificantPriceImpact()}
           size="small"
           @click=${() => this.transactionFee && this.toggleTwap()}
         ></uigc-switch>
