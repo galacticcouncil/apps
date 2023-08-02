@@ -70,6 +70,17 @@ export class TradeApp extends PoolApp {
       :host {
         max-width: 480px;
       }
+
+      .orders .title {
+        color: var(--uigc-app-font-color__primary);
+        font-family: var(--uigc-app-font-secondary);
+        font-weight: var(--uigc-typography__title-font-weight);
+        padding: 0 5px;
+      }
+
+      .orders uigc-typography {
+        font-size: 15px;
+      }
     `,
   ];
 
@@ -734,7 +745,7 @@ export class TradeApp extends PoolApp {
       const { assetIn } = this.trade;
       const { trade, budget, order } = this.tradeTwap.twap;
       const assetInMeta = this.assets.meta.get(assetIn.id);
-      let totalBudget: BigNumber = toBn(budget.toString(), assetInMeta.decimals);
+      const totalBudget: BigNumber = toBn(budget.toString(), assetInMeta.decimals);
 
       const slippage = tradeSettingsCursor.deref().slippage;
       const chain = this.chain.state;
@@ -749,8 +760,6 @@ export class TradeApp extends PoolApp {
         },
         null
       );
-
-      console.log(tx.toHuman())
 
       const transaction = {
         hex: tx.toHex(),
@@ -988,10 +997,30 @@ export class TradeApp extends PoolApp {
     </uigc-paper>`;
   }
 
+  tradeOrdersSummary() {
+    const account = this.account.state;
+    if (this.twap) {
+      return html` <gc-dca-orders
+        class="orders"
+        .meta=${this.assets.meta}
+        .indexerUrl=${this.indexerUrl}
+        .grafanaUrl=${this.grafanaUrl}
+        .grafanaDsn=${this.grafanaDsn}
+        .accountAddress=${account?.address}
+        .accountProvider=${account?.provider}
+        .accountName=${account?.name}
+      >
+        <uigc-typography slot="header" class="title">DCA</uigc-typography>
+        <uigc-typography slot="header" variant="title">Orders</uigc-typography>
+      </gc-dca-orders>`;
+    }
+  }
+
   render() {
     return html`
       <div class="layout-root">
         ${this.tradeChartTab()} ${this.tradeFormTab()} ${this.tradeSettingsTab()} ${this.selectAssetTab()}
+        ${this.tradeOrdersSummary()}
       </div>
     `;
   }

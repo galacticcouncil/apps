@@ -41,6 +41,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     return html`
       <gc-trade-app
         chart
+        twap
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.hydradx.cloud"
@@ -49,6 +50,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
+        indexerUrl="https://hydradx-explorer.play.hydration.cloud/graphql"
         grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
         grafanaDsn="10"
       ></gc-trade-app>
@@ -68,6 +70,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
+        indexerUrl="https://hydradx-rococo-explorer.play.hydration.cloud/graphql"
         grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
         grafanaDsn="11"
       ></gc-trade-app>
