@@ -13,7 +13,7 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 import { Account, tradeSettingsCursor } from '../../db';
 import { calculateEffectiveBalance } from '../../api/balance';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
-import { getSell, getBuy, getSellTwap, getBuyTwap, TradeInfo } from '../../api/trade';
+import { getSell, getBuy, getSellTwap, getBuyTwap, TradeInfo, TradeTwap } from '../../api/trade';
 import { formatAmount, humanizeAmount, MIN_NATIVE_AMOUNT, multipleAmounts, toBn } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 import { updateQueryParams } from '../../utils/url';
@@ -29,7 +29,6 @@ import {
   scale,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
-  Trade,
   TradeType,
   Transaction,
 } from '@galacticcouncil/sdk';
@@ -710,19 +709,34 @@ export class TradeApp extends PoolApp {
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:new', options));
   }
 
-  dcaNotificationTemplate(trade: Trade, status: string): TxNotificationMssg {
-    const template = html``;
+  async swap() {
+    const account = this.account.state;
+    if (account && this.tx) {
+      this.processTx(account, this.tx, this.trade);
+    }
+  }
+
+  dcaNotificationTemplate(twap: TradeTwap, asset: PoolAsset, status: string): TxNotificationMssg {
+    const { trade, tradeReps, budget } = twap;
+
+    const template = html`
+      <span>${'Order of ' + tradeReps + ' trades, each '}</span>
+      <span class="highlight">${humanizeAmount(trade.toHuman().amountIn) + ' ' + asset?.symbol}</span>
+      <span>${`at max total cost of trade at`}</span>
+      <span class="highlight">${humanizeAmount(budget.toString()) + ' ' + asset?.symbol}</span>
+      <span>${status}</span>
+    `;
     return {
       message: template,
       rawHtml: getRenderString(template),
     } as TxNotificationMssg;
   }
 
-  processDca(account: Account, transaction: Transaction, trade: Trade) {
+  processDca(account: Account, transaction: Transaction, twap: TradeTwap, asset: PoolAsset) {
     const notification = {
-      processing: this.dcaNotificationTemplate(trade, 'submitted'),
-      success: this.dcaNotificationTemplate(trade, null),
-      failure: this.dcaNotificationTemplate(trade, 'failed'),
+      processing: this.dcaNotificationTemplate(twap, asset, 'submitted'),
+      success: this.dcaNotificationTemplate(twap, asset, 'placed'),
+      failure: this.dcaNotificationTemplate(twap, asset, 'failed'),
     };
     const options = {
       bubbles: true,
@@ -732,20 +746,13 @@ export class TradeApp extends PoolApp {
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
   }
 
-  async swap() {
-    const account = this.account.state;
-    if (account && this.tx) {
-      this.processTx(account, this.tx, this.trade);
-    }
-  }
-
   async dca() {
     const account = this.account.state;
     if (account) {
       const { assetIn } = this.trade;
-      const { trade, budget, order } = this.tradeTwap.twap;
+      const { twap } = this.tradeTwap;
       const assetInMeta = this.assets.meta.get(assetIn.id);
-      const totalBudget: BigNumber = toBn(budget.toString(), assetInMeta.decimals);
+      const totalBudget: BigNumber = toBn(twap.budget.toString(), assetInMeta.decimals);
 
       const slippage = tradeSettingsCursor.deref().slippage;
       const chain = this.chain.state;
@@ -756,7 +763,7 @@ export class TradeApp extends PoolApp {
           maxRetries: 1,
           totalAmount: totalBudget.toFixed(),
           slippage: Number(slippage) * 10000,
-          order: order,
+          order: twap.order,
         },
         null
       );
@@ -769,7 +776,7 @@ export class TradeApp extends PoolApp {
         },
       } as Transaction;
 
-      this.processDca(account, transaction, trade);
+      this.processDca(account, transaction, twap, assetIn);
     }
   }
 
