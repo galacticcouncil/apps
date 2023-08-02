@@ -482,8 +482,8 @@ export class TradeForm extends LitElement {
 
   infoTwapSlippageTemplate(assetSymbol: string) {
     return html` ${choose(this.tradeType, [
-        [TradeType.Sell, () => html` <span class="label">Minimum received:</span>`],
-        [TradeType.Buy, () => html` <span class="label">Maximum sent:</span>`],
+        [TradeType.Sell, () => html` <span class="label">${i18n.t('trade.settings.twapSummary.minReceived')}</span>`],
+        [TradeType.Buy, () => html` <span class="label">${i18n.t('trade.settings.twapSummary.maxSpent')}:</span>`],
       ])}
       <span class="grow"></span>
       ${when(

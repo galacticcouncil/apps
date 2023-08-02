@@ -20,6 +20,8 @@
   "trade.settings.twapInfo": "Achieve a better price by splitting larger trades in smaller chunks",
   "trade.settings.twapSummary.timeframe": "placed during the next {{timeframe}}",
   "trade.settings.twapSummary.totalAmount": "amounting to a total of {{amount}} {{symbol}}",
+  "trade.settings.twapSummary.minReceived": "Minimum received (est):",
+  "trade.settings.twapSummary.maxSpent": "Maximum spent (est):",
   "trade.error.tooSmallForTwap": "Your order size is too small for price optimization.",
   "trade.error.balance": "Your trade is bigger than your balance",
   "trade.error.insufficientTradingAmount": "Your order size is lower than the minimum for trading.",
