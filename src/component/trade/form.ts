@@ -459,8 +459,12 @@ export class TradeForm extends LitElement {
           </svg>
           <span class="value">${humanizeAmount(tradeHuman.amountIn)} ${this.assetIn?.symbol}</span>
         </span>
+        <span class="value small">${i18n.t('trade.settings.twapSummary.timeframe', { timeframe: '22min' })}</span>
         <span class="value small"
-          >at max total cost of trade at ${humanizeAmount(budget.toString())} ${this.assetIn?.symbol}</span
+          >${i18n.t('trade.settings.twapSummary.totalAmount', {
+            amount: humanizeAmount(budget.toString()),
+            symbol: this.assetIn?.symbol,
+          })}</span
         >
       `;
     } else {
@@ -470,7 +474,7 @@ export class TradeForm extends LitElement {
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
           </svg>
-          <span class="text_error">Sorry but trade amount is too small to execute order.</span>
+          <span class="text_error">${i18n.t('trade.error.tooSmallForTwap')}</span>
         </span>
       `;
     }
@@ -569,8 +573,8 @@ export class TradeForm extends LitElement {
     return html`
       <div class=${classMap(smartSplitClasses)}>
         <div>
-          <span class="title">Spread your trade</span>
-          <span class="desc">Reduce the cost for larger orders with a high price impact</span>
+          <span class="title">${i18n.t('trade.settings.twap')}</span>
+          <span class="desc">${i18n.t('trade.settings.twapInfo')}</span>
           <span></span>
         </div>
         <uigc-switch
