@@ -50,12 +50,13 @@ export class DcaOrdersApi {
         totalAmount = schedule.totalAmount.toString();
       }
 
+      const amount = order.amountIn ?? order.maxAmountIn;
       return {
         id: id,
         assetIn: order.assetIn.toString(),
         assetOut: order.assetOut.toString(),
         interval: period,
-        amount: bnum(order.amountIn),
+        amount: bnum(amount),
         total: bnum(totalAmount),
         status: scheduledStatus.get(id),
         transactions: [],

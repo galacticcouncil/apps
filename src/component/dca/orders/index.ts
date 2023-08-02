@@ -41,17 +41,6 @@ export class DcaOrders extends BaseApp {
         overflow: hidden;
       }
 
-      .orders .title {
-        color: var(--uigc-app-font-color__primary);
-        font-family: var(--uigc-app-font-secondary);
-        font-weight: var(--uigc-typography__title-font-weight);
-        padding: 0 5px;
-      }
-
-      .orders uigc-typography {
-        font-size: 15px;
-      }
-
       @media (min-width: 480px) {
         .orders {
           border-radius: var(--uigc-app-border-radius);
@@ -220,11 +209,6 @@ export class DcaOrders extends BaseApp {
     super.disconnectedCallback();
   }
 
-  private headerTemplate() {
-    return html` <uigc-typography slot="header" class="title">DCA</uigc-typography>
-      <uigc-typography slot="header" variant="title">Orders</uigc-typography>`;
-  }
-
   render() {
     if (this.width > 768) {
       return html` <gc-dca-grid
@@ -235,7 +219,7 @@ export class DcaOrders extends BaseApp {
           this.syncOrder(id);
         }}
       >
-        ${this.headerTemplate()}
+        <slot slot="header" name="header"></slot>
       </gc-dca-grid>`;
     } else {
       return html` <gc-dca-list
@@ -246,7 +230,7 @@ export class DcaOrders extends BaseApp {
           this.syncOrder(id);
         }}
       >
-        ${this.headerTemplate()}
+        <slot slot="header" name="header"></slot>
       </gc-dca-list>`;
     }
   }
