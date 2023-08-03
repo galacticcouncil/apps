@@ -29,8 +29,23 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.basilisk.cloud"
-        pools="XYK"
+        pools=${PoolType.XYK}
         stableCoinAssetId="14"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
+      ></gc-trade-app>
+    `;
+  }
+
+  bsxTemplateRococo() {
+    return html`
+      <gc-trade-app
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
+        apiAddress="wss://basilisk-rococo-rpc.play.hydration.cloud"
+        pools=${PoolType.XYK}
+        stableCoinAssetId="19"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}

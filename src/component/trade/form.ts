@@ -245,26 +245,25 @@ export class TradeForm extends LitElement {
     `,
   ];
 
+  private hasGeneralError(): boolean {
+    const generalErrors = Object.assign({}, this.error);
+    delete generalErrors['balance'];
+    return Object.keys(generalErrors).length > 0;
+  }
+
   private hasError(): boolean {
-    if (this.twapEnabled) {
-      return ['pool', 'balance'].some((i) => Object.keys(this.error).includes(i));
-    }
     return Object.keys(this.error).length > 0;
   }
 
-  private hasCtaDisabled(): boolean {
-    return this.disabled || !this.account.state || this.hasError();
-  }
-
-  private isTwapOk(): boolean {
-    return this.twap && this.twap.tradeOk;
+  private hasTwapError(): boolean {
+    return this.twapEnabled && !this.twap?.tradeOk;
   }
 
   private isDisabled(): boolean {
     if (this.twapEnabled) {
-      return this.hasCtaDisabled() || !this.isTwapOk();
+      return this.disabled || this.hasError() || this.hasTwapError();
     }
-    return this.hasCtaDisabled();
+    return this.disabled || this.hasError();
   }
 
   private isSignificantPriceImpact(): boolean {
@@ -463,7 +462,7 @@ export class TradeForm extends LitElement {
     const { tradeReps, trade, tradeOk, budget } = this.twap;
     const tradeHuman = trade.toHuman();
 
-    if (this.isTwapOk()) {
+    if (this.twap.tradeOk) {
       return html`
         <span class="label">${i18n.t('dca.summary')}</span>
         <span>
@@ -474,9 +473,9 @@ export class TradeForm extends LitElement {
           </svg>
           <span class="value">${humanizeAmount(tradeHuman.amountIn)} ${this.assetIn?.symbol}</span>
         </span>
-        <span class="value small">${i18n.t('trade.settings.twapSummary.timeframe', { timeframe: '22min' })}</span>
+        <span class="value small">${i18n.t('trade.twap.timeframe', { timeframe: '22min' })}</span>
         <span class="value small"
-          >${i18n.t('trade.settings.twapSummary.totalAmount', {
+          >${i18n.t('trade.twap.totalAmount', {
             amount: humanizeAmount(budget.toString()),
             symbol: this.assetIn?.symbol,
           })}</span
@@ -489,7 +488,7 @@ export class TradeForm extends LitElement {
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
           </svg>
-          <span class="text_error">${i18n.t('trade.error.tooSmallForTwap')}</span>
+          <span class="text_error">${i18n.t('trade.twap.error')}</span>
         </span>
       `;
     }
@@ -497,8 +496,8 @@ export class TradeForm extends LitElement {
 
   infoTwapSlippageTemplate(assetSymbol: string) {
     return html` ${choose(this.tradeType, [
-        [TradeType.Sell, () => html` <span class="label">${i18n.t('trade.settings.twapSummary.minReceived')}</span>`],
-        [TradeType.Buy, () => html` <span class="label">${i18n.t('trade.settings.twapSummary.maxSpent')}:</span>`],
+        [TradeType.Sell, () => html` <span class="label">${i18n.t('trade.twap.minReceived')}</span>`],
+        [TradeType.Buy, () => html` <span class="label">${i18n.t('trade.twap.maxSpent')}:</span>`],
       ])}
       <span class="grow"></span>
       ${when(
@@ -526,9 +525,12 @@ export class TradeForm extends LitElement {
   }
 
   formAssetInTemplate() {
+    const error = this.error['balance'];
     return html` <uigc-asset-transfer
       id="assetIn"
       title="${i18n.t('trade.payWith')}"
+      ?error=${error}
+      .error=${error}
       .asset=${this.assetIn?.symbol}
       .amount=${this.amountIn}
       .amountUsd=${this.amountInUsd}
@@ -588,8 +590,8 @@ export class TradeForm extends LitElement {
     return html`
       <div class=${classMap(smartSplitClasses)}>
         <div>
-          <span class="title">${i18n.t('trade.settings.twap')}</span>
-          <span class="desc">${i18n.t('trade.settings.twapInfo')}</span>
+          <span class="title">${i18n.t('trade.twap.title')}</span>
+          <span class="desc">${i18n.t('trade.twap.desc')}</span>
           <span></span>
         </div>
         <uigc-switch
@@ -619,7 +621,7 @@ export class TradeForm extends LitElement {
     };
     const errorClasses = {
       error: true,
-      show: this.swaps.length > 0 && this.hasError(),
+      show: this.swaps.length > 0 && this.hasGeneralError(),
     };
     return html`
       <slot name="header"></slot>
@@ -639,7 +641,7 @@ export class TradeForm extends LitElement {
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>
-        <span> ${this.error['pool'] || this.error['balance'] || this.error['trade']} </span>
+        <span> ${this.error['pool'] || this.error['trade']} </span>
       </div>
       <uigc-button ?disabled=${this.isDisabled()} class="confirm" variant="primary" fullWidth @click=${this.onCtaClick}>
         <div class=${classMap(ctaClasses)}>
