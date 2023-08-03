@@ -125,10 +125,6 @@ export class TradeApp extends PoolApp {
     return assetIn === assetOut || !assetInAllowed || !assetOutAllowed;
   }
 
-  hasError(): boolean {
-    return Object.keys(this.trade.error).length > 0;
-  }
-
   changeTab(active: TradeTab) {
     this.tab = active;
     this.requestUpdate();
@@ -903,7 +899,7 @@ export class TradeApp extends PoolApp {
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
         .inProgress=${this.trade.inProgress}
-        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError() || !this.tx}
+        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || !this.tx}
         .switchAllowed=${this.isSwitchEnabled()}
         .tradeType=${this.trade.type}
         .twap=${this.tradeTwap.twap}

@@ -245,11 +245,26 @@ export class TradeForm extends LitElement {
     `,
   ];
 
-  private isDisabled(): boolean {
-    if (this.twap) {
-      return this.disabled || !this.account.state || !this.twap || !this.twap.tradeOk;
+  private hasError(): boolean {
+    if (this.twapEnabled) {
+      return ['pool', 'balance'].some((i) => Object.keys(this.error).includes(i));
     }
-    return this.disabled || !this.account.state;
+    return Object.keys(this.error).length > 0;
+  }
+
+  private hasCtaDisabled(): boolean {
+    return this.disabled || !this.account.state || this.hasError();
+  }
+
+  private isTwapOk(): boolean {
+    return this.twap && this.twap.tradeOk;
+  }
+
+  private isDisabled(): boolean {
+    if (this.twapEnabled) {
+      return this.hasCtaDisabled() || !this.isTwapOk();
+    }
+    return this.hasCtaDisabled();
   }
 
   private isSignificantPriceImpact(): boolean {
@@ -448,7 +463,7 @@ export class TradeForm extends LitElement {
     const { tradeReps, trade, tradeOk, budget } = this.twap;
     const tradeHuman = trade.toHuman();
 
-    if (tradeOk) {
+    if (this.isTwapOk()) {
       return html`
         <span class="label">${i18n.t('dca.summary')}</span>
         <span>
@@ -604,7 +619,7 @@ export class TradeForm extends LitElement {
     };
     const errorClasses = {
       error: true,
-      show: Object.keys(this.error).length > 0 && this.swaps.length > 0,
+      show: this.swaps.length > 0 && this.hasError(),
     };
     return html`
       <slot name="header"></slot>
@@ -624,7 +639,7 @@ export class TradeForm extends LitElement {
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>
-        <span> ${this.error['pool'] || this.error['trade'] || this.error['balance']} </span>
+        <span> ${this.error['pool'] || this.error['balance'] || this.error['trade']} </span>
       </div>
       <uigc-button ?disabled=${this.isDisabled()} class="confirm" variant="primary" fullWidth @click=${this.onCtaClick}>
         <div class=${classMap(ctaClasses)}>
