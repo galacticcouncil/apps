@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
@@ -11,15 +11,16 @@ import { formStyles } from '../styles/form.css';
 
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { TradeTwap } from '../../api/trade';
+import { TradeTwap, TradeTwapError } from '../../api/trade';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
-import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { PoolAsset, TradeType, bnum, calculateDiffToRef } from '@galacticcouncil/sdk';
 import { TransactionFee } from './types';
-import { calculatePercentageDifference } from '../../utils/math';
+
+import { BaseElement } from '../base/BaseElement';
 
 @customElement('gc-trade-form')
-export class TradeForm extends LitElement {
+export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
   @state() twapEnabled: boolean = false;
@@ -251,23 +252,27 @@ export class TradeForm extends LitElement {
     return Object.keys(generalErrors).length > 0;
   }
 
-  private hasError(): boolean {
+  private hasTradeError(): boolean {
     return Object.keys(this.error).length > 0;
   }
 
   private hasTwapError(): boolean {
-    return this.twapEnabled && !this.twap?.tradeOk;
+    const generalErrors = Object.assign({}, this.error);
+    delete generalErrors['trade'];
+    const hasError = Object.keys(generalErrors).length > 0;
+    const hasTwapError = this.twapEnabled && !!this.twap?.tradeError;
+    return hasError || hasTwapError;
   }
 
   private isDisabled(): boolean {
     if (this.twapEnabled) {
-      return this.disabled || this.hasError() || this.hasTwapError();
+      return this.disabled || this.hasTwapError();
     }
-    return this.disabled || this.hasError();
+    return this.disabled || this.hasTradeError();
   }
 
   private isSignificantPriceImpact(): boolean {
-    return Number(this.priceImpactPct) >= 5;
+    return Number(this.priceImpactPct) <= -1;
   }
 
   private toggleTwap() {
@@ -291,9 +296,13 @@ export class TradeForm extends LitElement {
 
   private calculateTwapPriceDiff(twapPrice: number) {
     const swapPrice = Number(this.afterSlippage);
-    const neg = this.tradeType === TradeType.Sell ? swapPrice > twapPrice : swapPrice < twapPrice;
-    const diff = calculatePercentageDifference(swapPrice, twapPrice);
-    return neg ? -diff : diff;
+    const swapPriceBN = bnum(swapPrice);
+    const twapPriceBN = bnum(twapPrice);
+    if (this.tradeType === TradeType.Sell) {
+      return calculateDiffToRef(twapPriceBN, swapPriceBN).toNumber();
+    } else {
+      return calculateDiffToRef(swapPriceBN, twapPriceBN).toNumber();
+    }
   }
 
   onSettingsClick(e: any) {
@@ -452,19 +461,34 @@ export class TradeForm extends LitElement {
 
   infoTwapSummaryTemplate() {
     if (this.twapProgress || !this.twap) {
-      return html` <span class="label">${i18n.t('dca.summary')}</span>
+      return html` <span class="label">${i18n.t('twap.summary')}</span>
         <div class="skeleton">
           <uigc-skeleton progress rectangle width="200px" height="21px"></uigc-skeleton>
           <uigc-skeleton progress rectangle width="250px" height="14px"></uigc-skeleton>
         </div>`;
     }
 
-    const { tradeReps, trade, tradeOk, budget } = this.twap;
+    const { tradeReps, tradeTime, trade, tradeError, budget } = this.twap;
     const tradeHuman = trade.toHuman();
+    const timeframe = this._humanizer.humanize(tradeTime, { round: true, largest: 2 });
 
-    if (this.twap.tradeOk) {
+    if (tradeError) {
       return html`
-        <span class="label">${i18n.t('dca.summary')}</span>
+        <span class="label">${i18n.t('twap.summary')}</span>
+        <span class="message">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
+          </svg>
+          ${choose(tradeError, [
+            [TradeTwapError.OrderTooSmall, () => html` <span class="label">${i18n.t('twap.error.minOrderSize')}</span>`],
+            [TradeTwapError.OrderTooBig, () => html` <span class="label">${i18n.t('twap.error.maxOrderSize')}</span>`],
+            [TradeTwapError.OrderImpactTooBig, () => html` <span class="label">${i18n.t('twap.error.impactTooBig')}</span>`],
+          ])}
+        </span>
+      `;
+    } else {
+      return html`
+        <span class="label">${i18n.t('twap.summary')}</span>
         <span>
           <span class="value">${tradeReps} trades</span>
           <svg xmlns="http://www.w3.org/2000/svg" width="6" height="7" viewBox="0 0 6 7" fill="none">
@@ -473,38 +497,28 @@ export class TradeForm extends LitElement {
           </svg>
           <span class="value">${humanizeAmount(tradeHuman.amountIn)} ${this.assetIn?.symbol}</span>
         </span>
-        <span class="value small">${i18n.t('trade.twap.timeframe', { timeframe: '22min' })}</span>
+        <span class="value small">${i18n.t('twap.timeframe', { timeframe: timeframe })}</span>
         <span class="value small"
-          >${i18n.t('trade.twap.totalAmount', {
+          >${i18n.t('twap.totalAmount', {
             amount: humanizeAmount(budget.toString()),
             symbol: this.assetIn?.symbol,
           })}</span
         >
-      `;
-    } else {
-      return html`
-        <span class="label">${i18n.t('dca.summary')}</span>
-        <span class="message">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
-          </svg>
-          <span class="text_error">${i18n.t('trade.twap.error')}</span>
-        </span>
       `;
     }
   }
 
   infoTwapSlippageTemplate(assetSymbol: string) {
     return html` ${choose(this.tradeType, [
-        [TradeType.Sell, () => html` <span class="label">${i18n.t('trade.twap.minReceived')}</span>`],
-        [TradeType.Buy, () => html` <span class="label">${i18n.t('trade.twap.maxSpent')}:</span>`],
+        [TradeType.Sell, () => html` <span class="label">${i18n.t('twap.minReceived')}</span>`],
+        [TradeType.Buy, () => html` <span class="label">${i18n.t('twap.maxSpent')}:</span>`],
       ])}
       <span class="grow"></span>
       ${when(
         this.twapProgress || !this.twap,
         () => html`<uigc-skeleton progress rectangle width="150px" height="12px"></uigc-skeleton>`,
         () => {
-          const { tradeOk } = this.twap;
+          const { tradeError } = this.twap;
           const twapPrice = this.calculateTwapPrice();
           const twapDiff = this.calculateTwapPriceDiff(twapPrice);
           const twapDiffAbs = Math.abs(twapDiff);
@@ -512,13 +526,15 @@ export class TradeForm extends LitElement {
           const twapBuySymbol = twapDiff > 0 ? '-' : '+';
           const twapSymbol = this.tradeType === TradeType.Sell ? twapSellSymbol : twapBuySymbol;
           const twapClasses = {
-            hidden: !tradeOk,
+            hidden: !!tradeError,
             value: true,
             positive: twapDiff > 0,
             negative: twapDiff < 0,
           };
 
-          return html`<span class="value">${tradeOk ? humanizeAmount(twapPrice.toString()) + assetSymbol : 'N/A'}</span>
+          return html`<span class="value"
+              >${tradeError ? '-' : humanizeAmount(twapPrice.toString()) + assetSymbol}</span
+            >
             <span class=${classMap(twapClasses)}>(${twapSymbol}${twapDiffAbs}%)</span>`;
         }
       )}`;
@@ -590,8 +606,8 @@ export class TradeForm extends LitElement {
     return html`
       <div class=${classMap(smartSplitClasses)}>
         <div>
-          <span class="title">${i18n.t('trade.twap.title')}</span>
-          <span class="desc">${i18n.t('trade.twap.desc')}</span>
+          <span class="title">${i18n.t('twap.title')}</span>
+          <span class="desc">${i18n.t('twap.desc')}</span>
           <span></span>
         </div>
         <uigc-switch
@@ -621,7 +637,7 @@ export class TradeForm extends LitElement {
     };
     const errorClasses = {
       error: true,
-      show: this.swaps.length > 0 && this.hasGeneralError(),
+      show: this.swaps.length > 0 && !this.twapEnabled && this.hasGeneralError(),
     };
     return html`
       <slot name="header"></slot>

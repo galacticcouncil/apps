@@ -11,7 +11,7 @@ import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, dcaSettingsCursor } from '../../db';
-import { INTERVAL_MS, getBlockTime, toBlockPeriod } from '../../api/time';
+import { INTERVAL_MS, toBlockPeriod } from '../../api/time';
 import { formatAmount, humanizeAmount, toBn, MIN_NATIVE_AMOUNT } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
@@ -183,8 +183,7 @@ export class DcaApp extends PoolApp {
 
     let periodMsec = INTERVAL_MS[interval];
     if (intervalBlock) {
-      const blockTime = await getBlockTime();
-      periodMsec = intervalBlock * blockTime;
+      periodMsec = intervalBlock * this.blockTime;
     }
     this.dca.est = periodMsec;
     this.requestUpdate();

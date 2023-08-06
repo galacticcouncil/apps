@@ -13,7 +13,7 @@ import { tradeLayoutStyles } from '../styles/layout/trade.css';
 import { Account, tradeSettingsCursor } from '../../db';
 import { calculateEffectiveBalance } from '../../api/balance';
 import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
-import { getSell, getBuy, getSellTwap, getBuyTwap, TradeInfo, TradeTwap } from '../../api/trade';
+import { TradeInfo, TradeTwap, TWAP_BLOCK_PERIOD, TWAP_RETRIES, TradeApi } from '../../api/trade';
 import { formatAmount, humanizeAmount, MIN_NATIVE_AMOUNT, multipleAmounts, toBn } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 import { updateQueryParams } from '../../utils/url';
@@ -47,6 +47,8 @@ import { AssetSelector } from '../selector/types';
 @customElement('gc-trade-app')
 export class TradeApp extends PoolApp {
   private tx: Transaction = null;
+
+  private tradeApi: TradeApi = null;
 
   @state() tab: TradeTab = TradeTab.TradeForm;
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
@@ -132,7 +134,7 @@ export class TradeApp extends PoolApp {
 
   private async safeSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string): Promise<TradeInfo> {
     try {
-      return await getSell(assetIn, assetOut, amountIn);
+      return await this.tradeApi.getSell(assetIn, assetOut, amountIn);
     } catch (error) {
       console.error(error);
       this.resetTrade();
@@ -140,18 +142,20 @@ export class TradeApp extends PoolApp {
   }
 
   private async calculateSellTwap() {
-    const { transactionFee, assetIn, assetOut, amountIn, priceImpactPct } = this.trade;
+    const { transactionFee, assetIn, assetOut, amountIn, spotPrice, swaps } = this.trade;
     const { active } = this.tradeTwap;
     if (this.twap && active) {
       const txFee = this.calculateAssetPrice(assetIn, transactionFee.amountNative);
       const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
-      const twap = await getSellTwap(
+      const priceDifference = this.tradeApi.getSellPriceDifference(Number(amountIn), Number(spotPrice), swaps);
+      const twap = await this.tradeApi.getSellTwap(
         assetIn,
         assetOut,
         Number(amountIn),
-        Number(priceImpactPct),
         minAmount.toNumber(),
-        txFee.toNumber()
+        txFee.toNumber(),
+        priceDifference.toNumber(),
+        this.blockTime
       );
       this.tradeTwap = {
         ...this.tradeTwap,
@@ -192,7 +196,7 @@ export class TradeApp extends PoolApp {
 
   private async safeBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string): Promise<TradeInfo> {
     try {
-      return await getBuy(assetIn, assetOut, amountOut);
+      return await this.tradeApi.getBuy(assetIn, assetOut, amountOut);
     } catch (error) {
       console.error(error);
       this.resetTrade();
@@ -205,13 +209,16 @@ export class TradeApp extends PoolApp {
     if (this.twap && active) {
       const txFee = this.calculateAssetPrice(assetIn, transactionFee.amountNative);
       const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
-      const twap = await getBuyTwap(
+      const priceImpact = Number(priceImpactPct);
+      const priceDifference = Math.abs(priceImpact);
+      const twap = await this.tradeApi.getBuyTwap(
         assetIn,
         assetOut,
         Number(amountOut),
-        Number(priceImpactPct),
         minAmount.toNumber(),
-        txFee.toNumber()
+        txFee.toNumber(),
+        priceDifference,
+        this.blockTime
       );
       this.tradeTwap = {
         ...this.tradeTwap,
@@ -755,14 +762,16 @@ export class TradeApp extends PoolApp {
       const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
         {
           owner: account.address,
-          period: 5,
-          maxRetries: 1,
+          period: TWAP_BLOCK_PERIOD,
+          maxRetries: TWAP_RETRIES,
           totalAmount: totalBudget.toFixed(),
           slippage: Number(slippage) * 10000,
           order: twap.order,
         },
         null
       );
+
+      console.log(tx.toHuman());
 
       const transaction = {
         hex: tx.toHex(),
@@ -784,7 +793,7 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  protected onInit(): void {
+  private initAssets() {
     if (!this.assetIn && !this.assetOut) {
       this.trade.assetIn = this.assets.map.get(this.stableCoinAssetId);
       this.trade.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
@@ -792,6 +801,12 @@ export class TradeApp extends PoolApp {
       this.updateAsset(this.assetIn, 'assetIn');
       this.updateAsset(this.assetOut, 'assetOut');
     }
+  }
+
+  protected onInit(): void {
+    const chain = this.chain.state;
+    this.tradeApi = new TradeApi(chain.router);
+    this.initAssets();
     this.recalculateSpotPrice();
     this.validatePool();
   }
