@@ -923,7 +923,7 @@ export class TradeApp extends PoolApp {
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
         .inProgress=${this.trade.inProgress}
-        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || !this.tx || !this.account}
+        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || !this.tx || !this.account.state}
         .switchAllowed=${this.isSwitchEnabled()}
         .tradeType=${this.trade.type}
         .twap=${this.tradeTwap.twap}
