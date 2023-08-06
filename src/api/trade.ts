@@ -102,7 +102,7 @@ export class TradeApi {
 
   private getTwapTxFee(tradesNo: number, txFee: number): number {
     const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
-    const twapTxFeeWithRetries = twapTxFee * TWAP_RETRIES + 1;
+    const twapTxFeeWithRetries = twapTxFee * (TWAP_RETRIES + 1);
     return twapTxFeeWithRetries * tradesNo;
   }
 

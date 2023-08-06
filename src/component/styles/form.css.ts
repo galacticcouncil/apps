@@ -75,6 +75,7 @@ export const formStyles = css`
     display: none;
     flex-direction: column;
     align-items: flex-start;
+    padding-bottom: 10px;
   }
 
   .info .summary.show {

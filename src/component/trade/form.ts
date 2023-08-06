@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import * as i18n from 'i18next';
 
@@ -150,10 +151,6 @@ export class TradeForm extends BaseElement {
 
       .info .route-icon {
         margin-left: 12px;
-      }
-
-      .info .summary {
-        min-height: 69px;
       }
 
       .info uigc-icon-chevron-right {
@@ -465,6 +462,7 @@ export class TradeForm extends BaseElement {
         <div class="skeleton">
           <uigc-skeleton progress rectangle width="200px" height="21px"></uigc-skeleton>
           <uigc-skeleton progress rectangle width="250px" height="14px"></uigc-skeleton>
+          <uigc-skeleton progress rectangle width="250px" height="14px"></uigc-skeleton>
         </div>`;
     }
 
@@ -480,9 +478,15 @@ export class TradeForm extends BaseElement {
             <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
           </svg>
           ${choose(tradeError, [
-            [TradeTwapError.OrderTooSmall, () => html` <span class="label">${i18n.t('twap.error.minOrderSize')}</span>`],
+            [
+              TradeTwapError.OrderTooSmall,
+              () => html` <span class="label">${i18n.t('twap.error.minOrderSize')}</span>`,
+            ],
             [TradeTwapError.OrderTooBig, () => html` <span class="label">${i18n.t('twap.error.maxOrderSize')}</span>`],
-            [TradeTwapError.OrderImpactTooBig, () => html` <span class="label">${i18n.t('twap.error.impactTooBig')}</span>`],
+            [
+              TradeTwapError.OrderImpactTooBig,
+              () => html` <span class="label">${i18n.t('twap.error.maxOrderSize')}</span>`,
+            ],
           ])}
         </span>
       `;
@@ -497,12 +501,14 @@ export class TradeForm extends BaseElement {
           </svg>
           <span class="value">${humanizeAmount(tradeHuman.amountIn)} ${this.assetIn?.symbol}</span>
         </span>
-        <span class="value small">${i18n.t('twap.timeframe', { timeframe: timeframe })}</span>
+        <span class="value small">${unsafeHTML(i18n.t('twap.timeframe', { timeframe: timeframe }))}</span>
         <span class="value small"
-          >${i18n.t('twap.totalAmount', {
-            amount: humanizeAmount(budget.toString()),
-            symbol: this.assetIn?.symbol,
-          })}</span
+          >${unsafeHTML(
+            i18n.t('twap.totalAmount', {
+              amount: humanizeAmount(budget.toString()),
+              symbol: this.assetIn?.symbol,
+            })
+          )}</span
         >
       `;
     }
