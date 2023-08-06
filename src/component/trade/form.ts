@@ -471,6 +471,8 @@ export class TradeForm extends BaseElement {
     const timeframe = this._humanizer.humanize(tradeTime, { round: true, largest: 2 });
 
     if (tradeError) {
+      const minSize = i18n.t('twap.error.minOrderSize');
+      const maxSize = i18n.t('twap.error.maxOrderSize');
       return html`
         <span class="label">${i18n.t('twap.summary')}</span>
         <span class="message">
@@ -478,15 +480,9 @@ export class TradeForm extends BaseElement {
             <path d="M6 4H20V6H22V12H14V14H20V16H16V18H14V20H2V8H4V6H6V4ZM8 10H10V8H8V10Z" fill="#FF6868" />
           </svg>
           ${choose(tradeError, [
-            [
-              TradeTwapError.OrderTooSmall,
-              () => html` <span class="label">${i18n.t('twap.error.minOrderSize')}</span>`,
-            ],
-            [TradeTwapError.OrderTooBig, () => html` <span class="label">${i18n.t('twap.error.maxOrderSize')}</span>`],
-            [
-              TradeTwapError.OrderImpactTooBig,
-              () => html` <span class="label">${i18n.t('twap.error.maxOrderSize')}</span>`,
-            ],
+            [TradeTwapError.OrderTooSmall, () => html` <span class="label">${minSize}</span>`],
+            [TradeTwapError.OrderTooBig, () => html` <span class="label">${maxSize}</span>`],
+            [TradeTwapError.OrderImpactTooBig, () => html` <span class="label">${maxSize}</span>`],
           ])}
         </span>
       `;
