@@ -720,13 +720,24 @@ export class TradeApp extends PoolApp {
   }
 
   dcaNotificationTemplate(twap: TradeTwap, asset: PoolAsset, status: string): TxNotificationMssg {
-    const { trade, tradeReps, budget } = twap;
+    const { trade, tradeReps, tradeTime, budget } = twap;
+    const tradeHuman = trade.toHuman();
+    const timeframe = this._humanizer.humanize(tradeTime, { round: true, largest: 2 });
 
     const template = html`
-      <span>${'Order of ' + tradeReps + ' trades, each '}</span>
-      <span class="highlight">${humanizeAmount(trade.toHuman().amountIn) + ' ' + asset?.symbol}</span>
-      <span>${`at max total cost of trade at`}</span>
-      <span class="highlight">${humanizeAmount(budget.toString()) + ' ' + asset?.symbol}</span>
+      <span>${tradeReps}</span>
+      <span>${'trades'}</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="6" height="7" viewBox="0 0 6 7" fill="none">
+        <line x1="0.353553" y1="1.16671" x2="5.13786" y2="5.95101" stroke="#878C9E" />
+        <line x1="5.22074" y1="1.07743" x2="0.436439" y2="5.86173" stroke="#878C9E" />
+      </svg>
+      <span>${humanizeAmount(tradeHuman.amountIn)}</span>
+      <span>${asset?.symbol}</span>
+      <span>${'placed during next'}</span>
+      <span class="highlight">${timeframe}</span>
+      <span>${'amounting to a total of'}</span>
+      <span class="highlight">${humanizeAmount(budget.toString())}</span>
+      <span class="highlight">${asset?.symbol}</span>
       <span>${status}</span>
     `;
     return {
@@ -770,8 +781,6 @@ export class TradeApp extends PoolApp {
         },
         null
       );
-
-      console.log(tx.toHuman());
 
       const transaction = {
         hex: tx.toHex(),

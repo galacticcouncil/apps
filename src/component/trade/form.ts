@@ -316,7 +316,7 @@ export class TradeForm extends BaseElement {
       composed: true,
     };
 
-    if (this.twap) {
+    if (this.twapEnabled) {
       this.dispatchEvent(new CustomEvent('twap-clicked', options));
     } else {
       this.dispatchEvent(new CustomEvent('swap-clicked', options));
