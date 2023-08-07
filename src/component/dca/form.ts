@@ -5,6 +5,7 @@ import { classMap, ClassInfo } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
+import { BaseElement } from '../base/BaseElement';
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
@@ -14,7 +15,6 @@ import { humanizeAmount } from '../../utils/amount';
 import { INTERVAL, Interval } from '../../api/time';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
-import { BaseElement } from '../base/BaseElement';
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {

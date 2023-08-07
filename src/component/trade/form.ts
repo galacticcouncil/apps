@@ -7,18 +7,18 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import * as i18n from 'i18next';
 
+import { BaseElement } from '../base/BaseElement';
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { PaymentFee } from '../../api/payment';
 import { TradeTwap, TradeTwapError } from '../../api/trade';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import { PoolAsset, TradeType, bnum, calculateDiffToRef } from '@galacticcouncil/sdk';
 
-import { BaseElement } from '../base/BaseElement';
+import { TransactionFee } from './types';
 
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
@@ -49,7 +49,7 @@ export class TradeForm extends BaseElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ attribute: false }) tradeFeeRange = null;
-  @property({ attribute: false }) transactionFee: PaymentFee = null;
+  @property({ attribute: false }) transactionFee: TransactionFee = null;
   @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
 

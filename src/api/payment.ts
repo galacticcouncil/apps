@@ -1,11 +1,11 @@
 import type { Balance, RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import { ApiPromise } from '@polkadot/api';
-import { SYSTEM_ASSET_ID, SYSTEM_ASSET_DECIMALS, Transaction, bnum, TradeRouter } from '@galacticcouncil/sdk';
+import { bnum, SYSTEM_ASSET_DECIMALS, SYSTEM_ASSET_ID, TradeRouter, Transaction } from '@galacticcouncil/sdk';
 
 import { Account } from '../db';
 import { formatAmount, multipleAmounts } from '../utils/amount';
 
-export type PaymentFee = { amount: string; amountNative: string; asset: string; ed: string };
+export type PaymentFee = { amount: string; ed: string };
 
 export class PaymentApi {
   private _api: ApiPromise;
@@ -26,12 +26,7 @@ export class PaymentApi {
     return await transactionExtrinsic.paymentInfo(account.address);
   }
 
-  async getPaymentFee(
-    feeAssetId: string,
-    feeAssetSymbol: string,
-    feeAssetNativeBalance: Balance,
-    feeAssetEd: string
-  ): Promise<PaymentFee> {
+  async getPaymentFee(feeAssetId: string, feeAssetNativeBalance: Balance, feeAssetEd: string): Promise<PaymentFee> {
     const feeAssetEdBN = bnum(feeAssetEd.toString());
     const feeNativeBN = bnum(feeAssetNativeBalance.toString());
     const feeHuman = formatAmount(feeNativeBN, SYSTEM_ASSET_DECIMALS);
@@ -40,8 +35,6 @@ export class PaymentApi {
       const ed = formatAmount(feeAssetEdBN, SYSTEM_ASSET_DECIMALS);
       return {
         amount: feeHuman,
-        amountNative: feeAssetNativeBalance.toString(),
-        asset: feeAssetSymbol,
         ed: ed,
       } as PaymentFee;
     }
@@ -51,8 +44,6 @@ export class PaymentApi {
     const ed = formatAmount(feeAssetEdBN, feeAssetPrice.decimals);
     return {
       amount: fee.toString(),
-      amountNative: feeAssetNativeBalance.toString(),
-      asset: feeAssetSymbol,
       ed: ed,
     } as PaymentFee;
   }

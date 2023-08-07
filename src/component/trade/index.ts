@@ -11,7 +11,6 @@ import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, tradeSettingsCursor } from '../../db';
-import { PaymentFee } from '../../api/payment';
 import { TradeInfo, TradeTwap, TWAP_BLOCK_PERIOD, TWAP_RETRIES, TradeApi } from '../../api/trade';
 import { formatAmount, humanizeAmount, MIN_NATIVE_AMOUNT, toBn } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
@@ -39,7 +38,7 @@ import './settings';
 import '../chart';
 import '../selector/asset';
 
-import { TradeTab, TradeState, DEFAULT_TRADE_STATE, TradeTwapState, DEFAULT_TWAP_STATE } from './types';
+import { TradeTab, TradeState, DEFAULT_TRADE_STATE, TradeTwapState, DEFAULT_TWAP_STATE, TransactionFee } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
 
@@ -596,10 +595,16 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  async calculatePaymentFee(feeAssetId: string, feeAssetNativeBalance: Balance): Promise<PaymentFee> {
+  async calculateTransactionFee(feeAssetId: string, feeAssetNativeBalance: Balance): Promise<TransactionFee> {
     const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
     const feeAssetEd = this.assets.details.get(feeAssetId).existentialDeposit;
-    return this.paymentApi.getPaymentFee(feeAssetId, feeAssetSymbol, feeAssetNativeBalance, feeAssetEd);
+    const { amount, ed } = await this.paymentApi.getPaymentFee(feeAssetId, feeAssetNativeBalance, feeAssetEd);
+    return {
+      asset: feeAssetSymbol,
+      amount: amount,
+      amountNative: feeAssetNativeBalance.toString(),
+      ed: ed,
+    } as TransactionFee;
   }
 
   async syncTransactionFee() {
@@ -607,7 +612,7 @@ export class TradeApp extends PoolApp {
     if (account) {
       const { partialFee } = await this.paymentApi.getPaymentInfo(this.tx, account);
       const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
-      this.trade.transactionFee = await this.calculatePaymentFee(feeAssetId, partialFee);
+      this.trade.transactionFee = await this.calculateTransactionFee(feeAssetId, partialFee);
       this.requestUpdate();
     }
   }
@@ -623,7 +628,7 @@ export class TradeApp extends PoolApp {
 
     const { transaction } = await this.safeSell(this.trade.assetIn, this.trade.assetOut, ONE.toFixed());
     const { partialFee } = await this.paymentApi.getPaymentInfo(transaction, account);
-    const txFee = await this.calculatePaymentFee(feeAssetId, partialFee);
+    const txFee = await this.calculateTransactionFee(feeAssetId, partialFee);
 
     const eb = calculateEffectiveBalance(
       this.trade.balanceIn,
@@ -646,7 +651,7 @@ export class TradeApp extends PoolApp {
 
     const { transaction } = await this.safeBuy(this.trade.assetIn, this.trade.assetOut, ONE.toFixed());
     const { partialFee } = await this.paymentApi.getPaymentInfo(transaction, account);
-    const txFee = await this.calculatePaymentFee(feeAssetId, partialFee);
+    const txFee = await this.calculateTransactionFee(feeAssetId, partialFee);
 
     const eb = calculateEffectiveBalance(
       this.trade.balanceOut,
