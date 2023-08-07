@@ -8,10 +8,10 @@ import short from 'short-uuid';
 import '@galacticcouncil/ui';
 
 import { chainCursor } from '../../db';
-import { signAndSend, signAndSendOb } from '../../api/transaction';
 import { txRecord } from '../../utils/event';
 
 import { TxInfo, TxNotification } from './types';
+import { signAndSend, signAndSendOb } from './utils';
 import { Notification, NotificationType } from '../notification/types';
 
 @customElement('gc-transaction-center')

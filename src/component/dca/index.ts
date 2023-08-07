@@ -11,7 +11,7 @@ import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, dcaSettingsCursor } from '../../db';
-import { INTERVAL_MS, toBlockPeriod } from '../../api/time';
+import { INTERVAL_MS } from '../../api/time';
 import { formatAmount, humanizeAmount, toBn, MIN_NATIVE_AMOUNT } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
@@ -346,7 +346,7 @@ export class DcaApp extends PoolApp {
       const amountInBudgetBn = toBn(amountInBudget, assetInMeta.decimals);
 
       const periodMsec = INTERVAL_MS[interval];
-      const periodBlock = await toBlockPeriod(this.blockTime, periodMsec);
+      const periodBlock = this.timeApi.toBlockPeriod(this.blockTime, periodMsec);
       const slippage = dcaSettingsCursor.deref().slippage;
       const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
         {

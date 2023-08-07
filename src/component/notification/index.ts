@@ -1,29 +1,20 @@
-import { LitElement, html, css, TemplateResult } from 'lit';
+import { html, css, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { HumanizeDurationLanguage, HumanizeDuration } from 'humanize-duration-ts';
 
 import * as i18n from 'i18next';
+import '@galacticcouncil/ui';
 
 import { baseStyles } from '../styles/base.css';
-
-import '@galacticcouncil/ui';
+import { BaseElement } from '../base/BaseElement';
 
 import { Notification, NotificationType } from './types';
 
 @customElement('gc-notification-center')
-export class NotificationCenter extends LitElement {
+export class NotificationCenter extends BaseElement {
   @state() toasts: TemplateResult[] = [];
   @state() notifications: Map<string, Notification> = new Map([]);
 
   private _handleNotification = (e: CustomEvent<Notification>) => this.appendNewNotification(e.detail);
-  private _langService: HumanizeDurationLanguage = null;
-  private _humanizer: HumanizeDuration = null;
-
-  constructor() {
-    super();
-    this._langService = new HumanizeDurationLanguage();
-    this._humanizer = new HumanizeDuration(this._langService);
-  }
 
   static styles = [
     baseStyles,

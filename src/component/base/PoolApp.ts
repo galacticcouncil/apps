@@ -1,9 +1,11 @@
 import { property, state } from 'lit/decorators.js';
 
+import { AssetApi } from '../../api/asset';
+import { PaymentApi } from '../../api/payment';
+import { TimeApi } from '../../api/time';
 import { createApi } from '../../chain';
 import { Account, Chain, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { getAssetsBalance, getAssetsDetail, getAssetsPrice, getAssetsMeta, getAssetsPairs } from '../../api/asset';
 import { multipleAmounts } from '../../utils/amount';
 
 import {
@@ -19,7 +21,6 @@ import {
 } from '@galacticcouncil/sdk';
 
 import { BaseApp } from './BaseApp';
-import { getBlockTime } from '../../api/time';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
@@ -27,6 +28,10 @@ export abstract class PoolApp extends BaseApp {
 
   protected blockNumber: number = null;
   protected blockTime: number = null;
+
+  protected assetApi: AssetApi = null;
+  protected paymentApi: PaymentApi = null;
+  protected timeApi: TimeApi = null;
 
   @state() assets = {
     list: [] as PoolAsset[],
@@ -87,11 +92,14 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async init() {
-    const chain = this.chain.state;
-    const assets = await chain.router.getAllAssets();
-    const assetsPairs = await getAssetsPairs(assets);
-    const assetsDetails = await getAssetsDetail(assets);
-    const assetsMeta = await getAssetsMeta(assets);
+    const { router, api } = this.chain.state;
+    this.assetApi = new AssetApi(api, router);
+    this.paymentApi = new PaymentApi(api);
+    this.timeApi = new TimeApi(api);
+    const assets = await router.getAllAssets();
+    const assetsPairs = await this.assetApi.getPairs(assets);
+    const assetsDetails = await this.assetApi.getDetails(assets);
+    const assetsMeta = await this.assetApi.getMetadata(assets);
     this.assets = {
       ...this.assets,
       list: assets,
@@ -100,7 +108,7 @@ export abstract class PoolApp extends BaseApp {
       details: assetsDetails,
       meta: assetsMeta,
     };
-    getBlockTime().then((time: number) => {
+    this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });
   }
@@ -126,17 +134,17 @@ export abstract class PoolApp extends BaseApp {
   }
 
   protected async syncDolarPrice() {
-    this.assets.usdPrice = await getAssetsPrice(this.assets.list, this.stableCoinAssetId);
+    this.assets.usdPrice = await this.assetApi.getPrice(this.assets.list, this.stableCoinAssetId);
   }
 
   protected async syncNativePrice() {
-    this.assets.nativePrice = await getAssetsPrice(this.assets.list, SYSTEM_ASSET_ID);
+    this.assets.nativePrice = await this.assetApi.getPrice(this.assets.list, SYSTEM_ASSET_ID);
   }
 
   protected async syncPoolBalances() {
     const account = this.account.state;
     if (account) {
-      this.assets.balance = await getAssetsBalance(account.address, this.assets.list);
+      this.assets.balance = await this.assetApi.getBalance(account.address, this.assets.list);
     }
   }
 

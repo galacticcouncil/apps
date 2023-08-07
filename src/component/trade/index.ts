@@ -11,11 +11,10 @@ import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, tradeSettingsCursor } from '../../db';
-import { calculateEffectiveBalance } from '../../api/balance';
-import { getFeePaymentAsset, getPaymentInfo } from '../../api/transaction';
 import { TradeInfo, TradeTwap, TWAP_BLOCK_PERIOD, TWAP_RETRIES, TradeApi } from '../../api/trade';
 import { formatAmount, humanizeAmount, MIN_NATIVE_AMOUNT, multipleAmounts, toBn } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
+import { calculateEffectiveBalance } from '../../utils/balance';
 import { updateQueryParams } from '../../utils/url';
 import { getRenderString } from '../../utils/dom';
 
@@ -624,8 +623,8 @@ export class TradeApp extends PoolApp {
   async syncTransactionFee() {
     const account = this.account.state;
     if (account) {
-      const { partialFee } = await getPaymentInfo(this.tx, account);
-      const feeAssetId = await getFeePaymentAsset(account);
+      const { partialFee } = await this.paymentApi.getPaymentInfo(this.tx, account);
+      const feeAssetId = await this.paymentApi.getFeePaymentAsset(account);
       this.trade.transactionFee = await this.calculateTransactionFee(partialFee, feeAssetId);
       this.requestUpdate();
     }
@@ -633,7 +632,7 @@ export class TradeApp extends PoolApp {
 
   async updateMaxAmountIn(asset: PoolAsset) {
     const account = this.account.state;
-    const feeAssetId = await getFeePaymentAsset(account);
+    const feeAssetId = await this.paymentApi.getFeePaymentAsset(account);
 
     if (asset.id !== feeAssetId) {
       this.updateAmountIn(this.trade.balanceIn);
@@ -641,7 +640,7 @@ export class TradeApp extends PoolApp {
     }
 
     const { transaction } = await this.safeSell(this.trade.assetIn, this.trade.assetOut, ONE.toFixed());
-    const { partialFee } = await getPaymentInfo(transaction, account);
+    const { partialFee } = await this.paymentApi.getPaymentInfo(transaction, account);
     const txFee = await this.calculateTransactionFee(partialFee, feeAssetId);
 
     const eb = calculateEffectiveBalance(
@@ -656,7 +655,7 @@ export class TradeApp extends PoolApp {
 
   async updateMaxAmountOut(asset: PoolAsset) {
     const account = this.account.state;
-    const feeAssetId = await getFeePaymentAsset(account);
+    const feeAssetId = await this.paymentApi.getFeePaymentAsset(account);
 
     if (asset.id !== feeAssetId) {
       this.updateAmountOut(this.trade.balanceOut);
@@ -664,7 +663,7 @@ export class TradeApp extends PoolApp {
     }
 
     const { transaction } = await this.safeBuy(this.trade.assetIn, this.trade.assetOut, ONE.toFixed());
-    const { partialFee } = await getPaymentInfo(transaction, account);
+    const { partialFee } = await this.paymentApi.getPaymentInfo(transaction, account);
     const txFee = await this.calculateTransactionFee(partialFee, feeAssetId);
 
     const eb = calculateEffectiveBalance(

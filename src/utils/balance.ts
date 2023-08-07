@@ -1,6 +1,5 @@
-import { Amount, BigNumber, ZERO } from '@galacticcouncil/sdk';
+import { BigNumber } from '@galacticcouncil/sdk';
 
-export const EMPTY_AMOUNT = { amount: ZERO, decimals: 0 } as Amount;
 const ED_FACTOR = 0.5; // ED Factor 50%
 
 export function calculateEffectiveBalance(

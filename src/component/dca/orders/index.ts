@@ -3,9 +3,10 @@ import { customElement, state } from 'lit/decorators.js';
 
 import { BaseApp } from '../../base/BaseApp';
 
+import { AssetApi } from '../../../api/asset';
+import { TimeApi } from '../../../api/time';
 import { Account, Chain, chainCursor } from '../../../db';
 import { DatabaseController } from '../../../db.ctrl';
-import { getBlockTime, toTimestamp } from '../../../api/time';
 
 import '@galacticcouncil/ui';
 import { AssetMetadata, BigNumber, bnum } from '@galacticcouncil/sdk';
@@ -15,14 +16,16 @@ import './list';
 
 import { DcaOrder, DcaTransaction } from './types';
 import { DcaOrdersApi } from './api';
-import { getAssetsMeta } from '../../../api/asset';
 
 @customElement('gc-dca-orders')
 export class DcaOrders extends BaseApp {
   private chain = new DatabaseController<Chain>(this, chainCursor);
   private disconnectSubscribeNewHeads: () => void = null;
 
+  private assetApi: AssetApi = null;
   private ordersApi: DcaOrdersApi = null;
+  private timeApi: TimeApi = null;
+
   private blockNumber: number = null;
   private blockTime: number = null;
 
@@ -59,8 +62,8 @@ export class DcaOrders extends BaseApp {
   }
 
   private async getRemaining(scheduleId: number): Promise<BigNumber> {
-    const chain = this.chain.state;
-    const remainingAmount = await chain.api.query.dca.remainingAmounts(scheduleId);
+    const { api } = this.chain.state;
+    const remainingAmount = await api.query.dca.remainingAmounts(scheduleId);
     return bnum(remainingAmount.unwrapOr(0).toString());
   }
 
@@ -71,7 +74,7 @@ export class DcaOrders extends BaseApp {
         const remaining = await this.getRemaining(order.id);
         const received = await this.ordersApi.getReceived(order.id);
         const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
-        const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
+        const nextExecution = await this.timeApi.toTimestamp(this.blockTime, nextExecutionBlock);
         const orderStatus = order.status;
         const hasPendingTx = (): boolean => {
           return nextExecutionBlock <= this.blockNumber && !orderStatus;
@@ -122,7 +125,7 @@ export class DcaOrders extends BaseApp {
           const transactions = await this.getTransactions(order.id);
           const received = await this.ordersApi.getReceived(order.id);
           const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
-          const nextExecution = await toTimestamp(this.blockTime, nextExecutionBlock);
+          const nextExecution = await this.timeApi.toTimestamp(this.blockTime, nextExecutionBlock);
           const orderStatus = order.status;
           const hasPendingTx = (): boolean => {
             return nextExecutionBlock <= this.blockNumber && !orderStatus;
@@ -157,18 +160,20 @@ export class DcaOrders extends BaseApp {
   }
 
   private async init() {
-    const chain = this.chain.state;
-    const assets = await chain.router.getAllAssets();
-    this.meta = await getAssetsMeta(assets);
-    this.ordersApi = new DcaOrdersApi(chain.api, this.indexerUrl, this.grafanaUrl, this.grafanaDsn);
-    getBlockTime().then((time: number) => {
+    const { api, router } = this.chain.state;
+    this.assetApi = new AssetApi(api, router);
+    this.ordersApi = new DcaOrdersApi(api, this.indexerUrl, this.grafanaUrl, this.grafanaDsn);
+    this.timeApi = new TimeApi(api);
+    const assets = await router.getAllAssets();
+    this.meta = await this.assetApi.getMetadata(assets);
+    this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });
   }
 
   private async subscribe() {
-    const chain = this.chain.state;
-    this.disconnectSubscribeNewHeads = await chain.api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
+    const { api } = this.chain.state;
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       const blockNumber = lastHeader.number.toNumber();
       this.blockNumber = blockNumber;
       this.syncOrders();

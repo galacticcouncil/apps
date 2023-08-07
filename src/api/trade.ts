@@ -12,9 +12,10 @@ import {
 import type { PalletDcaOrder } from '@polkadot/types/lookup';
 
 import { TradeConfig, tradeSettingsCursor } from '../db';
-import { getTradeMaxAmountIn, getTradeMinAmountOut } from './slippage';
-import { HOUR_MS } from './time';
 import { formatAmount } from '../utils/amount';
+import { getTradeMaxAmountIn, getTradeMinAmountOut } from '../utils/slippage';
+
+import { HOUR_MS } from './time';
 
 export const TWAP_BLOCK_PERIOD = 5;
 export const TWAP_MAX_PRICE_IMPACT = -5;
