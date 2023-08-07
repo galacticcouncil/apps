@@ -94,7 +94,7 @@ export abstract class PoolApp extends BaseApp {
   private async init() {
     const { router, api } = this.chain.state;
     this.assetApi = new AssetApi(api, router);
-    this.paymentApi = new PaymentApi(api);
+    this.paymentApi = new PaymentApi(api, router);
     this.timeApi = new TimeApi(api);
     const assets = await router.getAllAssets();
     const assetsPairs = await this.assetApi.getPairs(assets);
