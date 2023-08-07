@@ -768,9 +768,9 @@ export class TradeApp extends PoolApp {
       const assetInMeta = this.assets.meta.get(assetIn.id);
       const totalBudget: BigNumber = toBn(twap.budget.toString(), assetInMeta.decimals);
 
-      const slippage = tradeSettingsCursor.deref().slippage;
-      const chain = this.chain.state;
-      const tx: SubmittableExtrinsic = chain.api.tx.dca.schedule(
+      const { slippage } = tradeSettingsCursor.deref();
+      const { api } = this.chain.state;
+      const tx: SubmittableExtrinsic = api.tx.dca.schedule(
         {
           owner: account.address,
           period: TWAP_BLOCK_PERIOD,
@@ -813,8 +813,8 @@ export class TradeApp extends PoolApp {
   }
 
   protected onInit(): void {
-    const chain = this.chain.state;
-    this.tradeApi = new TradeApi(chain.router);
+    const { router } = this.chain.state;
+    this.tradeApi = new TradeApi(router);
     this.initAssets();
     this.recalculateSpotPrice();
     this.validatePool();
@@ -923,7 +923,7 @@ export class TradeApp extends PoolApp {
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
         .inProgress=${this.trade.inProgress}
-        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || !this.tx || !this.account.state}
+        .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || !this.hasAccount() || !this.tx}
         .switchAllowed=${this.isSwitchEnabled()}
         .tradeType=${this.trade.type}
         .twap=${this.tradeTwap.twap}

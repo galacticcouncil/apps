@@ -89,33 +89,6 @@ export class TradeApi {
     return calculateDiffToRef(swapAmountBN, calculatedOutBN);
   }
 
-  private getOptimizedTradesNo(priceDifference: number, blockTime: number): number {
-    const noOfTrades = Math.round(priceDifference * 10) || 1;
-    const executionTime = noOfTrades * TWAP_BLOCK_PERIOD * blockTime;
-
-    if (executionTime > TWAP_MAX_DURATION) {
-      const maxNoOfTrades = TWAP_MAX_DURATION / (blockTime * TWAP_BLOCK_PERIOD);
-      return Math.round(maxNoOfTrades);
-    }
-    return noOfTrades;
-  }
-
-  private getTwapTxFee(tradesNo: number, txFee: number): number {
-    const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
-    const twapTxFeeWithRetries = twapTxFee * (TWAP_RETRIES + 1);
-    return twapTxFeeWithRetries * tradesNo;
-  }
-
-  private getTwapExecutionTime(tradesNo: number, blockTime: number): number {
-    return tradesNo * TWAP_BLOCK_PERIOD * blockTime;
-  }
-
-  private hasSwapErrors(trade: Trade) {
-    const swaps = trade.swaps;
-    const swapWithError: any = swaps.find((swap: any) => swap.errors.length > 0);
-    return !!swapWithError;
-  }
-
   async getSellTwap(
     assetIn: PoolAsset,
     assetOut: PoolAsset,
@@ -216,5 +189,26 @@ export class TradeApi {
         },
       } as unknown as PalletDcaOrder,
     } as TradeTwap;
+  }
+
+  private getOptimizedTradesNo(priceDifference: number, blockTime: number): number {
+    const noOfTrades = Math.round(priceDifference * 10) || 1;
+    const executionTime = noOfTrades * TWAP_BLOCK_PERIOD * blockTime;
+
+    if (executionTime > TWAP_MAX_DURATION) {
+      const maxNoOfTrades = TWAP_MAX_DURATION / (blockTime * TWAP_BLOCK_PERIOD);
+      return Math.round(maxNoOfTrades);
+    }
+    return noOfTrades;
+  }
+
+  private getTwapTxFee(tradesNo: number, txFee: number): number {
+    const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
+    const twapTxFeeWithRetries = twapTxFee * (TWAP_RETRIES + 1);
+    return twapTxFeeWithRetries * tradesNo;
+  }
+
+  private getTwapExecutionTime(tradesNo: number, blockTime: number): number {
+    return tradesNo * TWAP_BLOCK_PERIOD * blockTime;
   }
 }
