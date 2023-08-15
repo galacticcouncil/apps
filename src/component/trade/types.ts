@@ -35,6 +35,7 @@ export type TradeState = {
   amountOutUsd: string;
   spotPrice: string;
   afterSlippage: string;
+  afterSlippageUsd: string;
   priceImpactPct: string;
   tradeFee: string;
   tradeFeePct: string;
@@ -57,6 +58,7 @@ export const DEFAULT_TRADE_STATE: TradeState = {
   amountOutUsd: null,
   spotPrice: null,
   afterSlippage: '0',
+  afterSlippageUsd: '0',
   priceImpactPct: '0',
   tradeFee: null,
   tradeFeePct: '0',
@@ -74,6 +76,6 @@ export type TradeTwapState = {
 
 export const DEFAULT_TWAP_STATE: TradeTwapState = {
   inProgress: false,
-  active: false,
+  active: true,
   twap: null,
 };

@@ -12,7 +12,7 @@ import {
 import type { PalletDcaOrder } from '@polkadot/types/lookup';
 
 import { TradeConfig, tradeSettingsCursor } from '../db';
-import { formatAmount } from '../utils/amount';
+import { formatAmount, multipleAmounts } from '../utils/amount';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from '../utils/slippage';
 
 import { HOUR_MS } from './time';
@@ -35,8 +35,13 @@ export type TradeTwap = {
   tradeReps: number;
   tradeTime: number;
   tradeError: TradeTwapError;
-  budget: number;
-  orderSlippage: Amount;
+  budget: number,
+  amountIn: number;
+  amountInUsd: string;
+  amountOut: number;
+  amountOutUsd: string;
+  orderSlippage: number;
+  orderSlippageUsd: string;
   order: PalletDcaOrder;
 };
 
@@ -104,11 +109,15 @@ export class TradeApi {
     const twapTxFees = this.getTwapTxFee(tradesNo, txFee);
     const amountInPerTrade = (amountIn - twapTxFees) / tradesNo;
     const bestSell = await this._router.getBestSell(assetIn.id, assetOut.id, amountInPerTrade.toString());
+    const bestSellHuman = bestSell.toHuman();
     const bestSellRoute = bestSell.swaps.map(({ assetIn, assetOut }: Hop) => {
       return { pool: 'Omnipool', assetIn, assetOut };
     });
 
+    const amountOutTotal = Number(bestSellHuman.amountOut) * tradesNo;
+
     const minAmountOut = getTradeMinAmountOut(bestSell, this._config.slippage);
+    const minAmountOutTotal = multipleAmounts(tradesNo.toString(), minAmountOut);
 
     const isSingleTrade = tradesNo == 1;
     const isLessThanMinimalAmount = amountInPerTrade < amountMin;
@@ -127,7 +136,9 @@ export class TradeApi {
       tradeTime: tradeTime,
       tradeError: tradeError,
       budget: amountIn,
-      orderSlippage: minAmountOut,
+      amountIn: amountIn,
+      amountOut: amountOutTotal,
+      orderSlippage: minAmountOutTotal,
       order: {
         Sell: {
           assetIn: assetIn.id,
@@ -154,16 +165,18 @@ export class TradeApi {
     const twapTxFees = this.getTwapTxFee(tradesNo, txFee);
     const amountOutPerTrade = amountOut / tradesNo;
     const bestBuy = await this._router.getBestBuy(assetIn.id, assetOut.id, amountOutPerTrade.toString());
+    const bestBuyHuman = bestBuy.toHuman();
     const bestBuyRoute = bestBuy.swaps.map(({ assetIn, assetOut }: Hop) => {
       return { pool: 'Omnipool', assetIn, assetOut };
     });
 
+    const amountInTotal = Number(bestBuyHuman.amountIn) * tradesNo + twapTxFees;
+
     const maxAmountIn = getTradeMaxAmountIn(bestBuy, this._config.slippage);
-    const maxAmountInStr = formatAmount(maxAmountIn.amount, maxAmountIn.decimals);
-    const maxBudget = Number(maxAmountInStr) * tradesNo + twapTxFees;
+    const maxAmountInTotal = multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
 
     const isSingleTrade = tradesNo == 1;
-    const isLessThanMinimalAmount = Number(maxAmountInStr) < amountMin;
+    const isLessThanMinimalAmount = maxAmountInTotal < amountMin;
     const isOrderTooBig = priceDifference == 100;
 
     let tradeError: TradeTwapError = null;
@@ -178,8 +191,10 @@ export class TradeApi {
       tradeReps: tradesNo,
       tradeTime: tradeTime,
       tradeError: tradeError,
-      budget: maxBudget,
-      orderSlippage: maxAmountIn,
+      budget: maxAmountInTotal,
+      amountIn: amountInTotal,
+      amountOut: amountOut,
+      orderSlippage: maxAmountInTotal,
       order: {
         Buy: {
           assetIn: assetIn.id,

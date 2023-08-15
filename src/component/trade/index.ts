@@ -141,8 +141,7 @@ export class TradeApp extends PoolApp {
 
   private async calculateSellTwap() {
     const { transactionFee, assetIn, assetOut, amountIn, spotPrice, swaps } = this.trade;
-    const { active } = this.tradeTwap;
-    if (this.twap && active) {
+    if (this.twap && transactionFee) {
       const txFee = this.calculateAssetPrice(assetIn, transactionFee.amountNative);
       const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
       const priceDifference = this.tradeApi.getSellPriceDifference(Number(amountIn), Number(spotPrice), swaps);
@@ -155,10 +154,13 @@ export class TradeApp extends PoolApp {
         priceDifference.toNumber(),
         this.blockTime
       );
+      const amountInUsd = this.calculateDollarPrice(assetIn, twap.amountIn.toString());
+      const amountOutUsd = this.calculateDollarPrice(assetOut, twap.amountOut.toString());
+      const orderSlippageUsd = this.calculateDollarPrice(assetOut, twap.orderSlippage.toString());
       this.tradeTwap = {
         ...this.tradeTwap,
         inProgress: false,
-        twap: twap,
+        twap: { ...twap, amountInUsd, amountOutUsd, orderSlippageUsd },
       };
     }
   }
@@ -168,6 +170,7 @@ export class TradeApp extends PoolApp {
     const tradeHuman = trade.toHuman();
     const amountInUsd = this.calculateDollarPrice(assetIn, tradeHuman.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, tradeHuman.amountOut);
+    const slippageUsd = this.calculateDollarPrice(assetOut, slippage);
 
     // Disable overriding of active asset amount (assetIn) if typing
     const tradeState = Object.assign({}, tradeHuman);
@@ -181,6 +184,7 @@ export class TradeApp extends PoolApp {
       assetOut: assetOut,
       amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
+      afterSlippageUsd: slippageUsd,
       ...tradeState,
     };
 
@@ -203,8 +207,7 @@ export class TradeApp extends PoolApp {
 
   private async calculateBuyTwap() {
     const { transactionFee, assetIn, assetOut, amountOut, priceImpactPct } = this.trade;
-    const { active } = this.tradeTwap;
-    if (this.twap && active) {
+    if (this.twap && transactionFee) {
       const txFee = this.calculateAssetPrice(assetIn, transactionFee.amountNative);
       const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
       const priceImpact = Number(priceImpactPct);
@@ -218,10 +221,13 @@ export class TradeApp extends PoolApp {
         priceDifference,
         this.blockTime
       );
+      const amountInUsd = this.calculateDollarPrice(assetIn, twap.amountIn.toString());
+      const amountOutUsd = this.calculateDollarPrice(assetOut, twap.amountOut.toString());
+      const orderSlippageUsd = this.calculateDollarPrice(assetIn, twap.orderSlippage.toString());
       this.tradeTwap = {
         ...this.tradeTwap,
         inProgress: false,
-        twap: twap,
+        twap: { ...twap, amountInUsd, amountOutUsd, orderSlippageUsd },
       };
     }
   }
@@ -231,6 +237,7 @@ export class TradeApp extends PoolApp {
     const tradeHuman = trade.toHuman();
     const amountInUsd = this.calculateDollarPrice(assetIn, tradeHuman.amountIn);
     const amountOutUsd = this.calculateDollarPrice(assetOut, tradeHuman.amountOut);
+    const slippageUsd = this.calculateDollarPrice(assetIn, slippage);
 
     // Disable overriding of active asset amount (assetOut) if typing
     const tradeState = Object.assign({}, tradeHuman);
@@ -244,6 +251,7 @@ export class TradeApp extends PoolApp {
       assetOut: assetOut,
       amountOutUsd: humanizeAmount(amountOutUsd),
       afterSlippage: slippage,
+      afterSlippageUsd: slippageUsd,
       ...tradeState,
     };
     this.tx = transaction;
@@ -925,6 +933,7 @@ export class TradeApp extends PoolApp {
         .balanceOut=${this.trade.balanceOut}
         .spotPrice=${this.trade.spotPrice}
         .afterSlippage=${this.trade.afterSlippage}
+        .afterSlippageUsd=${this.trade.afterSlippageUsd}
         .priceImpactPct=${this.trade.priceImpactPct}
         .tradeFee=${this.trade.tradeFee}
         .tradeFeePct=${this.trade.tradeFeePct}
@@ -956,10 +965,6 @@ export class TradeApp extends PoolApp {
           });
         }}
         @swap-clicked=${() => this.swap()}
-        @twap-toggled=${({ detail: { active } }: CustomEvent) => {
-          this.tradeTwap.active = active;
-          this.trade.type == TradeType.Sell ? this.calculateSellTwap() : this.calculateBuyTwap();
-        }}
         @twap-clicked=${() => this.dca()}
       >
         <div class="header" slot="header">

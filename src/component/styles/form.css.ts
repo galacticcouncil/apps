@@ -1,6 +1,43 @@
 import { css } from 'lit';
 
 export const formStyles = css`
+  .form-option {
+    position: relative;
+    display: flex;
+    padding: 10px 14px 10px 16px;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--primary-dark-blue-alpha-401, rgba(28, 32, 56, 0.8));
+    border-radius: 4px;
+    background: #111320;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  .form-option.active {
+    border: 1px solid rgb(156, 221, 255);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .form-option:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .form-option > div.left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .form-option > div.right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
   .form-switch {
     display: flex;
     flex-direction: row;
@@ -15,6 +52,7 @@ export const formStyles = css`
     padding: 6px 0;
   }
 
+  .form-option > div span.title,
   .form-switch > div span.title {
     color: var(--uigc-app-font-color__primary);
     font-size: 14px;
@@ -24,6 +62,13 @@ export const formStyles = css`
 
   .form-switch > div span.desc {
     color: var(--basic-500, #878c9e);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 130%;
+  }
+
+  .form-option > div span.desc {
+    color: #ecedef;
     font-size: 12px;
     font-weight: 400;
     line-height: 130%;
