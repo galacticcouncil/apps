@@ -70,6 +70,12 @@ export class TradeApp extends PoolApp {
         max-width: 480px;
       }
 
+      @media (min-width: 1024px) {
+        .orders {
+          min-height: 300px;
+        }
+      }
+
       .orders .title {
         color: var(--uigc-app-font-color__primary);
         font-family: var(--uigc-app-font-secondary);
