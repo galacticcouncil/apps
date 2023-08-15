@@ -264,7 +264,7 @@ export class TradeForm extends BaseElement {
 
       .form-option .price {
         color: #fff;
-        font-family: 'Chakra Petch';
+        font-family: 'ChakraPetch';
         font-size: 16px;
         font-style: normal;
         font-weight: 600;
