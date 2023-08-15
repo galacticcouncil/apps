@@ -233,6 +233,12 @@ export class TradeForm extends BaseElement {
         overflow: hidden;
       }
 
+      @media (max-width: 480px) {
+        .options {
+          padding: 0px 14px;
+        }
+      }
+
       .options.show {
         height: 155px;
       }
@@ -325,10 +331,6 @@ export class TradeForm extends BaseElement {
   private disableTwap() {
     this.twapEnabled = false;
     this.requestUpdate();
-  }
-
-  private isEmptyAmount(amount: string): boolean {
-    return amount == '' || amount == '0';
   }
 
   private calculateTwapPctDiff(twapPrice: number) {
@@ -531,7 +533,7 @@ export class TradeForm extends BaseElement {
       positive: twapDiff > 0,
       negative: twapDiff < 0,
     };
-    return html` <span class=${classMap(twapClasses)}>(${twapSymbol}${twapDiffAbs})</span> `;
+    return html` <span class=${classMap(twapClasses)}>(${twapSymbol}${humanizeAmount(twapDiffAbs.toString())})</span> `;
   }
 
   infoTwapSlippagePctTemplate() {
@@ -568,10 +570,8 @@ export class TradeForm extends BaseElement {
       .asset=${this.assetIn?.symbol}
       .amount=${amountIn}
       .amountUsd=${amountInUsd}
-      @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
-        if (this.isEmptyAmount(value)) {
-          this.twapEnabled = false;
-        }
+      @asset-input-changed=${() => {
+        this.twapEnabled = false;
       }}
     >
       <uigc-asset-balance
@@ -579,6 +579,9 @@ export class TradeForm extends BaseElement {
         .balance=${this.balanceIn}
         .formatter=${humanizeAmount}
         .onMaxClick=${this.maxClickHandler('assetIn', this.assetIn)}
+        @asset-max-clicked=${() => {
+          this.twapEnabled = false;
+        }}
       ></uigc-asset-balance>
     </uigc-asset-transfer>`;
   }
@@ -598,10 +601,8 @@ export class TradeForm extends BaseElement {
       .asset=${this.assetOut?.symbol}
       .amount=${amountOut}
       .amountUsd=${amountOutUsd}
-      @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
-        if (this.isEmptyAmount(value)) {
-          this.twapEnabled = false;
-        }
+      @asset-input-changed=${() => {
+        this.twapEnabled = false;
       }}
     >
       <uigc-asset-balance
@@ -609,6 +610,9 @@ export class TradeForm extends BaseElement {
         .balance=${this.balanceOut}
         .formatter=${humanizeAmount}
         .onMaxClick=${this.maxClickHandler('assetOut', this.assetOut)}
+        @asset-max-clicked=${() => {
+          this.twapEnabled = false;
+        }}
       ></uigc-asset-balance>
     </uigc-asset-transfer>`;
   }
@@ -621,7 +625,14 @@ export class TradeForm extends BaseElement {
     return html`
       <div class="switch">
         <div class="divider"></div>
-        <uigc-asset-switch class="switch-button" ?disabled=${!this.switchAllowed}> </uigc-asset-switch>
+        <uigc-asset-switch
+          class="switch-button"
+          ?disabled=${!this.switchAllowed}
+          @asset-switch-clicked=${() => {
+            this.twapEnabled = false;
+          }}
+        >
+        </uigc-asset-switch>
         <uigc-asset-price
           class=${classMap(spotPriceClasses)}
           .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol}
@@ -709,7 +720,7 @@ export class TradeForm extends BaseElement {
     };
     const swapClasses = {
       info: true,
-      show: this.swaps.length > 0 && !this.twapEnabled,
+      show: this.swaps.length > 0 && (!this.twapEnabled || !this.isTwapOk()),
     };
     const errorClasses = {
       error: true,
