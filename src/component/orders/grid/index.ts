@@ -1,6 +1,7 @@
 import { html, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { when } from 'lit/directives/when.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
 
@@ -79,7 +80,9 @@ export class DcaOrdersGrid extends DcaBaseDatagrid {
   render() {
     return html`
       <slot name="header"></slot>
+      <slot name="tabs"></slot>
       ${super.render()}
+      ${when(this.defaultData.length === 0, () => html` <slot name="empty"></slot> `)}
     `;
   }
 }

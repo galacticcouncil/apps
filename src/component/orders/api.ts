@@ -5,8 +5,8 @@ import { ApiPromise } from '@polkadot/api';
 import { BigNumber, ZERO, bnum } from '@galacticcouncil/sdk';
 
 import { buildReceivedAmountQuery, queryPlanned, queryScheduled, queryStatus, queryTrades } from './query';
-import { Account, chainCursor } from '../../../db';
-import { convertToHex } from '../../../utils/account';
+import { Account, chainCursor } from '../../db';
+import { convertToHex } from '../../utils/account';
 
 import { DcaOrder, DcaStatus, DcaTransaction } from './types';
 

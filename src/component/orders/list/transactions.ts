@@ -4,9 +4,9 @@ import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
 
 import { DcaOrder, DcaTransaction } from '../types';
-import { formatAmount, humanizeAmount } from '../../../../utils/amount';
+import { formatAmount, humanizeAmount } from '../../../utils/amount';
 
-import { BaseElement } from '../../../base/BaseElement';
+import { BaseElement } from '../../base/BaseElement';
 import { ZERO } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-list-tx')

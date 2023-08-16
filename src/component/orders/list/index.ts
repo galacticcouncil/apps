@@ -5,7 +5,7 @@ import { when } from 'lit/directives/when.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
 
-import { headerStyles } from '../../../styles/header.css';
+import { headerStyles } from '../../styles/header.css';
 
 import { DcaBaseDatagrid } from '../datagrid';
 import { DcaOrder } from '../types';
@@ -160,6 +160,7 @@ export class DcaOrdersList extends DcaBaseDatagrid {
   render() {
     return html`
       <slot name="header"></slot>
+      <slot name="tabs"></slot>
       ${super.render()} ${when(this.active, () => html` <div class="modal">${this.modalRowTemplate()}</div>`)}
     `;
   }

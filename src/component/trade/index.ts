@@ -70,19 +70,6 @@ export class TradeApp extends PoolApp {
         max-width: 480px;
       }
 
-      @media (min-width: 1024px) {
-        .orders {
-          min-height: 300px;
-        }
-      }
-
-      .orders .title {
-        color: var(--uigc-app-font-color__primary);
-        font-family: var(--uigc-app-font-secondary);
-        font-weight: var(--uigc-typography__title-font-weight);
-        padding: 0 5px;
-      }
-
       .orders uigc-typography {
         font-size: 15px;
       }
@@ -1024,19 +1011,20 @@ export class TradeApp extends PoolApp {
   tradeOrdersSummary() {
     const account = this.account.state;
     if (this.twap) {
-      return html` <gc-dca-orders
-        class="orders"
-        .meta=${this.assets.meta}
-        .indexerUrl=${this.indexerUrl}
-        .grafanaUrl=${this.grafanaUrl}
-        .grafanaDsn=${this.grafanaDsn}
-        .accountAddress=${account?.address}
-        .accountProvider=${account?.provider}
-        .accountName=${account?.name}
-      >
-        <uigc-typography slot="header" class="title">DCA</uigc-typography>
-        <uigc-typography slot="header" variant="title">Orders</uigc-typography>
-      </gc-dca-orders>`;
+      return html`
+        <gc-trade-orders
+          class="orders"
+          .meta=${this.assets.meta}
+          .indexerUrl=${this.indexerUrl}
+          .grafanaUrl=${this.grafanaUrl}
+          .grafanaDsn=${this.grafanaDsn}
+          .accountAddress=${account?.address}
+          .accountProvider=${account?.provider}
+          .accountName=${account?.name}
+        >
+          <uigc-typography slot="header" variant="title">Active Positions</uigc-typography>
+        </gc-trade-orders>
+      `;
     }
   }
 

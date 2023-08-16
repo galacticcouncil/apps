@@ -4,17 +4,17 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { positionsStyles } from './datagrid.css';
 
-import { Datagrid } from '../../datagrid';
-import { Account, Chain, accountCursor, chainCursor } from '../../../db';
-import { DatabaseController } from '../../../db.ctrl';
-import { formatAmount, humanizeAmount } from '../../../utils/amount';
-import { getRenderString } from '../../../utils/dom';
+import { Datagrid } from '../datagrid';
+import { Account, Chain, accountCursor, chainCursor } from '../../db';
+import { DatabaseController } from '../../db.ctrl';
+import { formatAmount, humanizeAmount } from '../../utils/amount';
+import { getRenderString } from '../../utils/dom';
 
 import { Transaction } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { DcaOrder } from './types';
-import { TxInfo, TxNotificationMssg } from '../../transaction/types';
+import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
@@ -142,7 +142,7 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   protected getAmount(order: DcaOrder) {
     const assetInMeta = order.assetInMeta;
     const amount = formatAmount(order.amount, assetInMeta.decimals);
-    return [amount, assetInMeta.symbol].join(' ');
+    return [humanizeAmount(amount), assetInMeta.symbol].join(' ');
   }
 
   protected getNextExecution(order: DcaOrder) {

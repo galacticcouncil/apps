@@ -100,6 +100,10 @@ export const tradeLayoutStyles = css`
       height: 456px !important;
     }
 
+    :host([chart]) uigc-paper.chart:before {
+      content: unset;
+    }
+
     :host([chart]) uigc-paper.chart .header {
       display: none;
     }

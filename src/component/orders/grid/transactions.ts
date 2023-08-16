@@ -3,8 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
 
-import { Datagrid } from '../../../datagrid';
-import { formatAmount, humanizeAmount } from '../../../../utils/amount';
+import { Datagrid } from '../../datagrid';
+import { formatAmount, humanizeAmount } from '../../../utils/amount';
 
 import { DcaOrder, DcaTransaction } from '../types';
 import { ZERO } from '@galacticcouncil/sdk';

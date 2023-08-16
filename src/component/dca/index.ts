@@ -21,7 +21,7 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
 import './settings';
-import './orders';
+import '../orders';
 import '../chart';
 import '../selector/asset';
 
@@ -48,19 +48,6 @@ export class DcaApp extends PoolApp {
     css`
       :host {
         max-width: 480px;
-      }
-
-      @media (min-width: 1024px) {
-        .orders {
-          min-height: 300px;
-        }
-      }
-
-      .orders .title {
-        color: var(--uigc-app-font-color__primary);
-        font-family: var(--uigc-app-font-secondary);
-        font-weight: var(--uigc-typography__title-font-weight);
-        padding: 0 5px;
       }
 
       .orders uigc-typography {
@@ -558,7 +545,7 @@ export class DcaApp extends PoolApp {
 
   dcaOrdersSummary() {
     const account = this.account.state;
-    return html` <gc-dca-orders
+    return html` <gc-trade-orders
       class="orders"
       .meta=${this.assets.meta}
       .indexerUrl=${this.indexerUrl}
@@ -568,9 +555,8 @@ export class DcaApp extends PoolApp {
       .accountProvider=${account?.provider}
       .accountName=${account?.name}
     >
-      <uigc-typography slot="header" class="title">DCA</uigc-typography>
-      <uigc-typography slot="header" variant="title">Orders</uigc-typography>
-    </gc-dca-orders>`;
+      <uigc-typography slot="header" variant="title">Active Positions</uigc-typography>
+    </gc-trade-orders>`;
   }
 
   tradeChartTab() {
