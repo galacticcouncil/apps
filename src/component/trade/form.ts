@@ -231,6 +231,7 @@ export class TradeForm extends BaseElement {
         transition: all 0.2s ease-in-out 0s;
         height: 0;
         overflow: hidden;
+        gap: 0;
       }
 
       @media (max-width: 480px) {
@@ -240,10 +241,22 @@ export class TradeForm extends BaseElement {
       }
 
       .options.show {
-        height: 155px;
+        height: 190px;
       }
 
-      .options > div:first-child {
+      .options > .label {
+        color: #999ba7;
+        font-family: 'ChakraPetch';
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .options > div {
         margin-top: 14px;
       }
 
@@ -260,6 +273,50 @@ export class TradeForm extends BaseElement {
       .info .negative,
       .options .negative {
         color: #ff6868;
+      }
+
+      .tooltip {
+        position: relative;
+      }
+
+      .tooltip uigc-icon-info {
+        margin-left: 5px;
+      }
+
+      .tooltip > .text {
+        visibility: hidden;
+        text-align: center;
+        position: absolute;
+        width: 250px;
+        z-index: 1;
+        top: 150%;
+        left: 50%;
+        margin-left: -10px;
+        padding: 11px 16px;
+        border-radius: 4px;
+        background: #333750;
+
+        color: #fff;
+        font-family: 'ChakraPetch';
+        font-size: 11px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 140%;
+      }
+
+      .tooltip > .text::after {
+        content: ' ';
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        margin-left: 8px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent #333750 transparent;
+      }
+
+      .tooltip:hover > .text {
+        visibility: visible;
       }
 
       .form-option .price {
@@ -730,6 +787,13 @@ export class TradeForm extends BaseElement {
       <slot name="header"></slot>
       <div class="transfer">${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()}</div>
       <div class=${classMap(optionsClasses)}>
+        <div class="label">
+          <span>Split trade available</span>
+          <span class="tooltip">
+            <uigc-icon-info> </uigc-icon-info>
+            <span class="text">${i18n.t('twap.desc')}</span>
+          </span>
+        </div>
         ${this.formTradeOption(assetSymbol)} ${this.formTwapOption(assetSymbol)}
       </div>
       <div class=${classMap(twapClasses)}>
