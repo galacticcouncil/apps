@@ -11,7 +11,7 @@ import {
 } from '@galacticcouncil/sdk';
 import type { PalletDcaOrder } from '@polkadot/types/lookup';
 
-import { TradeConfig, tradeSettingsCursor } from '../db';
+import { tradeSettingsCursor } from '../db';
 import { formatAmount, multipleAmounts } from '../utils/amount';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from '../utils/slippage';
 
@@ -35,7 +35,7 @@ export type TradeTwap = {
   tradeReps: number;
   tradeTime: number;
   tradeError: TradeTwapError;
-  budget: number,
+  budget: number;
   amountIn: number;
   amountInUsd: string;
   amountOut: number;
@@ -53,16 +53,14 @@ export enum TradeTwapError {
 
 export class TradeApi {
   private _router: TradeRouter;
-  private _config: TradeConfig;
 
   public constructor(router: TradeRouter) {
     this._router = router;
-    this._config = tradeSettingsCursor.deref();
   }
 
   async getSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string): Promise<TradeInfo> {
     const bestSell = await this._router.getBestSell(assetIn.id, assetOut.id, amountIn);
-    const minAmountOut = getTradeMinAmountOut(bestSell, this._config.slippage);
+    const minAmountOut = getTradeMinAmountOut(bestSell, tradeSettingsCursor.deref().slippage);
     const minAmountOutHuman = formatAmount(minAmountOut.amount, minAmountOut.decimals);
     const transaction = bestSell.toTx(minAmountOut.amount);
 
@@ -75,7 +73,7 @@ export class TradeApi {
 
   async getBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string): Promise<TradeInfo> {
     const bestBuy = await this._router.getBestBuy(assetIn.id, assetOut.id, amountOut);
-    const maxAmountIn = getTradeMaxAmountIn(bestBuy, this._config.slippage);
+    const maxAmountIn = getTradeMaxAmountIn(bestBuy, tradeSettingsCursor.deref().slippage);
     const maxAmountInHuman = formatAmount(maxAmountIn.amount, maxAmountIn.decimals);
     const transaction = bestBuy.toTx(maxAmountIn.amount);
 
@@ -116,7 +114,7 @@ export class TradeApi {
 
     const amountOutTotal = Number(bestSellHuman.amountOut) * tradesNo;
 
-    const minAmountOut = getTradeMinAmountOut(bestSell, this._config.slippage);
+    const minAmountOut = getTradeMinAmountOut(bestSell, tradeSettingsCursor.deref().slippage);
     const minAmountOutTotal = multipleAmounts(tradesNo.toString(), minAmountOut);
 
     const isSingleTrade = tradesNo == 1;
@@ -172,7 +170,7 @@ export class TradeApi {
 
     const amountInTotal = Number(bestBuyHuman.amountIn) * tradesNo + twapTxFees;
 
-    const maxAmountIn = getTradeMaxAmountIn(bestBuy, this._config.slippage);
+    const maxAmountIn = getTradeMaxAmountIn(bestBuy, tradeSettingsCursor.deref().slippage);
     const maxAmountInTotal = multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
 
     const isSingleTrade = tradesNo == 1;
