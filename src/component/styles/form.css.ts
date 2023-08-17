@@ -7,7 +7,7 @@ export const formStyles = css`
     padding: 10px 14px 10px 16px;
     align-items: center;
     justify-content: space-between;
-    border: 1px solid var(--primary-dark-blue-alpha-401, rgba(28, 32, 56, 0.8));
+    border: 1px solid var(--primary-dark-blue-400, #333750);
     border-radius: 4px;
     background: #111320;
     cursor: pointer;

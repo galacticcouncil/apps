@@ -1022,7 +1022,7 @@ export class TradeApp extends PoolApp {
           .accountProvider=${account?.provider}
           .accountName=${account?.name}
         >
-          <uigc-typography slot="header" variant="title">Active Positions</uigc-typography>
+          <uigc-typography slot="header" variant="title">Your Orders</uigc-typography>
         </gc-trade-orders>
       `;
     }

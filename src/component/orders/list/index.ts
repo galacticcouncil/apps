@@ -161,7 +161,9 @@ export class DcaOrdersList extends DcaBaseDatagrid {
     return html`
       <slot name="header"></slot>
       <slot name="tabs"></slot>
-      ${super.render()} ${when(this.active, () => html` <div class="modal">${this.modalRowTemplate()}</div>`)}
+      ${super.render()} 
+      ${when(this.defaultData.length === 0, () => html` <slot name="empty"></slot> `)}
+      ${when(this.active, () => html` <div class="modal">${this.modalRowTemplate()}</div>`)}
     `;
   }
 }

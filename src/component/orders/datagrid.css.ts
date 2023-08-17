@@ -5,8 +5,6 @@ export const positionsStyles = css`
     display: flex;
     align-items: center;
     padding: 14px 20px;
-    /*     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
- */
   }
 
   @media (min-width: 768px) {
@@ -14,8 +12,6 @@ export const positionsStyles = css`
       padding: 24px 32px;
     }
   }
-
-
 
   .row > div {
     color: var(--hex-white);

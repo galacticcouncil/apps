@@ -329,7 +329,6 @@ export class TradeOrders extends BaseApp {
         />
       </svg>
       <span>There is no recent activity. </span>
-      <span>It's quite peaceful day.</span>
     </div>`;
   }
 
