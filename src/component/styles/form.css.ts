@@ -74,6 +74,12 @@ export const formStyles = css`
     line-height: 130%;
   }
 
+  @media (max-width: 480px) {
+    .form-option > div span.desc {
+      max-width: 120px;
+    }
+  }
+
   .info {
     display: none;
     flex-direction: column;

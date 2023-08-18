@@ -12,7 +12,7 @@ import { formStyles } from '../styles/form.css';
 
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { TradeTwap } from '../../api/trade';
+import { TradeApi, TradeTwap } from '../../api/trade';
 import { humanizeAmount } from '../../utils/amount';
 
 import { PoolAsset, TradeType, bnum, calculateDiffToRef } from '@galacticcouncil/sdk';
@@ -315,6 +315,20 @@ export class TradeForm extends BaseElement {
         border-color: transparent transparent #333750 transparent;
       }
 
+      @media (max-width: 480px) {
+        .tooltip > .text {
+          margin-left: -138px;
+        }
+
+        .tooltip > .text::after {
+          content: ' ';
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          margin-left: -5px;
+        }
+      }
+
       .tooltip:hover > .text {
         visibility: visible;
       }
@@ -497,6 +511,17 @@ export class TradeForm extends BaseElement {
       return html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`;
     }
 
+    let tradeFee: string = this.tradeFee;
+    let tradeFeePct: string = this.tradeFeePct;
+
+    if (this.twapEnabled && this.isTwapOk()) {
+      const { tradeReps, trade } = this.twap;
+      const tradeHuman = trade.toHuman();
+      const tradeFeeNo = Number(tradeHuman.tradeFee) * tradeReps;
+      tradeFee = tradeFeeNo.toString();
+      tradeFeePct = tradeHuman.tradeFeePct;
+    }
+
     if (this.tradeFeeRange) {
       const max = this.tradeFeeRange[1];
       const min = this.tradeFeeRange[0];
@@ -510,8 +535,8 @@ export class TradeForm extends BaseElement {
         medium: fee >= mediumLow && fee <= mediumHigh,
         high: fee > mediumHigh,
       };
-      return html` <span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
-        <span class="value highlight"> (${this.tradeFeePct}%) </span>
+      return html` <span class="value">${humanizeAmount(tradeFee)} ${assetSymbol}</span>
+        <span class="value highlight"> (${tradeFeePct}%) </span>
         <span class=${classMap(indicatorClasses)}>
           <span></span>
           <span></span>
@@ -519,8 +544,8 @@ export class TradeForm extends BaseElement {
         </span>`;
     }
 
-    return html`<span class="value">${humanizeAmount(this.tradeFee)} ${assetSymbol}</span>
-      <span class="value highlight"> (${this.tradeFeePct}%) </span> `;
+    return html`<span class="value">${humanizeAmount(tradeFee)} ${assetSymbol}</span>
+      <span class="value highlight"> (${tradeFeePct}%) </span> `;
   }
 
   infoTradeFeeTemplate(assetSymbol: string) {
@@ -532,6 +557,12 @@ export class TradeForm extends BaseElement {
   }
 
   infoTransactionFeeTemplate() {
+    let amount: string = this.transactionFee?.amount;
+    if (this.twapEnabled && this.isTwapOk() && this.transactionFee) {
+      const amountNo = Number(amount);
+      amount = TradeApi.getTwapTxFee(this.twap.tradeReps, amountNo).toString();
+    }
+
     return html`
       <span class="label">${i18n.t('trade.txFee')}</span>
       <span class="grow"></span>
@@ -540,9 +571,7 @@ export class TradeForm extends BaseElement {
         () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
         () =>
           html`<span class="value"
-            >${this.transactionFee
-              ? humanizeAmount(this.transactionFee.amount) + ' ' + this.transactionFee.asset
-              : '-'}</span
+            >${this.transactionFee ? humanizeAmount(amount) + ' ' + this.transactionFee.asset : '-'}</span
           >`
       )}
     `;
@@ -702,6 +731,21 @@ export class TradeForm extends BaseElement {
     `;
   }
 
+  formTradeLabel() {
+    if (this.twapProgress || !this.twap) {
+      return;
+    }
+    return html`
+      <div class="label">
+        <span>${i18n.t('twap.title')}</span>
+        <span class="tooltip">
+          <uigc-icon-info> </uigc-icon-info>
+          <span class="text">${i18n.t('twap.desc')}</span>
+        </span>
+      </div>
+    `;
+  }
+
   formTradeOption(assetSymbol: string) {
     if (this.twapProgress || !this.twap) {
       return;
@@ -771,13 +815,9 @@ export class TradeForm extends BaseElement {
       transfer: true,
       show: this.swaps.length > 0 && this.isTwapOk(),
     };
-    const twapClasses = {
+    const infoClasses = {
       info: true,
-      show: this.swaps.length > 0 && this.twapEnabled && this.isTwapOk(),
-    };
-    const swapClasses = {
-      info: true,
-      show: this.swaps.length > 0 && (!this.twapEnabled || !this.isTwapOk()),
+      show: this.swaps.length > 0,
     };
     const errorClasses = {
       error: true,
@@ -787,20 +827,9 @@ export class TradeForm extends BaseElement {
       <slot name="header"></slot>
       <div class="transfer">${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()}</div>
       <div class=${classMap(optionsClasses)}>
-        <div class="label">
-          <span>${i18n.t('twap.title')}</span>
-          <span class="tooltip">
-            <uigc-icon-info> </uigc-icon-info>
-            <span class="text">${i18n.t('twap.desc')}</span>
-          </span>
-        </div>
-        ${this.formTradeOption(assetSymbol)} ${this.formTwapOption(assetSymbol)}
+        ${this.formTradeLabel()} ${this.formTradeOption(assetSymbol)} ${this.formTwapOption(assetSymbol)}
       </div>
-      <div class=${classMap(twapClasses)}>
-        <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
-        <div class="row">${this.infoPriceImpactTemplate()}</div>
-      </div>
-      <div class=${classMap(swapClasses)}>
+      <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
