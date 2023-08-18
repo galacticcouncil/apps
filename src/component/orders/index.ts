@@ -46,6 +46,12 @@ export class TradeOrders extends BaseApp {
 
   static styles = [
     css`
+      @media (min-width: 1024px) {
+        :host {
+          min-height: 350px;
+        }
+      }
+
       .orders {
         background: var(--uigc-app-background-color);
         overflow: hidden;
@@ -73,12 +79,6 @@ export class TradeOrders extends BaseApp {
           -webkit-mask: var(--uigc-paper-mask);
           -webkit-mask-composite: xor;
           pointer-events: none;
-        }
-      }
-
-      @media (min-width: 1024px) {
-        .orders {
-          min-height: 300px;
         }
       }
 
