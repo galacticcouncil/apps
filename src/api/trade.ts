@@ -3,7 +3,6 @@ import {
   type Transaction,
   type Trade,
   type Hop,
-  type Amount,
   calculateDiffToRef,
   bnum,
   BigNumber,
@@ -104,7 +103,7 @@ export class TradeApi {
   ): Promise<TradeTwap> {
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
-    const twapTxFees = this.getTwapTxFee(tradesNo, txFee);
+    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
     const amountInPerTrade = (amountIn - twapTxFees) / tradesNo;
     const bestSell = await this._router.getBestSell(assetIn.id, assetOut.id, amountInPerTrade.toString());
     const bestSellHuman = bestSell.toHuman();
@@ -160,7 +159,7 @@ export class TradeApi {
   ): Promise<TradeTwap> {
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
-    const twapTxFees = this.getTwapTxFee(tradesNo, txFee);
+    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
     const amountOutPerTrade = amountOut / tradesNo;
     const bestBuy = await this._router.getBestBuy(assetIn.id, assetOut.id, amountOutPerTrade.toString());
     const bestBuyHuman = bestBuy.toHuman();
@@ -216,13 +215,13 @@ export class TradeApi {
     return noOfTrades;
   }
 
-  private getTwapTxFee(tradesNo: number, txFee: number): number {
+  private getTwapExecutionTime(tradesNo: number, blockTime: number): number {
+    return tradesNo * TWAP_BLOCK_PERIOD * blockTime;
+  }
+
+  static getTwapTxFee(tradesNo: number, txFee: number): number {
     const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
     const twapTxFeeWithRetries = twapTxFee * (TWAP_RETRIES + 1);
     return twapTxFeeWithRetries * tradesNo;
-  }
-
-  private getTwapExecutionTime(tradesNo: number, blockTime: number): number {
-    return tradesNo * TWAP_BLOCK_PERIOD * blockTime;
   }
 }
