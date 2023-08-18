@@ -228,8 +228,8 @@ export class TradeForm extends BaseElement {
       }
 
       .options {
-        transition: all 0.2s ease-in-out 0s;
-        height: 0;
+        transition: max-height 0.2s ease-in-out 0s;
+        max-height: 0;
         overflow: hidden;
         gap: 0;
       }
@@ -241,7 +241,7 @@ export class TradeForm extends BaseElement {
       }
 
       .options.show {
-        height: 190px;
+        max-height: 500px;
       }
 
       .options > .label {
@@ -735,7 +735,7 @@ export class TradeForm extends BaseElement {
     const timeframe = this._humanizer.humanize(tradeTime, {
       round: true,
       largest: 2,
-      language: 'shortEn',
+      units: ['h', 'm'],
     });
 
     const smartSplitClasses = {
@@ -747,7 +747,7 @@ export class TradeForm extends BaseElement {
       <div class=${classMap(smartSplitClasses)} @click=${() => this.transactionFee && this.enableTwap()}>
         <div class="left">
           <span class="title">Split Trade</span>
-          <span class="desc">Executed within ${timeframe}</span>
+          <span class="desc"> Executed in the next ${timeframe} </span>
         </div>
         <div class="right">
           <span class="price">${humanizeAmount(orderSlippage.toString())} ${assetSymbol}</span>
@@ -788,7 +788,7 @@ export class TradeForm extends BaseElement {
       <div class="transfer">${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()}</div>
       <div class=${classMap(optionsClasses)}>
         <div class="label">
-          <span>Split trade available</span>
+          <span>${i18n.t('twap.title')}</span>
           <span class="tooltip">
             <uigc-icon-info> </uigc-icon-info>
             <span class="text">${i18n.t('twap.desc')}</span>
