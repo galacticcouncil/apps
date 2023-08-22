@@ -72,11 +72,22 @@ export class AssetApi {
   private async getParachainId(assetId: string): Promise<number> {
     const locations = await this._api.query.assetRegistry.assetLocations(assetId);
     const data = locations.unwrapOr(null);
-    if (data) {
-      const type = data.interior.type;
-      const interior = data.interior[`as${type}`];
-      return interior[0] ? interior[0].asParachain.toNumber() : null;
+
+    if (!data) {
+      return null;
     }
-    return null;
+
+    const type = data.interior.type;
+    if (type == 'Here') {
+      return null;
+    }
+
+    const interior = data.interior[`as${type}`];
+    return !Array.isArray(interior)
+      ? interior.asParachain.unwrap().toNumber()
+      : interior
+          .find((el) => el.isParachain)
+          .asParachain.unwrap()
+          .toNumber();
   }
 }
