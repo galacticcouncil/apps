@@ -220,7 +220,10 @@ export class TradeOrders extends BaseApp {
     if (this.meta.size > 0) {
       const orders = scheduled.map(async (order: DcaOrder) => {
         const assetInMeta = this.meta.get(order.assetIn);
+        const assetInOrigin = this.locations.get(order.assetIn);
         const assetOutMeta = this.meta.get(order.assetOut);
+        const assetOutOrigin = this.locations.get(order.assetOut);
+
         const remaining = await this.getRemaining(order.id);
 
         const open = this.orders.open.has(order.id);
@@ -239,7 +242,9 @@ export class TradeOrders extends BaseApp {
             remaining,
             received,
             assetInMeta,
+            assetInOrigin,
             assetOutMeta,
+            assetOutOrigin,
             transactions,
             nextExecution,
             nextExecutionBlock,
@@ -251,7 +256,9 @@ export class TradeOrders extends BaseApp {
           ...order,
           remaining,
           assetInMeta,
+          assetInOrigin,
           assetOutMeta,
+          assetOutOrigin,
           hasPendingTx: () => false,
         } as DcaOrder;
       });

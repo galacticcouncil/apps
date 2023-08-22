@@ -40,7 +40,7 @@ export const positionsStyles = css`
     }
   }
 
-  uigc-logo-asset {
+  uigc-asset-id {
     width: 24px;
     height: 24px;
   }

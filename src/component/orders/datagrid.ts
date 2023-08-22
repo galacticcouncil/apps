@@ -8,6 +8,7 @@ import { Datagrid } from '../datagrid';
 import { Account, Chain, accountCursor, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { formatAmount, humanizeAmount } from '../../utils/amount';
+import { getChainId } from '../../utils/chain';
 import { getRenderString } from '../../utils/dom';
 
 import { Transaction } from '@galacticcouncil/sdk';
@@ -97,13 +98,24 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   }
 
   protected pairTemplate(order: DcaOrder) {
+    const assetIn = order.assetInMeta?.symbol;
+    const assetOut = order.assetOutMeta?.symbol;
     return html`
       <div class="pair">
-        <uigc-logo-asset fit asset=${order.assetInMeta?.symbol}></uigc-logo-asset>
+        ${this.assetTemplate(assetIn, order.assetInOrigin)}
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        <uigc-logo-asset fit asset=${order.assetOutMeta?.symbol}></uigc-logo-asset>
+        ${this.assetTemplate(assetOut, order.assetOutOrigin)}
       </div>
     `;
+  }
+
+  private assetTemplate(symbol: string, origin: number) {
+    const assetOrigin = getChainId(origin);
+    if (origin) {
+      return html` <uigc-asset-id symbol=${symbol} chain=${assetOrigin}></uigc-asset-id>`;
+    } else {
+      return html` <uigc-asset-id symbol=${symbol}></uigc-asset-id>`;
+    }
   }
 
   protected itemTemplate(label: string, value: any) {

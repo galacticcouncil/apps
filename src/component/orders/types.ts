@@ -19,7 +19,9 @@ export type DcaOrder = {
   assetIn: string;
   assetOut: string;
   assetInMeta: AssetMetadata;
+  assetInOrigin: number;
   assetOutMeta: AssetMetadata;
+  assetOutOrigin: number;
   nextExecution: number;
   nextExecutionBlock: number;
   interval: number;
