@@ -449,6 +449,7 @@ export class DcaApp extends PoolApp {
       <gc-select-asset
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
+        .locations=${this.assets.locations}
         .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
@@ -485,6 +486,7 @@ export class DcaApp extends PoolApp {
       <gc-dca-form
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
+        .locations=${this.assets.locations}
         .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || this.hasError()}
         .assetIn=${this.dca.assetIn}
         .assetOut=${this.dca.assetOut}

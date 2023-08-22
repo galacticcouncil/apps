@@ -14,6 +14,7 @@ import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { TradeApi, TradeTwap } from '../../api/trade';
 import { humanizeAmount } from '../../utils/amount';
+import { getChainId } from '../../utils/chain';
 
 import { PoolAsset, TradeType, bnum, calculateDiffToRef } from '@galacticcouncil/sdk';
 
@@ -27,6 +28,7 @@ export class TradeForm extends BaseElement {
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
+  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
@@ -648,6 +650,7 @@ export class TradeForm extends BaseElement {
       amountInUsd = this.twap.amountInUsd.toString();
     }
 
+    const originLocation = this.locations.get(this.assetIn?.id);
     const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
     const error = this.error['balance'];
     return html` <uigc-asset-transfer
@@ -656,6 +659,7 @@ export class TradeForm extends BaseElement {
       ?error=${error}
       .error=${error}
       .asset=${this.assetIn?.symbol}
+      .assetOrigin=${getChainId(originLocation)}
       .amount=${amountIn}
       .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {
@@ -683,11 +687,13 @@ export class TradeForm extends BaseElement {
       amountOutUsd = this.twap.amountOutUsd.toString();
     }
 
+    const originLocation = this.locations.get(this.assetOut?.id);
     const amountUsdHuman = amountOutUsd ? humanizeAmount(amountOutUsd) : null;
     return html` <uigc-asset-transfer
       id="assetOut"
       title="${i18n.t('trade.youGet')}"
       .asset=${this.assetOut?.symbol}
+      .assetOrigin=${getChainId(originLocation)}
       .amount=${amountOut}
       .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {

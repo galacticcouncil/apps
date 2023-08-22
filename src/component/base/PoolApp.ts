@@ -39,6 +39,7 @@ export abstract class PoolApp extends BaseApp {
     pairs: new Map<string, PoolAsset[]>([]),
     meta: new Map<string, AssetMetadata>([]),
     details: new Map<string, AssetDetail>([]),
+    locations: new Map<string, number>([]),
     usdPrice: new Map<string, Amount>([]),
     nativePrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
@@ -100,6 +101,8 @@ export abstract class PoolApp extends BaseApp {
     const assetsPairs = await this.assetApi.getPairs(assets);
     const assetsDetails = await this.assetApi.getDetails(assets);
     const assetsMeta = await this.assetApi.getMetadata(assets);
+    const assetsLocations = await this.assetApi.getLocations(assets);
+
     this.assets = {
       ...this.assets,
       list: assets,
@@ -107,6 +110,7 @@ export abstract class PoolApp extends BaseApp {
       pairs: assetsPairs,
       details: assetsDetails,
       meta: assetsMeta,
+      locations: assetsLocations,
     };
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;

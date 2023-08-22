@@ -9,10 +9,11 @@ import { BaseElement } from '../base/BaseElement';
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
+import { INTERVAL, Interval } from '../../api/time';
 import { Account, accountCursor, DcaConfig, dcaSettingsCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
-import { INTERVAL, Interval } from '../../api/time';
+import { getChainId } from '../../utils/chain';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
 
@@ -25,6 +26,7 @@ export class DcaForm extends BaseElement {
 
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
+  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
@@ -237,6 +239,7 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetInTemplate() {
+    const originLocation = this.locations.get(this.assetIn?.id);
     const error = this.error['minAmountTooLow'];
     return html` <uigc-asset-transfer
       id="assetIn"
@@ -245,6 +248,7 @@ export class DcaForm extends BaseElement {
       .error=${error}
       dense
       .asset=${this.assetIn?.symbol}
+      .assetOrigin=${getChainId(originLocation)}
       .amount=${this.amountIn}
       .amountUsd=${this.amountInUsd}
     >
@@ -274,6 +278,7 @@ export class DcaForm extends BaseElement {
   }
 
   formMaxBudgetTemplate() {
+    const originLocation = this.locations.get(this.assetIn?.id);
     const error = this.error['balanceTooLow'] || this.error['budgetTooLow'] || this.error['minBudgetTooLow'];
     return html` <uigc-asset-transfer
       id="assetInBudget"
@@ -282,6 +287,7 @@ export class DcaForm extends BaseElement {
       .error=${error}
       dense
       asset=${this.assetIn?.symbol}
+      assetOrigin=${getChainId(originLocation)}
       amount=${this.amountInBudget}
       .selectable=${false}
     >

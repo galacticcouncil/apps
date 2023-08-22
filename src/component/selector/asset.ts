@@ -9,6 +9,7 @@ import { selectorStyles } from '../styles/selector.css';
 
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
+import { getChainId } from '../../utils/chain';
 
 import { Amount, AssetDetail, PoolAsset } from '@galacticcouncil/sdk';
 import { AssetSelector } from './types';
@@ -17,6 +18,7 @@ import { AssetSelector } from './types';
 export class SelectAsset extends LitElement {
   @property({ attribute: false }) assets: PoolAsset[] = [];
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
+  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) details: Map<string, AssetDetail> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
@@ -115,12 +117,14 @@ export class SelectAsset extends LitElement {
         this.assets.length > 0,
         () => html` <uigc-asset-list>
           ${map(this.filterAssets(this.query), ({ asset, balance, balanceUsd }) => {
+            const originLocation = this.locations.get(asset.id);
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
                 ?selected=${this.isSelected(asset)}
                 ?disabled=${this.isDisabled(asset)}
                 .asset=${asset}
+                .origin=${getChainId(originLocation)}
                 .desc=${this.details.get(asset.id).name}
                 .balance=${humanizeAmount(balance)}
                 .balanceUsd=${humanizeAmount(balanceUsd)}

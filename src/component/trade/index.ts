@@ -868,6 +868,7 @@ export class TradeApp extends PoolApp {
       <gc-select-asset
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
+        .locations=${this.assets.locations}
         .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
@@ -909,6 +910,7 @@ export class TradeApp extends PoolApp {
       <gc-trade-form
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
+        .locations=${this.assets.locations}
         .inProgress=${this.trade.inProgress}
         .disabled=${!this.isSwapSelected() || this.isSwapEmpty() || !this.hasAccount() || !this.tx}
         .switchAllowed=${this.isSwitchEnabled()}

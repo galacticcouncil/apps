@@ -43,6 +43,7 @@ export class TradeOrders extends BaseApp {
 
   @state() width: number = window.innerWidth;
   @state() meta: Map<string, AssetMetadata> = new Map([]);
+  @state() locations: Map<string, number> = new Map([]);
 
   static styles = [
     css`
@@ -266,6 +267,7 @@ export class TradeOrders extends BaseApp {
     this.timeApi = new TimeApi(api);
     const assets = await router.getAllAssets();
     this.meta = await this.assetApi.getMetadata(assets);
+    this.locations = await this.assetApi.getLocations(assets);
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });
