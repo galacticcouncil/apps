@@ -8,6 +8,8 @@ import { TimeApi } from '../../api/time';
 import { Account, Chain, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
+import * as i18n from 'i18next';
+
 import '@galacticcouncil/ui';
 import { AssetMetadata, BigNumber, bnum } from '@galacticcouncil/sdk';
 
@@ -330,7 +332,7 @@ export class TradeOrders extends BaseApp {
           fill="#444559"
         />
       </svg>
-      <span>There is no recent activity. </span>
+      <span>${i18n.t('orders.noActivity')}</span>
     </div>`;
   }
 
@@ -353,8 +355,8 @@ export class TradeOrders extends BaseApp {
 
   tabsTemplate() {
     return html` <div slot="tabs" class="tabs">
-      ${this.tabTemplate('all', 'All')} ${this.tabTemplate('open', 'Open Orders')}
-      ${this.tabTemplate('finished', 'Orders History')}
+      ${this.tabTemplate('all', i18n.t('orders.all'))} ${this.tabTemplate('open', i18n.t('orders.open'))}
+      ${this.tabTemplate('finished', i18n.t('orders.history'))}
     </div>`;
   }
 

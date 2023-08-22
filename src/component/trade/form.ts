@@ -770,7 +770,7 @@ export class TradeForm extends BaseElement {
     return html`
       <div class=${classMap(smartSplitClasses)} @click=${() => this.transactionFee && this.disableTwap()}>
         <div class="left">
-          <span class="title">Single Trade</span>
+          <span class="title">${i18n.t('twap.single')}</span>
           <span class="desc">Instant execution</span>
         </div>
         <div class="right">
@@ -803,8 +803,8 @@ export class TradeForm extends BaseElement {
     return html`
       <div class=${classMap(smartSplitClasses)} @click=${() => this.transactionFee && this.enableTwap()}>
         <div class="left">
-          <span class="title">Split Trade</span>
-          <span class="desc"> Executed in the next ${timeframe} </span>
+          <span class="title">${i18n.t('twap.split')}</span>
+          <span class="desc">${i18n.t('twap.splitDescr', {timeframe})}</span>
         </div>
         <div class="right">
           <span class="price">${humanizeAmount(price.toString())} ${assetSymbol}</span>
