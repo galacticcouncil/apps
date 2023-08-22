@@ -10,6 +10,7 @@ import { InterlayAdapter } from '@galacticcouncil/bridge/adapters/interlay';
 import { ZeitgeistAdapter } from '@galacticcouncil/bridge/adapters/zeitgeist';
 import { AstarAdapter } from '@galacticcouncil/bridge/adapters/astar';
 import { CentrifugeAdapter } from '@galacticcouncil/bridge/adapters/centrifuge';
+import { BifrostAdapter } from '@galacticcouncil/bridge/adapters/bifrost';
 
 import { Wallet } from '@acala-network/sdk/wallet';
 import { EvmRpcProvider } from '@acala-network/eth-providers';
@@ -32,6 +33,7 @@ const CHAINS: Record<string, string[]> = {
   hydradx: ['wss://rpc.hydradx.cloud'],
   basilisk: ['wss://rpc.basilisk.cloud'],
   centrifuge: ['wss://centrifuge-parachain.api.onfinality.io/public-ws'],
+  bifrost: ['wss://bifrost-polkadot.api.onfinality.io/public-ws'],
 };
 
 const CHAINS_TESTNET: Record<string, string[]> = {
@@ -56,10 +58,11 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
   zeitgeist: new ZeitgeistAdapter(),
   astar: new AstarAdapter(),
   centrifuge: new CentrifugeAdapter(),
+  bifrost: new BifrostAdapter(),
 };
 
 const BASILISK_SUPPORTED_TOKENS = ['KSM', 'BSX', 'aUSD', 'XRT', 'TNKR', 'USDT'];
-const HYDRADX_SUPPORTED_TOKENS = ['DOT', 'HDX', 'DAI', 'WETH', 'WBTC', 'IBTC', 'USDT', 'ZTG', 'ASTR', 'CFG'];
+const HYDRADX_SUPPORTED_TOKENS = ['DOT', 'HDX', 'DAI', 'WETH', 'WBTC', 'IBTC', 'USDT', 'ZTG', 'ASTR', 'CFG', 'BNC'];
 
 export function getSupportedTokens() {
   try {
