@@ -416,7 +416,7 @@ export class TradeForm extends BaseElement {
   }
 
   private calculateTwapPriceDiff(twapPrice: number) {
-    const swapPrice = Number(this.afterSlippageUsd);
+    const swapPrice = this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
     const swapPriceBN = bnum(swapPrice);
     const twapPriceBN = bnum(twapPrice);
     if (this.tradeType === TradeType.Sell) {
@@ -606,9 +606,10 @@ export class TradeForm extends BaseElement {
   }
 
   infoTwapSlippageTemplate() {
-    const { orderSlippageUsd } = this.twap;
-    const orderSlippageNo = Number(orderSlippageUsd);
-    const twapDiff = this.calculateTwapPriceDiff(orderSlippageNo);
+    const { amountInUsd, amountOutUsd } = this.twap;
+    const twapPrice = this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
+    const twapPriceeNo = Number(twapPrice);
+    const twapDiff = this.calculateTwapPriceDiff(twapPriceeNo);
     const twapDiffAbs = Math.abs(twapDiff);
     const twapSellSymbol = twapDiff >= 0 ? '+$' : '-$';
     const twapBuySymbol = twapDiff > 0 ? '-$' : '+$';
@@ -647,6 +648,7 @@ export class TradeForm extends BaseElement {
       amountInUsd = this.twap.amountInUsd.toString();
     }
 
+    const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
     const error = this.error['balance'];
     return html` <uigc-asset-transfer
       id="assetIn"
@@ -655,7 +657,7 @@ export class TradeForm extends BaseElement {
       .error=${error}
       .asset=${this.assetIn?.symbol}
       .amount=${amountIn}
-      .amountUsd=${amountInUsd}
+      .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {
         this.twapEnabled = false;
       }}
@@ -681,12 +683,13 @@ export class TradeForm extends BaseElement {
       amountOutUsd = this.twap.amountOutUsd.toString();
     }
 
+    const amountUsdHuman = amountOutUsd ? humanizeAmount(amountOutUsd) : null;
     return html` <uigc-asset-transfer
       id="assetOut"
       title="${i18n.t('trade.youGet')}"
       .asset=${this.assetOut?.symbol}
       .amount=${amountOut}
-      .amountUsd=${amountOutUsd}
+      .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {
         this.twapEnabled = false;
       }}
@@ -751,6 +754,8 @@ export class TradeForm extends BaseElement {
       return;
     }
 
+    const price = this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
+    const priceUsd = this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
     const smartSplitClasses = {
       'form-option': true,
       active: !this.twapEnabled,
@@ -763,8 +768,8 @@ export class TradeForm extends BaseElement {
           <span class="desc">Instant execution</span>
         </div>
         <div class="right">
-          <span class="price">${humanizeAmount(this.afterSlippage)} ${assetSymbol}</span>
-          <span class="usd">≈ ${humanizeAmount(this.afterSlippageUsd)} USD</span>
+          <span class="price">${humanizeAmount(price)} ${assetSymbol}</span>
+          <span class="usd">≈ ${humanizeAmount(priceUsd)} USD</span>
         </div>
       </div>
     `;
@@ -775,7 +780,9 @@ export class TradeForm extends BaseElement {
       return;
     }
 
-    const { tradeTime, orderSlippage, orderSlippageUsd } = this.twap;
+    const { tradeTime, amountIn, amountInUsd, amountOut, amountOutUsd } = this.twap;
+    const price = this.tradeType === TradeType.Sell ? amountOut : amountIn;
+    const priceUsd = this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
     const timeframe = this._humanizer.humanize(tradeTime, {
       round: true,
       largest: 2,
@@ -794,10 +801,10 @@ export class TradeForm extends BaseElement {
           <span class="desc"> Executed in the next ${timeframe} </span>
         </div>
         <div class="right">
-          <span class="price">${humanizeAmount(orderSlippage.toString())} ${assetSymbol}</span>
+          <span class="price">${humanizeAmount(price.toString())} ${assetSymbol}</span>
           <span class="usd">
             ${this.infoTwapSlippageTemplate()}
-            <span> ≈ ${humanizeAmount(orderSlippageUsd.toString())} USD</span>
+            <span> ≈ ${humanizeAmount(priceUsd)} USD</span>
           </span>
         </div>
       </div>
