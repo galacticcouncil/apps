@@ -272,8 +272,9 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetOutTemplate() {
+    const originLocation = this.locations.get(this.assetOut?.id);
     return html` <uigc-selector item=${this.assetOut?.symbol} title="For">
-      <uigc-asset symbol=${this.assetOut?.symbol}></uigc-asset>
+      <uigc-asset symbol=${this.assetOut?.symbol} origin=${getChainId(originLocation)}></uigc-asset>
     </uigc-selector>`;
   }
 
