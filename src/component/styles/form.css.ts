@@ -16,7 +16,6 @@ export const formStyles = css`
   }
 
   .form-option.disabled {
-    opacity: 0.6;
     cursor: default;
   }
 

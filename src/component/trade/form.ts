@@ -286,10 +286,11 @@ export class TradeForm extends BaseElement {
       }
 
       .tooltip > .text {
+        display: grid;
         visibility: hidden;
         text-align: center;
         position: absolute;
-        width: 250px;
+        width: 230px;
         z-index: 1;
         top: 150%;
         left: 50%;
@@ -304,6 +305,7 @@ export class TradeForm extends BaseElement {
         font-style: normal;
         font-weight: 500;
         line-height: 140%;
+        text-align: left;
       }
 
       .tooltip > .text::after {
@@ -315,20 +317,6 @@ export class TradeForm extends BaseElement {
         border-width: 5px;
         border-style: solid;
         border-color: transparent transparent #333750 transparent;
-      }
-
-      @media (max-width: 480px) {
-        .tooltip > .text {
-          margin-left: -138px;
-        }
-
-        .tooltip > .text::after {
-          content: ' ';
-          position: absolute;
-          bottom: 100%;
-          left: 50%;
-          margin-left: -5px;
-        }
       }
 
       .tooltip:hover > .text {
@@ -364,8 +352,8 @@ export class TradeForm extends BaseElement {
     `,
   ];
 
-  private isTwapOk(): boolean {
-    return this.twap && !this.twap?.tradeError;
+  private isTwapError(): boolean {
+    return this.twap && !!this.twap?.tradeError;
   }
 
   private isSellTwap(): boolean {
@@ -406,8 +394,10 @@ export class TradeForm extends BaseElement {
   }
 
   private enableTwap() {
-    this.twapEnabled = true;
-    this.requestUpdate();
+    if (!this.isTwapError()) {
+      this.twapEnabled = true;
+      this.requestUpdate();
+    }
   }
 
   private disableTwap() {
@@ -755,7 +745,13 @@ export class TradeForm extends BaseElement {
         <span>${i18n.t('twap.title')}</span>
         <span class="tooltip">
           <uigc-icon-info> </uigc-icon-info>
-          <span class="text">${i18n.t('twap.desc')}</span>
+          <span class="text">
+            <span><b>${i18n.t('twap.single')}</b></span>
+            <span>${i18n.t('trade.desc')}</span>
+            <br />
+            <span><b>${i18n.t('twap.split')}</b></span>
+            <span>${i18n.t('twap.desc')}</span>
+          </span>
         </span>
       </div>
     `;
@@ -787,13 +783,13 @@ export class TradeForm extends BaseElement {
 
     const price = this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
     const priceUsd = this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
-    const smartSplitClasses = {
+    const swapClasses = {
       'form-option': true,
       active: !this.twapEnabled,
       hidden: !(this.swaps.length > 0 && this.twapAllowed),
     };
     return html`
-      <div class=${classMap(smartSplitClasses)} @click=${() => this.transactionFee && this.disableTwap()}>
+      <div class=${classMap(swapClasses)} @click=${() => this.transactionFee && this.disableTwap()}>
         <div class="left">
           <span class="title">${i18n.t('twap.single')}</span>
           <span class="desc">Instant execution</span>
@@ -827,13 +823,15 @@ export class TradeForm extends BaseElement {
       units: ['h', 'm'],
     });
 
-    const smartSplitClasses = {
+    const twapClasses = {
       'form-option': true,
       active: this.twapEnabled,
       hidden: !(this.swaps.length > 0 && this.twapAllowed),
+      disabled: this.isTwapError(),
     };
+
     return html`
-      <div class=${classMap(smartSplitClasses)} @click=${() => this.transactionFee && this.enableTwap()}>
+      <div class=${classMap(twapClasses)} @click=${() => this.transactionFee && this.enableTwap()}>
         <div class="left">
           <span class="title">${i18n.t('twap.split')}</span>
           <span class="desc">${i18n.t('twap.splitDescr', { timeframe })}</span>
@@ -851,7 +849,7 @@ export class TradeForm extends BaseElement {
 
   formTwapOptionError(assetSymbol: string) {
     return html`
-      <div class="form-option disabled skeleton">
+      <div class="form-option disabled">
         <div class="left">
           <span class="title">${i18n.t('twap.split')}</span>
           <span class="desc"
