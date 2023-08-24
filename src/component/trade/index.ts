@@ -610,12 +610,10 @@ export class TradeApp extends PoolApp {
 
   async syncTransactionFee() {
     const account = this.account.state;
-    if (account) {
-      const { partialFee } = await this.paymentApi.getPaymentInfo(this.tx, account);
-      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
-      this.trade.transactionFee = await this.calculateTransactionFee(feeAssetId, partialFee);
-      this.requestUpdate();
-    }
+    const { partialFee } = await this.paymentApi.getPaymentInfo(this.tx, account);
+    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+    this.trade.transactionFee = await this.calculateTransactionFee(feeAssetId, partialFee);
+    this.requestUpdate();
   }
 
   async updateMaxAmountIn(asset: PoolAsset) {

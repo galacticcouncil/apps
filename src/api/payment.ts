@@ -5,6 +5,8 @@ import { bnum, SYSTEM_ASSET_DECIMALS, SYSTEM_ASSET_ID, TradeRouter, Transaction 
 import { Account } from '../db';
 import { formatAmount, multipleAmounts } from '../utils/amount';
 
+const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
+
 export type PaymentFee = { amount: string; ed: string };
 
 export class PaymentApi {
@@ -17,13 +19,18 @@ export class PaymentApi {
   }
 
   async getPaymentFeeAsset(account: Account): Promise<string> {
-    const feeAsset = await this._api.query.multiTransactionPayment.accountCurrencyMap(account.address);
-    return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
+    try {
+      const feeAsset = await this._api.query.multiTransactionPayment.accountCurrencyMap(account.address);
+      return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
+    } catch {
+      return SYSTEM_ASSET_ID;
+    }
   }
 
   async getPaymentInfo(transaction: Transaction, account: Account): Promise<RuntimeDispatchInfo> {
+    const address = this.getAddress(account);
     const transactionExtrinsic = this._api.tx(transaction.hex);
-    return await transactionExtrinsic.paymentInfo(account.address);
+    return await transactionExtrinsic.paymentInfo(address);
   }
 
   async getPaymentFee(feeAssetId: string, feeAssetNativeBalance: Balance, feeAssetEd: string): Promise<PaymentFee> {
@@ -46,5 +53,9 @@ export class PaymentApi {
       amount: fee.toString(),
       ed: ed,
     } as PaymentFee;
+  }
+
+  private getAddress(account: Account) {
+    return account?.address ?? TRSRY_ACC;
   }
 }
