@@ -12,7 +12,7 @@ import { formStyles } from '../styles/form.css';
 
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { TradeApi, TradeTwap } from '../../api/trade';
+import { TradeApi, TradeTwap, TradeTwapError } from '../../api/trade';
 import { humanizeAmount } from '../../utils/amount';
 import { getChainId } from '../../utils/chain';
 
@@ -335,22 +335,31 @@ export class TradeForm extends BaseElement {
         visibility: visible;
       }
 
+      .form-option.skeleton {
+        align-items: center;
+      }
+
       .form-option .price {
         color: #fff;
         font-family: 'ChakraPetch';
-        font-size: 16px;
         font-style: normal;
         font-weight: 600;
         line-height: 130%;
+        font-size: 16px;
+        font-size: 4cqw;
       }
 
       .form-option .usd {
-        display: flex;
-        flex-direction: row-reverse;
         font-size: 10px;
         line-height: 14px;
         color: var(--hex-neutral-gray-400);
         font-weight: 600;
+        text-align: right;
+        max-width: 150px;
+      }
+
+      .form-option .usd > span {
+        display: inline-block;
       }
     `,
   ];
@@ -360,11 +369,11 @@ export class TradeForm extends BaseElement {
   }
 
   private isSellTwap(): boolean {
-    return this.twapEnabled && this.isTwapOk() && this.tradeType === TradeType.Sell;
+    return this.twapEnabled && this.tradeType === TradeType.Sell;
   }
 
   private isBuyTwap(): boolean {
-    return this.twapEnabled && this.isTwapOk() && this.tradeType === TradeType.Buy;
+    return this.twapEnabled && this.tradeType === TradeType.Buy;
   }
 
   private hasGeneralError(): boolean {
@@ -472,7 +481,7 @@ export class TradeForm extends BaseElement {
     let amount: string = this.afterSlippage;
     let temp: TemplateResult = null;
 
-    if (this.twapEnabled && this.isTwapOk()) {
+    if (this.twapEnabled) {
       amount = this.twap.orderSlippage.toString();
       temp = this.infoTwapSlippagePctTemplate();
     }
@@ -491,7 +500,7 @@ export class TradeForm extends BaseElement {
 
   infoPriceImpactTemplate() {
     let priceImpact: string = this.priceImpactPct;
-    if (this.twapEnabled && this.isTwapOk()) {
+    if (this.twapEnabled) {
       priceImpact = this.twap.trade.toHuman().priceImpactPct;
     }
 
@@ -516,7 +525,7 @@ export class TradeForm extends BaseElement {
     let tradeFee: string = this.tradeFee;
     let tradeFeePct: string = this.tradeFeePct;
 
-    if (this.twapEnabled && this.isTwapOk()) {
+    if (this.twapEnabled) {
       const { tradeReps, trade } = this.twap;
       const tradeHuman = trade.toHuman();
       const tradeFeeNo = Number(tradeHuman.tradeFee) * tradeReps;
@@ -560,7 +569,7 @@ export class TradeForm extends BaseElement {
 
   infoTransactionFeeTemplate() {
     let amount: string = this.transactionFee?.amount;
-    if (this.twapEnabled && this.isTwapOk() && this.transactionFee) {
+    if (this.twapEnabled && this.transactionFee) {
       const amountNo = Number(amount);
       amount = TradeApi.getTwapTxFee(this.twap.tradeReps, amountNo).toString();
     }
@@ -740,10 +749,7 @@ export class TradeForm extends BaseElement {
     `;
   }
 
-  formTradeLabel() {
-    if (this.twapProgress || !this.twap) {
-      return;
-    }
+  formTradeOptionLabel() {
     return html`
       <div class="label">
         <span>${i18n.t('twap.title')}</span>
@@ -755,9 +761,28 @@ export class TradeForm extends BaseElement {
     `;
   }
 
+  formTradeOptionSkeleton(title: string, desc: string) {
+    return html`
+      <div class="form-option skeleton">
+        <div class="left">
+          <span class="title">${title}</span>
+          <span class="desc">${desc}</span>
+        </div>
+        <div class="right">
+          <span class="price">
+            <uigc-skeleton progress rectangle width="130px" height="20px"></uigc-skeleton>
+          </span>
+          <span class="usd">
+            <uigc-skeleton progress rectangle width="70px" height="14px"></uigc-skeleton>
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
   formTradeOption(assetSymbol: string) {
-    if (this.twapProgress || !this.twap) {
-      return;
+    if (this.inProgress) {
+      return this.formTradeOptionSkeleton(i18n.t('twap.single'), 'Instant execution');
     }
 
     const price = this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
@@ -783,7 +808,14 @@ export class TradeForm extends BaseElement {
 
   formTwapOption(assetSymbol: string) {
     if (this.twapProgress || !this.twap) {
-      return;
+      return this.formTradeOptionSkeleton(
+        i18n.t('twap.split'),
+        i18n.t('twap.splitDescr', { timeframe: 'N/A', interpolation: { escapeValue: false } })
+      );
+    }
+
+    if (this.twap && this.twap.tradeError === TradeTwapError.OrderTooBig) {
+      return this.formTwapOptionError(assetSymbol);
     }
 
     const { tradeTime, amountIn, amountInUsd, amountOut, amountOutUsd } = this.twap;
@@ -804,14 +836,31 @@ export class TradeForm extends BaseElement {
       <div class=${classMap(smartSplitClasses)} @click=${() => this.transactionFee && this.enableTwap()}>
         <div class="left">
           <span class="title">${i18n.t('twap.split')}</span>
-          <span class="desc">${i18n.t('twap.splitDescr', {timeframe})}</span>
+          <span class="desc">${i18n.t('twap.splitDescr', { timeframe })}</span>
         </div>
         <div class="right">
           <span class="price">${humanizeAmount(price.toString())} ${assetSymbol}</span>
           <span class="usd">
+            <span>≈ ${humanizeAmount(priceUsd)} USD</span>
             ${this.infoTwapSlippageTemplate()}
-            <span> ≈ ${humanizeAmount(priceUsd)} USD</span>
           </span>
+        </div>
+      </div>
+    `;
+  }
+
+  formTwapOptionError(assetSymbol: string) {
+    return html`
+      <div class="form-option skeleton">
+        <div class="left">
+          <span class="title">${i18n.t('twap.split')}</span>
+          <span class="desc"
+            >${i18n.t('twap.splitDescr', { timeframe: 'N/A', interpolation: { escapeValue: false } })}</span
+          >
+        </div>
+        <div class="right">
+          <span class="price">0 ${assetSymbol}</span>
+          <span class="usd">≈ 0 USD</span>
         </div>
       </div>
     `;
@@ -826,7 +875,7 @@ export class TradeForm extends BaseElement {
     const optionsClasses = {
       options: true,
       transfer: true,
-      show: this.swaps.length > 0 && this.isTwapOk(),
+      show: this.swaps.length > 0,
     };
     const infoClasses = {
       info: true,
@@ -840,7 +889,7 @@ export class TradeForm extends BaseElement {
       <slot name="header"></slot>
       <div class="transfer">${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()}</div>
       <div class=${classMap(optionsClasses)}>
-        ${this.formTradeLabel()} ${this.formTradeOption(assetSymbol)} ${this.formTwapOption(assetSymbol)}
+        ${this.formTradeOptionLabel()} ${this.formTradeOption(assetSymbol)} ${this.formTwapOption(assetSymbol)}
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>

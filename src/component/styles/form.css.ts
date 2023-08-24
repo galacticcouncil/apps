@@ -2,10 +2,11 @@ import { css } from 'lit';
 
 export const formStyles = css`
   .form-option {
+    container-type: inline-size;
     position: relative;
     display: flex;
     padding: 10px 14px 10px 16px;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     border: 1px solid var(--primary-dark-blue-400, #333750);
     border-radius: 4px;
