@@ -15,6 +15,15 @@ export const formStyles = css`
     color: #fff;
   }
 
+  .form-option.disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .form-option.disabled:hover {
+    background: none;
+  }
+
   .form-option.active {
     border: 1px solid rgb(156, 221, 255);
     background: rgba(255, 255, 255, 0.05);

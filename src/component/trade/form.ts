@@ -851,7 +851,7 @@ export class TradeForm extends BaseElement {
 
   formTwapOptionError(assetSymbol: string) {
     return html`
-      <div class="form-option skeleton">
+      <div class="form-option disabled skeleton">
         <div class="left">
           <span class="title">${i18n.t('twap.split')}</span>
           <span class="desc"
