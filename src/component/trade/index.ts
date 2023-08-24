@@ -809,7 +809,9 @@ export class TradeApp extends PoolApp {
 
   protected onBlockChange(): void {
     this.syncBalances();
-    this.recalculateTrade();
+    if (!this.trade.inProgress) {
+      this.recalculateTrade();
+    }
   }
 
   protected override async onAccountChange(prev: Account, curr: Account): Promise<void> {
