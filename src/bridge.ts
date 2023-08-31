@@ -26,7 +26,7 @@ const CHAINS: Record<string, string[]> = {
   statemine: ['wss://statemine.api.onfinality.io/public-ws'],
   statemint: ['wss://statemint.api.onfinality.io/public-ws'],
   tinkernet: ['wss://invarch-tinkernet.api.onfinality.io/public-ws'],
-  robonomics: ['wss://robonomics.api.onfinality.io/public-ws'],
+  robonomics: ['wss://kusama.rpc.robonomics.network/'],
   interlay: ['wss://interlay.api.onfinality.io/public-ws'],
   zeitgeist: ['wss://zeitgeist.api.onfinality.io/public-ws'],
   astar: ['wss://rpc.astar.network'],
