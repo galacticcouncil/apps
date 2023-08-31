@@ -1,12 +1,9 @@
-import { PolkadotRegistry } from '@galacticcouncil/sdk';
-
-const registry = new PolkadotRegistry();
-const chains = registry.getChains();
+import { chains } from '@galacticcouncil/xcm';
 
 export function getChainId(paraId: number) {
-  const chain = chains.find((chain) => chain.paraID === paraId);
+  const chain = chains.find((chain) => chain.parachainId === paraId);
   if (chain) {
-    return chain.id;
+    return chain.key;
   }
   return null;
 }
