@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
-import { Account, accountCursor } from '../db';
+import { Account, Ecosystem, accountCursor } from '../db';
 import { DatabaseController } from '../db.ctrl';
 import { ThemeController } from '../theme.ctrl';
 
@@ -29,6 +29,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.basilisk.cloud"
+        ecosystem=${Ecosystem.Kusama}
         pools=${PoolType.XYK}
         stableCoinAssetId="14"
         accountAddress=${this.account.state?.address}
@@ -44,6 +45,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://basilisk-rococo-rpc.play.hydration.cloud"
+        ecosystem=${Ecosystem.Kusama}
         pools=${PoolType.XYK}
         stableCoinAssetId="19"
         accountAddress=${this.account.state?.address}
@@ -81,7 +83,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
-        pools=${PoolType.Omni}
+        pools=${[PoolType.Omni, PoolType.LBP].join(',')}
         stableCoinAssetId="2"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
@@ -95,7 +97,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
 
   render() {
     if (this.theme.state == 'hdx') {
-      return this.hdxTemplate();
+      return this.hdxTemplateRococo();
     } else {
       return this.bsxTemplate();
     }

@@ -57,9 +57,9 @@ export class TradeApi {
     this._router = router;
   }
 
-  async getSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string): Promise<TradeInfo> {
+  async getSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string, slippage: string): Promise<TradeInfo> {
     const bestSell = await this._router.getBestSell(assetIn.id, assetOut.id, amountIn);
-    const minAmountOut = getTradeMinAmountOut(bestSell, tradeSettingsCursor.deref().slippage);
+    const minAmountOut = getTradeMinAmountOut(bestSell, slippage);
     const minAmountOutHuman = formatAmount(minAmountOut.amount, minAmountOut.decimals);
     const transaction = bestSell.toTx(minAmountOut.amount);
 
@@ -70,9 +70,9 @@ export class TradeApi {
     } as TradeInfo;
   }
 
-  async getBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string): Promise<TradeInfo> {
+  async getBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string, slippage: string): Promise<TradeInfo> {
     const bestBuy = await this._router.getBestBuy(assetIn.id, assetOut.id, amountOut);
-    const maxAmountIn = getTradeMaxAmountIn(bestBuy, tradeSettingsCursor.deref().slippage);
+    const maxAmountIn = getTradeMaxAmountIn(bestBuy, slippage);
     const maxAmountInHuman = formatAmount(maxAmountIn.amount, maxAmountIn.decimals);
     const transaction = bestBuy.toTx(maxAmountIn.amount);
 

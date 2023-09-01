@@ -1,7 +1,9 @@
 import { chains } from '@galacticcouncil/xcm';
+import { Ecosystem } from '@moonbeam-network/xcm-types';
 
-export function getChainId(paraId: number) {
-  const chain = chains.find((chain) => chain.parachainId === paraId);
+export function getChainKey(paraId: number, ecosystem: Ecosystem) {
+  const chainEcosystem = ecosystem ?? Ecosystem.Polkadot;
+  const chain = chains.find((chain) => chain.parachainId === paraId && chain.ecosystem === chainEcosystem);
   if (chain) {
     return chain.key;
   }

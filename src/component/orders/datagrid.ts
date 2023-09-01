@@ -8,7 +8,7 @@ import { Datagrid } from '../datagrid';
 import { Account, Chain, accountCursor, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { formatAmount, humanizeAmount } from '../../utils/amount';
-import { getChainId } from '../../utils/chain';
+import { getChainKey } from '../../utils/chain';
 import { getRenderString } from '../../utils/dom';
 
 import { Transaction } from '@galacticcouncil/sdk';
@@ -110,7 +110,8 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   }
 
   private assetTemplate(symbol: string, origin: number) {
-    const assetOrigin = getChainId(origin);
+    const chain = this.chain.state;
+    const assetOrigin = getChainKey(origin, chain?.ecosystem);
     if (origin) {
       return html` <uigc-asset-id symbol=${symbol} chain=${assetOrigin}></uigc-asset-id>`;
     } else {

@@ -4,7 +4,7 @@ import { AssetApi } from '../../api/asset';
 import { PaymentApi } from '../../api/payment';
 import { TimeApi } from '../../api/time';
 import { createApi } from '../../chain';
-import { Account, Chain, chainCursor } from '../../db';
+import { Account, Chain, Ecosystem, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { multipleAmounts } from '../../utils/amount';
 
@@ -48,6 +48,7 @@ export abstract class PoolApp extends BaseApp {
   @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) pools: string = null;
   @property({ type: String }) stableCoinAssetId: string = null;
+  @property({ type: String }) ecosystem: Ecosystem = null;
 
   protected abstract onInit(): void;
   protected abstract onBlockChange(blockNumber: number): void;
@@ -63,6 +64,7 @@ export abstract class PoolApp extends BaseApp {
       const pools = this.pools ? this.pools.split(',') : [];
       createApi(
         this.apiAddress,
+        this.ecosystem,
         pools as PoolType[],
         () => this._init(),
         () => {}

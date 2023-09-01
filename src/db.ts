@@ -31,8 +31,15 @@ export interface DcaConfig {
   slippage: string;
 }
 
+export enum Ecosystem {
+  Kusama = 'kusama',
+  Polkadot = 'polkadot',
+  Testnet = 'testnet',
+}
+
 export interface Chain {
   api: ApiPromise;
+  ecosystem: Ecosystem;
   router: TradeRouter;
 }
 

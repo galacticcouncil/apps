@@ -250,6 +250,6 @@ export const formStyles = css`
   }
 
   .info .text_error {
-    color: #ff6868;
+    color: var(--uigc-field__error-color);
   }
 `;

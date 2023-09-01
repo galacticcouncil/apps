@@ -10,7 +10,8 @@ import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
-import { Account, tradeSettingsCursor } from '../../db';
+import { Account, TradeConfig, tradeSettingsCursor } from '../../db';
+import { DatabaseController } from '../../db.ctrl';
 import { TradeInfo, TradeTwap, TWAP_BLOCK_PERIOD, TWAP_RETRIES, TradeApi } from '../../api/trade';
 import { formatAmount, humanizeAmount, MIN_NATIVE_AMOUNT, toBn } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
@@ -44,6 +45,7 @@ import { AssetSelector } from '../selector/types';
 
 @customElement('gc-trade-app')
 export class TradeApp extends PoolApp {
+  protected settings = new DatabaseController<TradeConfig>(this, tradeSettingsCursor);
   private tx: Transaction = null;
 
   private tradeApi: TradeApi = null;
@@ -124,8 +126,9 @@ export class TradeApp extends PoolApp {
   }
 
   private async safeSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string): Promise<TradeInfo> {
+    const { slippage } = this.settings.state;
     try {
-      return await this.tradeApi.getSell(assetIn, assetOut, amountIn);
+      return await this.tradeApi.getSell(assetIn, assetOut, amountIn, slippage);
     } catch (error) {
       console.error(error);
       this.resetTrade();
@@ -190,8 +193,9 @@ export class TradeApp extends PoolApp {
   }
 
   private async safeBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string): Promise<TradeInfo> {
+    const { slippage } = this.settings.state;
     try {
-      return await this.tradeApi.getBuy(assetIn, assetOut, amountOut);
+      return await this.tradeApi.getBuy(assetIn, assetOut, amountOut, slippage);
     } catch (error) {
       console.error(error);
       this.resetTrade();
@@ -747,13 +751,14 @@ export class TradeApp extends PoolApp {
 
   async dca() {
     const account = this.account.state;
+    const { slippage } = this.settings.state;
+
     if (account) {
       const { assetIn } = this.trade;
       const { twap } = this.tradeTwap;
       const assetInMeta = this.assets.meta.get(assetIn.id);
       const totalBudget: BigNumber = toBn(twap.budget.toString(), assetInMeta.decimals);
 
-      const { slippage } = tradeSettingsCursor.deref();
       const { api } = this.chain.state;
       const tx: SubmittableExtrinsic = api.tx.dca.schedule(
         {

@@ -7,15 +7,19 @@ import { map } from 'lit/directives/map.js';
 import { baseStyles } from '../styles/base.css';
 import { selectorStyles } from '../styles/selector.css';
 
+import { Chain, chainCursor } from '../../db';
+import { DatabaseController } from '../../db.ctrl';
 import { formatAmount, humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
-import { getChainId } from '../../utils/chain';
+import { getChainKey } from '../../utils/chain';
 
 import { Amount, AssetDetail, PoolAsset } from '@galacticcouncil/sdk';
 import { AssetSelector } from './types';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
+  private chain = new DatabaseController<Chain>(this, chainCursor);
+
   @property({ attribute: false }) assets: PoolAsset[] = [];
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
@@ -29,6 +33,12 @@ export class SelectAsset extends LitElement {
   @property({ type: String }) query = '';
 
   static styles = [baseStyles, selectorStyles];
+
+  private getAssetOrigin(asset: PoolAsset) {
+    const chain = this.chain.state;
+    const originLocation = this.locations.get(asset?.id);
+    return getChainKey(originLocation, chain?.ecosystem);
+  }
 
   updateSearch(searchDetail: any) {
     this.query = searchDetail.value;
@@ -117,14 +127,14 @@ export class SelectAsset extends LitElement {
         this.assets.length > 0,
         () => html` <uigc-asset-list>
           ${map(this.filterAssets(this.query), ({ asset, balance, balanceUsd }) => {
-            const originLocation = this.locations.get(asset.id);
+            const originLocation = this.getAssetOrigin(asset);
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
                 ?selected=${this.isSelected(asset)}
                 ?disabled=${this.isDisabled(asset)}
                 .asset=${asset}
-                .origin=${getChainId(originLocation)}
+                .origin=${originLocation}
                 .desc=${this.details.get(asset.id).name}
                 .balance=${humanizeAmount(balance)}
                 .balanceUsd=${humanizeAmount(balanceUsd)}

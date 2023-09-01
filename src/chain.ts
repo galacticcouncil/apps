@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { TradeRouter, CachingPoolService, PoolType } from '@galacticcouncil/sdk';
-import { chainCursor } from './db';
+import { Ecosystem, chainCursor } from './db';
 
 async function info(api: ApiPromise): Promise<void> {
   const [systemChain, systemChainType, systemName, systemVersion] = await Promise.all([
@@ -19,6 +19,7 @@ async function initRouter(api: ApiPromise, pools: PoolType[]): Promise<TradeRout
 
 function initApi(
   api: ApiPromise,
+  ecosystem: Ecosystem,
   pools: PoolType[],
   onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void
@@ -35,6 +36,7 @@ function initApi(
           console.log('Router ready ✅');
           chainCursor.reset({
             api: api,
+            ecosystem: ecosystem,
             router: router,
           });
           onReady(api, router);
@@ -45,6 +47,7 @@ function initApi(
 
 export async function createApi(
   apiUrl: string,
+  ecosystem: Ecosystem,
   pools: PoolType[],
   onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void
@@ -54,7 +57,7 @@ export async function createApi(
     const api = new ApiPromise({
       provider: provider,
     });
-    initApi(api, pools, onReady, onError);
+    initApi(api, ecosystem, pools, onReady, onError);
   } catch (error) {
     onError(error);
   }
@@ -62,12 +65,13 @@ export async function createApi(
 
 export async function useApi(
   api: ApiPromise,
+  ecosystem: Ecosystem,
   pools: PoolType[],
   onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void
 ) {
   try {
-    initApi(api, pools, onReady, onError);
+    initApi(api, ecosystem, pools, onReady, onError);
   } catch (error) {
     onError(error);
   }

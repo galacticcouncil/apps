@@ -10,11 +10,11 @@ import { BaseElement } from '../base/BaseElement';
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
-import { Account, accountCursor } from '../../db';
+import { Account, Chain, accountCursor, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { TradeApi, TradeTwap, TradeTwapError } from '../../api/trade';
 import { humanizeAmount } from '../../utils/amount';
-import { getChainId } from '../../utils/chain';
+import { getChainKey } from '../../utils/chain';
 
 import { PoolAsset, TradeType, bnum, calculateDiffToRef } from '@galacticcouncil/sdk';
 
@@ -23,6 +23,7 @@ import { TransactionFee } from './types';
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
+  private chain = new DatabaseController<Chain>(this, chainCursor);
 
   @state() twapEnabled: boolean = false;
 
@@ -274,7 +275,7 @@ export class TradeForm extends BaseElement {
 
       .info .negative,
       .options .negative {
-        color: #ff6868;
+        color: var(--uigc-field__error-color);
       }
 
       .tooltip {
@@ -298,7 +299,6 @@ export class TradeForm extends BaseElement {
         padding: 11px 16px;
         border-radius: 4px;
         background: #333750;
-
         color: #fff;
         font-family: 'ChakraPetch';
         font-size: 11px;
@@ -425,6 +425,12 @@ export class TradeForm extends BaseElement {
     } else {
       return swapPriceBN.minus(twapPriceBN).toNumber();
     }
+  }
+
+  private getAssetOrigin(asset: PoolAsset) {
+    const chain = this.chain.state;
+    const originLocation = this.locations.get(asset?.id);
+    return getChainKey(originLocation, chain?.ecosystem);
   }
 
   onSettingsClick(e: any) {
@@ -649,7 +655,7 @@ export class TradeForm extends BaseElement {
       amountInUsd = this.twap.amountInUsd.toString();
     }
 
-    const originLocation = this.locations.get(this.assetIn?.id);
+    const assetOrigin = this.getAssetOrigin(this.assetIn);
     const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
     const error = this.error['balance'];
     return html` <uigc-asset-transfer
@@ -658,7 +664,7 @@ export class TradeForm extends BaseElement {
       ?error=${error}
       .error=${error}
       .asset=${this.assetIn?.symbol}
-      .assetOrigin=${getChainId(originLocation)}
+      .assetOrigin=${assetOrigin}
       .amount=${amountIn}
       .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {
@@ -686,13 +692,13 @@ export class TradeForm extends BaseElement {
       amountOutUsd = this.twap.amountOutUsd.toString();
     }
 
-    const originLocation = this.locations.get(this.assetOut?.id);
+    const assetOrigin = this.getAssetOrigin(this.assetOut);
     const amountUsdHuman = amountOutUsd ? humanizeAmount(amountOutUsd) : null;
     return html` <uigc-asset-transfer
       id="assetOut"
       title="${i18n.t('trade.youGet')}"
       .asset=${this.assetOut?.symbol}
-      .assetOrigin=${getChainId(originLocation)}
+      .assetOrigin=${assetOrigin}
       .amount=${amountOut}
       .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {
@@ -873,7 +879,7 @@ export class TradeForm extends BaseElement {
     const optionsClasses = {
       options: true,
       transfer: true,
-      show: this.swaps.length > 0,
+      show: this.swaps.length > 0 && this.twapAllowed,
     };
     const infoClasses = {
       info: true,

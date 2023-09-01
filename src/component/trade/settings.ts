@@ -4,7 +4,9 @@ import { customElement, state } from 'lit/decorators.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { tradeSettingsCursor, DEFAULT_TRADE_CONFIG } from '../../db';
+import { tradeSettingsCursor, DEFAULT_TRADE_CONFIG, TradeConfig } from '../../db';
+import { DatabaseController } from '../../db.ctrl';
+
 import { debounce } from 'ts-debounce';
 import IMask from 'imask';
 
@@ -12,6 +14,7 @@ const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('gc-trade-settings')
 export class TradeSettings extends LitElement {
+  protected settings = new DatabaseController<TradeConfig>(this, tradeSettingsCursor);
   private _slippageHandler = null;
   private _slippageMask = null;
 
@@ -26,7 +29,7 @@ export class TradeSettings extends LitElement {
   }
 
   private init() {
-    const { slippage } = tradeSettingsCursor.deref();
+    const { slippage } = this.settings.state;
     this.slippage = slippage;
   }
 
@@ -132,7 +135,8 @@ export class TradeSettings extends LitElement {
   ];
 
   private onChange(value: any, propName: any) {
-    const currentValue = tradeSettingsCursor.deref()[propName];
+    const settings = this.settings.state;
+    const currentValue = settings[propName];
     if (currentValue == value) {
       return;
     }

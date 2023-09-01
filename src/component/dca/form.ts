@@ -10,16 +10,17 @@ import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
 import { INTERVAL, Interval } from '../../api/time';
-import { Account, accountCursor, DcaConfig, dcaSettingsCursor } from '../../db';
+import { Account, accountCursor, Chain, chainCursor, DcaConfig, dcaSettingsCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
-import { getChainId } from '../../utils/chain';
+import { getChainKey } from '../../utils/chain';
 
 import { PoolAsset } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
+  private chain = new DatabaseController<Chain>(this, chainCursor);
   private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
 
   @state() advanced: boolean = false;
@@ -186,6 +187,12 @@ export class DcaForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('interval-block-changed', options));
   }
 
+  private getAssetOrigin(asset: PoolAsset) {
+    const chain = this.chain.state;
+    const originLocation = this.locations.get(asset?.id);
+    return getChainKey(originLocation, chain?.ecosystem);
+  }
+
   infoSummaryTemplate() {
     const int = this.intervalBlock ? this.getEstTime() : this.interval.toLowerCase();
     return html` <span class="label">${i18n.t('dca.summary')}</span>
@@ -239,7 +246,7 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetInTemplate() {
-    const originLocation = this.locations.get(this.assetIn?.id);
+    const originLocation = this.getAssetOrigin(this.assetIn);
     const error = this.error['minAmountTooLow'];
     return html` <uigc-asset-transfer
       id="assetIn"
@@ -248,7 +255,7 @@ export class DcaForm extends BaseElement {
       .error=${error}
       dense
       .asset=${this.assetIn?.symbol}
-      .assetOrigin=${getChainId(originLocation)}
+      .assetOrigin=${originLocation}
       .amount=${this.amountIn}
       .amountUsd=${this.amountInUsd}
     >
@@ -272,14 +279,14 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetOutTemplate() {
-    const originLocation = this.locations.get(this.assetOut?.id);
+    const originLocation = this.getAssetOrigin(this.assetOut);
     return html` <uigc-selector item=${this.assetOut?.symbol} title="For">
-      <uigc-asset symbol=${this.assetOut?.symbol} origin=${getChainId(originLocation)}></uigc-asset>
+      <uigc-asset symbol=${this.assetOut?.symbol} origin=${originLocation}></uigc-asset>
     </uigc-selector>`;
   }
 
   formMaxBudgetTemplate() {
-    const originLocation = this.locations.get(this.assetIn?.id);
+    const originLocation = this.getAssetOrigin(this.assetIn);
     const error = this.error['balanceTooLow'] || this.error['budgetTooLow'] || this.error['minBudgetTooLow'];
     return html` <uigc-asset-transfer
       id="assetInBudget"
@@ -288,7 +295,7 @@ export class DcaForm extends BaseElement {
       .error=${error}
       dense
       asset=${this.assetIn?.symbol}
-      assetOrigin=${getChainId(originLocation)}
+      assetOrigin=${originLocation}
       amount=${this.amountInBudget}
       .selectable=${false}
     >
