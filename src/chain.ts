@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { TradeRouter, CachingPoolService, PoolType } from '@galacticcouncil/sdk';
 import { Ecosystem, chainCursor } from './db';
+import { CachingPoolService, IPoolService } from '@galacticcouncil/sdk';
 
 async function info(api: ApiPromise): Promise<void> {
   const [systemChain, systemChainType, systemName, systemVersion] = await Promise.all([
@@ -12,18 +12,7 @@ async function info(api: ApiPromise): Promise<void> {
   console.log(`Chain: ${systemChain} (${systemChainType.toString()})`);
 }
 
-async function initRouter(api: ApiPromise, pools: PoolType[]): Promise<TradeRouter> {
-  const poolService = new CachingPoolService(api);
-  return new TradeRouter(poolService, { includeOnly: pools });
-}
-
-function initApi(
-  api: ApiPromise,
-  ecosystem: Ecosystem,
-  pools: PoolType[],
-  onReady: (api: ApiPromise, router: TradeRouter) => void,
-  onError: (error: unknown) => void
-) {
+function initApi(api: ApiPromise, ecosystem: Ecosystem, onReady: (api: ApiPromise, poolService: IPoolService) => void) {
   api
     .on('connected', () => console.log('API connected'))
     .on('disconnected', () => console.log('API disconnected'))
@@ -31,25 +20,20 @@ function initApi(
     .on('ready', () => {
       console.log('API ready ✅');
       info(api);
-      initRouter(api, pools)
-        .then((router: TradeRouter) => {
-          console.log('Router ready ✅');
-          chainCursor.reset({
-            api: api,
-            ecosystem: ecosystem,
-            router: router,
-          });
-          onReady(api, router);
-        })
-        .catch(onError);
+      const poolService = new CachingPoolService(api);
+      chainCursor.reset({
+        api: api,
+        ecosystem: ecosystem,
+        poolService: poolService,
+      });
+      onReady(api, poolService);
     });
 }
 
 export async function createApi(
   apiUrl: string,
   ecosystem: Ecosystem,
-  pools: PoolType[],
-  onReady: (api: ApiPromise, router: TradeRouter) => void,
+  onReady: (api: ApiPromise, poolService: IPoolService) => void,
   onError: (error: unknown) => void
 ) {
   try {
@@ -57,7 +41,7 @@ export async function createApi(
     const api = new ApiPromise({
       provider: provider,
     });
-    initApi(api, ecosystem, pools, onReady, onError);
+    initApi(api, ecosystem, onReady);
   } catch (error) {
     onError(error);
   }
@@ -66,12 +50,11 @@ export async function createApi(
 export async function useApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
-  pools: PoolType[],
-  onReady: (api: ApiPromise, router: TradeRouter) => void,
+  onReady: (api: ApiPromise, poolService: IPoolService) => void,
   onError: (error: unknown) => void
 ) {
   try {
-    initApi(api, ecosystem, pools, onReady, onError);
+    initApi(api, ecosystem, onReady);
   } catch (error) {
     onError(error);
   }

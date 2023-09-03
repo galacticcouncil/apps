@@ -26,4 +26,8 @@ export class BaseElement extends LitElement {
     this._humanizer = new HumanizeDuration(this._langService);
     this._dayjs = dayjs.extend(utc);
   }
+
+  parseListArgs(list: string) {
+    return list ? list.split(',') : [];
+  }
 }

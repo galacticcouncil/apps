@@ -3,11 +3,7 @@
     "target": "es2021",
     "module": "esnext",
     "moduleResolution": "node",
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable"
-    ],
+    "lib": ["esnext", "dom", "dom.iterable"],
     "declaration": true,
     "sourceMap": true,
     "inlineSources": true,
@@ -21,8 +17,6 @@
     "importHelpers": false,
     "resolveJsonModule": true
   },
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "exclude": []
 }

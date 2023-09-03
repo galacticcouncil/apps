@@ -17,6 +17,7 @@ import {
   PoolType,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
+  TradeRouter,
   bnum,
 } from '@galacticcouncil/sdk';
 
@@ -24,6 +25,8 @@ import { BaseApp } from './BaseApp';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
+  protected router: TradeRouter = null;
+
   protected disconnectSubscribeNewHeads: () => void = null;
 
   protected blockNumber: number = null;
@@ -61,11 +64,9 @@ export abstract class PoolApp extends BaseApp {
     if (this.isApiReady()) {
       this._init();
     } else {
-      const pools = this.pools ? this.pools.split(',') : [];
       createApi(
         this.apiAddress,
         this.ecosystem,
-        pools as PoolType[],
         () => this._init(),
         () => {}
       );
@@ -95,11 +96,13 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async init() {
-    const { router, api } = this.chain.state;
-    this.assetApi = new AssetApi(api, router);
-    this.paymentApi = new PaymentApi(api, router);
+    const { api, poolService } = this.chain.state;
+    const pools = this.parseListArgs(this.pools) as PoolType[];
+    this.router = new TradeRouter(poolService, { includeOnly: pools });
+    this.assetApi = new AssetApi(api, this.router);
+    this.paymentApi = new PaymentApi(api, this.router);
     this.timeApi = new TimeApi(api);
-    const assets = await router.getAllAssets();
+    const assets = await this.router.getAllAssets();
     const assetsPairs = await this.assetApi.getPairs(assets);
     const assetsDetails = await this.assetApi.getDetails(assets);
     const assetsMeta = await this.assetApi.getMetadata(assets);
@@ -120,8 +123,8 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async subscribe() {
-    const chain = this.chain.state;
-    this.disconnectSubscribeNewHeads = await chain.api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
+    const { api } = this.chain.state;
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
       const blockNumber = lastHeader.number.toNumber();
       console.log('Current block: ' + blockNumber);
       this.blockNumber = blockNumber;
