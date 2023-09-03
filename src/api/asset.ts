@@ -40,9 +40,22 @@ export class AssetApi {
 
   async getDetails(assets: PoolAsset[]): Promise<Map<string, AssetDetail>> {
     const details: [string, AssetDetail][] = await Promise.all(
-      assets.map(async (asset: PoolAsset) => [asset.id, await this._assetClient.getAssetDetail(asset.id)])
+      assets.map(async (asset: PoolAsset) => [asset.id, await this.getNormalizedDetails(asset.id)])
     );
     return pairs2Map(details);
+  }
+
+  private async getNormalizedDetails(assetId: string): Promise<AssetDetail> {
+    const details = await this._assetClient.getAssetDetail(assetId);
+    if (details.assetType === 'Bond') {
+      const bondData = await this._api.query.bonds.bonds(assetId);
+      const data = bondData.toHuman();
+      console.log(data);
+      return details;
+
+    }
+
+    return details;
   }
 
   async getBalance(address: string, assets: PoolAsset[]): Promise<Map<string, Amount>> {
