@@ -366,6 +366,7 @@ export class TradeApp extends PoolApp {
     if (this.isSwapEmpty()) {
       this.trade = {
         ...this.trade,
+        inProgress: true,
         assetIn: asset,
         balanceOut: null,
       };

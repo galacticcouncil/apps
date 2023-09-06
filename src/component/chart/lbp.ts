@@ -10,7 +10,7 @@ import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import { ChartApi } from './api';
-import { Bucket, DAY_MS, HOUR_MS } from './bucket';
+import { Bucket } from './bucket';
 import { DEFAULT_DATASET } from './data';
 import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeScale } from './opts';
 import { subscribeCrosshair } from './plugins';
@@ -35,12 +35,12 @@ const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
 const MIN_DATAPOINTS = 6;
 
-@customElement('gc-trade-chart')
-export class TradeChart extends BaseElement {
-  private chain = new DatabaseController<Chain>(this, chainCursor);
+@customElement('gc-lbp-chart')
+export class LbpChart extends BaseElement {
+  protected chain = new DatabaseController<Chain>(this, chainCursor);
 
-  private chartApi: ChartApi = null;
-  private chart: IChartApi = null;
+  protected chartApi: ChartApi = null;
+  protected chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
   private chartVolumeSeries: ISeriesApi<'Histogram'> = null;
@@ -62,7 +62,7 @@ export class TradeChart extends BaseElement {
         const chartWidth = calculateWidth(entry);
         this.chart.resize(chartWidth - 2 * 28, entry.contentRect.height - 180);
       }
-      this.fetchData();
+      this.loadData();
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
@@ -70,10 +70,12 @@ export class TradeChart extends BaseElement {
   @state() range: Range = Range['1w'];
   @state() chartState: ChartState = ChartState.Loading;
 
+  @property({ type: String }) squidUrl = null;
   @property({ type: String }) grafanaUrl = null;
   @property({ type: Number }) grafanaDsn = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
+  @property({ type: String }) poolId: string = null;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) spotPrice = null;
@@ -137,7 +139,7 @@ export class TradeChart extends BaseElement {
     return tradeDataCursor.deref().has(this.dataKey());
   }
 
-  private fetchData() {
+  private loadData() {
     if (this.hasRecord()) {
       const cachedData = tradeDataCursor.deref().get(this.dataKey());
       this.syncChart(cachedData);
@@ -151,12 +153,9 @@ export class TradeChart extends BaseElement {
       return;
     }
 
-    const endOfDay = this._dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
     this.chartState = ChartState.Loading;
-    this.chartApi.getTradeData(
-      inputAsset.symbol,
-      outputAsset.symbol,
-      endOfDay,
+    this.chartApi.getLbpData(
+      this.poolId,
       (data: TradeData) => {
         const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
         tradeDataCursor.deref().set(dataKey, data);
@@ -172,18 +171,14 @@ export class TradeChart extends BaseElement {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
     const priceBucket = new Bucket(data.price).withRange(rangeFrom);
-    // const priceBucket = new Bucket(data.price).withRange(rangeFrom).aggregate(HOUR_MS, Bucket.maxAggregator, true);
-    // const volumeBucket = new Bucket(data.volume).withRange(rangeFrom).aggregate(HOUR_MS, Bucket.sumAggregator, false);
 
     priceBucket.push(lastPrice);
-    // volumeBucket.push({ time: lastPrice.time, value: 0 }); // pair with last price (Unknown volume)
 
     if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
       this.chartPriceSeries.setData(priceBucket.data);
-      // this.chartVolumeSeries.setData(volumeBucket.data);
       this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
     }
 
@@ -246,7 +241,7 @@ export class TradeChart extends BaseElement {
   }
 
   override async firstUpdated() {
-    this.chartApi = new ChartApi(null, this.grafanaUrl, this.grafanaDsn);
+    this.chartApi = new ChartApi(this.squidUrl, this.grafanaUrl, this.grafanaDsn);
     this.chartContainer = this.shadowRoot.getElementById('chart');
     this.chart = createChart(this.chartContainer, {
       layout: layoutOptions,
@@ -305,7 +300,7 @@ export class TradeChart extends BaseElement {
   async subscribe() {
     const api = chainCursor.deref().api;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      this.fetchData();
+      this.loadData();
     });
   }
 
@@ -318,7 +313,7 @@ export class TradeChart extends BaseElement {
 
   override update(changedProperties: Map<string, unknown>) {
     if (this.chart && changedProperties.has('spotPrice')) {
-      this.fetchData();
+      this.loadData();
     }
     super.update(changedProperties);
   }
@@ -373,7 +368,7 @@ export class TradeChart extends BaseElement {
       @range-button-clicked=${(e: CustomEvent) => {
         this.range = Range[e.detail.value];
         this.requestUpdate();
-        this.fetchData();
+        this.loadData();
       }}
     >
       ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}

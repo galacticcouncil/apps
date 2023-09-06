@@ -75,6 +75,7 @@ export class BondsScreen extends LitElement implements BeforeEnterObserver {
   hdxTemplateRococo() {
     return html`
       <gc-bonds-app
+        chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
@@ -83,8 +84,8 @@ export class BondsScreen extends LitElement implements BeforeEnterObserver {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
-        grafanaDsn="11"
+        indexerUrl="https://hydradx-rococo-explorer.play.hydration.cloud/graphql"
+        squidUrl="https://squid.subsquid.io/hydradx-rococo-data-squid/v/v1/graphql"
       ></gc-bonds-app>
     `;
   }
