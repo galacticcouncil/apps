@@ -16,6 +16,7 @@ export abstract class BaseApp extends BaseElement {
   @property({ type: String }) indexerUrl: string = null;
   @property({ type: String }) grafanaUrl: string = null;
   @property({ type: Number }) grafanaDsn: number = null;
+  @property({ type: String }) squidUrl: string = null;
 
   constructor() {
     super();
