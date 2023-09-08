@@ -279,8 +279,13 @@ export class TradeOrders extends BaseApp {
     this.ordersApi = new DcaOrdersApi(api, this.indexerUrl, this.grafanaUrl, this.grafanaDsn);
     this.timeApi = new TimeApi(api);
     const assets = await router.getAllAssets();
-    this.meta = await this.assetApi.getMetadata(assets);
-    this.locations = await this.assetApi.getLocations(assets);
+    const [assetsMeta, assetsLocations] = await Promise.all([
+      this.assetApi.getMetadata(assets),
+      this.assetApi.getLocations(assets),
+    ]);
+
+    this.meta = assetsMeta;
+    this.locations = assetsLocations;
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });

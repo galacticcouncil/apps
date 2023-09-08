@@ -547,7 +547,6 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     return html` <gc-trade-orders
       class="orders"
-      .meta=${this.assets.meta}
       .pools=${this.pools}
       .indexerUrl=${this.indexerUrl}
       .grafanaUrl=${this.grafanaUrl}

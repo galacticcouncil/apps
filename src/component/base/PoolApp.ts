@@ -103,10 +103,12 @@ export abstract class PoolApp extends BaseApp {
     this.paymentApi = new PaymentApi(api, this.router);
     this.timeApi = new TimeApi(api);
     const assets = await this.router.getAllAssets();
-    const assetsPairs = await this.assetApi.getPairs(assets);
-    const assetsDetails = await this.assetApi.getDetails(assets);
-    const assetsMeta = await this.assetApi.getMetadata(assets);
-    const assetsLocations = await this.assetApi.getLocations(assets);
+    const [assetsPairs, assetsDetails, assetsMeta, assetsLocations] = await Promise.all([
+      this.assetApi.getPairs(assets),
+      this.assetApi.getDetails(assets),
+      this.assetApi.getMetadata(assets),
+      this.assetApi.getLocations(assets),
+    ]);
 
     this.assets = {
       ...this.assets,
