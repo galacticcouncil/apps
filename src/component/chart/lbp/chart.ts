@@ -2,33 +2,53 @@ import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
+import {
+  createChart,
+  IChartApi,
+  ISeriesApi,
+  UTCTimestamp,
+  SingleValueData,
+} from 'lightweight-charts';
 
-import { baseStyles } from '../styles/base.css';
-import { Chain, chainCursor, TradeData, tradeDataCursor } from '../../db';
-import { DatabaseController } from '../../db.ctrl';
-import { humanizeAmount, multipleAmounts } from '../../utils/amount';
+import { baseStyles } from '../../styles/base.css';
+import { TimeApi } from '../../../api/time';
+import { Chain, TradeData, chainCursor, tradeDataCursor } from '../../../db';
+import { DatabaseController } from '../../../db.ctrl';
+import { humanizeAmount, multipleAmounts } from '../../../utils/amount';
 
-import { ChartApi } from './api';
-import { Bucket } from './bucket';
-import { DEFAULT_DATASET } from './data';
-import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeScale } from './opts';
-import { subscribeCrosshair } from './plugins';
-import { INIT_DATE } from './query';
-import { calculateWidth } from './utils';
-import { ChartState, Range } from './types';
+import { LbpChartApi } from './api';
+import { Bucket } from '../bucket';
+import { DEFAULT_DATASET } from '../data';
+import {
+  crosshair,
+  grid,
+  layoutOptions,
+  leftPriceScale,
+  rightPriceScale,
+  timeScale,
+} from '../opts';
+import { subscribeCrosshair } from '../plugins';
+import { INIT_DATE } from '../query';
+import { calculateWidth } from '../utils';
+import { ChartState, Range } from '../types';
 
-import { chartStyles } from './chart.css';
+import { chartStyles } from '../chart.css';
 
-import './range/ButtonGroup';
-import './range/Button';
-import './states/error';
-import './states/empty';
-import './states/loading';
+import '../range/ButtonGroup';
+import '../range/Button';
+import '../states/error';
+import '../states/empty';
+import '../states/loading';
 
-import { Amount, AssetDetail, PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import {
+  Amount,
+  AssetDetail,
+  AssetMetadata,
+  PoolAsset,
+  TradeType,
+} from '@galacticcouncil/sdk';
 
-import { BaseElement } from '../base/BaseElement';
+import { BaseElement } from '../../base/BaseElement';
 
 const CHART_HEIGHT = 345;
 const CHART_TIME_SCALE_HEIGHT = 26;
@@ -39,7 +59,9 @@ const MIN_DATAPOINTS = 6;
 export class LbpChart extends BaseElement {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
 
-  protected chartApi: ChartApi = null;
+  protected chartApi: LbpChartApi = null;
+  protected timeApi: TimeApi = null;
+
   protected chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
@@ -71,8 +93,6 @@ export class LbpChart extends BaseElement {
   @state() chartState: ChartState = ChartState.Loading;
 
   @property({ type: String }) squidUrl = null;
-  @property({ type: String }) grafanaUrl = null;
-  @property({ type: Number }) grafanaDsn = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ type: String }) poolId: string = null;
@@ -80,7 +100,12 @@ export class LbpChart extends BaseElement {
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) spotPrice = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
-  @property({ attribute: false }) details: Map<string, AssetDetail> = new Map([]);
+  @property({ attribute: false }) details: Map<string, AssetDetail> = new Map(
+    [],
+  );
+  @property({ attribute: false }) meta: Map<string, AssetMetadata> = new Map(
+    [],
+  );
 
   static styles = [
     baseStyles,
@@ -104,7 +129,8 @@ export class LbpChart extends BaseElement {
       return null;
     }
 
-    const spotPriceAsset = this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
+    const spotPriceAsset =
+      this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
     const usdPrice = this.usdPrice.get(spotPriceAsset.id);
 
     if (usdPrice == null) {
@@ -139,53 +165,91 @@ export class LbpChart extends BaseElement {
     return tradeDataCursor.deref().has(this.dataKey());
   }
 
-  private loadData() {
+  private async loadData() {
     if (this.hasRecord()) {
       const cachedData = tradeDataCursor.deref().get(this.dataKey());
       this.syncChart(cachedData);
       return;
     }
 
-    const inputAsset = this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
-    const outputAsset = this.tradeType == TradeType.Buy ? this.assetOut : this.assetIn;
+    const inputAsset =
+      this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
+    const outputAsset =
+      this.tradeType == TradeType.Buy ? this.assetOut : this.assetIn;
 
     if (!inputAsset?.symbol || !outputAsset?.symbol) {
       return;
     }
 
     this.chartState = ChartState.Loading;
-    this.chartApi.getLbpData(
-      this.poolId,
-      (data: TradeData) => {
-        const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
-        tradeDataCursor.deref().set(dataKey, data);
-        this.syncChart(data);
+    const pool = await this.chartApi.getPoolData(this.poolId);
+    const [fromBlock, toBlock] = await Promise.all([
+      this.chartApi.getFirstBlock(this.poolId, pool.startBlockNumber),
+      this.chartApi.getLastBlock(this.poolId, pool.endBlockNumber),
+    ]);
+
+    const assetInMeta = this.meta.get(this.assetIn.id);
+    const assetOutMeta = this.meta.get(this.assetOut.id);
+
+    const relayBlockTime = await this.timeApi.getBlockTimestamp();
+    const relayBlockHeight = await this.timeApi.getRelayBlockHeight();
+
+    this.chartApi.getPoolPrices(
+      pool,
+      this.tradeType,
+      this.assetIn,
+      assetInMeta,
+      assetOutMeta,
+      fromBlock,
+      toBlock,
+      (data: [number, number][]) => {
+        const primaryDataset = data.map(([relayHeight, price]) => {
+          const time = this.timeApi.blockToTime(relayHeight, {
+            height: relayBlockHeight,
+            date: relayBlockTime,
+          });
+          return { time: time, value: price } as SingleValueData;
+        });
+
+        const dataKey = this.createDataKey(
+          inputAsset.symbol,
+          outputAsset.symbol,
+        );
+        const dataSets = { primary: primaryDataset, secondary: [] };
+        tradeDataCursor.deref().set(dataKey, dataSets);
+        this.syncChart(dataSets);
       },
       (_err) => {
         this.chartState = ChartState.Error;
-      }
+      },
     );
   }
 
   private syncChart(data: TradeData) {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
-    const priceBucket = new Bucket(data.price).withRange(rangeFrom);
+    const priceBucket = new Bucket(data.primary);
 
-    priceBucket.push(lastPrice);
+    //priceBucket.push(lastPrice);
+
+    console.log(priceBucket);
 
     if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
       this.chartPriceSeries.setData(priceBucket.data);
-      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
+      this.chart
+        .timeScale()
+        .setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
     }
 
     const max = priceBucket.max();
     const min = priceBucket.min();
     const avg = priceBucket.avg();
-    this.chartPriceSeries.applyOptions({ baseValue: { type: 'price', price: min } });
+    this.chartPriceSeries.applyOptions({
+      baseValue: { type: 'price', price: min },
+    });
 
     this.syncPriceScale(max, min, avg);
     this.chartState = ChartState.Loaded;
@@ -241,7 +305,6 @@ export class LbpChart extends BaseElement {
   }
 
   override async firstUpdated() {
-    this.chartApi = new ChartApi(this.squidUrl, this.grafanaUrl, this.grafanaDsn);
     this.chartContainer = this.shadowRoot.getElementById('chart');
     this.chart = createChart(this.chartContainer, {
       layout: layoutOptions,
@@ -268,7 +331,9 @@ export class LbpChart extends BaseElement {
     });
     const min = new Bucket(DEFAULT_DATASET).min();
     this.chartPriceSeries.setData(DEFAULT_DATASET);
-    this.chartPriceSeries.applyOptions({ baseValue: { type: 'price', price: min } });
+    this.chartPriceSeries.applyOptions({
+      baseValue: { type: 'price', price: min },
+    });
     this.chart.timeScale().fitContent();
 
     this.chartVolumeSeries = this.chart.addHistogramSeries({
@@ -292,21 +357,36 @@ export class LbpChart extends BaseElement {
     const actual = this.shadowRoot.getElementById('actual');
     const floating = this.shadowRoot.getElementById('floating');
 
-    subscribeCrosshair(this.chart, this.chartContainer, this.chartPriceSeries, selected, actual, floating, (price) =>
-      this.calculateDollarPrice(price)
+    subscribeCrosshair(
+      this.chart,
+      this.chartContainer,
+      this.chartPriceSeries,
+      selected,
+      actual,
+      floating,
+      (price) => this.calculateDollarPrice(price),
     );
+  }
+
+  async init() {
+    const { api } = this.chain.state;
+    this.chartApi = new LbpChartApi(api, this.squidUrl);
+    this.timeApi = new TimeApi(api);
   }
 
   async subscribe() {
     const api = chainCursor.deref().api;
-    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      this.loadData();
-    });
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
+      async (lastHeader) => {
+        this.loadData();
+      },
+    );
   }
 
   override async updated() {
     if (this.chain.state && !this.ready) {
       this.ready = true;
+      this.init();
       this.subscribe();
     }
   }
@@ -331,11 +411,25 @@ export class LbpChart extends BaseElement {
 
   pairTemplate() {
     if (this.assetIn || this.assetOut) {
-      const inputAsset = this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol;
-      const outputAsset = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
-      return html`<div class="pair">${inputAsset ?? '-'} / ${outputAsset ?? '-'}</div>`;
+      const inputAsset =
+        this.tradeType == TradeType.Sell
+          ? this.assetIn?.symbol
+          : this.assetOut?.symbol;
+      const outputAsset =
+        this.tradeType == TradeType.Sell
+          ? this.assetOut?.symbol
+          : this.assetIn?.symbol;
+      return html`<div class="pair">
+        ${inputAsset ?? '-'} / ${outputAsset ?? '-'}
+      </div>`;
     } else {
-      return html`<uigc-skeleton class="skeleton" progress rectangle width="150px" height="24px"></uigc-skeleton>`;
+      return html`<uigc-skeleton
+        class="skeleton"
+        progress
+        rectangle
+        width="150px"
+        height="24px"
+      ></uigc-skeleton>`;
     }
   }
 
@@ -349,13 +443,24 @@ export class LbpChart extends BaseElement {
       return;
     }
 
-    const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
+    const spotUsd = this.spotPrice
+      ? this.calculateDollarPrice(this.spotPrice)
+      : null;
     if (this.tradeProgress || !this.spotPrice) {
-      return html`<uigc-skeleton progress rectangle width="150px" height="24px"></uigc-skeleton>`;
+      return html`<uigc-skeleton
+        progress
+        rectangle
+        width="150px"
+        height="24px"
+      ></uigc-skeleton>`;
     } else {
       return html`<div class="price">
           ${humanizeAmount(this.spotPrice)}
-          <span class="asset"> ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span>
+          <span class="asset">
+            ${this.tradeType == TradeType.Sell
+              ? this.assetOut?.symbol
+              : this.assetIn?.symbol}</span
+          >
         </div>
         <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>`;
     }
@@ -371,7 +476,10 @@ export class LbpChart extends BaseElement {
         this.loadData();
       }}
     >
-      ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}
+      ${Object.values(Range).map(
+        (s: string) =>
+          html` <uigc-range-button value=${s}>${s}</uigc-range-button> `,
+      )}
     </uigc-range-button-group>`;
   }
 
@@ -400,18 +508,23 @@ export class LbpChart extends BaseElement {
       show: this.chartState == ChartState.Loading && this.hasPoolPair(),
     };
     return html`<div id="backdrop" class="backdrop">
-      ${this.priceScaleTemplate('maxTag', 'maxLine')} ${this.priceScaleTemplate('avgTag', 'avgLine')}
+      ${this.priceScaleTemplate('maxTag', 'maxLine')}
+      ${this.priceScaleTemplate('avgTag', 'avgLine')}
       ${this.priceScaleTemplate('minTag', 'minLine')}
       <gc-chart-empty class=${classMap(chartEmptyClasses)}></gc-chart-empty>
       <gc-chart-error class=${classMap(chartErrorClasses)}></gc-chart-error>
-      <uigc-busy-indicator class=${classMap(chartLoadingClasses)}></uigc-busy-indicator>
+      <uigc-busy-indicator
+        class=${classMap(chartLoadingClasses)}
+      ></uigc-busy-indicator>
     </div>`;
   }
 
   render() {
     const chartClasses = {
       chart: true,
-      loading: this.chartState != ChartState.Loaded || tradeDataCursor.deref().length == 0,
+      loading:
+        this.chartState != ChartState.Loaded ||
+        tradeDataCursor.deref().length == 0,
     };
     return html`
       <slot name="header"></slot>
