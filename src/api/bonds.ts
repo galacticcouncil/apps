@@ -15,13 +15,16 @@ export class BondsApi {
     return bondKeys.map(({ args: [id] }) => id.toString());
   }
 
-  async getTradeableBonds(): Promise<Map<string, string>> {
+  async getPools(): Promise<Map<string, PoolBase>> {
     const pools = await this._router.getPools();
     return pools
       .filter((pool: PoolBase) => pool.type == PoolType.LBP)
-      .reduce((map, { tokens: [accAsset, distAsset] }: PoolBase) => {
-        map[distAsset.id] = accAsset.id;
+      .reduce((map, pool: PoolBase) => {
+        const {
+          tokens: [_accAsset, distAsset],
+        } = pool;
+        map[distAsset.id] = pool;
         return map;
-      }, {} as Map<string, string>);
+      }, {} as Map<string, PoolBase>);
   }
 }

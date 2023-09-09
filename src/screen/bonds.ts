@@ -84,8 +84,7 @@ export class BondsScreen extends LitElement implements BeforeEnterObserver {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        indexerUrl="https://hydradx-rococo-explorer.play.hydration.cloud/graphql"
-        squidUrl="https://squid.subsquid.io/hydradx-rococo-data-squid/v/v1/graphql"
+        squidUrl="https://hydra-rococo-data-squid.play.hydration.cloud/graphql"
       ></gc-bonds-app>
     `;
   }

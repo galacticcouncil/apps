@@ -1,26 +1,22 @@
-import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
-import { classMap } from 'lit/directives/class-map.js';
-
-import * as i18n from 'i18next';
 
 import './form';
 import './settings';
-import '../chart/lbp';
+import '../chart';
 import '../selector/asset';
 
 import { LbpApp } from './lbp';
 import { BondsApi } from '../../api/bonds';
-import { TradeTab } from './types';
+import { PoolBase } from '@galacticcouncil/sdk';
 
 @customElement('gc-bonds-app')
 export class BondsApp extends LbpApp {
   private bondsApi: BondsApi = null;
 
   @state() bonds = {
+    poolId: undefined,
     list: [] as string[],
-    tradeable: new Map<string, string>([]),
+    pools: new Map<string, PoolBase>([]),
   };
 
   constructor() {
@@ -34,17 +30,18 @@ export class BondsApp extends LbpApp {
     const { api } = this.chain.state;
     this.bondsApi = new BondsApi(api, this.router);
     this.bonds.list = await this.bondsApi.getBonds();
-    this.bonds.tradeable = await this.bondsApi.getTradeableBonds();
+    this.bonds.pools = await this.bondsApi.getPools();
     super.onInit();
   }
 
   protected async initAssets() {
-    if (!this.assetIn && !this.assetOut && this.bonds.list.length > 0) {
-      this.bonds.list.forEach((distAssetId: string) => {
-        const accuAssetId = this.bonds.tradeable[distAssetId];
-        if (accuAssetId) {
-          this.updateAsset(accuAssetId, 'assetIn');
-          this.updateAsset(distAssetId, 'assetOut');
+    if (!this.assetIn && !this.assetOut) {
+      this.bonds.list.forEach((bondId: string) => {
+        const bondPool: PoolBase = this.bonds.pools[bondId];
+        if (bondPool) {
+          const [accumulated, distributed] = bondPool.tokens;
+          this.updateAsset(accumulated.id, 'assetIn');
+          this.updateAsset(distributed.id, 'assetOut');
         }
       });
     } else {
@@ -52,38 +49,4 @@ export class BondsApp extends LbpApp {
       this.updateAsset(this.assetOut, 'assetOut');
     }
   }
-
-  // tradeChartTab() {
-  //   const classes = {
-  //     tab: true,
-  //     chart: true,
-  //     active: this.tab == TradeTab.TradeChart,
-  //   };
-  //   return html` <uigc-paper class=${classMap(classes)}>
-  //     ${when(
-  //       this.chart,
-  //       () => html`
-  //         <gc-lbp-chart
-  //           .squidUrl=${this.squidUrl}
-  //           .tradeType=${this.trade.type}
-  //           .tradeProgress=${this.trade.inProgress}
-  //           .poolId=${'7KQy2tEsyJijQHdt2Fqfej9opKjs5MsFMiCK8sUVYfsXQtB8'}
-  //           .assetIn=${this.trade.assetIn}
-  //           .assetOut=${this.trade.assetOut}
-  //           .spotPrice=${this.trade.spotPrice}
-  //           .usdPrice=${this.assets.usdPrice}
-  //           .details=${this.assets.details}
-  //         >
-  //           <div class="header section" slot="header">
-  //             <uigc-icon-button class="back" @click=${() => this.changeTab(TradeTab.TradeForm)}>
-  //               <uigc-icon-back></uigc-icon-back>
-  //             </uigc-icon-button>
-  //             <uigc-typography variant="section">${i18n.t('chart.title')}</uigc-typography>
-  //             <span></span>
-  //           </div>
-  //         </gc-lbp-chart>
-  //       `
-  //     )}
-  //   </uigc-paper>`;
-  // }
 }
