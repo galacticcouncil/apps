@@ -19,8 +19,8 @@ export const DEFAULT_DCA_CONFIG: DcaConfig = {
 };
 
 export type TradeData = {
-  price: SingleValueData[];
-  volume: SingleValueData[];
+  primary: SingleValueData[];
+  secondary: SingleValueData[];
 };
 
 export interface TradeConfig {

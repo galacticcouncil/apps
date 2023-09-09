@@ -1,36 +1,4 @@
-import { gql, request } from 'graphql-request';
-
 export const INIT_DATE = '2023-01-06T13:00:00.000Z';
-
-const QUERY_LBP_PRICE = gql`
-  query ($id: String!) {
-    historicalPoolPriceData(where: { pool: { id_eq: $id } }, orderBy: relayChainBlockHeight_DESC, limit: 100) {
-      id
-      assetABalance
-      assetBBalance
-      relayChainBlockHeight
-      paraChainBlockHeight
-    }
-  }
-`;
-
-interface LbpPrice {
-  historicalPoolPriceData: Array<{
-    id: string;
-    assetABalance: string;
-    assetBBalance: string;
-    relayChainBlockHeight: number;
-    paraChainBlockHeight: number;
-  }>;
-}
-
-export async function queryLbpPrice(squidUrl: string, poolId: string) {
-  console.log(squidUrl);
-  console.log(poolId);
-  return await request<LbpPrice>(squidUrl, QUERY_LBP_PRICE, {
-    id: poolId,
-  });
-}
 
 const priceQueryGroup = `SELECT
     $__timeGroupAlias("timestamp",'1h'),

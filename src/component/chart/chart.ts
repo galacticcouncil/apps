@@ -5,12 +5,12 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
 import { baseStyles } from '../styles/base.css';
-import { Chain, chainCursor, TradeData, tradeDataCursor } from '../../db';
+import { Chain, TradeData, chainCursor, tradeDataCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 
 import { ChartApi } from './api';
-import { Bucket, DAY_MS, HOUR_MS } from './bucket';
+import { Bucket } from './bucket';
 import { DEFAULT_DATASET } from './data';
 import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeScale } from './opts';
 import { subscribeCrosshair } from './plugins';
@@ -171,19 +171,14 @@ export class TradeChart extends BaseElement {
   private syncChart(data: TradeData) {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom();
-    const priceBucket = new Bucket(data.price).withRange(rangeFrom);
-    // const priceBucket = new Bucket(data.price).withRange(rangeFrom).aggregate(HOUR_MS, Bucket.maxAggregator, true);
-    // const volumeBucket = new Bucket(data.volume).withRange(rangeFrom).aggregate(HOUR_MS, Bucket.sumAggregator, false);
-
+    const priceBucket = new Bucket(data.primary).withRange(rangeFrom);
     priceBucket.push(lastPrice);
-    // volumeBucket.push({ time: lastPrice.time, value: 0 }); // pair with last price (Unknown volume)
 
     if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
       this.chartPriceSeries.setData(priceBucket.data);
-      // this.chartVolumeSeries.setData(volumeBucket.data);
       this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
     }
 
@@ -246,7 +241,7 @@ export class TradeChart extends BaseElement {
   }
 
   override async firstUpdated() {
-    this.chartApi = new ChartApi(null, this.grafanaUrl, this.grafanaDsn);
+    this.chartApi = new ChartApi(this.grafanaUrl, this.grafanaDsn);
     this.chartContainer = this.shadowRoot.getElementById('chart');
     this.chart = createChart(this.chartContainer, {
       layout: layoutOptions,
