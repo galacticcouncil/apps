@@ -1,25 +1,18 @@
-import {
-  AssetMetadata,
-  LbpMath,
-  ONE,
-  PoolAsset,
-  TradeType,
-  bnum,
-  scale,
-} from '@galacticcouncil/sdk';
+import { AssetMetadata, PoolAsset, TradeType } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
 import {
+  HistoricalPrice,
   LbpPoolData,
   queryPool,
   queryPoolFirstBlock,
   queryPoolLastBlock,
   queryPoolPrice,
 } from './query';
-import { getMissingIndexes } from './utils';
+import { getBlockPrice, getMissingBlocks, getMissingIndexes } from './utils';
 import { convertToHex } from '../../../utils/account';
+import { HistoricalBalance } from './types';
 
 export class LbpChartApi {
-  private readonly MAX_FINAL_WEIGHT = scale(bnum(100), 6);
   private _api: ApiPromise;
   private _squidUrl: string;
 
@@ -55,61 +48,58 @@ export class LbpChartApi {
     assetOutMeta: AssetMetadata,
     fromBlock: number,
     toBlock: number,
-    onSuccess: (prices: [number, number][]) => void,
+    onSuccess: (balance: HistoricalBalance) => void,
     onError: (error: any) => void,
   ) {
-    const { id, startBlockNumber, endBlockNumber, initialWeight, finalWeight } =
-      pool;
-    const indexes = getMissingIndexes(fromBlock, toBlock, id);
-    queryPoolPrice(this._squidUrl, indexes).then((data) => {
-      const datapoints: [number, number][] = data.historicalPoolPriceData.map(
-        ({ pool, relayChainBlockHeight }) => {
-          const linearWeight = LbpMath.calculateLinearWeights(
-            startBlockNumber.toString(),
-            endBlockNumber.toString(),
-            initialWeight.toString(),
-            finalWeight.toString(),
-            relayChainBlockHeight.toString(),
-          );
-
-          const assetAWeight = bnum(linearWeight);
-          const assetBWeight = this.MAX_FINAL_WEIGHT.minus(bnum(assetAWeight));
-
-          const { assetAId, assetABalance, assetBBalance } = pool;
-          const accumulatedIn = assetAId.toString() === assetIn.id;
-
-          if (tradeType === TradeType.Buy) {
-            const price = LbpMath.getSpotPrice(
-              accumulatedIn ? assetBBalance : assetABalance,
-              accumulatedIn ? assetABalance : assetBBalance,
-              accumulatedIn ? assetBWeight.toString() : assetAWeight.toString(),
-              accumulatedIn ? assetAWeight.toString() : assetBWeight.toString(),
-              scale(ONE, assetOutMeta.decimals).toString(),
+    const indexes = getMissingIndexes(fromBlock, toBlock, pool.id);
+    queryPoolPrice(this._squidUrl, indexes).then(
+      ({ historicalPoolPriceData }) => {
+        const lastBlock = historicalPoolPriceData[0];
+        const datapoints: [number, number][] = historicalPoolPriceData.map(
+          (price) => {
+            return getBlockPrice(
+              assetIn,
+              assetInMeta,
+              assetOutMeta,
+              price,
+              pool,
+              tradeType,
             );
-            const priceHuman = bnum(price)
-              .shiftedBy(-1 * assetInMeta.decimals)
-              .toNumber();
-            return [relayChainBlockHeight, priceHuman];
-          } else {
-            const price = LbpMath.getSpotPrice(
-              accumulatedIn ? assetABalance : assetBBalance,
-              accumulatedIn ? assetBBalance : assetABalance,
-              accumulatedIn ? assetAWeight.toString() : assetBWeight.toString(),
-              accumulatedIn ? assetBWeight.toString() : assetAWeight.toString(),
-              scale(ONE, assetInMeta.decimals).toString(),
-            );
-            const priceHuman = bnum(price)
-              .shiftedBy(-1 * assetOutMeta.decimals)
-              .toNumber();
-            return [relayChainBlockHeight, priceHuman];
-          }
-        },
+          },
+        );
+        const historicalBalance = {
+          dataset: datapoints.reverse(),
+          lastBlock: lastBlock,
+        } as HistoricalBalance;
+        onSuccess(historicalBalance);
+      },
+    );
+  }
+
+  getPoolPredictionPrices(
+    pool: LbpPoolData,
+    tradeType: TradeType,
+    assetIn: PoolAsset,
+    assetInMeta: AssetMetadata,
+    assetOutMeta: AssetMetadata,
+    lastKnownBlock: HistoricalPrice,
+  ) {
+    return getMissingBlocks(
+      lastKnownBlock.relayChainBlockHeight,
+      pool.endBlockNumber,
+    ).map((block) => {
+      return getBlockPrice(
+        assetIn,
+        assetInMeta,
+        assetOutMeta,
+        { ...lastKnownBlock, relayChainBlockHeight: block },
+        pool,
+        tradeType,
       );
-      onSuccess(datapoints.reverse());
     });
   }
 
-  async getFirstBlock(poolId: string, blockHeight: number) {
+  async getFirstBlock(poolId: string, blockHeight: number): Promise<number> {
     const account32 = convertToHex(poolId);
     const res = await queryPoolFirstBlock(
       this._squidUrl,
@@ -119,7 +109,7 @@ export class LbpChartApi {
     return res.historicalPoolPriceData[0].paraChainBlockHeight;
   }
 
-  async getLastBlock(poolId: string, blockHeight: number) {
+  async getLastBlock(poolId: string, blockHeight: number): Promise<number> {
     const account32 = convertToHex(poolId);
     const res = await queryPoolLastBlock(
       this._squidUrl,

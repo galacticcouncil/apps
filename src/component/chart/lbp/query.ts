@@ -1,40 +1,18 @@
 import { gql, request } from 'graphql-request';
 
-const QUERY_LBP_PRICE = gql`
-  query ($id: String!) {
-    historicalPoolPriceData(
-      where: { pool: { id_eq: $id } }
-      orderBy: relayChainBlockHeight_DESC
-      limit: 50
-    ) {
-      id
-      assetABalance
-      assetBBalance
-      relayChainBlockHeight
-      paraChainBlockHeight
-    }
-  }
-`;
-
-export interface HistoricalPrices {
-  historicalPoolPriceData: Array<{
-    id: string;
-    pool: {
-      assetAId: number;
-      assetBId: number;
-      assetABalance: string;
-      assetBBalance: string;
-    };
-    paraChainBlockHeight: number;
-    relayChainBlockHeight: number;
-  }>;
+export interface HistoricalPrice {
+  pool: {
+    assetAId: number;
+    assetBId: number;
+    assetABalance: string;
+    assetBBalance: string;
+  };
+  paraChainBlockHeight: number;
+  relayChainBlockHeight: number;
 }
 
-export async function queryLbpPrice(squidUrl: string, poolId: string) {
-  console.log(poolId);
-  return await request<HistoricalPrices>(squidUrl, QUERY_LBP_PRICE, {
-    id: poolId,
-  });
+export interface HistoricalPrices {
+  historicalPoolPriceData: Array<HistoricalPrice>;
 }
 
 const QUERY_POOL_FIRST_BLOCK = gql`

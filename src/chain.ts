@@ -3,16 +3,21 @@ import { Ecosystem, chainCursor } from './db';
 import { CachingPoolService, IPoolService } from '@galacticcouncil/sdk';
 
 async function info(api: ApiPromise): Promise<void> {
-  const [systemChain, systemChainType, systemName, systemVersion] = await Promise.all([
-    api.rpc.system.chain(),
-    api.rpc.system.chainType(),
-    api.rpc.system.name(),
-    api.rpc.system.version(),
-  ]);
+  const [systemChain, systemChainType, systemName, systemVersion] =
+    await Promise.all([
+      api.rpc.system.chain(),
+      api.rpc.system.chainType(),
+      api.rpc.system.name(),
+      api.rpc.system.version(),
+    ]);
   console.log(`Chain: ${systemChain} (${systemChainType.toString()})`);
 }
 
-function initApi(api: ApiPromise, ecosystem: Ecosystem, onReady: (api: ApiPromise, poolService: IPoolService) => void) {
+function initApi(
+  api: ApiPromise,
+  ecosystem: Ecosystem,
+  onReady: (api: ApiPromise, poolService: IPoolService) => void,
+) {
   api
     .on('connected', () => console.log('API connected'))
     .on('disconnected', () => console.log('API disconnected'))
@@ -34,7 +39,7 @@ export async function createApi(
   apiUrl: string,
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, poolService: IPoolService) => void,
-  onError: (error: unknown) => void
+  onError: (error: unknown) => void,
 ) {
   try {
     const provider = new WsProvider(apiUrl);
@@ -51,7 +56,7 @@ export async function useApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, poolService: IPoolService) => void,
-  onError: (error: unknown) => void
+  onError: (error: unknown) => void,
 ) {
   try {
     initApi(api, ecosystem, onReady);

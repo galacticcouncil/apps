@@ -6,7 +6,6 @@ import {
   createChart,
   IChartApi,
   ISeriesApi,
-  UTCTimestamp,
   SingleValueData,
 } from 'lightweight-charts';
 
@@ -28,7 +27,6 @@ import {
   timeScale,
 } from '../opts';
 import { subscribeCrosshair } from '../plugins';
-import { INIT_DATE } from '../query';
 import { calculateWidth } from '../utils';
 import { ChartState, Range } from '../types';
 
@@ -65,7 +63,7 @@ export class LbpChart extends BaseElement {
   protected chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
-  private chartVolumeSeries: ISeriesApi<'Histogram'> = null;
+  private chartPredictionSeries: ISeriesApi<'Baseline'> = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
@@ -194,6 +192,16 @@ export class LbpChart extends BaseElement {
     const relayBlockTime = await this.timeApi.getBlockTimestamp();
     const relayBlockHeight = await this.timeApi.getRelayBlockHeight();
 
+    const toDatapoints = (dataset: [number, number][]) => {
+      return dataset.map(([relayHeight, price]) => {
+        const time = this.timeApi.blockToTime(relayHeight, {
+          height: relayBlockHeight,
+          date: relayBlockTime,
+        });
+        return { time: time, value: price } as SingleValueData;
+      });
+    };
+
     this.chartApi.getPoolPrices(
       pool,
       this.tradeType,
@@ -202,22 +210,29 @@ export class LbpChart extends BaseElement {
       assetOutMeta,
       fromBlock,
       toBlock,
-      (data: [number, number][]) => {
-        const primaryDataset = data.map(([relayHeight, price]) => {
-          const time = this.timeApi.blockToTime(relayHeight, {
-            height: relayBlockHeight,
-            date: relayBlockTime,
-          });
-          return { time: time, value: price } as SingleValueData;
-        });
+      ({ dataset, lastBlock }) => {
+        const prediction = this.chartApi.getPoolPredictionPrices(
+          pool,
+          this.tradeType,
+          this.assetIn,
+          assetInMeta,
+          assetOutMeta,
+          lastBlock,
+        );
+
+        const primaryDataset = toDatapoints(dataset);
+        const secondaryDataset = toDatapoints(prediction);
 
         const dataKey = this.createDataKey(
           inputAsset.symbol,
           outputAsset.symbol,
         );
-        const dataSets = { primary: primaryDataset, secondary: [] };
-        tradeDataCursor.deref().set(dataKey, dataSets);
-        this.syncChart(dataSets);
+        const datasets = {
+          primary: primaryDataset,
+          secondary: secondaryDataset,
+        };
+        tradeDataCursor.deref().set(dataKey, datasets);
+        this.syncChart(datasets);
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -226,22 +241,19 @@ export class LbpChart extends BaseElement {
   }
 
   private syncChart(data: TradeData) {
-    const lastPrice = this.getLastPrice();
-    const rangeFrom = this.getRangeFrom();
     const priceBucket = new Bucket(data.primary);
-
-    //priceBucket.push(lastPrice);
-
-    console.log(priceBucket);
+    const predictionBucket = new Bucket(data.secondary);
 
     if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
       this.chartPriceSeries.setData(priceBucket.data);
-      this.chart
-        .timeScale()
-        .setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
+      this.chartPredictionSeries.setData(predictionBucket.data);
+      this.chart.timeScale().setVisibleLogicalRange({
+        from: 0.5,
+        to: priceBucket.length + predictionBucket.length - 1.5,
+      });
     }
 
     const max = priceBucket.max();
@@ -283,27 +295,6 @@ export class LbpChart extends BaseElement {
     this.syncPriceTag('avgTag', avgYCoord, avg);
   }
 
-  private getRangeFrom(): UTCTimestamp {
-    const range = this.range;
-    switch (range) {
-      case Range['1d']:
-        return this._dayjs().subtract(1, 'day').unix() as UTCTimestamp;
-      case Range['1w']:
-        return this._dayjs().subtract(1, 'week').unix() as UTCTimestamp;
-      case Range['1m']:
-        return this._dayjs().subtract(1, 'month').unix() as UTCTimestamp;
-      default:
-        return this._dayjs(INIT_DATE).unix() as UTCTimestamp;
-    }
-  }
-
-  private getLastPrice(): SingleValueData {
-    return {
-      time: this._dayjs().unix() as UTCTimestamp,
-      value: Number(this.spotPrice),
-    } as SingleValueData;
-  }
-
   override async firstUpdated() {
     this.chartContainer = this.shadowRoot.getElementById('chart');
     this.chart = createChart(this.chartContainer, {
@@ -320,8 +311,8 @@ export class LbpChart extends BaseElement {
     this.chartPriceSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
       topLineColor: '#85D1FF',
-      topFillColor1: 'rgba(79, 223, 255, 0.31)',
-      topFillColor2: 'rgba(79, 234, 255, 0',
+      topFillColor1: 'transparent',
+      topFillColor2: 'transparent',
       bottomLineColor: 'transparent',
       lastValueVisible: false,
       priceLineVisible: false,
@@ -336,21 +327,18 @@ export class LbpChart extends BaseElement {
     });
     this.chart.timeScale().fitContent();
 
-    this.chartVolumeSeries = this.chart.addHistogramSeries({
-      color: '#85D1FF',
+    this.chartPredictionSeries = this.chart.addBaselineSeries({
+      lineWidth: 2,
+      lineStyle: 2,
+      topLineColor: '#7990AC',
+      topFillColor1: 'transparent',
+      topFillColor2: 'transparent',
+      bottomLineColor: 'transparent',
       lastValueVisible: false,
       priceLineVisible: false,
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: '',
-    });
-
-    this.chartVolumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.8,
-        bottom: 0,
-      },
+      crosshairMarkerRadius: 4,
+      crosshairMarkerBorderColor: '#000',
+      crosshairMarkerBackgroundColor: '#fff',
     });
 
     const selected = this.shadowRoot.getElementById('selected');
