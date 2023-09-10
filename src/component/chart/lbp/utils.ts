@@ -12,6 +12,16 @@ import { HistoricalPrice, LbpPoolData } from './query';
 const KEEP_RECORD = 50;
 const MAX_FINAL_WEIGHT = scale(bnum(100), 6);
 
+export const getPoolMaturity = (pool: LbpPoolData, price: HistoricalPrice) => {
+  const { relayChainBlockHeight } = price;
+  const { startBlockNumber, endBlockNumber } = pool;
+
+  return (
+    (relayChainBlockHeight - startBlockNumber) /
+    (endBlockNumber - startBlockNumber)
+  );
+};
+
 export const getBlockPrice = (
   assetIn: PoolAsset,
   assetInMeta: AssetMetadata,
@@ -71,13 +81,15 @@ export const getMissingIndexes = (
   startBlock: number,
   endBlock: number,
   poolId: string,
+  poolMaturity: number,
 ): string[] => {
+  const keepRecord = Math.round(poolMaturity * KEEP_RECORD);
   const missingIndexes = [];
   const missingBlocksAmount = endBlock - startBlock;
   const divisionMultiplier =
-    missingBlocksAmount < KEEP_RECORD
+    missingBlocksAmount < keepRecord
       ? 1
-      : Math.floor(missingBlocksAmount / KEEP_RECORD);
+      : Math.floor(missingBlocksAmount / keepRecord);
 
   for (let i = startBlock; i < endBlock; i++) {
     if (
@@ -95,12 +107,14 @@ export const getMissingIndexes = (
 export const getMissingBlocks = (
   startBlock: number,
   endBlock: number,
+  poolMaturity: number,
 ): number[] => {
+  const keepRecord = Math.round(poolMaturity * KEEP_RECORD);
   const missingBlocksAmount = endBlock - startBlock;
   const divisionMultiplier =
-    missingBlocksAmount < KEEP_RECORD
+    missingBlocksAmount < keepRecord
       ? 1
-      : Math.floor(missingBlocksAmount / KEEP_RECORD);
+      : Math.floor(missingBlocksAmount / keepRecord);
 
   const missingBlocks: number[] = [];
 

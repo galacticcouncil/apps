@@ -33,7 +33,7 @@ export const rightPriceScale = {
   visible: false,
 } as PriceScaleOptions;
 
-export const timeScale = (range: Range, dayjs: any) => {
+export const timeScale = (dayjs: any) => {
   return {
     visible: true,
     fixLeftEdge: true,
@@ -42,7 +42,11 @@ export const timeScale = (range: Range, dayjs: any) => {
     borderColor: 'rgba(114, 131, 165, 0.6)',
     timeVisible: true,
     secondsVisible: false,
-    tickMarkFormatter: (time: UTCTimestamp, tickMarkType: TickMarkType, locale: string) => {
+    tickMarkFormatter: (
+      time: UTCTimestamp,
+      tickMarkType: TickMarkType,
+      locale: string,
+    ) => {
       switch (tickMarkType) {
         case 2:
           return dayjs.unix(time).utc().format('MMM D');

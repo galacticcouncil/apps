@@ -155,8 +155,8 @@ export class LbpChart extends BaseElement {
    */
   private dataKey() {
     return this.tradeType == TradeType.Buy
-      ? this.assetIn?.symbol + ':' + this.assetOut?.symbol
-      : this.assetOut?.symbol + ':' + this.assetIn?.symbol;
+      ? this.assetIn?.id + ':' + this.assetOut?.id
+      : this.assetOut?.id + ':' + this.assetIn?.id;
   }
 
   private hasRecord() {
@@ -223,10 +223,7 @@ export class LbpChart extends BaseElement {
         const primaryDataset = toDatapoints(dataset);
         const secondaryDataset = toDatapoints(prediction);
 
-        const dataKey = this.createDataKey(
-          inputAsset.symbol,
-          outputAsset.symbol,
-        );
+        const dataKey = this.createDataKey(inputAsset.id, outputAsset.id);
         const datasets = {
           primary: primaryDataset,
           secondary: secondaryDataset,
@@ -301,7 +298,7 @@ export class LbpChart extends BaseElement {
       layout: layoutOptions,
       rightPriceScale: rightPriceScale,
       leftPriceScale: leftPriceScale,
-      timeScale: timeScale(this.range, this._dayjs),
+      timeScale: timeScale(this._dayjs),
       grid: grid,
       crosshair: crosshair,
       handleScale: false,
@@ -348,7 +345,7 @@ export class LbpChart extends BaseElement {
     subscribeCrosshair(
       this.chart,
       this.chartContainer,
-      this.chartPriceSeries,
+      [this.chartPriceSeries, this.chartPredictionSeries],
       selected,
       actual,
       floating,
@@ -454,23 +451,6 @@ export class LbpChart extends BaseElement {
     }
   }
 
-  rangeTemplate() {
-    const rangeVal = Range[this.range];
-    return html`<uigc-range-button-group
-      selected=${rangeVal}
-      @range-button-clicked=${(e: CustomEvent) => {
-        this.range = Range[e.detail.value];
-        this.requestUpdate();
-        this.loadData();
-      }}
-    >
-      ${Object.values(Range).map(
-        (s: string) =>
-          html` <uigc-range-button value=${s}>${s}</uigc-range-button> `,
-      )}
-    </uigc-range-button-group>`;
-  }
-
   priceScaleTemplate(priceTagId: string, priceLineId: string) {
     const priceLineClasses = {
       'price-line': true,
@@ -518,7 +498,7 @@ export class LbpChart extends BaseElement {
       <slot name="header"></slot>
       <div class="summary">
         <div>${this.pairTemplate()}</div>
-        <div>${this.rangeTemplate()}</div>
+        <div></div>
         <div id="selected" class="tooltip skeleton"></div>
         <div id="actual" class="tooltip skeleton">${this.priceTemplate()}</div>
       </div>

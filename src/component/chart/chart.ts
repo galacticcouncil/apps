@@ -2,7 +2,13 @@ import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { createChart, IChartApi, ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
+import {
+  createChart,
+  IChartApi,
+  ISeriesApi,
+  UTCTimestamp,
+  SingleValueData,
+} from 'lightweight-charts';
 
 import { baseStyles } from '../styles/base.css';
 import { Chain, TradeData, chainCursor, tradeDataCursor } from '../../db';
@@ -12,7 +18,14 @@ import { humanizeAmount, multipleAmounts } from '../../utils/amount';
 import { ChartApi } from './api';
 import { Bucket } from './bucket';
 import { DEFAULT_DATASET } from './data';
-import { crosshair, grid, layoutOptions, leftPriceScale, rightPriceScale, timeScale } from './opts';
+import {
+  crosshair,
+  grid,
+  layoutOptions,
+  leftPriceScale,
+  rightPriceScale,
+  timeScale,
+} from './opts';
 import { subscribeCrosshair } from './plugins';
 import { INIT_DATE } from './query';
 import { calculateWidth } from './utils';
@@ -26,7 +39,12 @@ import './states/error';
 import './states/empty';
 import './states/loading';
 
-import { Amount, AssetDetail, PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import {
+  Amount,
+  AssetDetail,
+  PoolAsset,
+  TradeType,
+} from '@galacticcouncil/sdk';
 
 import { BaseElement } from '../base/BaseElement';
 
@@ -78,7 +96,9 @@ export class TradeChart extends BaseElement {
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) spotPrice = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
-  @property({ attribute: false }) details: Map<string, AssetDetail> = new Map([]);
+  @property({ attribute: false }) details: Map<string, AssetDetail> = new Map(
+    [],
+  );
 
   static styles = [
     baseStyles,
@@ -102,7 +122,8 @@ export class TradeChart extends BaseElement {
       return null;
     }
 
-    const spotPriceAsset = this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
+    const spotPriceAsset =
+      this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
     const usdPrice = this.usdPrice.get(spotPriceAsset.id);
 
     if (usdPrice == null) {
@@ -129,8 +150,8 @@ export class TradeChart extends BaseElement {
    */
   private dataKey() {
     return this.tradeType == TradeType.Buy
-      ? this.assetIn?.symbol + ':' + this.assetOut?.symbol
-      : this.assetOut?.symbol + ':' + this.assetIn?.symbol;
+      ? this.assetIn?.id + ':' + this.assetOut?.id
+      : this.assetOut?.id + ':' + this.assetIn?.id;
   }
 
   private hasRecord() {
@@ -144,8 +165,10 @@ export class TradeChart extends BaseElement {
       return;
     }
 
-    const inputAsset = this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
-    const outputAsset = this.tradeType == TradeType.Buy ? this.assetOut : this.assetIn;
+    const inputAsset =
+      this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
+    const outputAsset =
+      this.tradeType == TradeType.Buy ? this.assetOut : this.assetIn;
 
     if (!inputAsset?.symbol || !outputAsset?.symbol) {
       return;
@@ -158,13 +181,13 @@ export class TradeChart extends BaseElement {
       outputAsset.symbol,
       endOfDay,
       (data: TradeData) => {
-        const dataKey = this.createDataKey(inputAsset.symbol, outputAsset.symbol);
+        const dataKey = this.createDataKey(inputAsset.id, outputAsset.id);
         tradeDataCursor.deref().set(dataKey, data);
         this.syncChart(data);
       },
       (_err) => {
         this.chartState = ChartState.Error;
-      }
+      },
     );
   }
 
@@ -179,13 +202,17 @@ export class TradeChart extends BaseElement {
       return;
     } else {
       this.chartPriceSeries.setData(priceBucket.data);
-      this.chart.timeScale().setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
+      this.chart
+        .timeScale()
+        .setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
     }
 
     const max = priceBucket.max();
     const min = priceBucket.min();
     const avg = priceBucket.avg();
-    this.chartPriceSeries.applyOptions({ baseValue: { type: 'price', price: min } });
+    this.chartPriceSeries.applyOptions({
+      baseValue: { type: 'price', price: min },
+    });
 
     this.syncPriceScale(max, min, avg);
     this.chartState = ChartState.Loaded;
@@ -247,7 +274,7 @@ export class TradeChart extends BaseElement {
       layout: layoutOptions,
       rightPriceScale: rightPriceScale,
       leftPriceScale: leftPriceScale,
-      timeScale: timeScale(this.range, this._dayjs),
+      timeScale: timeScale(this._dayjs),
       grid: grid,
       crosshair: crosshair,
       handleScale: false,
@@ -268,7 +295,9 @@ export class TradeChart extends BaseElement {
     });
     const min = new Bucket(DEFAULT_DATASET).min();
     this.chartPriceSeries.setData(DEFAULT_DATASET);
-    this.chartPriceSeries.applyOptions({ baseValue: { type: 'price', price: min } });
+    this.chartPriceSeries.applyOptions({
+      baseValue: { type: 'price', price: min },
+    });
     this.chart.timeScale().fitContent();
 
     this.chartVolumeSeries = this.chart.addHistogramSeries({
@@ -292,16 +321,24 @@ export class TradeChart extends BaseElement {
     const actual = this.shadowRoot.getElementById('actual');
     const floating = this.shadowRoot.getElementById('floating');
 
-    subscribeCrosshair(this.chart, this.chartContainer, this.chartPriceSeries, selected, actual, floating, (price) =>
-      this.calculateDollarPrice(price)
+    subscribeCrosshair(
+      this.chart,
+      this.chartContainer,
+      [this.chartPriceSeries],
+      selected,
+      actual,
+      floating,
+      (price) => this.calculateDollarPrice(price),
     );
   }
 
   async subscribe() {
     const api = chainCursor.deref().api;
-    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      this.fetchData();
-    });
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
+      async (lastHeader) => {
+        this.fetchData();
+      },
+    );
   }
 
   override async updated() {
@@ -331,11 +368,25 @@ export class TradeChart extends BaseElement {
 
   pairTemplate() {
     if (this.assetIn || this.assetOut) {
-      const inputAsset = this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol;
-      const outputAsset = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
-      return html`<div class="pair">${inputAsset ?? '-'} / ${outputAsset ?? '-'}</div>`;
+      const inputAsset =
+        this.tradeType == TradeType.Sell
+          ? this.assetIn?.symbol
+          : this.assetOut?.symbol;
+      const outputAsset =
+        this.tradeType == TradeType.Sell
+          ? this.assetOut?.symbol
+          : this.assetIn?.symbol;
+      return html`<div class="pair">
+        ${inputAsset ?? '-'} / ${outputAsset ?? '-'}
+      </div>`;
     } else {
-      return html`<uigc-skeleton class="skeleton" progress rectangle width="150px" height="24px"></uigc-skeleton>`;
+      return html`<uigc-skeleton
+        class="skeleton"
+        progress
+        rectangle
+        width="150px"
+        height="24px"
+      ></uigc-skeleton>`;
     }
   }
 
@@ -349,13 +400,24 @@ export class TradeChart extends BaseElement {
       return;
     }
 
-    const spotUsd = this.spotPrice ? this.calculateDollarPrice(this.spotPrice) : null;
+    const spotUsd = this.spotPrice
+      ? this.calculateDollarPrice(this.spotPrice)
+      : null;
     if (this.tradeProgress || !this.spotPrice) {
-      return html`<uigc-skeleton progress rectangle width="150px" height="24px"></uigc-skeleton>`;
+      return html`<uigc-skeleton
+        progress
+        rectangle
+        width="150px"
+        height="24px"
+      ></uigc-skeleton>`;
     } else {
       return html`<div class="price">
           ${humanizeAmount(this.spotPrice)}
-          <span class="asset"> ${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}</span>
+          <span class="asset">
+            ${this.tradeType == TradeType.Sell
+              ? this.assetOut?.symbol
+              : this.assetIn?.symbol}</span
+          >
         </div>
         <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>`;
     }
@@ -371,7 +433,10 @@ export class TradeChart extends BaseElement {
         this.fetchData();
       }}
     >
-      ${Object.values(Range).map((s: string) => html` <uigc-range-button value=${s}>${s}</uigc-range-button> `)}
+      ${Object.values(Range).map(
+        (s: string) =>
+          html` <uigc-range-button value=${s}>${s}</uigc-range-button> `,
+      )}
     </uigc-range-button-group>`;
   }
 
@@ -400,18 +465,23 @@ export class TradeChart extends BaseElement {
       show: this.chartState == ChartState.Loading && this.hasPoolPair(),
     };
     return html`<div id="backdrop" class="backdrop">
-      ${this.priceScaleTemplate('maxTag', 'maxLine')} ${this.priceScaleTemplate('avgTag', 'avgLine')}
+      ${this.priceScaleTemplate('maxTag', 'maxLine')}
+      ${this.priceScaleTemplate('avgTag', 'avgLine')}
       ${this.priceScaleTemplate('minTag', 'minLine')}
       <gc-chart-empty class=${classMap(chartEmptyClasses)}></gc-chart-empty>
       <gc-chart-error class=${classMap(chartErrorClasses)}></gc-chart-error>
-      <uigc-busy-indicator class=${classMap(chartLoadingClasses)}></uigc-busy-indicator>
+      <uigc-busy-indicator
+        class=${classMap(chartLoadingClasses)}
+      ></uigc-busy-indicator>
     </div>`;
   }
 
   render() {
     const chartClasses = {
       chart: true,
-      loading: this.chartState != ChartState.Loaded || tradeDataCursor.deref().length == 0,
+      loading:
+        this.chartState != ChartState.Loaded ||
+        tradeDataCursor.deref().length == 0,
     };
     return html`
       <slot name="header"></slot>

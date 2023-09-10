@@ -8,7 +8,12 @@ import {
   queryPoolLastBlock,
   queryPoolPrice,
 } from './query';
-import { getBlockPrice, getMissingBlocks, getMissingIndexes } from './utils';
+import {
+  getBlockPrice,
+  getMissingBlocks,
+  getMissingIndexes,
+  getPoolMaturity,
+} from './utils';
 import { convertToHex } from '../../../utils/account';
 import { HistoricalBalance } from './types';
 
@@ -46,12 +51,18 @@ export class LbpChartApi {
     assetIn: PoolAsset,
     assetInMeta: AssetMetadata,
     assetOutMeta: AssetMetadata,
-    fromBlock: number,
-    toBlock: number,
+    fromBlock: HistoricalPrice,
+    toBlock: HistoricalPrice,
     onSuccess: (balance: HistoricalBalance) => void,
     onError: (error: any) => void,
   ) {
-    const indexes = getMissingIndexes(fromBlock, toBlock, pool.id);
+    const maturity = getPoolMaturity(pool, toBlock);
+    const indexes = getMissingIndexes(
+      fromBlock.paraChainBlockHeight,
+      toBlock.paraChainBlockHeight,
+      pool.id,
+      maturity,
+    );
     queryPoolPrice(this._squidUrl, indexes).then(
       ({ historicalPoolPriceData }) => {
         const lastBlock = historicalPoolPriceData[0];
@@ -84,9 +95,11 @@ export class LbpChartApi {
     assetOutMeta: AssetMetadata,
     lastKnownBlock: HistoricalPrice,
   ) {
+    const maturity = 1 - getPoolMaturity(pool, lastKnownBlock);
     return getMissingBlocks(
       lastKnownBlock.relayChainBlockHeight,
       pool.endBlockNumber,
+      maturity,
     ).map((block) => {
       return getBlockPrice(
         assetIn,
@@ -99,23 +112,29 @@ export class LbpChartApi {
     });
   }
 
-  async getFirstBlock(poolId: string, blockHeight: number): Promise<number> {
+  async getFirstBlock(
+    poolId: string,
+    blockHeight: number,
+  ): Promise<HistoricalPrice> {
     const account32 = convertToHex(poolId);
     const res = await queryPoolFirstBlock(
       this._squidUrl,
       account32,
       blockHeight,
-    );
-    return res.historicalPoolPriceData[0].paraChainBlockHeight;
+    ).then();
+    return res.historicalPoolPriceData[0];
   }
 
-  async getLastBlock(poolId: string, blockHeight: number): Promise<number> {
+  async getLastBlock(
+    poolId: string,
+    blockHeight: number,
+  ): Promise<HistoricalPrice> {
     const account32 = convertToHex(poolId);
     const res = await queryPoolLastBlock(
       this._squidUrl,
       account32,
       blockHeight,
     );
-    return res.historicalPoolPriceData[0].paraChainBlockHeight;
+    return res.historicalPoolPriceData[0];
   }
 }
