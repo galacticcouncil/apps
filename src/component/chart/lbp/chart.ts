@@ -48,7 +48,7 @@ import {
 
 import { BaseElement } from '../../base/BaseElement';
 
-const CHART_HEIGHT = 345;
+const CHART_HEIGHT = 325;
 const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
 const MIN_DATAPOINTS = 6;
@@ -255,12 +255,12 @@ export class LbpChart extends BaseElement {
 
     const max = priceBucket.max();
     const min = priceBucket.min();
-    const avg = priceBucket.avg();
+    const mid = (max - min) / 2;
     this.chartPriceSeries.applyOptions({
       baseValue: { type: 'price', price: min },
     });
 
-    this.syncPriceScale(max, min, avg);
+    this.syncPriceScale(max, min, mid);
     this.chartState = ChartState.Loaded;
   }
 
@@ -281,15 +281,15 @@ export class LbpChart extends BaseElement {
 
     const maxYCoord = canvasHeight - canvasHeight * CHART_PADDING_RATIO - 1;
     const minYCoord = canvasHeight * CHART_PADDING_RATIO - 1;
-    const avgYCoord = (minYCoord - maxYCoord) / 2 + maxYCoord;
+    const midYCoord = (minYCoord - maxYCoord) / 2 + maxYCoord;
 
     this.syncPriceLine('maxLine', maxYCoord);
     this.syncPriceLine('minLine', minYCoord);
-    this.syncPriceLine('avgLine', avgYCoord);
+    this.syncPriceLine('midLine', midYCoord);
 
     this.syncPriceTag('maxTag', maxYCoord, max);
     this.syncPriceTag('minTag', minYCoord, min);
-    this.syncPriceTag('avgTag', avgYCoord, avg);
+    this.syncPriceTag('midTag', midYCoord, avg);
   }
 
   override async firstUpdated() {
@@ -436,7 +436,7 @@ export class LbpChart extends BaseElement {
         progress
         rectangle
         width="150px"
-        height="24px"
+        height="18px"
       ></uigc-skeleton>`;
     } else {
       return html`<div class="price">
@@ -477,7 +477,7 @@ export class LbpChart extends BaseElement {
     };
     return html`<div id="backdrop" class="backdrop">
       ${this.priceScaleTemplate('maxTag', 'maxLine')}
-      ${this.priceScaleTemplate('avgTag', 'avgLine')}
+      ${this.priceScaleTemplate('midTag', 'midLine')}
       ${this.priceScaleTemplate('minTag', 'minLine')}
       <gc-chart-empty class=${classMap(chartEmptyClasses)}></gc-chart-empty>
       <gc-chart-error class=${classMap(chartErrorClasses)}></gc-chart-error>

@@ -39,7 +39,6 @@ export const chartStyles = css`
     padding: 0 14px;
     display: flex;
     flex-direction: column;
-    margin-top: 8px;
   }
 
   @media (max-width: 480px) {
@@ -72,7 +71,7 @@ export const chartStyles = css`
     font-family: 'ChakraPetch';
     font-style: normal;
     font-weight: 700;
-    font-size: 18px;
+    font-size: 24px;
     line-height: 100%;
   }
 
@@ -115,7 +114,6 @@ export const chartStyles = css`
   .tooltip-floating {
     width: 96px;
     padding: 5px 0;
-    //background-color: #000524;
     position: absolute;
     top: 12px;
     left: 12px;
@@ -138,16 +136,6 @@ export const chartStyles = css`
     font-weight: 600;
     color: #ecedef;
     line-height: 130%;
-  }
-
-  @media (min-width: 1024px) {
-    .summary .pair {
-      font-size: 19px;
-    }
-
-    .tooltip .price {
-      font-size: 24px;
-    }
   }
 
   .skeleton {
@@ -208,7 +196,7 @@ export const chartStyles = css`
   .price-tag {
     display: none;
     position: absolute;
-    left: 0;
+    right: 0;
     font-family: 'SatoshiVariable';
     font-style: normal;
     font-weight: 500;

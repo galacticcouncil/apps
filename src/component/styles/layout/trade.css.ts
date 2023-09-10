@@ -95,9 +95,12 @@ export const tradeLayoutStyles = css`
     :host([chart]) uigc-paper.chart {
       display: block;
       grid-area: chart;
-      background: transparent;
       box-shadow: none;
       height: 456px !important;
+      padding: 0px 30px;
+      background: rgba(6, 9, 23, 0.4);
+      border-radius: 8px;
+      border: 1px solid rgba(152, 176, 214, 0.27);
     }
 
     :host([chart]) uigc-paper.chart:before {
