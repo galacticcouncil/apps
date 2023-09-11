@@ -27,8 +27,8 @@ export class SelectAsset extends LitElement {
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
-  @property({ type: String }) assetIn = null;
-  @property({ type: String }) assetOut = null;
+  @property({ type: Object }) assetIn: PoolAsset = null;
+  @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: Boolean }) switchAllowed = true;
   @property({ type: String }) query = '';
 
@@ -78,17 +78,23 @@ export class SelectAsset extends LitElement {
   }
 
   isDisabled(asset: PoolAsset): boolean {
+    const asAssetInAllowed = isAssetInAllowed(this.assets, this.pairs, asset.id);
+    const asAssetOutAllowed = isAssetOutAllowed(this.assets, this.pairs, asset.id);
+
     if (this.selector?.id == 'assetIn') {
-      return this.switchAllowed ? !isAssetInAllowed(this.assets, this.pairs, asset.id) : this.assetOut == asset.symbol;
+      return this.switchAllowed ? !asAssetInAllowed : this.assetOut.symbol == asset.symbol;
     } else if (this.selector?.id == 'assetOut') {
-      return !isAssetOutAllowed(this.assets, this.pairs, asset.id);
+      return !asAssetOutAllowed;
     } else {
       return false;
     }
   }
 
   isSelected(asset: PoolAsset): boolean {
-    return this.selector?.asset == asset.symbol;
+    if (this.selector) {
+      return this[this.selector.id].id === asset.id;
+    }
+    return false;
   }
 
   getSlot(asset: PoolAsset): string {

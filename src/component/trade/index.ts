@@ -877,8 +877,8 @@ export class TradeApp extends PoolApp {
         .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
-        .assetIn=${this.trade.assetIn?.symbol}
-        .assetOut=${this.trade.assetOut?.symbol}
+        .assetIn=${this.trade.assetIn}
+        .assetOut=${this.trade.assetOut}
         .switchAllowed=${this.isSwitchEnabled()}
         .selector=${this.asset.selector}
         @asset-clicked=${(e: CustomEvent) => {

@@ -65,10 +65,10 @@
     "short-uuid": "^4.2.0"
   },
   "peerDependencies": {
-    "@galacticcouncil/bridge": "0.0.8",
-    "@galacticcouncil/sdk": "0.6.1",
+    "@galacticcouncil/bridge": "0.0.9",
+    "@galacticcouncil/sdk": "0.6.4",
     "@galacticcouncil/xcm": "0.0.1",
-    "@galacticcouncil/ui": "^1.2.22",
+    "@galacticcouncil/ui": "^1.2.25",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
     "@vaadin/router": "^1.7.4",

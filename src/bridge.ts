@@ -62,7 +62,20 @@ const ADAPTERS: Record<string, BaseCrossChainAdapter> = {
 };
 
 const BASILISK_SUPPORTED_TOKENS = ['KSM', 'BSX', 'aUSD', 'XRT', 'TNKR', 'USDT'];
-const HYDRADX_SUPPORTED_TOKENS = ['DOT', 'HDX', 'DAI', 'WETH', 'WBTC', 'IBTC', 'USDT', 'ZTG', 'ASTR', 'CFG', 'BNC'];
+const HYDRADX_SUPPORTED_TOKENS = [
+  'DOT',
+  'HDX',
+  'DAI',
+  'WETH',
+  'WBTC',
+  'IBTC',
+  'USDT',
+  'ZTG',
+  'ASTR',
+  'CFG',
+  'BNC',
+  'vDOT',
+];
 
 export function getSupportedTokens() {
   try {
