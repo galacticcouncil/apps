@@ -210,7 +210,6 @@ export class TradeChart extends BaseElement {
     const max = priceBucket.max();
     const min = priceBucket.min();
     const mid = (max - min) / 2;
-    console.log(mid);
 
     this.chartPriceSeries.applyOptions({
       baseValue: { type: 'price', price: min },

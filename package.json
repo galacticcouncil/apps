@@ -68,7 +68,7 @@
     "@galacticcouncil/bridge": "0.0.8",
     "@galacticcouncil/sdk": "0.6.4",
     "@galacticcouncil/xcm": "0.0.1",
-    "@galacticcouncil/ui": "^1.2.24",
+    "@galacticcouncil/ui": "^1.2.25",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
     "@vaadin/router": "^1.7.4",
