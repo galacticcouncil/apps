@@ -982,6 +982,23 @@ export class TradeApp extends PoolApp {
     }
   }
 
+  protected updateQuery() {
+    const assetIn = this.trade.assetIn?.id;
+    const assetOut = this.trade.assetOut?.id;
+    if (this.shouldUpdateQuery) {
+      updateQueryParams({
+        assetIn: assetIn,
+        assetOut: assetOut,
+      });
+    }
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { assetIn: assetIn, assetOut: assetOut },
+    };
+    this.dispatchEvent(new CustomEvent('gc:query:update', options));
+  }
+
   protected updateAsset(asset: string, assetKey: string) {
     if (asset) {
       this.trade[assetKey] = this.assets.map.get(asset);
@@ -1093,11 +1110,7 @@ export class TradeApp extends PoolApp {
           id == 'assetOut' && this.changeAssetOut(asset, e.detail);
           this.updateBalances();
           this.validatePool();
-          this.shouldUpdateQuery &&
-            updateQueryParams({
-              assetIn: this.trade.assetIn?.id,
-              assetOut: this.trade.assetOut?.id,
-            });
+          this.updateQuery();
           this.changeTab(TradeTab.TradeForm);
         }}
       >
@@ -1176,11 +1189,7 @@ export class TradeApp extends PoolApp {
         @asset-switch-clicked=${() => {
           this.switch();
           this.validatePool();
-          this.shouldUpdateQuery &&
-            updateQueryParams({
-              assetIn: this.trade.assetIn?.id,
-              assetOut: this.trade.assetOut?.id,
-            });
+          this.updateQuery();
         }}
         @swap-clicked=${() => this.swap()}
         @twap-clicked=${() => this.dca()}
