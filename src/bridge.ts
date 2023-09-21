@@ -70,6 +70,7 @@ const HYDRADX_SUPPORTED_TOKENS = [
   'WBTC',
   'IBTC',
   'USDT',
+  'USDC',
   'ZTG',
   'ASTR',
   'CFG',
