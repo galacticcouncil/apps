@@ -132,6 +132,10 @@ export const formStyles = css`
     width: 100%;
   }
 
+  .info .row.route {
+    height: 24px;
+  }
+
   .info .summary {
     display: none;
     flex-direction: column;

@@ -1,7 +1,7 @@
 import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
 
+import { buildPriceQuery } from './query';
 import { TradeData } from '../../db';
-import { buildPriceQuery, buildVolumeQuery } from './query';
 
 export class ChartApi {
   private _grafanaUrl: string;
@@ -16,7 +16,7 @@ export class ChartApi {
     assetIn: string,
     assetOut: string,
     endOfDay: string,
-    onSuccess: (data: TradeData) => void,
+    onSuccess: (price: TradeData) => void,
     onError: (error: any) => void
   ) {
     fetch(this._grafanaUrl, {
@@ -33,12 +33,6 @@ export class ChartApi {
             format: 'table',
             datasourceId: Number(this._grafanaDsn),
           },
-          /* {
-            refId: 'volume',
-            rawSql: buildVolumeQuery(assetIn, assetOut, endOfDay),
-            format: 'table',
-            datasourceId: Number(this._grafanaDsn),
-          }, */
         ],
       }),
     })
@@ -46,9 +40,7 @@ export class ChartApi {
       .then((data) => {
         const rawPrice = data.results.price.frames[0].data.values;
         const formattedPrice = this.formatData(rawPrice);
-        // const rawVolume = data.results.volume?.frames[0].data.values;
-        // const formattedVolume = formatData(rawVolume);
-        onSuccess({ price: formattedPrice, volume: null });
+        onSuccess({ primary: formattedPrice, secondary: [] });
       })
       .catch(function (res) {
         console.error(res.message);

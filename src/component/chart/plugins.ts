@@ -1,5 +1,11 @@
 import { humanizeAmount } from '../../utils/amount';
-import { IChartApi, ISeriesApi, LineData, UTCTimestamp } from 'lightweight-charts';
+import {
+  IChartApi,
+  ISeriesApi,
+  LineData,
+  SingleValueData,
+  UTCTimestamp,
+} from 'lightweight-charts';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -9,11 +15,11 @@ dayjs.extend(utc);
 export function subscribeCrosshair(
   chart: IChartApi,
   chartContainer: HTMLElement,
-  series: ISeriesApi<'Baseline'>,
+  series: ISeriesApi<any>[],
   selected: HTMLElement,
   actual: HTMLElement,
   floating: HTMLElement,
-  onPriceSelection: (price: string) => string
+  onPriceSelection: (price: string) => string,
 ): void {
   chart.subscribeCrosshairMove(function (param) {
     if (
@@ -29,7 +35,11 @@ export function subscribeCrosshair(
       actual.style.display = 'flex';
     } else {
       const asset = actual.getElementsByClassName('asset');
-      const price = param.seriesData.get(series) as LineData;
+      const prices: SingleValueData[] = series.map((serie) => {
+        return param.seriesData.get(serie) as SingleValueData;
+      });
+      const price: SingleValueData = prices.find((price) => !!price);
+
       if (asset.length == 0 || !price) {
         selected.style.display = 'none';
         floating.style.display = 'none';
@@ -43,8 +53,12 @@ export function subscribeCrosshair(
 
       const usdPrice = onPriceSelection(price.value.toString());
       const assetText = asset[0].textContent;
-      const priceHtml = `<div class="price">` + humanizeAmount(price.value.toString()) + ` ${assetText}</div>`;
-      const usdHtml = `<div class="usd"><span>` + `≈$${usdPrice}` + `</span></div>`;
+      const priceHtml =
+        `<div class="price">` +
+        humanizeAmount(price.value.toString()) +
+        ` ${assetText}</div>`;
+      const usdHtml =
+        `<div class="usd"><span>` + `≈$${usdPrice}` + `</span></div>`;
       selected.innerHTML = usdPrice ? priceHtml + usdHtml : priceHtml;
 
       const date = dayjs
@@ -57,7 +71,8 @@ export function subscribeCrosshair(
         .format('HH:mm');
       let left: any = param.point.x;
 
-      floating.innerHTML = `<div>` + date + `</div>` + `<div class="time">` + time + `</div>`;
+      floating.innerHTML =
+        `<div>` + date + `</div>` + `<div class="time">` + time + `</div>`;
 
       const toolTipWidth = 96;
       const priceScaleWidth = 50;

@@ -86,9 +86,7 @@ export class DcaApp extends PoolApp {
       return;
     }
 
-    const router = this.chain.state.router;
-
-    const price: Amount = await router.getBestSpotPrice(assetIn.id, assetOut.id);
+    const price: Amount = await this.router.getBestSpotPrice(assetIn.id, assetOut.id);
     const spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
 
     this.dca = {
@@ -309,7 +307,7 @@ export class DcaApp extends PoolApp {
     } as TxNotificationMssg;
   }
 
-  processTx(account: Account, transaction: Transaction) {
+  private processTx(account: Account, transaction: Transaction) {
     const notification = {
       processing: this.notificationTemplate(this.dca, 'submitted'),
       success: this.notificationTemplate(this.dca, 'scheduled'),
@@ -549,7 +547,7 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     return html` <gc-trade-orders
       class="orders"
-      .meta=${this.assets.meta}
+      .pools=${this.pools}
       .indexerUrl=${this.indexerUrl}
       .grafanaUrl=${this.grafanaUrl}
       .grafanaDsn=${this.grafanaDsn}

@@ -1,4 +1,4 @@
-import { TradeRouter } from '@galacticcouncil/sdk';
+import { IPoolService } from '@galacticcouncil/sdk';
 import { ApiProvider, Bridge } from '@galacticcouncil/bridge';
 import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
@@ -19,8 +19,8 @@ export const DEFAULT_DCA_CONFIG: DcaConfig = {
 };
 
 export type TradeData = {
-  price: SingleValueData[];
-  volume: SingleValueData[];
+  primary: SingleValueData[];
+  secondary: SingleValueData[];
 };
 
 export interface TradeConfig {
@@ -40,7 +40,7 @@ export enum Ecosystem {
 export interface Chain {
   api: ApiPromise;
   ecosystem: Ecosystem;
-  router: TradeRouter;
+  poolService: IPoolService;
 }
 
 export interface XChain {

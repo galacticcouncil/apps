@@ -1,5 +1,5 @@
 import { html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { BaseApp } from '../base/BaseApp';
 
@@ -11,7 +11,7 @@ import { DatabaseController } from '../../db.ctrl';
 import * as i18n from 'i18next';
 
 import '@galacticcouncil/ui';
-import { AssetMetadata, BigNumber, bnum } from '@galacticcouncil/sdk';
+import { AssetMetadata, BigNumber, PoolType, TradeRouter, bnum } from '@galacticcouncil/sdk';
 
 import './grid';
 import './list';
@@ -36,6 +36,8 @@ export class TradeOrders extends BaseApp {
     open: (order: DcaOrder) => !order.status,
     finished: (order: DcaOrder) => !!order.status,
   };
+
+  @property({ type: String }) pools: string = null;
 
   @state() orders = {
     list: [] as DcaOrder[],
@@ -270,13 +272,20 @@ export class TradeOrders extends BaseApp {
   }
 
   private async init() {
-    const { api, router } = this.chain.state;
+    const { api, poolService } = this.chain.state;
+    const pools = this.parseListArgs(this.pools) as PoolType[];
+    const router = new TradeRouter(poolService, { includeOnly: pools });
     this.assetApi = new AssetApi(api, router);
     this.ordersApi = new DcaOrdersApi(api, this.indexerUrl, this.grafanaUrl, this.grafanaDsn);
     this.timeApi = new TimeApi(api);
     const assets = await router.getAllAssets();
-    this.meta = await this.assetApi.getMetadata(assets);
-    this.locations = await this.assetApi.getLocations(assets);
+    const [assetsMeta, assetsLocations] = await Promise.all([
+      this.assetApi.getMetadata(assets),
+      this.assetApi.getLocations(assets),
+    ]);
+
+    this.meta = assetsMeta;
+    this.locations = assetsLocations;
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });

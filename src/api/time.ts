@@ -1,3 +1,4 @@
+import { BigNumber } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
 
 export const SECOND_MS = 1000;
@@ -20,6 +21,8 @@ export const INTERVAL_MS: Record<Interval, number> = {
 
 export type Interval = (typeof INTERVAL)[number];
 
+export const blockTimeRelaychain = 6000; // 6s
+
 export class TimeApi {
   private _api: ApiPromise;
 
@@ -27,7 +30,14 @@ export class TimeApi {
     this._api = api;
   }
 
-  async getTimestamp(blockNumber?: number): Promise<number> {
+  async getRelayBlockHeight(): Promise<number> {
+    const validationData =
+      await this._api.query.parachainSystem.validationData();
+    const { relayParentNumber } = validationData.unwrap();
+    return relayParentNumber.toNumber();
+  }
+
+  async getBlockTimestamp(blockNumber?: number): Promise<number> {
     if (blockNumber != null) {
       const blockHash = await this._api.rpc.chain.getBlockHash(blockNumber);
       const apiAt = await this._api.at(blockHash);
@@ -56,8 +66,27 @@ export class TimeApi {
     return now.toNumber() + diff;
   }
 
-  toBlockPeriod(blockTime: number, msec: number): number {
-    const noOfBlocks = msec / blockTime;
+  toBlockPeriod(blockTime: number, periodMsec: number): number {
+    const noOfBlocks = periodMsec / blockTime;
     return Math.floor(noOfBlocks);
+  }
+
+  blockToTime(
+    blockHeight: number,
+    knownBlock: {
+      height: number;
+      date: number;
+    },
+  ): number {
+    const blockDiff = Math.abs(blockHeight - knownBlock.height);
+    const msSinceKnownBlock = new BigNumber(blockDiff)
+      .multipliedBy(blockTimeRelaychain)
+      .toNumber();
+    const ms = new Date(
+      blockHeight > knownBlock.height
+        ? knownBlock.date + msSinceKnownBlock
+        : knownBlock.date - msSinceKnownBlock,
+    ).getTime();
+    return Math.floor(ms / 1000);
   }
 }

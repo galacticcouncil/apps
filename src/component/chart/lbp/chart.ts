@@ -6,18 +6,18 @@ import {
   createChart,
   IChartApi,
   ISeriesApi,
-  UTCTimestamp,
   SingleValueData,
 } from 'lightweight-charts';
 
-import { baseStyles } from '../styles/base.css';
-import { Chain, TradeData, chainCursor, tradeDataCursor } from '../../db';
-import { DatabaseController } from '../../db.ctrl';
-import { humanizeAmount, multipleAmounts } from '../../utils/amount';
+import { baseStyles } from '../../styles/base.css';
+import { TimeApi } from '../../../api/time';
+import { Chain, TradeData, chainCursor, tradeDataCursor } from '../../../db';
+import { DatabaseController } from '../../../db.ctrl';
+import { humanizeAmount, multipleAmounts } from '../../../utils/amount';
 
-import { ChartApi } from './api';
-import { Bucket } from './bucket';
-import { DEFAULT_DATASET } from './data';
+import { LbpChartApi } from './api';
+import { Bucket } from '../bucket';
+import { DEFAULT_DATASET } from '../data';
 import {
   crosshair,
   grid,
@@ -25,43 +25,45 @@ import {
   leftPriceScale,
   rightPriceScale,
   timeScale,
-} from './opts';
-import { subscribeCrosshair } from './plugins';
-import { INIT_DATE } from './query';
-import { calculateWidth } from './utils';
-import { ChartState, Range } from './types';
+} from '../opts';
+import { subscribeCrosshair } from '../plugins';
+import { calculateWidth } from '../utils';
+import { ChartState, Range } from '../types';
 
-import { chartStyles } from './chart.css';
+import { chartStyles } from '../chart.css';
 
-import './range/ButtonGroup';
-import './range/Button';
-import './states/error';
-import './states/empty';
-import './states/loading';
+import '../range/ButtonGroup';
+import '../range/Button';
+import '../states/error';
+import '../states/empty';
+import '../states/loading';
 
 import {
   Amount,
   AssetDetail,
+  AssetMetadata,
   PoolAsset,
   TradeType,
 } from '@galacticcouncil/sdk';
 
-import { BaseElement } from '../base/BaseElement';
+import { BaseElement } from '../../base/BaseElement';
 
 const CHART_HEIGHT = 325;
 const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
 const MIN_DATAPOINTS = 6;
 
-@customElement('gc-trade-chart')
-export class TradeChart extends BaseElement {
-  private chain = new DatabaseController<Chain>(this, chainCursor);
+@customElement('gc-lbp-chart')
+export class LbpChart extends BaseElement {
+  protected chain = new DatabaseController<Chain>(this, chainCursor);
 
-  private chartApi: ChartApi = null;
-  private chart: IChartApi = null;
+  protected chartApi: LbpChartApi = null;
+  protected timeApi: TimeApi = null;
+
+  protected chart: IChartApi = null;
   private chartContainer: HTMLElement = null;
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
-  private chartVolumeSeries: ISeriesApi<'Histogram'> = null;
+  private chartPredictionSeries: ISeriesApi<'Baseline'> = null;
   private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
@@ -80,7 +82,7 @@ export class TradeChart extends BaseElement {
         const chartWidth = calculateWidth(entry);
         this.chart.resize(chartWidth - 2 * 28, entry.contentRect.height - 180);
       }
-      this.fetchData();
+      this.loadData();
     });
   });
   private disconnectSubscribeNewHeads: () => void = null;
@@ -88,15 +90,18 @@ export class TradeChart extends BaseElement {
   @state() range: Range = Range['1w'];
   @state() chartState: ChartState = ChartState.Loading;
 
-  @property({ type: String }) grafanaUrl = null;
-  @property({ type: Number }) grafanaDsn = null;
+  @property({ type: String }) squidUrl = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
+  @property({ type: String }) poolId: string = null;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) spotPrice = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) details: Map<string, AssetDetail> = new Map(
+    [],
+  );
+  @property({ attribute: false }) meta: Map<string, AssetMetadata> = new Map(
     [],
   );
 
@@ -158,7 +163,7 @@ export class TradeChart extends BaseElement {
     return tradeDataCursor.deref().has(this.dataKey());
   }
 
-  private fetchData() {
+  private async loadData() {
     if (this.hasRecord()) {
       const cachedData = tradeDataCursor.deref().get(this.dataKey());
       this.syncChart(cachedData);
@@ -174,16 +179,57 @@ export class TradeChart extends BaseElement {
       return;
     }
 
-    const endOfDay = this._dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
     this.chartState = ChartState.Loading;
-    this.chartApi.getTradeData(
-      inputAsset.symbol,
-      outputAsset.symbol,
-      endOfDay,
-      (data: TradeData) => {
+    const pool = await this.chartApi.getPoolData(this.poolId);
+    const [fromBlock, toBlock] = await Promise.all([
+      this.chartApi.getFirstBlock(this.poolId, pool.startBlockNumber),
+      this.chartApi.getLastBlock(this.poolId, pool.endBlockNumber),
+    ]);
+
+    const assetInMeta = this.meta.get(this.assetIn.id);
+    const assetOutMeta = this.meta.get(this.assetOut.id);
+
+    const relayBlockTime = await this.timeApi.getBlockTimestamp();
+    const relayBlockHeight = await this.timeApi.getRelayBlockHeight();
+
+    const toDatapoints = (dataset: [number, number][]) => {
+      return dataset.map(([relayHeight, price]) => {
+        const time = this.timeApi.blockToTime(relayHeight, {
+          height: relayBlockHeight,
+          date: relayBlockTime,
+        });
+        return { time: time, value: price } as SingleValueData;
+      });
+    };
+
+    this.chartApi.getPoolPrices(
+      pool,
+      this.tradeType,
+      this.assetIn,
+      assetInMeta,
+      assetOutMeta,
+      fromBlock,
+      toBlock,
+      ({ dataset, lastBlock }) => {
+        const prediction = this.chartApi.getPoolPredictionPrices(
+          pool,
+          this.tradeType,
+          this.assetIn,
+          assetInMeta,
+          assetOutMeta,
+          lastBlock,
+        );
+
+        const primaryDataset = toDatapoints(dataset);
+        const secondaryDataset = toDatapoints(prediction);
+
         const dataKey = this.createDataKey(inputAsset.id, outputAsset.id);
-        tradeDataCursor.deref().set(dataKey, data);
-        this.syncChart(data);
+        const datasets = {
+          primary: primaryDataset,
+          secondary: secondaryDataset,
+        };
+        tradeDataCursor.deref().set(dataKey, datasets);
+        this.syncChart(datasets);
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -192,25 +238,24 @@ export class TradeChart extends BaseElement {
   }
 
   private syncChart(data: TradeData) {
-    const lastPrice = this.getLastPrice();
-    const rangeFrom = this.getRangeFrom();
-    const priceBucket = new Bucket(data.primary).withRange(rangeFrom);
-    priceBucket.push(lastPrice);
+    const priceBucket = new Bucket(data.primary);
+    const predictionBucket = new Bucket(data.secondary);
 
     if (priceBucket.length <= MIN_DATAPOINTS) {
       this.chartState = ChartState.Empty;
       return;
     } else {
       this.chartPriceSeries.setData(priceBucket.data);
-      this.chart
-        .timeScale()
-        .setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
+      this.chartPredictionSeries.setData(predictionBucket.data);
+      this.chart.timeScale().setVisibleLogicalRange({
+        from: 0.5,
+        to: priceBucket.length + predictionBucket.length - 1.5,
+      });
     }
 
     const max = priceBucket.max();
     const min = priceBucket.min();
     const mid = (max - min) / 2;
-
     this.chartPriceSeries.applyOptions({
       baseValue: { type: 'price', price: min },
     });
@@ -247,29 +292,7 @@ export class TradeChart extends BaseElement {
     this.syncPriceTag('midTag', midYCoord, avg);
   }
 
-  private getRangeFrom(): UTCTimestamp {
-    const range = this.range;
-    switch (range) {
-      case Range['1d']:
-        return this._dayjs().subtract(1, 'day').unix() as UTCTimestamp;
-      case Range['1w']:
-        return this._dayjs().subtract(1, 'week').unix() as UTCTimestamp;
-      case Range['1m']:
-        return this._dayjs().subtract(1, 'month').unix() as UTCTimestamp;
-      default:
-        return this._dayjs(INIT_DATE).unix() as UTCTimestamp;
-    }
-  }
-
-  private getLastPrice(): SingleValueData {
-    return {
-      time: this._dayjs().unix() as UTCTimestamp,
-      value: Number(this.spotPrice),
-    } as SingleValueData;
-  }
-
   override async firstUpdated() {
-    this.chartApi = new ChartApi(this.grafanaUrl, this.grafanaDsn);
     this.chartContainer = this.shadowRoot.getElementById('chart');
     this.chart = createChart(this.chartContainer, {
       layout: layoutOptions,
@@ -285,8 +308,8 @@ export class TradeChart extends BaseElement {
     this.chartPriceSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
       topLineColor: '#85D1FF',
-      topFillColor1: 'rgba(79, 223, 255, 0.31)',
-      topFillColor2: 'rgba(79, 234, 255, 0',
+      topFillColor1: 'transparent',
+      topFillColor2: 'transparent',
       bottomLineColor: 'transparent',
       lastValueVisible: false,
       priceLineVisible: false,
@@ -301,21 +324,18 @@ export class TradeChart extends BaseElement {
     });
     this.chart.timeScale().fitContent();
 
-    this.chartVolumeSeries = this.chart.addHistogramSeries({
-      color: '#85D1FF',
+    this.chartPredictionSeries = this.chart.addBaselineSeries({
+      lineWidth: 2,
+      lineStyle: 2,
+      topLineColor: '#7990AC',
+      topFillColor1: 'transparent',
+      topFillColor2: 'transparent',
+      bottomLineColor: 'transparent',
       lastValueVisible: false,
       priceLineVisible: false,
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: '',
-    });
-
-    this.chartVolumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.8,
-        bottom: 0,
-      },
+      crosshairMarkerRadius: 4,
+      crosshairMarkerBorderColor: '#000',
+      crosshairMarkerBackgroundColor: '#fff',
     });
 
     const selected = this.shadowRoot.getElementById('selected');
@@ -325,7 +345,7 @@ export class TradeChart extends BaseElement {
     subscribeCrosshair(
       this.chart,
       this.chartContainer,
-      [this.chartPriceSeries],
+      [this.chartPriceSeries, this.chartPredictionSeries],
       selected,
       actual,
       floating,
@@ -333,11 +353,17 @@ export class TradeChart extends BaseElement {
     );
   }
 
+  async init() {
+    const { api } = this.chain.state;
+    this.chartApi = new LbpChartApi(api, this.squidUrl);
+    this.timeApi = new TimeApi(api);
+  }
+
   async subscribe() {
     const api = chainCursor.deref().api;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
       async (lastHeader) => {
-        this.fetchData();
+        this.loadData();
       },
     );
   }
@@ -345,13 +371,14 @@ export class TradeChart extends BaseElement {
   override async updated() {
     if (this.chain.state && !this.ready) {
       this.ready = true;
+      this.init();
       this.subscribe();
     }
   }
 
   override update(changedProperties: Map<string, unknown>) {
     if (this.chart && changedProperties.has('spotPrice')) {
-      this.fetchData();
+      this.loadData();
     }
     super.update(changedProperties);
   }
@@ -424,23 +451,6 @@ export class TradeChart extends BaseElement {
     }
   }
 
-  rangeTemplate() {
-    const rangeVal = Range[this.range];
-    return html`<uigc-range-button-group
-      selected=${rangeVal}
-      @range-button-clicked=${(e: CustomEvent) => {
-        this.range = Range[e.detail.value];
-        this.requestUpdate();
-        this.fetchData();
-      }}
-    >
-      ${Object.values(Range).map(
-        (s: string) =>
-          html` <uigc-range-button value=${s}>${s}</uigc-range-button> `,
-      )}
-    </uigc-range-button-group>`;
-  }
-
   priceScaleTemplate(priceTagId: string, priceLineId: string) {
     const priceLineClasses = {
       'price-line': true,
@@ -488,7 +498,7 @@ export class TradeChart extends BaseElement {
       <slot name="header"></slot>
       <div class="summary">
         <div>${this.pairTemplate()}</div>
-        <div>${this.rangeTemplate()}</div>
+        <div></div>
         <div id="selected" class="tooltip skeleton"></div>
         <div id="actual" class="tooltip skeleton">${this.priceTemplate()}</div>
       </div>

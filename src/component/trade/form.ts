@@ -900,7 +900,7 @@ export class TradeForm extends BaseElement {
         <div class="row">${this.infoPriceImpactTemplate()}</div>
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
         <div class="row">${this.infoTransactionFeeTemplate()}</div>
-        ${when(this.swaps.length > 1, () => html` <div class="row">${this.infoBestRouteTemplate()}</div>`)}
+        ${when(this.swaps.length > 1, () => html` <div class="row route">${this.infoBestRouteTemplate()}</div>`)}
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>

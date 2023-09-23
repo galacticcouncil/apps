@@ -1,12 +1,10 @@
 export { TradeApp } from './component/trade';
+export { BondsApp } from './component/trade/bonds';
 export { DcaApp } from './component/dca';
 export { XcmApp } from './component/xcm';
 export { NotificationCenter } from './component/notification';
 export { TransactionCenter } from './component/transaction';
 export { Identicon } from './component/identicon';
-
-/* SPA */
-export { TradeSpa } from './spa/trade';
 
 /* Types */
 export * from './component/notification/types';

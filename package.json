@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "1.6.11",
+  "version": "1.7.3",
   "private": false,
   "description": "Galactic Apps",
   "author": "Pavol Noha <pavol.noha@gmail.com>",
@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",
-    "@galacticcouncil/api-augment": "^0.0.3",
+    "@galacticcouncil/api-augment": "^0.0.5",
     "esbuild": "^0.17.11",
     "esbuild-wasm": "^0.15.2",
     "node-html-parser": "^5.4.2-0",

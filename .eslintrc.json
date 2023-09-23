@@ -1,20 +1,14 @@
 {
-  "root": true,
-  "env": {
-    "browser": true,
-    "es6": true,
-    "node": true
+  "extends": ["prettier"],
+  "plugins": ["prettier"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
   },
-  "plugins": [
-    "es",
-    "prettier",
-    "promise"
-  ],
-  "extends": [
-    "prettier",
-    "plugin:promise/recommended"
-  ],
   "rules": {
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "sort-keys": ["error"],
+    "import/prefer-default-export": "off",
+    "import/no-default-export": "error",
+    "import/no-cycle": "off"
   }
 }
