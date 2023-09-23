@@ -1,5 +1,5 @@
 export { TradeApp } from './component/trade';
-export { BondsApp } from './component/trade/bonds';
+export { BondsApp } from './component/trade-bonds';
 export { DcaApp } from './component/dca';
 export { XcmApp } from './component/xcm';
 export { NotificationCenter } from './component/notification';

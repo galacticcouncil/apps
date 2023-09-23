@@ -1,17 +1,17 @@
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { ONE, PoolAsset, PoolType, TradeType } from '@galacticcouncil/sdk';
 
 import * as i18n from 'i18next';
 
-import './form';
-import './settings';
-import '../chart';
+import '../chart-lbp';
+import '../trade/form';
+import '../trade/settings';
 import '../selector/asset';
 
-import { TradeApp } from '.';
-import { ONE, PoolAsset, PoolType, TradeType } from '@galacticcouncil/sdk';
-import { TradeTab } from './types';
+import { TradeApp } from '../trade';
+import { TradeTab } from '../trade/types';
 
 @customElement('gc-lbp-app')
 export class LbpApp extends TradeApp {

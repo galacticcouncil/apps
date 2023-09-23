@@ -5,7 +5,7 @@ import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 import { Account, accountCursor } from '../db';
 import { DatabaseController } from '../db.ctrl';
 
-import '../component/trade/bonds';
+import '../component/trade-bonds';
 import { PoolType } from '@galacticcouncil/sdk';
 
 @customElement('gc-bonds-screen')

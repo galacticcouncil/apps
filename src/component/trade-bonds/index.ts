@@ -1,13 +1,9 @@
 import { customElement, state } from 'lit/decorators.js';
-
-import './form';
-import './settings';
-import '../chart';
-import '../selector/asset';
-
-import { LbpApp } from './lbp';
-import { BondsApi } from '../../api/bonds';
 import { PoolBase } from '@galacticcouncil/sdk';
+
+import { BondsApi } from '../../api/bonds';
+
+import { LbpApp } from '../trade-lbp';
 
 @customElement('gc-bonds-app')
 export class BondsApp extends LbpApp {
