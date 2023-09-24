@@ -19,9 +19,7 @@ export type DcaOrder = {
   assetIn: string;
   assetOut: string;
   assetInMeta: AssetMetadata;
-  assetInOrigin: number;
   assetOutMeta: AssetMetadata;
-  assetOutOrigin: number;
   nextExecution: number;
   nextExecutionBlock: number;
   interval: number;
@@ -30,6 +28,7 @@ export type DcaOrder = {
   remaining: BigNumber;
   received: BigNumber;
   status: DcaStatus;
+  locations: Map<string, number>;
   transactions: DcaTransaction[];
   hasPendingTx(): boolean;
 };

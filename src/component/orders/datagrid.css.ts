@@ -40,11 +40,6 @@ export const positionsStyles = css`
     }
   }
 
-  uigc-asset-id {
-    width: 24px;
-    height: 24px;
-  }
-
   uigc-icon-arrow {
     transform: rotate(270deg);
     width: 24px;

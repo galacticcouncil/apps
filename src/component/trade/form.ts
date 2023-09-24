@@ -14,9 +14,13 @@ import { Account, Chain, accountCursor, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { TradeApi, TradeTwap, TradeTwapError } from '../../api/trade';
 import { humanizeAmount } from '../../utils/amount';
-import { getChainKey } from '../../utils/chain';
 
-import { PoolAsset, TradeType, bnum, calculateDiffToRef } from '@galacticcouncil/sdk';
+import {
+  PoolAsset,
+  TradeType,
+  bnum,
+  calculateDiffToRef,
+} from '@galacticcouncil/sdk';
 
 import { TransactionFee } from './types';
 
@@ -417,7 +421,8 @@ export class TradeForm extends BaseElement {
   }
 
   private calculateTwapPriceDiff(twapPrice: number) {
-    const swapPrice = this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
+    const swapPrice =
+      this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
     const swapPriceBN = bnum(swapPrice);
     const twapPriceBN = bnum(twapPrice);
     if (this.tradeType === TradeType.Sell) {
@@ -425,12 +430,6 @@ export class TradeForm extends BaseElement {
     } else {
       return swapPriceBN.minus(twapPriceBN).toNumber();
     }
-  }
-
-  private getAssetOrigin(asset: PoolAsset) {
-    const chain = this.chain.state;
-    const originLocation = this.locations.get(asset?.id);
-    return getChainKey(originLocation, chain?.ecosystem);
   }
 
   onSettingsClick(e: any) {
@@ -483,14 +482,27 @@ export class TradeForm extends BaseElement {
     }
 
     return html` ${choose(this.tradeType, [
-        [TradeType.Sell, () => html` <span class="label">Minimum received:</span>`],
+        [
+          TradeType.Sell,
+          () => html` <span class="label">Minimum received:</span>`,
+        ],
         [TradeType.Buy, () => html` <span class="label">Maximum sent:</span>`],
       ])}
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="150px" height="12px"></uigc-skeleton>`,
-        () => html`<span class="value">${amount ? humanizeAmount(amount) : '0'} ${assetSymbol} ${temp}</span>`
+        () =>
+          html`<uigc-skeleton
+            progress
+            rectangle
+            width="150px"
+            height="12px"
+          ></uigc-skeleton>`,
+        () =>
+          html`<span class="value"
+            >${amount ? humanizeAmount(amount) : '0'} ${assetSymbol}
+            ${temp}</span
+          >`,
       )}`;
   }
 
@@ -508,14 +520,28 @@ export class TradeForm extends BaseElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
-        () => html`<span class=${classMap(priceImpactClasses)}>${priceImpact}%</span>`
+        () =>
+          html`<uigc-skeleton
+            progress
+            rectangle
+            width="80px"
+            height="12px"
+          ></uigc-skeleton>`,
+        () =>
+          html`<span class=${classMap(priceImpactClasses)}
+            >${priceImpact}%</span
+          >`,
       )}`;
   }
 
   infoTradeFeeDetail(assetSymbol: string) {
     if (this.inProgress) {
-      return html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`;
+      return html`<uigc-skeleton
+        progress
+        rectangle
+        width="80px"
+        height="12px"
+      ></uigc-skeleton>`;
     }
 
     let tradeFee: string = this.tradeFee;
@@ -542,7 +568,9 @@ export class TradeForm extends BaseElement {
         medium: fee >= mediumLow && fee <= mediumHigh,
         high: fee > mediumHigh,
       };
-      return html` <span class="value">${humanizeAmount(tradeFee)} ${assetSymbol}</span>
+      return html` <span class="value"
+          >${humanizeAmount(tradeFee)} ${assetSymbol}</span
+        >
         <span class="value highlight"> (${tradeFeePct}%) </span>
         <span class=${classMap(indicatorClasses)}>
           <span></span>
@@ -551,7 +579,9 @@ export class TradeForm extends BaseElement {
         </span>`;
     }
 
-    return html`<span class="value">${humanizeAmount(tradeFee)} ${assetSymbol}</span>
+    return html`<span class="value"
+        >${humanizeAmount(tradeFee)} ${assetSymbol}</span
+      >
       <span class="value highlight"> (${tradeFeePct}%) </span> `;
   }
 
@@ -575,17 +605,27 @@ export class TradeForm extends BaseElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress rectangle width="80px" height="12px"></uigc-skeleton>`,
+        () =>
+          html`<uigc-skeleton
+            progress
+            rectangle
+            width="80px"
+            height="12px"
+          ></uigc-skeleton>`,
         () =>
           html`<span class="value"
-            >${this.transactionFee ? humanizeAmount(amount) + ' ' + this.transactionFee.asset : '-'}</span
-          >`
+            >${this.transactionFee
+              ? humanizeAmount(amount) + ' ' + this.transactionFee.asset
+              : '-'}</span
+          >`,
       )}
     `;
   }
 
   bestRouteTemplate() {
-    const bestRoute = this.swaps.map((swap: any) => this.assets.get(swap.assetOut).symbol);
+    const bestRoute = this.swaps.map(
+      (swap: any) => this.assets.get(swap.assetOut).symbol,
+    );
     this.tradeType == TradeType.Buy && bestRoute.reverse();
     return html`
       <span class="value">${this.assetIn.symbol}</span>
@@ -594,7 +634,7 @@ export class TradeForm extends BaseElement {
           html`
             <uigc-icon-chevron-right></uigc-icon-chevron-right>
             <span class="value">${poolAsset}</span>
-          `
+          `,
       )}
       <uigc-icon-route></uigc-icon-route>
     `;
@@ -606,28 +646,39 @@ export class TradeForm extends BaseElement {
       <span class="grow"></span>
       ${when(
         this.inProgress,
-        () => html`<uigc-skeleton progress width="130px" height="14px"></uigc-skeleton>`,
-        () => this.bestRouteTemplate()
+        () =>
+          html`<uigc-skeleton
+            progress
+            width="130px"
+            height="14px"
+          ></uigc-skeleton>`,
+        () => this.bestRouteTemplate(),
       )}
     `;
   }
 
   infoTwapSlippageTemplate() {
     const { amountInUsd, amountOutUsd } = this.twap;
-    const twapPrice = this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
+    const twapPrice =
+      this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
     const twapPriceeNo = Number(twapPrice);
     const twapDiff = this.calculateTwapPriceDiff(twapPriceeNo);
     const twapDiffAbs = Math.abs(twapDiff);
     const twapSellSymbol = twapDiff >= 0 ? '+$' : '-$';
     const twapBuySymbol = twapDiff > 0 ? '-$' : '+$';
-    const twapSymbol = this.tradeType === TradeType.Sell ? twapSellSymbol : twapBuySymbol;
+    const twapSymbol =
+      this.tradeType === TradeType.Sell ? twapSellSymbol : twapBuySymbol;
     const twapClasses = {
       value: true,
       highlight: true,
       positive: twapDiff > 0,
       negative: twapDiff < 0,
     };
-    return html` <span class=${classMap(twapClasses)}>(${twapSymbol}${humanizeAmount(twapDiffAbs.toString())})</span> `;
+    return html`
+      <span class=${classMap(twapClasses)}
+        >(${twapSymbol}${humanizeAmount(twapDiffAbs.toString())})</span
+      >
+    `;
   }
 
   infoTwapSlippagePctTemplate() {
@@ -636,14 +687,17 @@ export class TradeForm extends BaseElement {
     const twapDiffAbs = Math.abs(twapDiff);
     const twapSellSymbol = twapDiff >= 0 ? '+' : '-';
     const twapBuySymbol = twapDiff > 0 ? '-' : '+';
-    const twapSymbol = this.tradeType === TradeType.Sell ? twapSellSymbol : twapBuySymbol;
+    const twapSymbol =
+      this.tradeType === TradeType.Sell ? twapSellSymbol : twapBuySymbol;
     const twapClasses = {
       value: true,
       highlight: true,
       positive: twapDiff > 0,
       negative: twapDiff < 0,
     };
-    return html` <span class=${classMap(twapClasses)}>(${twapSymbol}${twapDiffAbs}%)</span> `;
+    return html`
+      <span class=${classMap(twapClasses)}>(${twapSymbol}${twapDiffAbs}%)</span>
+    `;
   }
 
   formAssetInTemplate() {
@@ -655,7 +709,6 @@ export class TradeForm extends BaseElement {
       amountInUsd = this.twap.amountInUsd.toString();
     }
 
-    const assetOrigin = this.getAssetOrigin(this.assetIn);
     const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
     const error = this.error['balance'];
     return html` <uigc-asset-transfer
@@ -664,13 +717,17 @@ export class TradeForm extends BaseElement {
       ?error=${error}
       .error=${error}
       .asset=${this.assetIn?.symbol}
-      .assetOrigin=${assetOrigin}
       .amount=${amountIn}
       .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {
         this.twapEnabled = false;
       }}
     >
+      <gc-asset-id
+        slot="asset"
+        .asset=${this.assetIn}
+        .locations=${this.locations}
+      ></gc-asset-id>
       <uigc-asset-balance
         slot="balance"
         .balance=${this.balanceIn}
@@ -692,19 +749,22 @@ export class TradeForm extends BaseElement {
       amountOutUsd = this.twap.amountOutUsd.toString();
     }
 
-    const assetOrigin = this.getAssetOrigin(this.assetOut);
     const amountUsdHuman = amountOutUsd ? humanizeAmount(amountOutUsd) : null;
     return html` <uigc-asset-transfer
       id="assetOut"
       title="${i18n.t('trade.youGet')}"
       .asset=${this.assetOut?.symbol}
-      .assetOrigin=${assetOrigin}
       .amount=${amountOut}
       .amountUsd=${amountUsdHuman}
       @asset-input-changed=${() => {
         this.twapEnabled = false;
       }}
     >
+      <gc-asset-id
+        slot="asset"
+        .asset=${this.assetOut}
+        .locations=${this.locations}
+      ></gc-asset-id>
       <uigc-asset-balance
         slot="balance"
         .balance=${this.balanceOut}
@@ -735,8 +795,12 @@ export class TradeForm extends BaseElement {
         </uigc-asset-switch>
         <uigc-asset-price
           class=${classMap(spotPriceClasses)}
-          .inputAsset=${this.tradeType == TradeType.Sell ? this.assetIn?.symbol : this.assetOut?.symbol}
-          .outputAsset=${this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol}
+          .inputAsset=${this.tradeType == TradeType.Sell
+            ? this.assetIn?.symbol
+            : this.assetOut?.symbol}
+          .outputAsset=${this.tradeType == TradeType.Sell
+            ? this.assetOut?.symbol
+            : this.assetIn?.symbol}
           .outputBalance=${this.spotPrice}
           .loading=${this.inProgress}
         >
@@ -772,10 +836,20 @@ export class TradeForm extends BaseElement {
         </div>
         <div class="right">
           <span class="price">
-            <uigc-skeleton progress rectangle width="130px" height="20px"></uigc-skeleton>
+            <uigc-skeleton
+              progress
+              rectangle
+              width="130px"
+              height="20px"
+            ></uigc-skeleton>
           </span>
           <span class="usd">
-            <uigc-skeleton progress rectangle width="70px" height="14px"></uigc-skeleton>
+            <uigc-skeleton
+              progress
+              rectangle
+              width="70px"
+              height="14px"
+            ></uigc-skeleton>
           </span>
         </div>
       </div>
@@ -784,18 +858,26 @@ export class TradeForm extends BaseElement {
 
   formTradeOption(assetSymbol: string) {
     if (this.inProgress) {
-      return this.formTradeOptionSkeleton(i18n.t('twap.single'), 'Instant execution');
+      return this.formTradeOptionSkeleton(
+        i18n.t('twap.single'),
+        'Instant execution',
+      );
     }
 
-    const price = this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
-    const priceUsd = this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
+    const price =
+      this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
+    const priceUsd =
+      this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
     const swapClasses = {
       'form-option': true,
       active: !this.twapEnabled,
       hidden: !(this.swaps.length > 0 && this.twapAllowed),
     };
     return html`
-      <div class=${classMap(swapClasses)} @click=${() => this.transactionFee && this.disableTwap()}>
+      <div
+        class=${classMap(swapClasses)}
+        @click=${() => this.transactionFee && this.disableTwap()}
+      >
         <div class="left">
           <span class="title">${i18n.t('twap.single')}</span>
           <span class="desc">Instant execution</span>
@@ -812,7 +894,10 @@ export class TradeForm extends BaseElement {
     if (this.twapProgress || !this.twap) {
       return this.formTradeOptionSkeleton(
         i18n.t('twap.split'),
-        i18n.t('twap.splitDescr', { timeframe: 'N/A', interpolation: { escapeValue: false } })
+        i18n.t('twap.splitDescr', {
+          timeframe: 'N/A',
+          interpolation: { escapeValue: false },
+        }),
       );
     }
 
@@ -820,9 +905,11 @@ export class TradeForm extends BaseElement {
       return this.formTwapOptionError(assetSymbol);
     }
 
-    const { tradeTime, amountIn, amountInUsd, amountOut, amountOutUsd } = this.twap;
+    const { tradeTime, amountIn, amountInUsd, amountOut, amountOutUsd } =
+      this.twap;
     const price = this.tradeType === TradeType.Sell ? amountOut : amountIn;
-    const priceUsd = this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
+    const priceUsd =
+      this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
     const timeframe = this._humanizer.humanize(tradeTime, {
       round: true,
       largest: 2,
@@ -837,13 +924,18 @@ export class TradeForm extends BaseElement {
     };
 
     return html`
-      <div class=${classMap(twapClasses)} @click=${() => this.transactionFee && this.enableTwap()}>
+      <div
+        class=${classMap(twapClasses)}
+        @click=${() => this.transactionFee && this.enableTwap()}
+      >
         <div class="left">
           <span class="title">${i18n.t('twap.split')}</span>
           <span class="desc">${i18n.t('twap.splitDescr', { timeframe })}</span>
         </div>
         <div class="right">
-          <span class="price">${humanizeAmount(price.toString())} ${assetSymbol}</span>
+          <span class="price"
+            >${humanizeAmount(price.toString())} ${assetSymbol}</span
+          >
           <span class="usd">
             <span>≈ ${humanizeAmount(priceUsd)} USD</span>
             ${this.infoTwapSlippageTemplate()}
@@ -859,7 +951,10 @@ export class TradeForm extends BaseElement {
         <div class="left">
           <span class="title">${i18n.t('twap.split')}</span>
           <span class="desc"
-            >${i18n.t('twap.splitDescr', { timeframe: 'N/A', interpolation: { escapeValue: false } })}</span
+            >${i18n.t('twap.splitDescr', {
+              timeframe: 'N/A',
+              interpolation: { escapeValue: false },
+            })}</span
           >
         </div>
         <div class="right">
@@ -871,7 +966,10 @@ export class TradeForm extends BaseElement {
   }
 
   render() {
-    const assetSymbol = this.tradeType == TradeType.Sell ? this.assetOut?.symbol : this.assetIn?.symbol;
+    const assetSymbol =
+      this.tradeType == TradeType.Sell
+        ? this.assetOut?.symbol
+        : this.assetIn?.symbol;
     const ctaClasses = {
       cta: true,
       cta__twap: this.twapEnabled,
@@ -887,29 +985,52 @@ export class TradeForm extends BaseElement {
     };
     const errorClasses = {
       error: true,
-      show: this.swaps.length > 0 && !this.twapEnabled && this.hasGeneralError(),
+      show:
+        this.swaps.length > 0 && !this.twapEnabled && this.hasGeneralError(),
     };
     return html`
       <slot name="header"></slot>
-      <div class="transfer">${this.formAssetInTemplate()} ${this.formSwitch()} ${this.formAssetOutTemplate()}</div>
+      <div class="transfer">
+        ${this.formAssetInTemplate()} ${this.formSwitch()}
+        ${this.formAssetOutTemplate()}
+      </div>
       <div class=${classMap(optionsClasses)}>
-        ${this.formTradeOptionLabel()} ${this.formTradeOption(assetSymbol)} ${this.formTwapOption(assetSymbol)}
+        ${this.formTradeOptionLabel()} ${this.formTradeOption(assetSymbol)}
+        ${this.formTwapOption(assetSymbol)}
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
         <div class="row">${this.infoTransactionFeeTemplate()}</div>
-        ${when(this.swaps.length > 1, () => html` <div class="row route">${this.infoBestRouteTemplate()}</div>`)}
+        ${when(
+          this.swaps.length > 1,
+          () =>
+            html` <div class="row route">${this.infoBestRouteTemplate()}</div>`,
+        )}
       </div>
       <div class=${classMap(errorClasses)}>
         <uigc-icon-error></uigc-icon-error>
         <span> ${this.error['pool'] || this.error['trade']} </span>
       </div>
-      <uigc-button ?disabled=${this.isDisabled()} class="confirm" variant="primary" fullWidth @click=${this.onCtaClick}>
+      <uigc-button
+        ?disabled=${this.isDisabled()}
+        class="confirm"
+        variant="primary"
+        fullWidth
+        @click=${this.onCtaClick}
+      >
         <div class=${classMap(ctaClasses)}>
-          <span class="swap">${this.account.state ? i18n.t('trade.swap') : i18n.t('trade.connect')}</span>
-          <span class="twap">${this.account.state ? i18n.t('trade.twap') : i18n.t('trade.connect')}</span>
+          <span class="swap"
+            >${this.account.state
+              ? i18n.t('trade.swap')
+              : i18n.t('trade.connect')}</span
+          >
+          <span class="twap"
+            >${this.account.state
+              ? i18n.t('trade.twap')
+              : i18n.t('trade.connect')}</span
+          >
         </div>
       </uigc-button>
     `;

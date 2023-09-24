@@ -46,7 +46,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://rococo-hydradx-rpc.hydration.dev"
+        apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
         pools=${PoolType.Omni}
         stableCoinAssetId="2"
         accountAddress=${this.account.state?.address}
@@ -60,6 +60,6 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
   }
 
   render() {
-    return this.hdxTemplate();
+    return this.hdxTemplateRococo();
   }
 }

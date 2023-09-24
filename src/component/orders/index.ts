@@ -11,7 +11,13 @@ import { DatabaseController } from '../../db.ctrl';
 import * as i18n from 'i18next';
 
 import '@galacticcouncil/ui';
-import { AssetMetadata, BigNumber, PoolType, TradeRouter, bnum } from '@galacticcouncil/sdk';
+import {
+  AssetMetadata,
+  BigNumber,
+  PoolType,
+  TradeRouter,
+  bnum,
+} from '@galacticcouncil/sdk';
 
 import './grid';
 import './list';
@@ -179,13 +185,24 @@ export class TradeOrders extends BaseApp {
         const remaining = await this.getRemaining(order.id);
         const received = await this.ordersApi.getReceived(order.id);
         const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
-        const nextExecution = await this.timeApi.toTimestamp(this.blockTime, nextExecutionBlock);
+        const nextExecution = await this.timeApi.toTimestamp(
+          this.blockTime,
+          nextExecutionBlock,
+        );
         const orderStatus = order.status;
         const hasPendingTx = (): boolean => {
           return nextExecutionBlock <= this.blockNumber && !orderStatus;
         };
 
-        return { ...order, remaining, received, transactions, nextExecutionBlock, nextExecution, hasPendingTx };
+        return {
+          ...order,
+          remaining,
+          received,
+          transactions,
+          nextExecutionBlock,
+          nextExecution,
+          hasPendingTx,
+        };
       }
       return order;
     });
@@ -222,10 +239,7 @@ export class TradeOrders extends BaseApp {
     if (this.meta.size > 0) {
       const orders = scheduled.map(async (order: DcaOrder) => {
         const assetInMeta = this.meta.get(order.assetIn);
-        const assetInOrigin = this.locations.get(order.assetIn);
         const assetOutMeta = this.meta.get(order.assetOut);
-        const assetOutOrigin = this.locations.get(order.assetOut);
-
         const remaining = await this.getRemaining(order.id);
 
         const open = this.orders.open.has(order.id);
@@ -233,7 +247,10 @@ export class TradeOrders extends BaseApp {
           const transactions = await this.getTransactions(order.id);
           const received = await this.ordersApi.getReceived(order.id);
           const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
-          const nextExecution = await this.timeApi.toTimestamp(this.blockTime, nextExecutionBlock);
+          const nextExecution = await this.timeApi.toTimestamp(
+            this.blockTime,
+            nextExecutionBlock,
+          );
           const orderStatus = order.status;
           const hasPendingTx = (): boolean => {
             return nextExecutionBlock <= this.blockNumber && !orderStatus;
@@ -244,9 +261,8 @@ export class TradeOrders extends BaseApp {
             remaining,
             received,
             assetInMeta,
-            assetInOrigin,
             assetOutMeta,
-            assetOutOrigin,
+            locations: this.locations,
             transactions,
             nextExecution,
             nextExecutionBlock,
@@ -258,9 +274,8 @@ export class TradeOrders extends BaseApp {
           ...order,
           remaining,
           assetInMeta,
-          assetInOrigin,
           assetOutMeta,
-          assetOutOrigin,
+          locations: this.locations,
           hasPendingTx: () => false,
         } as DcaOrder;
       });
@@ -276,7 +291,12 @@ export class TradeOrders extends BaseApp {
     const pools = this.parseListArgs(this.pools) as PoolType[];
     const router = new TradeRouter(poolService, { includeOnly: pools });
     this.assetApi = new AssetApi(api, router);
-    this.ordersApi = new DcaOrdersApi(api, this.indexerUrl, this.grafanaUrl, this.grafanaDsn);
+    this.ordersApi = new DcaOrdersApi(
+      api,
+      this.indexerUrl,
+      this.grafanaUrl,
+      this.grafanaDsn,
+    );
     this.timeApi = new TimeApi(api);
     const assets = await router.getAllAssets();
     const [assetsMeta, assetsLocations] = await Promise.all([
@@ -293,11 +313,13 @@ export class TradeOrders extends BaseApp {
 
   private async subscribe() {
     const { api } = this.chain.state;
-    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      const blockNumber = lastHeader.number.toNumber();
-      this.blockNumber = blockNumber;
-      this.syncOrders();
-    });
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
+      async (lastHeader) => {
+        const blockNumber = lastHeader.number.toNumber();
+        this.blockNumber = blockNumber;
+        this.syncOrders();
+      },
+    );
   }
 
   override async updated() {
@@ -336,7 +358,13 @@ export class TradeOrders extends BaseApp {
 
   emptyTemplate() {
     return html` <div slot="empty" class="empty">
-      <svg xmlns="http://www.w3.org/2000/svg" width="87" height="34" viewBox="0 0 87 34" fill="none">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="87"
+        height="34"
+        viewBox="0 0 87 34"
+        fill="none"
+      >
         <path
           fill-rule="evenodd"
           clip-rule="evenodd"
@@ -371,7 +399,8 @@ export class TradeOrders extends BaseApp {
 
   tabsTemplate() {
     return html` <div slot="tabs" class="tabs">
-      ${this.tabTemplate('all', i18n.t('orders.all'))} ${this.tabTemplate('open', i18n.t('orders.open'))}
+      ${this.tabTemplate('all', i18n.t('orders.all'))}
+      ${this.tabTemplate('open', i18n.t('orders.open'))}
       ${this.tabTemplate('finished', i18n.t('orders.history'))}
     </div>`;
   }

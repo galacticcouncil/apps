@@ -15,10 +15,11 @@ import {
   multipleAmounts,
 } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
-import { getChainKey } from '../../utils/chain';
 
 import { Amount, AssetDetail, PoolAsset } from '@galacticcouncil/sdk';
 import { AssetSelector } from './types';
+
+import '../id/asset';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
@@ -40,12 +41,6 @@ export class SelectAsset extends LitElement {
   @property({ type: String }) query = '';
 
   static styles = [baseStyles, selectorStyles];
-
-  private getAssetOrigin(asset: PoolAsset) {
-    const chain = this.chain.state;
-    const originLocation = this.locations.get(asset?.id);
-    return getChainKey(originLocation, chain?.ecosystem);
-  }
 
   updateSearch(searchDetail: any) {
     this.query = searchDetail.value;
@@ -179,18 +174,25 @@ export class SelectAsset extends LitElement {
           ${map(
             this.filterAssets(this.query),
             ({ asset, balance, balanceUsd }) => {
-              const originLocation = this.getAssetOrigin(asset);
+              const icons = asset.icon.split('/');
+              const detail = this.details.get(asset.id);
               return html`
                 <uigc-asset-list-item
                   slot=${this.getSlot(asset)}
                   ?selected=${this.isSelected(asset)}
                   ?disabled=${this.isDisabled(asset)}
                   .asset=${asset}
-                  .origin=${originLocation}
-                  .desc=${this.details.get(asset.id).name}
+                  .unit=${icons.length === 1 ? asset.symbol : null}
                   .balance=${humanizeAmount(balance)}
                   .balanceUsd=${humanizeAmount(balanceUsd)}
-                ></uigc-asset-list-item>
+                >
+                  <gc-asset-id
+                    slot="asset"
+                    .asset=${asset}
+                    .detail=${detail}
+                    .locations=${this.locations}
+                  ></gc-asset-id>
+                </uigc-asset-list-item>
               `;
             },
           )}

@@ -5,7 +5,7 @@ import { ONE, PoolAsset, PoolType, TradeType } from '@galacticcouncil/sdk';
 
 import * as i18n from 'i18next';
 
-import '../chart-lbp';
+import './chart';
 import '../trade/form';
 import '../trade/settings';
 import '../selector/asset';
@@ -79,7 +79,7 @@ export class LbpApp extends TradeApp {
         .squidUrl=${this.squidUrl}
         .tradeType=${this.trade.type}
         .tradeProgress=${this.trade.inProgress}
-        .poolId=${this.lbpSwap?.poolId}
+        .poolId=${this.lbpSwap?.poolAddress}
         .assetIn=${assetIn}
         .assetOut=${assetOut}
         .spotPrice=${this.lbpSwap?.spotPrice}

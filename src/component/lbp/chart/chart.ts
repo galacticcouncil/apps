@@ -9,15 +9,15 @@ import {
   SingleValueData,
 } from 'lightweight-charts';
 
-import { baseStyles } from '../styles/base.css';
-import { TimeApi } from '../../api/time';
-import { Chain, TradeData, chainCursor, tradeDataCursor } from '../../db';
-import { DatabaseController } from '../../db.ctrl';
-import { humanizeAmount, multipleAmounts } from '../../utils/amount';
+import { baseStyles } from '../../styles/base.css';
+import { TimeApi } from '../../../api/time';
+import { Chain, TradeData, chainCursor, tradeDataCursor } from '../../../db';
+import { DatabaseController } from '../../../db.ctrl';
+import { humanizeAmount, multipleAmounts } from '../../../utils/amount';
 
 import { LbpChartApi } from './api';
-import { Bucket } from '../chart/bucket';
-import { DEFAULT_DATASET } from '../chart/data';
+import { Bucket } from '../../chart/bucket';
+import { DEFAULT_DATASET } from '../../chart/data';
 import {
   crosshair,
   grid,
@@ -25,15 +25,15 @@ import {
   leftPriceScale,
   rightPriceScale,
   timeScale,
-} from '../chart/opts';
-import { subscribeCrosshair } from '../chart/plugins';
-import { calculateWidth } from '../chart/utils';
-import { ChartState, Range } from '../chart/types';
-import { chartStyles } from '../chart/chart.css';
+} from '../../chart/opts';
+import { subscribeCrosshair } from '../../chart/plugins';
+import { calculateWidth } from '../../chart/utils';
+import { ChartState, Range } from '../../chart/types';
+import { chartStyles } from '../../chart/chart.css';
 
-import '../chart/states/error';
-import '../chart/states/empty';
-import '../chart/states/loading';
+import '../../chart/states/error';
+import '../../chart/states/empty';
+import '../../chart/states/loading';
 
 import {
   Amount,
@@ -43,7 +43,7 @@ import {
   TradeType,
 } from '@galacticcouncil/sdk';
 
-import { BaseElement } from '../base/BaseElement';
+import { BaseElement } from '../../base/BaseElement';
 
 const CHART_HEIGHT = 325;
 const CHART_TIME_SCALE_HEIGHT = 26;

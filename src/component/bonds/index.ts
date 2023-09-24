@@ -3,7 +3,7 @@ import { PoolBase } from '@galacticcouncil/sdk';
 
 import { BondsApi } from '../../api/bonds';
 
-import { LbpApp } from '../trade-lbp';
+import { LbpApp } from '../lbp';
 
 @customElement('gc-bonds-app')
 export class BondsApp extends LbpApp {

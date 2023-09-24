@@ -83,7 +83,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
-        pools=${PoolType.Omni}
+        pools=${[PoolType.Omni, PoolType.Stable].join(',')}
         stableCoinAssetId="2"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}

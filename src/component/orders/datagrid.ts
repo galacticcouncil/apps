@@ -11,7 +11,7 @@ import { formatAmount, humanizeAmount } from '../../utils/amount';
 import { getChainKey } from '../../utils/chain';
 import { getRenderString } from '../../utils/dom';
 
-import { Transaction } from '@galacticcouncil/sdk';
+import { AssetMetadata, PoolToken, Transaction } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { DcaOrder } from './types';
@@ -86,7 +86,10 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
     const chain = this.chain.state;
     const account = this.account.state;
 
-    const tx: SubmittableExtrinsic = chain.api.tx.dca.terminate(position.id, position.nextExecutionBlock);
+    const tx: SubmittableExtrinsic = chain.api.tx.dca.terminate(
+      position.id,
+      position.nextExecutionBlock,
+    );
     const transaction = {
       hex: tx.toHex(),
       name: 'dcaTerminate',
@@ -98,25 +101,36 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   }
 
   protected pairTemplate(order: DcaOrder) {
-    const assetIn = order.assetInMeta?.symbol;
-    const assetOut = order.assetOutMeta?.symbol;
+    const { assetIn, assetInMeta, assetOut, assetOutMeta } = order;
     return html`
       <div class="pair">
-        ${this.assetTemplate(assetIn, order.assetInOrigin)}
+        ${this.assetTemplate(assetIn, assetInMeta, order.locations)}
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        ${this.assetTemplate(assetOut, order.assetOutOrigin)}
+        ${this.assetTemplate(assetOut, assetOutMeta, order.locations)}
       </div>
     `;
   }
 
-  private assetTemplate(symbol: string, origin: number) {
+  private assetTemplate(
+    id: string,
+    meta: AssetMetadata,
+    locations: Map<string, number>,
+  ) {
     const chain = this.chain.state;
-    const assetOrigin = getChainKey(origin, chain?.ecosystem);
-    if (origin) {
-      return html` <uigc-asset-id symbol=${symbol} chain=${assetOrigin}></uigc-asset-id>`;
-    } else {
-      return html` <uigc-asset-id symbol=${symbol}></uigc-asset-id>`;
-    }
+    const asset: PoolToken = {
+      ...(meta as PoolToken),
+      id: id,
+      symbol: '',
+    };
+    return html`
+      <gc-asset-id
+        slot="asset"
+        size="small"
+        .asset=${asset}
+        .ecosystem=${chain.ecosystem}
+        .locations=${locations}
+      ></gc-asset-id>
+    `;
   }
 
   protected itemTemplate(label: string, value: any) {
@@ -149,7 +163,12 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
 
     const remainingBudget = formatAmount(order.remaining, assetInMeta.decimals);
     const remainingBudgetHuman = humanizeAmount(remainingBudget);
-    return [remainingBudgetHuman, '/', totalBudgetHuman, assetInMeta.symbol].join(' ');
+    return [
+      remainingBudgetHuman,
+      '/',
+      totalBudgetHuman,
+      assetInMeta.symbol,
+    ].join(' ');
   }
 
   protected getAmount(order: DcaOrder) {
@@ -160,7 +179,10 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
 
   protected getNextExecution(order: DcaOrder) {
     if (order.hasPendingTx()) {
-      const humanized = this._humanizer.humanize(0, { round: true, largest: 2 });
+      const humanized = this._humanizer.humanize(0, {
+        round: true,
+        largest: 2,
+      });
       return html`<span class="pulsate">${humanized}</span>`;
     } else {
       const diff = Date.now() - order.nextExecution;
@@ -190,7 +212,12 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
       </div>
       <div class=${classMap(classes)}>
         ${this.itemTemplate('Next execution in', this.getNextExecution(order))}
-        <uigc-button variant="error" size="small" @click=${() => this.terminate(order)}>Terminate</uigc-button>
+        <uigc-button
+          variant="error"
+          size="small"
+          @click=${() => this.terminate(order)}
+          >Terminate</uigc-button
+        >
       </div>
     `;
   }
@@ -199,8 +226,16 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
     const status = order.status;
     if (status) {
       return html` ${choose(status.type, [
-        ['Terminated', () => html`<span class="status status__terminated">${status.type}</span>`],
-        ['Completed', () => html`<span class="status status__completed">${status.type}</span>`],
+        [
+          'Terminated',
+          () =>
+            html`<span class="status status__terminated">${status.type}</span>`,
+        ],
+        [
+          'Completed',
+          () =>
+            html`<span class="status status__completed">${status.type}</span>`,
+        ],
       ])}`;
     } else {
       return html`<span class="status status__active">Active</span>`;

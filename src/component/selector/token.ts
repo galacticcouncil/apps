@@ -31,7 +31,9 @@ export class SelectToken extends LitElement {
   }
 
   filterAssets(query: string) {
-    return this.assets.filter((a) => a.toLowerCase().includes(query.toLowerCase()));
+    return this.assets.filter((a) =>
+      a.toLowerCase().includes(query.toLowerCase()),
+    );
   }
 
   isSelected(asset: string): boolean {
@@ -51,8 +53,18 @@ export class SelectToken extends LitElement {
       <div class="loading">
         <uigc-skeleton circle progress></uigc-skeleton>
         <span class="title">
-          <uigc-skeleton progress rectangle width="40px" height="16px"></uigc-skeleton>
-          <uigc-skeleton progress rectangle width="50px" height="8px"></uigc-skeleton>
+          <uigc-skeleton
+            progress
+            rectangle
+            width="40px"
+            height="16px"
+          ></uigc-skeleton>
+          <uigc-skeleton
+            progress
+            rectangle
+            width="50px"
+            height="8px"
+          ></uigc-skeleton>
         </span>
       </div>
     `;
@@ -76,12 +88,22 @@ export class SelectToken extends LitElement {
                 slot=${this.getSlot(asset)}
                 ?selected=${this.isSelected(asset)}
                 .asset=${{ symbol: asset }}
+                .unit=${asset}
                 .balance=${humanizeAmount(balance)}
-              ></uigc-asset-list-item>
+              >
+                <uigc-asset slot="asset" symbol=${asset}>
+                  <uigc-asset-id slot="icon" symbol=${asset}></uigc-asset-id>
+                </uigc-asset>
+              </uigc-asset-list-item>
             `;
           })}
         </uigc-asset-list>`,
-        () => html` <uigc-asset-list> ${map(range(3), (i) => this.loadingTemplate())} </uigc-asset-list> `
+        () =>
+          html`
+            <uigc-asset-list>
+              ${map(range(3), (i) => this.loadingTemplate())}
+            </uigc-asset-list>
+          `,
       )}
     `;
   }

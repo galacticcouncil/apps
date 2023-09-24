@@ -2,7 +2,10 @@ import { LitElement } from 'lit';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { HumanizeDurationLanguage, HumanizeDuration } from 'humanize-duration-ts';
+import {
+  HumanizeDurationLanguage,
+  HumanizeDuration,
+} from 'humanize-duration-ts';
 
 export class BaseElement extends LitElement {
   protected _langService: HumanizeDurationLanguage = null;

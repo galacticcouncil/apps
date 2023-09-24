@@ -15,7 +15,7 @@ import {
   getPoolMaturity,
 } from './utils';
 import { HistoricalBalance } from './types';
-import { convertToHex } from '../../utils/account';
+import { convertToHex } from '../../../utils/account';
 
 export class LbpChartApi {
   private _api: ApiPromise;
