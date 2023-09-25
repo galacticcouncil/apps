@@ -312,12 +312,21 @@ export class TradeOrders extends BaseApp {
   }
 
   private async subscribe() {
+    let isSyncing = false;
     const { api } = this.chain.state;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
       async (lastHeader) => {
         const blockNumber = lastHeader.number.toNumber();
         this.blockNumber = blockNumber;
-        this.syncOrders();
+
+        if (isSyncing) {
+          return;
+        } else {
+          isSyncing = true;
+          this.syncOrders().finally(() => {
+            isSyncing = false;
+          });
+        }
       },
     );
   }
