@@ -28,7 +28,7 @@ export class AssetId extends LitElement {
     `,
   ];
 
-  assetTemplate(icon: string, origin: string) {
+  iconTemplate(icon: string, origin: string) {
     if (origin) {
       return html`
         <uigc-asset-id
@@ -42,13 +42,7 @@ export class AssetId extends LitElement {
   }
 
   render() {
-    if (!this.asset) {
-      return html` <uigc-asset>
-        <uigc-asset-id slot="icon"></uigc-asset-id>
-      </uigc-asset>`;
-    }
-
-    const { id, icon, symbol, meta } = this.asset;
+    const { id, icon, symbol, meta } = this.asset || {};
     const desc = this.detail?.name;
 
     if (meta) {
@@ -59,7 +53,7 @@ export class AssetId extends LitElement {
             const asseId = meta[icon];
             const originLocation = this.locations.get(asseId);
             const originChain = getChainKey(originLocation, this.ecosystem);
-            return this.assetTemplate(icon, originChain);
+            return this.iconTemplate(icon, originChain);
           })}
         </uigc-asset>
       `;
@@ -69,7 +63,7 @@ export class AssetId extends LitElement {
     const originChain = getChainKey(originLocation, this.ecosystem);
     return html`
       <uigc-asset ?icon=${!symbol} symbol=${symbol} desc=${desc}>
-        ${this.assetTemplate(icon, originChain)}
+        ${this.iconTemplate(icon, originChain)}
       </uigc-asset>
     `;
   }
