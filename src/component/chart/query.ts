@@ -29,8 +29,8 @@ export function buildPriceQuery(assetIn: string, assetOut: string, endOfDay: str
       SELECT 
         timestamp,
         CASE 
-          WHEN asset_in = '${assetIn}' AND asset_out = '${assetOut}' THEN amount_in / amount_out
-          WHEN asset_in = '${assetOut}' AND asset_out = '${assetIn}' THEN amount_out / amount_in
+          WHEN asset_in = '${assetIn}' AND asset_out = '${assetOut}' AND amount_in != 0 AND amount_out != 0 THEN amount_in / amount_out
+          WHEN asset_in = '${assetOut}' AND asset_out = '${assetIn}' AND amount_in != 0 AND amount_out != 0 THEN amount_out / amount_in
         END AS price
       FROM nor_trades
     )
