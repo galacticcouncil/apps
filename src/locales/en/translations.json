@@ -36,7 +36,7 @@
   "trade.error.invalidPair": "Selected pool pair is not valid",
   "notify.recent": "Recent activities",
   "tx.failed": "Failed to submit transaction",
-  "tx.failedText": "Unfortunately there was an issue while submitting your transaction. Please try again later.",
+  "tx.failedText": "Unfortunately there was an issue while submitting your transaction. Please change your fee payment asset or try again later.",
   "tx.submittedText": "Your transaction has been submitted successfully.",
   "tx.submitted": "Submitted",
   "tx.close": "Close",
