@@ -236,7 +236,7 @@ export class TradeChart extends BaseElement {
 
     const maxYCoord = canvasHeight - canvasHeight * CHART_PADDING_RATIO - 1;
     const minYCoord = canvasHeight * CHART_PADDING_RATIO - 1;
-    const midYCoord = (minYCoord - maxYCoord) / 2 + maxYCoord;
+    const midYCoord = (maxYCoord - minYCoord) / 2 + minYCoord;
 
     this.syncPriceLine('maxLine', maxYCoord);
     this.syncPriceLine('minLine', minYCoord);
