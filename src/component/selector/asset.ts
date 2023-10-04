@@ -67,7 +67,7 @@ export class SelectAsset extends LitElement {
           .toLowerCase()
           .includes(query.toLowerCase());
         const isEq = symbolEq || nameEq;
-        if (this.selector && this.selectByType) {
+        if (this.selector?.asset && this.selectByType) {
           const selected = this[this.selector.id];
           const selectedDetail = this.details.get(selected.id);
           return isEq && assetDetail.assetType === selectedDetail.assetType;
@@ -115,7 +115,7 @@ export class SelectAsset extends LitElement {
   }
 
   isSelected(asset: PoolAsset): boolean {
-    if (this.selector) {
+    if (this.selector?.asset) {
       return this[this.selector.id].id === asset.id;
     }
     return false;
