@@ -43,7 +43,7 @@ export const basicLayoutStyles = css`
       left: 0;
       width: 100%;
       height: 100vh !important;
-      z-index: 10;
+      z-index: 1200;
     }
   }
 
