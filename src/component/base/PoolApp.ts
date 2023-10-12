@@ -68,7 +68,7 @@ export abstract class PoolApp extends BaseApp {
         this.apiAddress,
         this.ecosystem,
         () => this._init(),
-        () => {}
+        () => {},
       );
     }
   }
@@ -103,12 +103,13 @@ export abstract class PoolApp extends BaseApp {
     this.paymentApi = new PaymentApi(api, this.router);
     this.timeApi = new TimeApi(api);
     const assets = await this.router.getAllAssets();
-    const [assetsPairs, assetsDetails, assetsMeta, assetsLocations] = await Promise.all([
-      this.assetApi.getPairs(assets),
-      this.assetApi.getDetails(assets),
-      this.assetApi.getMetadata(assets),
-      this.assetApi.getLocations(assets),
-    ]);
+    const [assetsPairs, assetsDetails, assetsMeta, assetsLocations] =
+      await Promise.all([
+        this.assetApi.getPairs(assets),
+        this.assetApi.getDetails(assets),
+        this.assetApi.getMetadata(assets),
+        this.assetApi.getLocations(assets),
+      ]);
 
     this.assets = {
       ...this.assets,
@@ -126,18 +127,23 @@ export abstract class PoolApp extends BaseApp {
 
   private async subscribe() {
     const { api } = this.chain.state;
-    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(async (lastHeader) => {
-      const blockNumber = lastHeader.number.toNumber();
-      console.log('Current block: ' + blockNumber);
-      this.blockNumber = blockNumber;
-      this.syncPoolBalances();
-      this.syncDolarPrice();
-      this.syncNativePrice();
-      this.onBlockChange(blockNumber);
-    });
+    this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
+      async (lastHeader) => {
+        const blockNumber = lastHeader.number.toNumber();
+        console.log('Current block: ' + blockNumber);
+        this.blockNumber = blockNumber;
+        this.syncPoolBalances();
+        this.syncDolarPrice();
+        this.syncNativePrice();
+        this.onBlockChange(blockNumber);
+      },
+    );
   }
 
-  protected async onAccountChange(_prev: Account, _curr: Account): Promise<void> {
+  protected async onAccountChange(
+    _prev: Account,
+    _curr: Account,
+  ): Promise<void> {
     this.assets.balance = new Map([]);
     if (this.isApiReady()) {
       await this.syncPoolBalances();
@@ -145,17 +151,26 @@ export abstract class PoolApp extends BaseApp {
   }
 
   protected async syncDolarPrice() {
-    this.assets.usdPrice = await this.assetApi.getPrice(this.assets.list, this.stableCoinAssetId);
+    this.assets.usdPrice = await this.assetApi.getPrice(
+      this.assets.list,
+      this.stableCoinAssetId,
+    );
   }
 
   protected async syncNativePrice() {
-    this.assets.nativePrice = await this.assetApi.getPrice(this.assets.list, SYSTEM_ASSET_ID);
+    this.assets.nativePrice = await this.assetApi.getPrice(
+      this.assets.list,
+      SYSTEM_ASSET_ID,
+    );
   }
 
   protected async syncPoolBalances() {
     const account = this.account.state;
     if (account) {
-      this.assets.balance = await this.assetApi.getBalance(account.address, this.assets.list);
+      this.assets.balance = await this.assetApi.getBalance(
+        account.address,
+        this.assets.list,
+      );
     }
   }
 

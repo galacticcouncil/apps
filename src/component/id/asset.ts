@@ -46,14 +46,13 @@ export class AssetId extends LitElement {
     const desc = this.detail?.name;
 
     if (meta) {
-      const icons = Object.keys(meta);
+      const icons = Object.entries(meta);
       return html`
         <uigc-asset ?icon=${!symbol} symbol=${symbol} desc=${desc}>
-          ${map(icons, (icon: string) => {
-            const asseId = meta[icon];
-            const originLocation = this.locations.get(asseId);
+          ${map(icons, ([key, value]) => {
+            const originLocation = this.locations.get(key);
             const originChain = getChainKey(originLocation, this.ecosystem);
-            return this.iconTemplate(icon, originChain);
+            return this.iconTemplate(value, originChain);
           })}
         </uigc-asset>
       `;
