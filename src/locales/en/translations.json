@@ -33,6 +33,7 @@
   "trade.error.insufficientTradingAmount": "Your order size is lower than the minimum for trading.",
   "trade.error.maxOutRatioExceeded": "Your order size exceeds the trading limit, please split your trade.",
   "trade.error.maxInRatioExceeded": "Your order size exceeds the trading limit, please split your trade.",
+  "trade.error.tradeNotAllowed": "Trade is not allowed.",
   "trade.error.invalidPair": "Selected pool pair is not valid",
   "notify.recent": "Recent activities",
   "tx.failed": "Failed to submit transaction",

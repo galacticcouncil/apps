@@ -597,6 +597,8 @@ export class TradeApp extends PoolApp {
         return i18n.t('trade.error.maxOutRatioExceeded');
       case 'MaxInRatioExceeded':
         return i18n.t('trade.error.maxInRatioExceeded');
+      case 'TradeNotAllowed':
+        return i18n.t('trade.error.tradeNotAllowed');
     }
   }
 
