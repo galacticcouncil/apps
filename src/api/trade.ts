@@ -2,11 +2,11 @@ import {
   type PoolAsset,
   type Transaction,
   type Trade,
-  type Hop,
   calculateDiffToRef,
   bnum,
   BigNumber,
   TradeRouter,
+  buildRoute,
 } from '@galacticcouncil/sdk';
 import type { PalletDcaOrder } from '@polkadot/types/lookup';
 
@@ -57,10 +57,22 @@ export class TradeApi {
     this._router = router;
   }
 
-  async getSell(assetIn: PoolAsset, assetOut: PoolAsset, amountIn: string, slippage: string): Promise<TradeInfo> {
-    const bestSell = await this._router.getBestSell(assetIn.id, assetOut.id, amountIn);
+  async getSell(
+    assetIn: PoolAsset,
+    assetOut: PoolAsset,
+    amountIn: string,
+    slippage: string,
+  ): Promise<TradeInfo> {
+    const bestSell = await this._router.getBestSell(
+      assetIn.id,
+      assetOut.id,
+      amountIn,
+    );
     const minAmountOut = getTradeMinAmountOut(bestSell, slippage);
-    const minAmountOutHuman = formatAmount(minAmountOut.amount, minAmountOut.decimals);
+    const minAmountOutHuman = formatAmount(
+      minAmountOut.amount,
+      minAmountOut.decimals,
+    );
     const transaction = bestSell.toTx(minAmountOut.amount);
 
     return {
@@ -70,10 +82,22 @@ export class TradeApi {
     } as TradeInfo;
   }
 
-  async getBuy(assetIn: PoolAsset, assetOut: PoolAsset, amountOut: string, slippage: string): Promise<TradeInfo> {
-    const bestBuy = await this._router.getBestBuy(assetIn.id, assetOut.id, amountOut);
+  async getBuy(
+    assetIn: PoolAsset,
+    assetOut: PoolAsset,
+    amountOut: string,
+    slippage: string,
+  ): Promise<TradeInfo> {
+    const bestBuy = await this._router.getBestBuy(
+      assetIn.id,
+      assetOut.id,
+      amountOut,
+    );
     const maxAmountIn = getTradeMaxAmountIn(bestBuy, slippage);
-    const maxAmountInHuman = formatAmount(maxAmountIn.amount, maxAmountIn.decimals);
+    const maxAmountInHuman = formatAmount(
+      maxAmountIn.amount,
+      maxAmountIn.decimals,
+    );
     const transaction = bestBuy.toTx(maxAmountIn.amount);
 
     return {
@@ -83,7 +107,11 @@ export class TradeApi {
     } as TradeInfo;
   }
 
-  getSellPriceDifference(amountIn: number, spotPrice: number, swaps: []): BigNumber {
+  getSellPriceDifference(
+    amountIn: number,
+    spotPrice: number,
+    swaps: [],
+  ): BigNumber {
     const lastSwap = swaps[swaps.length - 1];
     const calculatedOut = lastSwap['calculatedOut'];
     const calculatedOutBN = bnum(calculatedOut);
@@ -99,22 +127,30 @@ export class TradeApi {
     amountMin: number,
     txFee: number,
     priceDifference: number,
-    blockTime: number
+    blockTime: number,
   ): Promise<TradeTwap> {
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
     const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
     const amountInPerTrade = (amountIn - twapTxFees) / tradesNo;
-    const bestSell = await this._router.getBestSell(assetIn.id, assetOut.id, amountInPerTrade.toString());
+    const bestSell = await this._router.getBestSell(
+      assetIn.id,
+      assetOut.id,
+      amountInPerTrade.toString(),
+    );
     const bestSellHuman = bestSell.toHuman();
-    const bestSellRoute = bestSell.swaps.map(({ assetIn, assetOut }: Hop) => {
-      return { pool: 'Omnipool', assetIn, assetOut };
-    });
+    const bestSellRoute = buildRoute(bestSell.swaps);
 
     const amountOutTotal = Number(bestSellHuman.amountOut) * tradesNo;
 
-    const minAmountOut = getTradeMinAmountOut(bestSell, tradeSettingsCursor.deref().slippage);
-    const minAmountOutTotal = multipleAmounts(tradesNo.toString(), minAmountOut);
+    const minAmountOut = getTradeMinAmountOut(
+      bestSell,
+      tradeSettingsCursor.deref().slippage,
+    );
+    const minAmountOutTotal = multipleAmounts(
+      tradesNo.toString(),
+      minAmountOut,
+    );
 
     const isSingleTrade = tradesNo == 1;
     const isLessThanMinimalAmount = amountInPerTrade < amountMin;
@@ -155,22 +191,28 @@ export class TradeApi {
     amountMin: number,
     txFee: number,
     priceDifference: number,
-    blockTime: number
+    blockTime: number,
   ): Promise<TradeTwap> {
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
     const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
     const amountOutPerTrade = amountOut / tradesNo;
-    const bestBuy = await this._router.getBestBuy(assetIn.id, assetOut.id, amountOutPerTrade.toString());
+    const bestBuy = await this._router.getBestBuy(
+      assetIn.id,
+      assetOut.id,
+      amountOutPerTrade.toString(),
+    );
     const bestBuyHuman = bestBuy.toHuman();
-    const bestBuyRoute = bestBuy.swaps.map(({ assetIn, assetOut }: Hop) => {
-      return { pool: 'Omnipool', assetIn, assetOut };
-    });
+    const bestBuyRoute = buildRoute(bestBuy.swaps);
 
     const amountInTotal = Number(bestBuyHuman.amountIn) * tradesNo + twapTxFees;
 
-    const maxAmountIn = getTradeMaxAmountIn(bestBuy, tradeSettingsCursor.deref().slippage);
-    const maxAmountInTotal = multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
+    const maxAmountIn = getTradeMaxAmountIn(
+      bestBuy,
+      tradeSettingsCursor.deref().slippage,
+    );
+    const maxAmountInTotal =
+      multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
 
     const isSingleTrade = tradesNo == 1;
     const isLessThanMinimalAmount = maxAmountInTotal < amountMin;
@@ -204,7 +246,10 @@ export class TradeApi {
     } as TradeTwap;
   }
 
-  private getOptimizedTradesNo(priceDifference: number, blockTime: number): number {
+  private getOptimizedTradesNo(
+    priceDifference: number,
+    blockTime: number,
+  ): number {
     const noOfTrades = Math.round(priceDifference * 10) || 1;
     const executionTime = noOfTrades * TWAP_BLOCK_PERIOD * blockTime;
 

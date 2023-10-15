@@ -1,5 +1,4 @@
-import { Amount, PoolAsset, TradeType } from '@galacticcouncil/sdk';
-import { PalletDcaOrder } from '@polkadot/types/lookup';
+import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
 
 import { TradeTwap } from '../../api/trade';
 
@@ -10,16 +9,11 @@ export enum TradeTab {
   SelectAsset,
 }
 
-export type TransactionFee = { asset: string; amount: string; amountNative: string; ed: string };
-
-export type TradeSplit = {
-  inProgress: boolean;
-  active: boolean;
-  amountIn: string;
-  maxBudget: number;
-  noOfReps: number;
-  orderSlippage: Amount;
-  order: PalletDcaOrder;
+export type TransactionFee = {
+  asset: string;
+  amount: string;
+  amountNative: string;
+  ed: string;
 };
 
 export type TradeState = {
