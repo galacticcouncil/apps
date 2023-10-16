@@ -18,13 +18,13 @@ import { xChainCursor } from './db';
 
 const CHAINS: Record<string, string[]> = {
   polkadot: ['wss://rpc.polkadot.io'],
-  kusama: ['wss://kusama.api.onfinality.io/public-ws'],
+  kusama: ['wss://kusama-rpc.polkadot.io'],
   acala: ['wss://acala-polkadot.api.onfinality.io/public-ws'],
-  karura: ['wss://karura.api.onfinality.io/public-ws'],
-  statemine: ['wss://statemine.api.onfinality.io/public-ws'],
+  karura: ['wss://karura-rpc-1.aca-api.network'],
+  statemine: ['wss://kusama-asset-hub-rpc.polkadot.io'],
   statemint: ['wss://statemint.api.onfinality.io/public-ws'],
-  tinkernet: ['wss://invarch-tinkernet.api.onfinality.io/public-ws'],
-  robonomics: ['wss://robonomics.api.onfinality.io/public-ws'],
+  tinkernet: ['wss://tinkernet-rpc.dwellir.com'],
+  robonomics: ['wss://kusama.rpc.robonomics.network/'],
   interlay: ['wss://interlay.api.onfinality.io/public-ws'],
   zeitgeist: ['wss://zeitgeist.api.onfinality.io/public-ws'],
   astar: ['wss://rpc.astar.network'],
