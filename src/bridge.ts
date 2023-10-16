@@ -20,19 +20,19 @@ import { xChainCursor } from './db';
 
 const CHAINS: Record<string, string[]> = {
   polkadot: ['wss://rpc.polkadot.io'],
-  kusama: ['wss://kusama.api.onfinality.io/public-ws'],
-  acala: ['wss://acala-polkadot.api.onfinality.io/public-ws'],
-  karura: ['wss://karura.api.onfinality.io/public-ws'],
-  statemine: ['wss://statemine.api.onfinality.io/public-ws'],
-  statemint: ['wss://statemint.api.onfinality.io/public-ws'],
-  tinkernet: ['wss://invarch-tinkernet.api.onfinality.io/public-ws'],
+  kusama: ['wss://kusama-rpc.polkadot.io'],
+  acala: ['wss://acala-rpc-0.aca-api.network'],
+  karura: ['wss://karura-rpc-1.aca-api.network'],
+  statemine: ['wss://kusama-asset-hub-rpc.polkadot.io'],
+  statemint: ['wss://polkadot-asset-hub-rpc.polkadot.io'],
+  tinkernet: ['wss://tinkernet-rpc.dwellir.com'],
   robonomics: ['wss://kusama.rpc.robonomics.network/'],
-  interlay: ['wss://interlay.api.onfinality.io/public-ws'],
-  zeitgeist: ['wss://zeitgeist.api.onfinality.io/public-ws'],
+  interlay: ['wss://interlay-rpc.dwellir.com'],
+  zeitgeist: ['wss://zeitgeist-rpc.dwellir.com'],
   astar: ['wss://rpc.astar.network'],
   hydradx: ['wss://rpc.hydradx.cloud'],
   basilisk: ['wss://rpc.basilisk.cloud'],
-  centrifuge: ['wss://centrifuge-parachain.api.onfinality.io/public-ws'],
+  centrifuge: ['wss://fullnode.centrifuge.io'],
   bifrost: ['wss://bifrost-polkadot.api.onfinality.io/public-ws'],
 };
 
