@@ -116,3 +116,32 @@ export async function queryPool(squidUrl: string, poolId: string) {
     id: poolId,
   });
 }
+
+const QUERY_POOLS = gql`
+  query ($assetIn: Int!, $assetOut: Int!) {
+    pools(
+      where: { assetAId_eq: $assetIn, assetBId_eq: $assetOut, poolType_eq: LBP }
+    ) {
+      id
+      assetAId
+      assetBId
+    }
+  }
+`;
+
+export interface LbpPool {
+  id: string;
+  assetAId: number;
+  assetBId: number;
+}
+
+export async function queryPools(
+  squidUrl: string,
+  assetIn: string,
+  assetOut: string,
+) {
+  return await request<{ pools: Array<LbpPool> }>(squidUrl, QUERY_POOLS, {
+    assetIn: Number(assetIn),
+    assetOut: Number(assetOut),
+  });
+}

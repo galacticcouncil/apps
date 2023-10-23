@@ -1,48 +1,40 @@
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { ONE, PoolAsset, PoolType, TradeType } from '@galacticcouncil/sdk';
+import {
+  AssetMetadata,
+  PoolAsset,
+  PoolBase,
+  PoolType,
+} from '@galacticcouncil/sdk';
 
 import * as i18n from 'i18next';
 
 import './chart';
+import { LbpChartApi } from './api';
+
 import '../trade/form';
 import '../trade/settings';
 import '../selector/asset';
 
 import { TradeApp } from '../trade';
 import { TradeTab } from '../trade/types';
+import { LbpApi } from '../../api/lbp';
 
 @customElement('gc-lbp-app')
 export class LbpApp extends TradeApp {
+  protected lbpApi: LbpApi = null;
+  protected lbpChartApi: LbpChartApi = null;
+
   @state() lbpSwap = null;
-
-  protected async recalculateSpotPrice() {
-    const assetIn = this.trade.assetIn;
-    const assetOut = this.trade.assetOut;
-
-    if (!assetIn || !assetOut) {
-      return;
-    }
-
-    let trade: any;
-    if (this.trade.type == TradeType.Buy) {
-      trade = await this.router.getBestBuy(assetIn.id, assetOut.id, ONE);
-    } else {
-      trade = await this.router.getBestSell(assetIn.id, assetOut.id, ONE);
-    }
-
-    const tradeHuman = trade.toHuman();
-    this.lbpSwap = tradeHuman.swaps.find(
-      (swap: any) => swap.pool === PoolType.LBP,
-    );
-
-    this.trade = {
-      ...this.trade,
-      inProgress: false,
-      spotPrice: tradeHuman.spotPrice,
-    };
-  }
+  @state() lbp = {
+    id: null as string,
+    accumulated: null as string,
+    accumulatedMeta: null as AssetMetadata,
+    distributed: null as string,
+    distributedMeta: null as AssetMetadata,
+    pools: new Map<string, PoolBase>([]),
+  };
 
   protected async calculateSell(
     assetIn: PoolAsset,
@@ -66,9 +58,46 @@ export class LbpApp extends TradeApp {
     );
   }
 
+  protected async onInit(): Promise<void> {
+    super.onInit();
+
+    const { api } = this.chain.state;
+    this.lbpApi = new LbpApi(api, this.router);
+    this.lbpChartApi = new LbpChartApi(api, this.squidUrl);
+
+    const pools = await this.lbpApi.getPools();
+    const pair = await this.lbpChartApi.getPoolPair(
+      this.assetIn,
+      this.assetOut,
+    );
+
+    const pairMetadata = await this.assetApi.getMetadataById([
+      this.assetIn,
+      this.assetOut,
+    ]);
+
+    const accumulatedId = pair.assetAId.toString();
+    const distributedId = pair.assetBId.toString();
+    const accumulatedMeta = pairMetadata.get(accumulatedId);
+    const distributedMeta = pairMetadata.get(distributedId);
+
+    // this.trade.assetOut = {
+    //   ...distributedMeta,
+    //   id: distributedId,
+    // } as PoolAsset;
+
+    this.lbp = {
+      ...this.lbp,
+      id: pair.id,
+      accumulated: pair.assetAId.toString(),
+      distributed: pair.assetBId.toString(),
+      accumulatedMeta: accumulatedMeta,
+      distributedMeta: distributedMeta,
+      pools: pools,
+    };
+  }
+
   tradeChartTab() {
-    const assetIn = this.assets.map.get(this.lbpSwap?.assetIn);
-    const assetOut = this.assets.map.get(this.lbpSwap?.assetOut);
     const classes = {
       tab: true,
       chart: true,
@@ -77,15 +106,13 @@ export class LbpApp extends TradeApp {
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-lbp-chart
         .squidUrl=${this.squidUrl}
-        .tradeType=${this.trade.type}
         .tradeProgress=${this.trade.inProgress}
-        .poolId=${this.lbpSwap?.poolAddress}
-        .assetIn=${assetIn}
-        .assetOut=${assetOut}
-        .spotPrice=${this.lbpSwap?.spotPrice}
+        .poolId=${this.lbp.id}
+        .assetIn=${this.lbp.accumulated}
+        .assetInMeta=${this.lbp.accumulatedMeta}
+        .assetOut=${this.lbp.distributed}
+        .assetOutMeta=${this.lbp.distributedMeta}
         .usdPrice=${this.assets.usdPrice}
-        .details=${this.assets.details}
-        .meta=${this.assets.meta}
       >
         <div class="header section" slot="header">
           <uigc-icon-button

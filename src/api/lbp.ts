@@ -1,7 +1,7 @@
 import { PoolBase, PoolType, TradeRouter } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
 
-export class BondsApi {
+export class LbpApi {
   private _api: ApiPromise;
   private _router: TradeRouter;
 

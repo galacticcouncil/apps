@@ -1,21 +1,23 @@
-import { AssetMetadata, PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { AssetMetadata } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
 import {
   HistoricalPrice,
   LbpPoolData,
+  LbpPool,
   queryPool,
   queryPoolFirstBlock,
   queryPoolLastBlock,
   queryPoolPrice,
-} from './query';
+  queryPools,
+} from './chart/query';
 import {
   getBlockPrice,
   getMissingBlocks,
   getMissingIndexes,
   getPoolMaturity,
-} from './utils';
-import { HistoricalBalance } from './types';
-import { convertToHex } from '../../../utils/account';
+} from './chart/utils';
+import { HistoricalBalance } from './chart/types';
+import { convertToHex } from '../../utils/account';
 
 export class LbpChartApi {
   private _api: ApiPromise;
@@ -45,10 +47,21 @@ export class LbpChartApi {
     return poolData;
   }
 
+  async getPoolPair(assetIn: string, assetOut: string): Promise<LbpPool> {
+    const poolsMatrix = await Promise.all([
+      await queryPools(this._squidUrl, assetIn, assetOut),
+      await queryPools(this._squidUrl, assetOut, assetIn),
+    ]);
+
+    const pools = poolsMatrix
+      .map((res) => res.pools)
+      .find((pools) => pools.length > 0);
+
+    return pools && pools[0];
+  }
+
   async getPoolPrices(
     pool: LbpPoolData,
-    tradeType: TradeType,
-    assetIn: PoolAsset,
     assetInMeta: AssetMetadata,
     assetOutMeta: AssetMetadata,
     fromBlock: HistoricalPrice,
@@ -68,14 +81,7 @@ export class LbpChartApi {
         const lastBlock = historicalPoolPriceData[0];
         const datapoints: [number, number][] = historicalPoolPriceData.map(
           (price) => {
-            return getBlockPrice(
-              assetIn,
-              assetInMeta,
-              assetOutMeta,
-              price,
-              pool,
-              tradeType,
-            );
+            return getBlockPrice(assetInMeta, assetOutMeta, price, pool);
           },
         );
         const historicalBalance = {
@@ -89,8 +95,6 @@ export class LbpChartApi {
 
   getPoolPredictionPrices(
     pool: LbpPoolData,
-    tradeType: TradeType,
-    assetIn: PoolAsset,
     assetInMeta: AssetMetadata,
     assetOutMeta: AssetMetadata,
     lastKnownBlock: HistoricalPrice,
@@ -102,12 +106,10 @@ export class LbpChartApi {
       maturity,
     ).map((block) => {
       return getBlockPrice(
-        assetIn,
         assetInMeta,
         assetOutMeta,
         { ...lastKnownBlock, relayChainBlockHeight: block },
         pool,
-        tradeType,
       );
     });
   }

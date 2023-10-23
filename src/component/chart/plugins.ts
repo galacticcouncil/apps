@@ -58,7 +58,9 @@ export function subscribeCrosshair(
         humanizeAmount(price.value.toString()) +
         ` ${assetText}</div>`;
       const usdHtml =
-        `<div class="usd"><span>` + `≈$${usdPrice}` + `</span></div>`;
+        `<div class="usd"><span>` +
+        `≈$${humanizeAmount(usdPrice)}` +
+        `</span></div>`;
       selected.innerHTML = usdPrice ? priceHtml + usdHtml : priceHtml;
 
       const date = dayjs

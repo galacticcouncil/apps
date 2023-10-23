@@ -1019,11 +1019,11 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  protected onInit(): void {
+  protected async onInit(): Promise<void> {
     this.tradeApi = new TradeApi(this.router);
     this.initAssets();
-    this.recalculateSpotPrice();
     this.validatePool();
+    this.recalculateSpotPrice();
   }
 
   protected onBlockChange(): void {
