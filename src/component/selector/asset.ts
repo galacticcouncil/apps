@@ -7,8 +7,6 @@ import { map } from 'lit/directives/map.js';
 import { baseStyles } from '../styles/base.css';
 import { selectorStyles } from '../styles/selector.css';
 
-import { Chain, chainCursor } from '../../db';
-import { DatabaseController } from '../../db.ctrl';
 import {
   formatAmount,
   humanizeAmount,
@@ -23,9 +21,8 @@ import '../id/asset';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
-  private chain = new DatabaseController<Chain>(this, chainCursor);
-
   @property({ attribute: false }) assets: PoolAsset[] = [];
+  @property({ attribute: false }) assetsAlt: PoolAsset[] = null;
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) details: Map<string, AssetDetail> = new Map(
@@ -34,7 +31,6 @@ export class SelectAsset extends LitElement {
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
-  @property({ attribute: false }) selectByType: boolean = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: Boolean }) switchAllowed = true;
@@ -58,36 +54,55 @@ export class SelectAsset extends LitElement {
     return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
+  private filterAsset(query: string, asset: PoolAsset) {
+    const assetDetail = this.details.get(asset.id);
+    const symbolEq = asset.symbol.toLowerCase().includes(query.toLowerCase());
+    const nameEq = assetDetail.name.toLowerCase().includes(query.toLowerCase());
+    const isEq = symbolEq || nameEq;
+    return isEq;
+  }
+
+  private getAssetBalance(asset: PoolAsset) {
+    const balance = this.balances.get(asset.id);
+    const balanceFormated = balance
+      ? formatAmount(balance.amount, balance.decimals)
+      : null;
+    const balanceUsd = balance
+      ? this.calculateDollarPrice(asset, balanceFormated)
+      : null;
+    return {
+      asset: asset,
+      balance: balanceFormated,
+      balanceUsd: balanceUsd,
+    };
+  }
+
   filterAssets(query: string) {
-    return this.assets
-      .filter((a) => {
-        const assetDetail = this.details.get(a.id);
-        const symbolEq = a.symbol.toLowerCase().includes(query.toLowerCase());
-        const nameEq = assetDetail.name
-          .toLowerCase()
-          .includes(query.toLowerCase());
-        const isEq = symbolEq || nameEq;
-        if (this.selector?.asset && this.selectByType) {
-          const selected = this[this.selector.id];
-          const selectedDetail = this.details.get(selected.id);
-          return isEq && assetDetail.assetType === selectedDetail.assetType;
-        }
-        return isEq;
-      })
-      .map((a) => {
-        const balance = this.balances.get(a.id);
-        const balanceFormated = balance
-          ? formatAmount(balance.amount, balance.decimals)
-          : null;
-        const balanceUsd = balance
-          ? this.calculateDollarPrice(a, balanceFormated)
-          : null;
-        return {
-          asset: a,
-          balance: balanceFormated,
-          balanceUsd: balanceUsd,
-        };
-      })
+    console.log(this.assetsAlt);
+
+    if (!this.assetsAlt) {
+      return this.assets
+        .filter((a) => this.filterAsset(query, a))
+        .map((a) => this.getAssetBalance(a))
+        .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
+    }
+
+    const secondaryArr = this.assetsAlt.map(({ id }) => id);
+    const secondarySet = new Set(secondaryArr);
+    const assets = this.assets.filter((a) => !secondarySet.has(a.id));
+    const selected = this[this.selector.id];
+    const inPrimary = assets.find((asset) => asset.symbol === selected.symbol);
+
+    if (inPrimary) {
+      return assets
+        .filter((a) => this.filterAsset(query, a))
+        .map((a) => this.getAssetBalance(a))
+        .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
+    }
+
+    return this.assetsAlt
+      .filter((a) => this.filterAsset(query, a))
+      .map((a) => this.getAssetBalance(a))
       .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
   }
 

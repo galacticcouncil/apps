@@ -11,7 +11,7 @@ import {
 import * as i18n from 'i18next';
 
 import './chart';
-import { LbpChartApi } from './api';
+import { LbpChartApi } from './chart/api';
 
 import '../trade/form';
 import '../trade/settings';
@@ -33,7 +33,7 @@ export class LbpApp extends TradeApp {
     accumulatedMeta: null as AssetMetadata,
     distributed: null as string,
     distributedMeta: null as AssetMetadata,
-    pools: new Map<string, PoolBase>([]),
+    pools: [] as PoolBase[],
   };
 
   protected async calculateSell(
@@ -58,7 +58,14 @@ export class LbpApp extends TradeApp {
     );
   }
 
-  protected async onInit(): Promise<void> {
+  protected override async getListAlt() {
+    const { api } = this.chain.state;
+    this.lbpApi = new LbpApi(api, this.router);
+    const pools = await this.lbpApi.getPools();
+    return pools.map((pool) => pool.tokens[1]);
+  }
+
+  protected override async onInit(): Promise<void> {
     super.onInit();
 
     const { api } = this.chain.state;
@@ -80,11 +87,6 @@ export class LbpApp extends TradeApp {
     const distributedId = pair.assetBId.toString();
     const accumulatedMeta = pairMetadata.get(accumulatedId);
     const distributedMeta = pairMetadata.get(distributedId);
-
-    // this.trade.assetOut = {
-    //   ...distributedMeta,
-    //   id: distributedId,
-    // } as PoolAsset;
 
     this.lbp = {
       ...this.lbp,

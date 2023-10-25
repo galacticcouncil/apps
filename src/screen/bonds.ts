@@ -45,7 +45,7 @@ export class BondsScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
-        pools=${[PoolType.Omni, PoolType.LBP].join(',')}
+        pools=${[PoolType.Omni, PoolType.LBP, PoolType.Stable].join(',')}
         stableCoinAssetId="2"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}

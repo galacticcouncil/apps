@@ -9,15 +9,15 @@ import {
   queryPoolLastBlock,
   queryPoolPrice,
   queryPools,
-} from './chart/query';
+} from './query';
 import {
   getBlockPrice,
   getMissingBlocks,
   getMissingIndexes,
   getPoolMaturity,
-} from './chart/utils';
-import { HistoricalBalance } from './chart/types';
-import { convertToHex } from '../../utils/account';
+} from './utils';
+import { HistoricalBalance } from './types';
+import { convertToHex } from '../../../utils/account';
 
 export class LbpChartApi {
   private _api: ApiPromise;
@@ -42,6 +42,7 @@ export class LbpChartApi {
       } as LbpPoolData;
     }
 
+    console.log('Querypool');
     const pools = await queryPool(this._squidUrl, account32);
     const [poolData] = pools.lbpPoolData;
     return poolData;
@@ -76,6 +77,7 @@ export class LbpChartApi {
       pool.id,
       maturity,
     );
+    console.log(indexes);
     queryPoolPrice(this._squidUrl, indexes).then(
       ({ historicalPoolPriceData }) => {
         const lastBlock = historicalPoolPriceData[0];

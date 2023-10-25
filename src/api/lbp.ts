@@ -15,16 +15,8 @@ export class LbpApi {
     return bondKeys.map(({ args: [id] }) => id.toString());
   }
 
-  async getPools(): Promise<Map<string, PoolBase>> {
+  async getPools(): Promise<PoolBase[]> {
     const pools = await this._router.getPools();
-    return pools
-      .filter((pool: PoolBase) => pool.type == PoolType.LBP)
-      .reduce((map, pool: PoolBase) => {
-        const {
-          tokens: [_accAsset, distAsset],
-        } = pool;
-        map[distAsset.id] = pool;
-        return map;
-      }, {} as Map<string, PoolBase>);
+    return pools.filter((pool: PoolBase) => pool.type == PoolType.LBP);
   }
 }

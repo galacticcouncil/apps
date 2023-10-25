@@ -50,10 +50,15 @@ export class AssetApi {
   }
 
   async getDetails(assets: PoolAsset[]): Promise<Map<string, AssetDetail>> {
+    const ids = assets.map(({ id }) => id);
+    return this.getDetailsById(ids);
+  }
+
+  async getDetailsById(ids: string[]): Promise<Map<string, AssetDetail>> {
     const details: [string, AssetDetail][] = await Promise.all(
-      assets.map(async (asset: PoolAsset) => [
-        asset.id,
-        await this._assetClient.getAssetDetail(asset.id),
+      ids.map(async (id: string) => [
+        id,
+        await this._assetClient.getAssetDetail(id),
       ]),
     );
     return pairs2Map(details);
