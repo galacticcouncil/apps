@@ -4,9 +4,9 @@ export interface HistoricalPrice {
   pool: {
     assetAId: number;
     assetBId: number;
-    assetABalance: string;
-    assetBBalance: string;
   };
+  assetABalance: string;
+  assetBBalance: string;
   paraChainBlockHeight: number;
   relayChainBlockHeight: number;
 }
@@ -72,9 +72,9 @@ const QUERY_POOL_DATA = gql`
       pool {
         assetAId
         assetBId
-        assetABalance
-        assetBBalance
       }
+      assetABalance
+      assetBBalance
       relayChainBlockHeight
       paraChainBlockHeight
     }

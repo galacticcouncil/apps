@@ -21,7 +21,7 @@ export const getBlockPrice = (
   pool: LbpPoolData,
 ): [number, number] => {
   const { relayChainBlockHeight } = historicalPrice;
-  const { assetABalance, assetBBalance } = historicalPrice.pool;
+  const { assetABalance, assetBBalance } = historicalPrice;
   const { startBlockNumber, endBlockNumber, initialWeight, finalWeight } = pool;
   const linearWeight = LbpMath.calculateLinearWeights(
     startBlockNumber.toString(),
