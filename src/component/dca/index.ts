@@ -474,6 +474,16 @@ export class DcaApp extends PoolApp {
     </uigc-paper>`;
   }
 
+  protected assetClickedListener(e: CustomEvent) {
+    const { id, asset } = this.asset.selector;
+    id == 'assetIn' && this.changeAssetIn(asset, e.detail);
+    id == 'assetGet' && this.changeAssetOut(asset, e.detail);
+    this.syncBalance();
+    this.validateMinBudget();
+    this.validateMinAmount();
+    this.changeTab(DcaTab.DcaForm);
+  }
+
   selectAssetTab() {
     const classes = {
       tab: true,
@@ -490,15 +500,7 @@ export class DcaApp extends PoolApp {
         .usdPrice=${this.assets.usdPrice}
         .switchAllowed=${false}
         .selector=${this.asset.selector}
-        @asset-clicked=${(e: CustomEvent) => {
-          const { id, asset } = this.asset.selector;
-          id == 'assetIn' && this.changeAssetIn(asset, e.detail);
-          id == 'assetGet' && this.changeAssetOut(asset, e.detail);
-          this.syncBalance();
-          this.validateMinBudget();
-          this.validateMinAmount();
-          this.changeTab(DcaTab.DcaForm);
-        }}
+        @asset-clicked=${this.assetClickedListener}
       >
         <div class="header section" slot="header">
           <uigc-icon-button
@@ -516,6 +518,43 @@ export class DcaApp extends PoolApp {
     </uigc-paper>`;
   }
 
+  protected assetInputChangedListener({ detail: { id, asset, value } }) {
+    id == 'assetIn' && this.updateAmountIn(value);
+    id == 'assetInBudget' && this.updateAmountInBudget(value);
+    id == 'maxPrice' && this.updateMaxPrice(value);
+    this.validateBudget();
+    this.validateMinBudget();
+    this.validateMinAmount();
+    this.validateEnoughBalance();
+  }
+
+  protected assetSelectorClickedListener({ detail }: CustomEvent) {
+    this.asset.selector = detail;
+    this.changeTab(DcaTab.SelectAsset);
+  }
+
+  protected selectorClickedListener({ detail }: CustomEvent) {
+    this.asset.selector = { ...detail, id: 'assetGet' };
+    this.changeTab(DcaTab.SelectAsset);
+  }
+
+  protected intervalChangedListener({ detail }: CustomEvent) {
+    this.dca.interval = detail.value;
+    this.dca.intervalBlock = null;
+    this.updateEstimated();
+    this.validateBlockPeriod();
+  }
+
+  protected intervalBlockChangedListener({ detail }: CustomEvent) {
+    this.dca.intervalBlock = detail.value;
+    this.updateEstimated();
+    this.validateBlockPeriod();
+  }
+
+  private isFormDisabled() {
+    return !this.isSwapSelected() || this.isSwapEmpty() || this.hasError();
+  }
+
   dcaFormTab() {
     const classes = {
       tab: true,
@@ -527,9 +566,7 @@ export class DcaApp extends PoolApp {
         .assets=${this.assets.map}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
-        .disabled=${!this.isSwapSelected() ||
-        this.isSwapEmpty() ||
-        this.hasError()}
+        .disabled=${this.isFormDisabled()}
         .assetIn=${this.dca.assetIn}
         .assetOut=${this.dca.assetOut}
         .amountIn=${this.dca.amountIn}
@@ -543,36 +580,11 @@ export class DcaApp extends PoolApp {
         .tradeFeePct=${this.dca.tradeFeePct}
         .est=${this.dca.est}
         .error=${this.dca.error}
-        @asset-input-changed=${({
-          detail: { id, asset, value },
-        }: CustomEvent) => {
-          id == 'assetIn' && this.updateAmountIn(value);
-          id == 'assetInBudget' && this.updateAmountInBudget(value);
-          id == 'maxPrice' && this.updateMaxPrice(value);
-          this.validateBudget();
-          this.validateMinBudget();
-          this.validateMinAmount();
-          this.validateEnoughBalance();
-        }}
-        @asset-selector-clicked=${({ detail }: CustomEvent) => {
-          this.asset.selector = detail;
-          this.changeTab(DcaTab.SelectAsset);
-        }}
-        @selector-clicked=${({ detail }: CustomEvent) => {
-          this.asset.selector = { ...detail, id: 'assetGet' };
-          this.changeTab(DcaTab.SelectAsset);
-        }}
-        @interval-changed=${({ detail }: CustomEvent) => {
-          this.dca.interval = detail.value;
-          this.dca.intervalBlock = null;
-          this.updateEstimated();
-          this.validateBlockPeriod();
-        }}
-        @interval-block-changed=${({ detail }: CustomEvent) => {
-          this.dca.intervalBlock = detail.value;
-          this.updateEstimated();
-          this.validateBlockPeriod();
-        }}
+        @asset-input-changed=${this.assetInputChangedListener}
+        @asset-selector-clicked=${this.assetSelectorClickedListener}
+        @selector-clicked=${this.selectorClickedListener}
+        @interval-changed=${this.intervalChangedListener}
+        @interval-block-changed=${this.intervalBlockChangedListener}
         @schedule-clicked=${() => this.schedule()}
       >
         <div class="header" slot="header">

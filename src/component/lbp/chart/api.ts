@@ -77,7 +77,6 @@ export class LbpChartApi {
       pool.id,
       maturity,
     );
-    console.log(indexes);
     queryPoolPrice(this._squidUrl, indexes).then(
       ({ historicalPoolPriceData }) => {
         const lastBlock = historicalPoolPriceData[0];

@@ -14,7 +14,6 @@ import {
   AssetMetadata,
   BigNumber,
   PoolAsset,
-  PoolBase,
   PoolType,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
@@ -39,7 +38,6 @@ export abstract class PoolApp extends BaseApp {
 
   @state() assets = {
     list: [] as PoolAsset[],
-    listAlt: null as PoolAsset[],
     map: new Map<string, PoolAsset>([]),
     pairs: new Map<string, PoolAsset[]>([]),
     meta: new Map<string, AssetMetadata>([]),
@@ -106,19 +104,17 @@ export abstract class PoolApp extends BaseApp {
     this.timeApi = new TimeApi(api);
 
     const assets = await this.router.getAllAssets();
-    const [assetsPairs, assetsDetails, assetsMeta, assetsLocations, assetsAlt] =
+    const [assetsPairs, assetsDetails, assetsMeta, assetsLocations] =
       await Promise.all([
         this.assetApi.getPairs(assets),
         this.assetApi.getDetails(assets),
         this.assetApi.getMetadata(assets),
         this.assetApi.getLocations(assets),
-        this.getListAlt(),
       ]);
 
     this.assets = {
       ...this.assets,
       list: assets,
-      listAlt: assetsAlt,
       map: new Map<string, PoolAsset>(assets.map((i) => [i.id, i])),
       pairs: assetsPairs,
       details: assetsDetails,
@@ -153,10 +149,6 @@ export abstract class PoolApp extends BaseApp {
     if (this.isApiReady()) {
       await this.syncPoolBalances();
     }
-  }
-
-  protected async getListAlt() {
-    return null;
   }
 
   protected async syncDolarPrice() {

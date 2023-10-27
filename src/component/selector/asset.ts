@@ -38,11 +38,11 @@ export class SelectAsset extends LitElement {
 
   static styles = [baseStyles, selectorStyles];
 
-  updateSearch(searchDetail: any) {
+  private updateSearch(searchDetail: any) {
     this.query = searchDetail.value;
   }
 
-  calculateDollarPrice(asset: PoolAsset, amount: string) {
+  private getDollarPrice(asset: PoolAsset, amount: string) {
     if (this.usdPrice.size == 0) {
       return null;
     }
@@ -54,21 +54,13 @@ export class SelectAsset extends LitElement {
     return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
-  private filterAsset(query: string, asset: PoolAsset) {
-    const assetDetail = this.details.get(asset.id);
-    const symbolEq = asset.symbol.toLowerCase().includes(query.toLowerCase());
-    const nameEq = assetDetail.name.toLowerCase().includes(query.toLowerCase());
-    const isEq = symbolEq || nameEq;
-    return isEq;
-  }
-
   private getAssetBalance(asset: PoolAsset) {
     const balance = this.balances.get(asset.id);
     const balanceFormated = balance
       ? formatAmount(balance.amount, balance.decimals)
       : null;
     const balanceUsd = balance
-      ? this.calculateDollarPrice(asset, balanceFormated)
+      ? this.getDollarPrice(asset, balanceFormated)
       : null;
     return {
       asset: asset,
@@ -77,33 +69,36 @@ export class SelectAsset extends LitElement {
     };
   }
 
-  filterAssets(query: string) {
-    console.log(this.assetsAlt);
+  private filterAsset(query: string, asset: PoolAsset) {
+    const assetDetail = this.details.get(asset.id);
+    const symbolEq = asset.symbol.toLowerCase().includes(query.toLowerCase());
+    const nameEq = assetDetail.name.toLowerCase().includes(query.toLowerCase());
+    const isEq = symbolEq || nameEq;
+    return isEq;
+  }
 
+  private filterAssets(query: string, assets: PoolAsset[]) {
+    return assets
+      .filter((a) => this.filterAsset(query, a))
+      .map((a) => this.getAssetBalance(a))
+      .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
+  }
+
+  private filter(query: string) {
     if (!this.assetsAlt) {
-      return this.assets
-        .filter((a) => this.filterAsset(query, a))
-        .map((a) => this.getAssetBalance(a))
-        .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
+      return this.filterAssets(query, this.assets);
     }
 
     const secondaryArr = this.assetsAlt.map(({ id }) => id);
     const secondarySet = new Set(secondaryArr);
     const assets = this.assets.filter((a) => !secondarySet.has(a.id));
-    const selected = this[this.selector.id];
-    const inPrimary = assets.find((asset) => asset.symbol === selected.symbol);
+    const selected = this[this.selector?.id];
+    const inPrimary = assets.find((asset) => asset.symbol === selected?.symbol);
 
     if (inPrimary) {
-      return assets
-        .filter((a) => this.filterAsset(query, a))
-        .map((a) => this.getAssetBalance(a))
-        .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
+      return this.filterAssets(query, assets);
     }
-
-    return this.assetsAlt
-      .filter((a) => this.filterAsset(query, a))
-      .map((a) => this.getAssetBalance(a))
-      .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
+    return this.filterAssets(query, this.assetsAlt);
   }
 
   isDisabled(asset: PoolAsset): boolean {
@@ -186,31 +181,28 @@ export class SelectAsset extends LitElement {
       ${when(
         this.assets.length > 0,
         () => html` <uigc-asset-list>
-          ${map(
-            this.filterAssets(this.query),
-            ({ asset, balance, balanceUsd }) => {
-              const icons = asset.icon.split('/');
-              const detail = this.details.get(asset.id);
-              return html`
-                <uigc-asset-list-item
-                  slot=${this.getSlot(asset)}
-                  ?selected=${this.isSelected(asset)}
-                  ?disabled=${this.isDisabled(asset)}
+          ${map(this.filter(this.query), ({ asset, balance, balanceUsd }) => {
+            const icons = asset.icon.split('/');
+            const detail = this.details.get(asset.id);
+            return html`
+              <uigc-asset-list-item
+                slot=${this.getSlot(asset)}
+                ?selected=${this.isSelected(asset)}
+                ?disabled=${this.isDisabled(asset)}
+                .asset=${asset}
+                .unit=${icons.length === 1 ? asset.symbol : null}
+                .balance=${humanizeAmount(balance)}
+                .balanceUsd=${humanizeAmount(balanceUsd)}
+              >
+                <gc-asset-id
+                  slot="asset"
                   .asset=${asset}
-                  .unit=${icons.length === 1 ? asset.symbol : null}
-                  .balance=${humanizeAmount(balance)}
-                  .balanceUsd=${humanizeAmount(balanceUsd)}
-                >
-                  <gc-asset-id
-                    slot="asset"
-                    .asset=${asset}
-                    .detail=${detail}
-                    .locations=${this.locations}
-                  ></gc-asset-id>
-                </uigc-asset-list-item>
-              `;
-            },
-          )}
+                  .detail=${detail}
+                  .locations=${this.locations}
+                ></gc-asset-id>
+              </uigc-asset-list-item>
+            `;
+          })}
         </uigc-asset-list>`,
         () =>
           html`

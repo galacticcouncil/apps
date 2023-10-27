@@ -138,7 +138,6 @@ export class LbpChart extends BaseElement {
   }
 
   private async loadData() {
-    console.log('load');
     if (!this.hasPoolPair()) {
       return;
     }
@@ -151,7 +150,6 @@ export class LbpChart extends BaseElement {
 
     this.chartState = ChartState.Loading;
     const pool = await this.chartApi.getPoolData(this.poolId);
-    console.log(pool);
     const [fromBlock, toBlock] = await Promise.all([
       this.chartApi.getFirstBlock(this.poolId, pool.startBlockNumber),
       this.chartApi.getLastBlock(this.poolId, pool.endBlockNumber),
@@ -177,7 +175,6 @@ export class LbpChart extends BaseElement {
       fromBlock,
       toBlock,
       ({ dataset, lastBlock }) => {
-        console.log(dataset);
         let prediction = [];
         if (pool.endBlockNumber > relayBlockHeight) {
           prediction = this.chartApi.getPoolPredictionPrices(
@@ -187,8 +184,6 @@ export class LbpChart extends BaseElement {
             lastBlock,
           );
         }
-        console.log('Prediction:');
-        console.log(prediction);
 
         const primaryDataset = toDatapoints(dataset);
         const secondaryDataset = toDatapoints(prediction);

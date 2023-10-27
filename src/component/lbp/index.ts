@@ -34,6 +34,7 @@ export class LbpApp extends TradeApp {
     distributed: null as string,
     distributedMeta: null as AssetMetadata,
     pools: [] as PoolBase[],
+    assets: [] as PoolAsset[],
   };
 
   protected async calculateSell(
@@ -56,13 +57,6 @@ export class LbpApp extends TradeApp {
     this.lbpSwap = this.trade.swaps.find(
       (swap: any) => swap.pool === PoolType.LBP,
     );
-  }
-
-  protected override async getListAlt() {
-    const { api } = this.chain.state;
-    this.lbpApi = new LbpApi(api, this.router);
-    const pools = await this.lbpApi.getPools();
-    return pools.map((pool) => pool.tokens[1]);
   }
 
   protected override async onInit(): Promise<void> {
@@ -96,7 +90,45 @@ export class LbpApp extends TradeApp {
       accumulatedMeta: accumulatedMeta,
       distributedMeta: distributedMeta,
       pools: pools,
+      assets: pools.map((pool) => pool.tokens[1]),
     };
+  }
+
+  selectAssetTab() {
+    const classes = {
+      tab: true,
+      main: true,
+      active: this.tab == TradeTab.SelectAsset,
+    };
+    return html` <uigc-paper class=${classMap(classes)}>
+      <gc-select-asset
+        .assets=${this.assets.list}
+        .assetsAlt=${this.lbp.assets}
+        .pairs=${this.assets.pairs}
+        .locations=${this.assets.locations}
+        .details=${this.assets.details}
+        .balances=${this.assets.balance}
+        .usdPrice=${this.assets.usdPrice}
+        .assetIn=${this.trade.assetIn}
+        .assetOut=${this.trade.assetOut}
+        .switchAllowed=${this.isSwitchEnabled()}
+        .selector=${this.asset.selector}
+        @asset-clicked=${this.assetClickedListener}
+      >
+        <div class="header section" slot="header">
+          <uigc-icon-button
+            class="back"
+            @click=${() => this.changeTab(TradeTab.TradeForm)}
+          >
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section"
+            >${i18n.t('trade.selectAsset')}</uigc-typography
+          >
+          <span></span>
+        </div>
+      </gc-select-asset>
+    </uigc-paper>`;
   }
 
   tradeChartTab() {

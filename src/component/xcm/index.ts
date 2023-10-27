@@ -9,7 +9,11 @@ import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { basicLayoutStyles } from '../styles/layout/basic.css';
 
-import { getSupportedTokens, initAdapterConnection, initBridge } from '../../bridge';
+import {
+  getSupportedTokens,
+  initAdapterConnection,
+  initBridge,
+} from '../../bridge';
 import { DatabaseController } from '../../db.ctrl';
 import { Account, XChain, xChainCursor } from '../../db';
 import { formatAmount, humanizeAmount, toFN } from '../../utils/amount';
@@ -20,14 +24,25 @@ import { Subscription, combineLatest } from 'rxjs';
 
 import '@galacticcouncil/ui';
 import { bnum, Transaction } from '@galacticcouncil/sdk';
-import { BalanceData, Chain, ChainId, InputConfig } from '@galacticcouncil/bridge';
+import {
+  BalanceData,
+  Chain,
+  ChainId,
+  InputConfig,
+} from '@galacticcouncil/bridge';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
 import '../selector/token';
 import '../selector/chain';
 
-import { TransferTab, ChainState, TransferState, DEFAULT_CHAIN_STATE, DEFAULT_TRANSFER_STATE } from './types';
+import {
+  TransferTab,
+  ChainState,
+  TransferState,
+  DEFAULT_CHAIN_STATE,
+  DEFAULT_TRANSFER_STATE,
+} from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-xcm-app')
@@ -138,7 +153,10 @@ export class XcmApp extends BaseApp {
   }
 
   updateAddress(address: string) {
-    const recipientNative = convertAddressSS58(address, Number(this.transfer.dstChainSs58Prefix));
+    const recipientNative = convertAddressSS58(
+      address,
+      Number(this.transfer.dstChainSs58Prefix),
+    );
     this.transfer = {
       ...this.transfer,
       address: recipientNative ? recipientNative : address,
@@ -147,7 +165,10 @@ export class XcmApp extends BaseApp {
 
   validateAddress() {
     const recipient = this.transfer.address;
-    const recipientNative = convertAddressSS58(recipient, Number(this.transfer.dstChainSs58Prefix));
+    const recipientNative = convertAddressSS58(
+      recipient,
+      Number(this.transfer.dstChainSs58Prefix),
+    );
 
     if (recipient == null || recipient == '') {
       this.transfer.error['address'] = i18n.t('xcm.error.required');
@@ -185,18 +206,31 @@ export class XcmApp extends BaseApp {
     const minInput = this.input.minInput;
 
     if (amountFN.gt(this.input.maxInput)) {
-      this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', { amount: maxInput, asset: this.transfer.asset });
+      this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', {
+        amount: maxInput,
+        asset: this.transfer.asset,
+      });
     } else if (amountFN.lt(this.input.minInput)) {
-      this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', { amount: minInput, asset: this.transfer.asset });
+      this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', {
+        amount: minInput,
+        asset: this.transfer.asset,
+      });
     } else {
       delete this.transfer.error['amount'];
     }
     this.requestUpdate();
   }
 
-  notificationTemplate(transfer: TransferState, status: string): TxNotificationMssg {
+  notificationTemplate(
+    transfer: TransferState,
+    status: string,
+  ): TxNotificationMssg {
     const template = html`
-      <span>${status ? i18n.t('xcm.notify.sending') : i18n.t('xcm.notify.sent')}</span>
+      <span
+        >${status
+          ? i18n.t('xcm.notify.sending')
+          : i18n.t('xcm.notify.sent')}</span
+      >
       <span class="highlight">${transfer.amount}</span>
       <span class="highlight">${transfer.asset}</span>
       <span>${i18n.t('xcm.notify.from')}</span>
@@ -211,9 +245,16 @@ export class XcmApp extends BaseApp {
     } as TxNotificationMssg;
   }
 
-  processTx(account: Account, transaction: Transaction, transfer: TransferState) {
+  processTx(
+    account: Account,
+    transaction: Transaction,
+    transfer: TransferState,
+  ) {
     const notification = {
-      processing: this.notificationTemplate(transfer, i18n.t('xcm.tx.submitted')),
+      processing: this.notificationTemplate(
+        transfer,
+        i18n.t('xcm.tx.submitted'),
+      ),
       success: this.notificationTemplate(transfer, i18n.t('xcm.tx.inBlock')),
       failure: this.notificationTemplate(transfer, i18n.t('xcm.tx.failed')),
     };
@@ -261,8 +302,12 @@ export class XcmApp extends BaseApp {
     const srcChain = this.transfer.srcChain as ChainId;
     const dstChain = this.transfer.dstChain as ChainId;
 
-    const destChainsConfig = bridge.router.getDestinationChains({ from: srcChain });
-    const destChains = destChainsConfig.filter((chain: Chain) => this.chain.list.includes(chain.id));
+    const destChainsConfig = bridge.router.getDestinationChains({
+      from: srcChain,
+    });
+    const destChains = destChainsConfig.filter((chain: Chain) =>
+      this.chain.list.includes(chain.id),
+    );
     const destChainsList = destChains.map((chain: Chain) => chain.id);
 
     const isDestValid = destChainsList.includes(dstChain);
@@ -317,17 +362,19 @@ export class XcmApp extends BaseApp {
       return map;
     }, {});
 
-    this.disconnectSubscribeBalance = combineLatest(tokenBalanceO).subscribe((val) => {
-      const balances: Map<string, string> = new Map([]);
-      Object.keys(val).forEach((token: string) => {
-        const balanceData = val[token] as BalanceData;
-        const balance = balanceData.available.toString();
-        balances.set(token, balance);
-      });
-      this.chain.balance = balances;
-      this.transfer.balance = balances.get(asset);
-      this.requestUpdate();
-    });
+    this.disconnectSubscribeBalance = combineLatest(tokenBalanceO).subscribe(
+      (val) => {
+        const balances: Map<string, string> = new Map([]);
+        Object.keys(val).forEach((token: string) => {
+          const balanceData = val[token] as BalanceData;
+          const balance = balanceData.available.toString();
+          balances.set(token, balance);
+        });
+        this.chain.balance = balances;
+        this.transfer.balance = balances.get(asset);
+        this.requestUpdate();
+      },
+    );
   }
 
   private async syncInput() {
@@ -352,21 +399,26 @@ export class XcmApp extends BaseApp {
       signer: account.address,
     });
 
-    this.disconnectSubscribeInput = inputConfigO.subscribe((config: InputConfig) => {
-      this.input = config;
-      const srcChainFeeBN = bnum(config.estimateFee);
-      const srcChainFeeFormatted = formatAmount(srcChainFeeBN, nativeAssetDecimals);
-      this.transfer = {
-        ...this.transfer,
-        nativeAsset: nativeAsset,
-        effectiveBalance: config.maxInput.toString(),
-        srcChainFee: humanizeAmount(srcChainFeeFormatted),
-        dstChainFee: config.destFee.balance.toString(),
-        dstChainSs58Prefix: config.ss58Prefix.toString(),
-      };
-      this.updateAddress(this.transfer.address);
-      this.validateTransferAmount();
-    });
+    this.disconnectSubscribeInput = inputConfigO.subscribe(
+      (config: InputConfig) => {
+        this.input = config;
+        const srcChainFeeBN = bnum(config.estimateFee);
+        const srcChainFeeFormatted = formatAmount(
+          srcChainFeeBN,
+          nativeAssetDecimals,
+        );
+        this.transfer = {
+          ...this.transfer,
+          nativeAsset: nativeAsset,
+          effectiveBalance: config.maxInput.toString(),
+          srcChainFee: humanizeAmount(srcChainFeeFormatted),
+          dstChainFee: config.destFee.balance.toString(),
+          dstChainSs58Prefix: config.ss58Prefix.toString(),
+        };
+        this.updateAddress(this.transfer.address);
+        this.validateTransferAmount();
+      },
+    );
   }
 
   async init() {
@@ -386,7 +438,10 @@ export class XcmApp extends BaseApp {
   }
 
   override async update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('srcChain') || changedProperties.has('dstChain')) {
+    if (
+      changedProperties.has('srcChain') ||
+      changedProperties.has('dstChain')
+    ) {
       this.transfer = {
         ...this.transfer,
         srcChain: this.srcChain,
@@ -431,6 +486,17 @@ export class XcmApp extends BaseApp {
     super.disconnectedCallback();
   }
 
+  protected listItemClickedListener(isDest: boolean) {
+    return function ({ detail: { item } }) {
+      if (isDest) {
+        this.changeDestinationChain(item);
+      } else {
+        this.changeSourceChain(item);
+      }
+      this.changeTab(TransferTab.TransferForm);
+    };
+  }
+
   selectChainTab() {
     const classes = {
       tab: true,
@@ -443,26 +509,29 @@ export class XcmApp extends BaseApp {
         .srcChain=${this.transfer.srcChain}
         .dstChain=${this.transfer.dstChain}
         .selector=${this.chain.selector}
-        @list-item-clicked=${({ detail: { item } }: CustomEvent) => {
-          if (isDest) {
-            this.changeDestinationChain(item);
-          } else {
-            this.changeSourceChain(item);
-          }
-          this.changeTab(TransferTab.TransferForm);
-        }}
+        @list-item-clicked=${this.listItemClickedListener(isDest)}
       >
         <div class="header section" slot="header">
-          <uigc-icon-button class="back" @click=${() => this.changeTab(TransferTab.TransferForm)}>
+          <uigc-icon-button
+            class="back"
+            @click=${() => this.changeTab(TransferTab.TransferForm)}
+          >
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
           <uigc-typography variant="section"
-            >${isDest ? i18n.t('xcm.selectDest') : i18n.t('xcm.selectSrc')}</uigc-typography
+            >${isDest
+              ? i18n.t('xcm.selectDest')
+              : i18n.t('xcm.selectSrc')}</uigc-typography
           >
           <span></span>
         </div>
       </gc-select-chain>
     </uigc-paper>`;
+  }
+
+  protected assetClickedListener({ detail: { symbol } }) {
+    this.changeAsset(symbol);
+    this.changeTab(TransferTab.TransferForm);
   }
 
   selectTokenTab() {
@@ -475,20 +544,41 @@ export class XcmApp extends BaseApp {
         .assets=${this.chain.tokens}
         .balances=${this.chain.balance}
         .asset=${this.transfer.asset}
-        @asset-clicked=${({ detail: { symbol } }: CustomEvent) => {
-          this.changeAsset(symbol);
-          this.changeTab(TransferTab.TransferForm);
-        }}
+        @asset-clicked=${this.assetClickedListener}
       >
         <div class="header section" slot="header">
-          <uigc-icon-button class="back" @click=${() => this.changeTab(TransferTab.TransferForm)}>
+          <uigc-icon-button
+            class="back"
+            @click=${() => this.changeTab(TransferTab.TransferForm)}
+          >
             <uigc-icon-back></uigc-icon-back>
           </uigc-icon-button>
-          <uigc-typography variant="section">${i18n.t('xcm.selectAsset')}</uigc-typography>
+          <uigc-typography variant="section"
+            >${i18n.t('xcm.selectAsset')}</uigc-typography
+          >
           <span></span>
         </div>
       </gc-select-token>
     </uigc-paper>`;
+  }
+
+  protected assetInputChangedListener({ detail: { value } }) {
+    this.updateAmount(value);
+    this.validateTransferAmount();
+  }
+
+  protected addressInputChangedListener({ detail: { address } }) {
+    this.updateAddress(address);
+    this.validateAddress();
+  }
+
+  protected chainSelectorClickedListener({ detail: { chain } }) {
+    this.chain.selector = chain;
+    this.changeTab(TransferTab.SelectChain);
+  }
+
+  private isFormDisabled() {
+    return this.isTransferEmpty() || this.hasError();
   }
 
   xcmFormTab() {
@@ -498,7 +588,7 @@ export class XcmApp extends BaseApp {
     };
     return html` <uigc-paper class=${classMap(classes)} id="default-tab">
       <gc-xcm-form
-        .disabled=${this.isTransferEmpty() || this.hasError()}
+        .disabled=${this.isFormDisabled()}
         .srcChain=${this.transfer.srcChain}
         .dstChain=${this.transfer.dstChain}
         .asset=${this.transfer.asset}
@@ -511,24 +601,17 @@ export class XcmApp extends BaseApp {
         .dstChainSs58Prefix=${this.transfer.dstChainSs58Prefix}
         .error=${this.transfer.error}
         .address=${this.transfer.address}
-        @asset-input-changed=${({ detail: { value } }: CustomEvent) => {
-          this.updateAmount(value);
-          this.validateTransferAmount();
-        }}
-        @address-input-changed=${({ detail: { address } }: CustomEvent) => {
-          this.updateAddress(address);
-          this.validateAddress();
-        }}
+        @asset-input-changed=${this.assetInputChangedListener}
+        @address-input-changed=${this.addressInputChangedListener}
         @asset-switch-clicked=${this.switchChains}
         @asset-selector-clicked=${() => this.changeTab(TransferTab.SelectToken)}
-        @chain-selector-clicked=${({ detail: { chain } }: CustomEvent) => {
-          this.chain.selector = chain;
-          this.changeTab(TransferTab.SelectChain);
-        }}
+        @chain-selector-clicked=${this.chainSelectorClickedListener}
         @transfer-clicked=${() => this.swap()}
       >
         <div class="header" slot="header">
-          <uigc-typography gradient variant="title">${i18n.t('xcm.title')}</uigc-typography>
+          <uigc-typography gradient variant="title"
+            >${i18n.t('xcm.title')}</uigc-typography
+          >
           <span class="grow"></span>
         </div>
       </gc-xcm-form>
@@ -537,7 +620,9 @@ export class XcmApp extends BaseApp {
 
   render() {
     return html`
-      <div class="layout-root">${this.xcmFormTab()} ${this.selectChainTab()} ${this.selectTokenTab()}</div>
+      <div class="layout-root">
+        ${this.xcmFormTab()} ${this.selectChainTab()} ${this.selectTokenTab()}
+      </div>
     `;
   }
 }
