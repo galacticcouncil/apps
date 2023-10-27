@@ -42,7 +42,6 @@ export class LbpChartApi {
       } as LbpPoolData;
     }
 
-    console.log('Querypool');
     const pools = await queryPool(this._squidUrl, account32);
     const [poolData] = pools.lbpPoolData;
     return poolData;

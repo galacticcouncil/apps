@@ -10,14 +10,7 @@ import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
 import { INTERVAL, Interval } from '../../api/time';
-import {
-  Account,
-  accountCursor,
-  Chain,
-  chainCursor,
-  DcaConfig,
-  dcaSettingsCursor,
-} from '../../db';
+import { Account, accountCursor, DcaConfig, dcaSettingsCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
 
@@ -26,7 +19,6 @@ import { PoolAsset } from '@galacticcouncil/sdk';
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
-  private chain = new DatabaseController<Chain>(this, chainCursor);
   private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
 
   @state() advanced: boolean = false;
@@ -285,11 +277,67 @@ export class DcaForm extends BaseElement {
       )}`;
   }
 
+  formAssetTemplate(asset: PoolAsset, slot?: string) {
+    if (this.assets.size > 0) {
+      return html`
+        <gc-asset-id
+          slot=${slot}
+          .asset=${asset}
+          .locations=${this.locations}
+        ></gc-asset-id>
+      `;
+    }
+    return this.formAssetLoadingTemplate(slot);
+  }
+
+  formAssetBalanceTemplate(balance: string) {
+    return html`
+      <uigc-asset-balance
+        slot="balance"
+        .balance=${balance}
+        .visible=${false}
+        .formatter=${humanizeAmount}
+      ></uigc-asset-balance>
+    `;
+  }
+
+  formAssetLoadingTemplate(slot?: string) {
+    return html`
+      <div class="loading" slot=${slot}>
+        <uigc-skeleton
+          circle
+          progress
+          width="32px"
+          height="32px"
+        ></uigc-skeleton>
+        <span class="title">
+          <uigc-skeleton
+            progress
+            rectangle
+            width="40px"
+            height="16px"
+          ></uigc-skeleton>
+          <uigc-skeleton
+            progress
+            rectangle
+            width="50px"
+            height="8px"
+          ></uigc-skeleton>
+        </span>
+      </div>
+    `;
+  }
+
   formAssetInTemplate() {
     const error = this.error['minAmountTooLow'];
+    const loaded = this.assets.size > 0;
     return html` <uigc-asset-transfer
       id="assetIn"
       title="Swap"
+      ?readonly=${!loaded}
+      .readonly=${!loaded}
+      ?selectable=${loaded}
+      .selectable=${loaded}
       ?error=${error}
       .error=${error}
       dense
@@ -297,11 +345,7 @@ export class DcaForm extends BaseElement {
       .amount=${this.amountIn}
       .amountUsd=${this.amountInUsd}
     >
-      <gc-asset-id
-        slot="asset"
-        .asset=${this.assetIn}
-        .locations=${this.locations}
-      ></gc-asset-id>
+      ${this.formAssetTemplate(this.assetIn, 'asset')}
     </uigc-asset-transfer>`;
   }
 
@@ -327,11 +371,14 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetOutTemplate() {
-    return html` <uigc-selector item=${this.assetOut?.symbol} title="For">
-      <gc-asset-id
-        .asset=${this.assetOut}
-        .locations=${this.locations}
-      ></gc-asset-id>
+    const loaded = this.assets.size > 0;
+    return html` <uigc-selector
+      title="For"
+      ?readonly=${!loaded}
+      .readonly=${!loaded}
+      .item=${this.assetOut?.symbol}
+    >
+      ${this.formAssetTemplate(this.assetOut)}
     </uigc-selector>`;
   }
 
@@ -340,9 +387,12 @@ export class DcaForm extends BaseElement {
       this.error['balanceTooLow'] ||
       this.error['budgetTooLow'] ||
       this.error['minBudgetTooLow'];
+    const loaded = this.assets.size > 0;
     return html` <uigc-asset-transfer
       id="assetInBudget"
       title=${i18n.t('dca.settings.budget')}
+      ?readonly=${!loaded}
+      .readonly=${!loaded}
       ?error=${error}
       .error=${error}
       dense
@@ -351,17 +401,8 @@ export class DcaForm extends BaseElement {
       amount=${this.amountInBudget}
       .selectable=${false}
     >
-      <gc-asset-id
-        slot="asset"
-        .asset=${this.assetIn}
-        .locations=${this.locations}
-      ></gc-asset-id>
-      <uigc-asset-balance
-        slot="balance"
-        .balance=${this.balanceIn}
-        .visible=${false}
-        .formatter=${humanizeAmount}
-      ></uigc-asset-balance>
+      ${this.formAssetTemplate(this.assetIn, 'asset')}
+      ${this.formAssetBalanceTemplate(this.balanceIn)}
     </uigc-asset-transfer>`;
   }
 

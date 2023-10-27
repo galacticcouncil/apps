@@ -179,14 +179,6 @@ export class DcaApp extends PoolApp {
     };
   }
 
-  private updateAsset(asset: string, assetKey: string) {
-    if (asset) {
-      this.dca[assetKey] = this.assets.map.get(asset);
-    } else {
-      this.dca[assetKey] = null;
-    }
-  }
-
   private async updateEstimated() {
     const { interval, intervalBlock } = this.dca;
 
@@ -409,7 +401,15 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  protected onInit(): void {
+  private updateAsset(asset: string, assetKey: string) {
+    if (asset) {
+      this.dca[assetKey] = this.assets.map.get(asset);
+    } else {
+      this.dca[assetKey] = null;
+    }
+  }
+
+  protected initAssets() {
     if (!this.assetIn && !this.assetOut) {
       this.dca.assetIn = this.assets.map.get(this.stableCoinAssetId);
       this.dca.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
@@ -417,6 +417,10 @@ export class DcaApp extends PoolApp {
       this.updateAsset(this.assetIn, 'assetIn');
       this.updateAsset(this.assetOut, 'assetOut');
     }
+  }
+
+  protected onInit(): void {
+    this.initAssets();
     this.recalculateSpotPrice();
     this.syncBalance();
   }
@@ -477,7 +481,7 @@ export class DcaApp extends PoolApp {
   protected assetClickedListener(e: CustomEvent) {
     const { id, asset } = this.asset.selector;
     id == 'assetIn' && this.changeAssetIn(asset, e.detail);
-    id == 'assetGet' && this.changeAssetOut(asset, e.detail);
+    id == 'assetOut' && this.changeAssetOut(asset, e.detail);
     this.syncBalance();
     this.validateMinBudget();
     this.validateMinAmount();
@@ -498,6 +502,8 @@ export class DcaApp extends PoolApp {
         .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
+        .assetIn=${this.dca.assetIn}
+        .assetOut=${this.dca.assetOut}
         .switchAllowed=${false}
         .selector=${this.asset.selector}
         @asset-clicked=${this.assetClickedListener}
@@ -533,8 +539,11 @@ export class DcaApp extends PoolApp {
     this.changeTab(DcaTab.SelectAsset);
   }
 
-  protected selectorClickedListener({ detail }: CustomEvent) {
-    this.asset.selector = { ...detail, id: 'assetGet' };
+  protected selectorClickedListener({ detail: { item } }) {
+    if (!item || item === '') {
+      return;
+    }
+    this.asset.selector = { id: 'assetOut', asset: item } as AssetSelector;
     this.changeTab(DcaTab.SelectAsset);
   }
 

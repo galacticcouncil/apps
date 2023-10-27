@@ -10,7 +10,7 @@ import { BaseElement } from '../base/BaseElement';
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
-import { Account, Chain, accountCursor, chainCursor } from '../../db';
+import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { TradeApi, TradeTwap, TradeTwapError } from '../../api/trade';
 import { humanizeAmount } from '../../utils/amount';
@@ -27,7 +27,6 @@ import { TransactionFee } from './types';
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
-  private chain = new DatabaseController<Chain>(this, chainCursor);
 
   @state() twapEnabled: boolean = false;
 
@@ -700,6 +699,60 @@ export class TradeForm extends BaseElement {
     `;
   }
 
+  formAssetTemplate(asset: PoolAsset) {
+    if (this.assets.size > 0) {
+      return html`
+        <gc-asset-id
+          slot="asset"
+          .asset=${asset}
+          .locations=${this.locations}
+        ></gc-asset-id>
+      `;
+    }
+    return this.formAssetLoadingTemplate();
+  }
+
+  formAssetBalanceTemplate(id: string, asset: PoolAsset, balance: string) {
+    return html`
+      <uigc-asset-balance
+        slot="balance"
+        .balance=${balance}
+        .formatter=${humanizeAmount}
+        .onMaxClick=${this.maxClickHandler(id, asset)}
+        @asset-max-clicked=${() => {
+          this.twapEnabled = false;
+        }}
+      ></uigc-asset-balance>
+    `;
+  }
+
+  formAssetLoadingTemplate() {
+    return html`
+      <div class="loading" slot="asset">
+        <uigc-skeleton
+          circle
+          progress
+          width="32px"
+          height="32px"
+        ></uigc-skeleton>
+        <span class="title">
+          <uigc-skeleton
+            progress
+            rectangle
+            width="40px"
+            height="16px"
+          ></uigc-skeleton>
+          <uigc-skeleton
+            progress
+            rectangle
+            width="50px"
+            height="8px"
+          ></uigc-skeleton>
+        </span>
+      </div>
+    `;
+  }
+
   formAssetInTemplate() {
     let amountIn: string = this.amountIn;
     let amountInUsd: string = this.amountInUsd;
@@ -711,9 +764,14 @@ export class TradeForm extends BaseElement {
 
     const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
     const error = this.error['balance'];
+    const loaded = this.assets.size > 0;
     return html` <uigc-asset-transfer
       id="assetIn"
       title="${i18n.t('trade.payWith')}"
+      ?readonly=${!loaded}
+      .readonly=${!loaded}
+      ?selectable=${loaded}
+      .selectable=${loaded}
       ?error=${error}
       .error=${error}
       .asset=${this.assetIn?.symbol}
@@ -723,20 +781,8 @@ export class TradeForm extends BaseElement {
         this.twapEnabled = false;
       }}
     >
-      <gc-asset-id
-        slot="asset"
-        .asset=${this.assetIn}
-        .locations=${this.locations}
-      ></gc-asset-id>
-      <uigc-asset-balance
-        slot="balance"
-        .balance=${this.balanceIn}
-        .formatter=${humanizeAmount}
-        .onMaxClick=${this.maxClickHandler('assetIn', this.assetIn)}
-        @asset-max-clicked=${() => {
-          this.twapEnabled = false;
-        }}
-      ></uigc-asset-balance>
+      ${this.formAssetTemplate(this.assetIn)}
+      ${this.formAssetBalanceTemplate('assetIn', this.assetIn, this.balanceIn)}
     </uigc-asset-transfer>`;
   }
 
@@ -750,9 +796,14 @@ export class TradeForm extends BaseElement {
     }
 
     const amountUsdHuman = amountOutUsd ? humanizeAmount(amountOutUsd) : null;
+    const loaded = this.assets.size > 0 && !this.inProgress;
     return html` <uigc-asset-transfer
       id="assetOut"
       title="${i18n.t('trade.youGet')}"
+      ?readonly=${!loaded}
+      .readonly=${!loaded}
+      ?selectable=${loaded}
+      .selectable=${loaded}
       .asset=${this.assetOut?.symbol}
       .amount=${amountOut}
       .amountUsd=${amountUsdHuman}
@@ -760,20 +811,12 @@ export class TradeForm extends BaseElement {
         this.twapEnabled = false;
       }}
     >
-      <gc-asset-id
-        slot="asset"
-        .asset=${this.assetOut}
-        .locations=${this.locations}
-      ></gc-asset-id>
-      <uigc-asset-balance
-        slot="balance"
-        .balance=${this.balanceOut}
-        .formatter=${humanizeAmount}
-        .onMaxClick=${this.maxClickHandler('assetOut', this.assetOut)}
-        @asset-max-clicked=${() => {
-          this.twapEnabled = false;
-        }}
-      ></uigc-asset-balance>
+      ${this.formAssetTemplate(this.assetOut)}
+      ${this.formAssetBalanceTemplate(
+        'assetOut',
+        this.assetOut,
+        this.balanceOut,
+      )}
     </uigc-asset-transfer>`;
   }
 

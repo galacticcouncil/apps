@@ -1156,7 +1156,7 @@ export class TradeApp extends PoolApp {
     this.updateQuery();
   }
 
-  private isFormDisabled() {
+  protected isFormDisabled() {
     return (
       !this.isSwapSelected() ||
       this.isSwapEmpty() ||

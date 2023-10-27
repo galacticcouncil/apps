@@ -92,7 +92,6 @@ export abstract class PoolApp extends BaseApp {
     await this.init();
     await this.syncPoolBalances();
     await this.subscribe();
-    this.onInit();
   }
 
   private async init() {
@@ -124,6 +123,7 @@ export abstract class PoolApp extends BaseApp {
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });
+    this.onInit();
   }
 
   private async subscribe() {

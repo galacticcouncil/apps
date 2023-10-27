@@ -256,4 +256,17 @@ export const formStyles = css`
   .info .text_error {
     color: var(--uigc-field__error-color);
   }
+
+  .loading {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+  }
+
+  .loading > span.title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 5px 0;
+  }
 `;

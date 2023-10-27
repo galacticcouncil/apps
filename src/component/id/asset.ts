@@ -9,6 +9,7 @@ import { getChainKey } from '../../utils/chain';
 
 @customElement('gc-asset-id')
 export class AssetId extends LitElement {
+  @property({ type: Boolean }) loadable: boolean = false;
   @property({ attribute: false }) asset: PoolAsset = null;
   @property({ attribute: false }) detail: AssetDetail = null;
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
@@ -28,13 +29,16 @@ export class AssetId extends LitElement {
     `,
   ];
 
-  iconTemplate(icon: string, origin: string) {
-    if (origin) {
+  iconTemplate(id: string, icon: string) {
+    const originLocation = this.locations.get(id);
+    const originChain = getChainKey(originLocation, this.ecosystem);
+
+    if (originChain) {
       return html`
         <uigc-asset-id
           slot="icon"
           symbol=${icon}
-          chain=${origin}
+          chain=${originChain}
         ></uigc-asset-id>
       `;
     }
@@ -50,19 +54,15 @@ export class AssetId extends LitElement {
       return html`
         <uigc-asset ?icon=${!symbol} symbol=${symbol} desc=${desc}>
           ${map(icons, ([key, value]) => {
-            const originLocation = this.locations.get(key);
-            const originChain = getChainKey(originLocation, this.ecosystem);
-            return this.iconTemplate(value, originChain);
+            return this.iconTemplate(key, value);
           })}
         </uigc-asset>
       `;
     }
 
-    const originLocation = this.locations.get(id);
-    const originChain = getChainKey(originLocation, this.ecosystem);
     return html`
       <uigc-asset ?icon=${!symbol} symbol=${symbol} desc=${desc}>
-        ${this.iconTemplate(icon, originChain)}
+        ${this.iconTemplate(id, icon)}
       </uigc-asset>
     `;
   }
