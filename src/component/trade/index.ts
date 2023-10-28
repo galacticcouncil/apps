@@ -398,6 +398,7 @@ export class TradeApp extends PoolApp {
       assetIn.id,
       assetOut.id,
     );
+
     let spotPrice: string;
     if (this.trade.type == TradeType.Buy) {
       spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
@@ -712,9 +713,6 @@ export class TradeApp extends PoolApp {
   protected updateBalances() {
     const balanceIn = this.assets.balance.get(this.trade.assetIn?.id);
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
-    console.log('before');
-    console.log(this.trade);
-
     this.trade = {
       ...this.trade,
       balanceIn:
@@ -722,10 +720,6 @@ export class TradeApp extends PoolApp {
       balanceOut:
         balanceOut && formatAmount(balanceOut.amount, balanceOut.decimals),
     };
-    console.log('after');
-    balanceIn && console.log('balanceIn');
-    balanceOut && console.log('balanceOut');
-    console.log(this.trade);
   }
 
   private async calculateTransactionFee(
