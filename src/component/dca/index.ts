@@ -46,15 +46,13 @@ import { AssetSelector } from '../selector/types';
 
 @customElement('gc-dca-app')
 export class DcaApp extends PoolApp {
+  @property({ type: Boolean }) chart: Boolean = false;
+
   @state() tab: DcaTab = DcaTab.DcaForm;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
   @state() asset = {
     selector: null as AssetSelector,
   };
-
-  @property({ type: Boolean }) chart: Boolean = false;
-  @property({ type: String }) assetIn: string = null;
-  @property({ type: String }) assetOut: string = null;
 
   static styles = [
     baseStyles,
@@ -560,8 +558,12 @@ export class DcaApp extends PoolApp {
     this.validateBlockPeriod();
   }
 
-  private isFormDisabled() {
+  protected isFormDisabled() {
     return !this.isSwapSelected() || this.isSwapEmpty() || this.hasError();
+  }
+
+  protected isFormLoaded() {
+    return this.assets.list.length > 0;
   }
 
   dcaFormTab() {
@@ -576,6 +578,7 @@ export class DcaApp extends PoolApp {
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
         .disabled=${this.isFormDisabled()}
+        .loaded=${this.isFormLoaded()}
         .assetIn=${this.dca.assetIn}
         .assetOut=${this.dca.assetOut}
         .amountIn=${this.dca.amountIn}

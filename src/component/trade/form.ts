@@ -28,14 +28,14 @@ import { TransactionFee } from './types';
 export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
-  @state() twapEnabled: boolean = false;
-
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
+  @property({ type: Boolean }) loaded = false;
+  @property({ type: Boolean }) readonly = false;
   @property({ type: Boolean }) switchAllowed = true;
   @property({ attribute: false }) twap: TradeTwap = null;
   @property({ type: Boolean }) twapAllowed = false;
@@ -58,6 +58,8 @@ export class TradeForm extends BaseElement {
   @property({ attribute: false }) transactionFee: TransactionFee = null;
   @property({ attribute: false }) error = {};
   @property({ attribute: false }) swaps: [] = [];
+
+  @state() twapEnabled: boolean = false;
 
   static styles = [
     baseStyles,
@@ -700,7 +702,7 @@ export class TradeForm extends BaseElement {
   }
 
   formAssetTemplate(asset: PoolAsset) {
-    if (this.assets.size > 0) {
+    if (this.loaded) {
       return html`
         <gc-asset-id
           slot="asset"
@@ -719,6 +721,7 @@ export class TradeForm extends BaseElement {
         .balance=${balance}
         .formatter=${humanizeAmount}
         .onMaxClick=${this.maxClickHandler(id, asset)}
+        ?disabled=${this.readonly}
         @asset-max-clicked=${() => {
           this.twapEnabled = false;
         }}
@@ -764,14 +767,13 @@ export class TradeForm extends BaseElement {
 
     const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
     const error = this.error['balance'];
-    const loaded = this.assets.size > 0;
     return html` <uigc-asset-transfer
       id="assetIn"
       title="${i18n.t('trade.payWith')}"
-      ?readonly=${!loaded}
-      .readonly=${!loaded}
-      ?selectable=${loaded}
-      .selectable=${loaded}
+      ?readonly=${this.readonly || !this.loaded}
+      .readonly=${this.readonly || !this.loaded}
+      ?selectable=${!this.readonly && this.loaded}
+      .selectable=${!this.readonly && this.loaded}
       ?error=${error}
       .error=${error}
       .asset=${this.assetIn?.symbol}
@@ -796,14 +798,13 @@ export class TradeForm extends BaseElement {
     }
 
     const amountUsdHuman = amountOutUsd ? humanizeAmount(amountOutUsd) : null;
-    const loaded = this.assets.size > 0 && !this.inProgress;
     return html` <uigc-asset-transfer
       id="assetOut"
       title="${i18n.t('trade.youGet')}"
-      ?readonly=${!loaded}
-      .readonly=${!loaded}
-      ?selectable=${loaded}
-      .selectable=${loaded}
+      ?readonly=${this.readonly || !this.loaded}
+      .readonly=${this.readonly || !this.loaded}
+      ?selectable=${!this.readonly && this.loaded}
+      .selectable=${!this.readonly && this.loaded}
       .asset=${this.assetOut?.symbol}
       .amount=${amountOut}
       .amountUsd=${amountUsdHuman}
@@ -1057,7 +1058,7 @@ export class TradeForm extends BaseElement {
         <span> ${this.error['pool'] || this.error['trade']} </span>
       </div>
       <uigc-button
-        ?disabled=${this.isDisabled()}
+        ?disabled=${this.readonly || this.isDisabled()}
         class="confirm"
         variant="primary"
         fullWidth

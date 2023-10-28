@@ -30,13 +30,13 @@ export class AssetApi {
   }
 
   async getMetadataById(ids: string[]): Promise<Map<string, AssetMetadata>> {
-    const details: [string, AssetMetadata][] = await Promise.all(
+    const meta: [string, AssetMetadata][] = await Promise.all(
       ids.map(async (id: string) => [
         id,
         await this._assetClient.getAssetMetadata(id),
       ]),
     );
-    return pairs2Map(details);
+    return pairs2Map(meta);
   }
 
   async getLocations(assets: PoolAsset[]): Promise<Map<string, number>> {
@@ -68,10 +68,18 @@ export class AssetApi {
     address: string,
     assets: PoolAsset[],
   ): Promise<Map<string, Amount>> {
+    const ids = assets.map(({ id }) => id);
+    return this.getBalanceById(address, ids);
+  }
+
+  async getBalanceById(
+    address: string,
+    ids: string[],
+  ): Promise<Map<string, Amount>> {
     const balances: [string, Amount][] = await Promise.all(
-      assets.map(async (asset: PoolAsset) => [
-        asset.id,
-        await this._balanceClient.getAccountBalance(address, asset.id),
+      ids.map(async (id: string) => [
+        id,
+        await this._balanceClient.getAccountBalance(address, id),
       ]),
     );
     return pairs2Map(balances);

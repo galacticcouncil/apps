@@ -59,10 +59,10 @@ export class TradeChart extends BaseElement {
 
   private chartApi: ChartApi = null;
   private chart: IChartApi = null;
+
   private chartContainer: HTMLElement = null;
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
   private chartVolumeSeries: ISeriesApi<'Histogram'> = null;
-  private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       const iWidth = window.innerWidth;
@@ -83,6 +83,7 @@ export class TradeChart extends BaseElement {
       this.fetchData();
     });
   });
+  private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
 
   @state() range: Range = Range['1w'];

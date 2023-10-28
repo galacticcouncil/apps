@@ -20,6 +20,7 @@ import '../selector/asset';
 import { TradeApp } from '../trade';
 import { TradeTab } from '../trade/types';
 import { LbpApi } from '../../api/lbp';
+import { formatAmount } from '../../utils/amount';
 
 @customElement('gc-lbp-app')
 export class LbpApp extends TradeApp {
@@ -63,24 +64,29 @@ export class LbpApp extends TradeApp {
     super.onInit();
 
     const { api } = this.chain.state;
+    const { address } = this.account.state;
+
     this.lbpApi = new LbpApi(api, this.router);
     this.lbpChartApi = new LbpChartApi(api, this.squidUrl);
 
-    const pools = await this.lbpApi.getPools();
-    const pair = await this.lbpChartApi.getPoolPair(
-      this.assetIn,
-      this.assetOut,
-    );
-
-    const pairMetadata = await this.assetApi.getMetadataById([
-      this.assetIn,
-      this.assetOut,
+    const [pools, pair, metadata, balance] = await Promise.all([
+      await this.lbpApi.getPools(),
+      await this.lbpChartApi.getPoolPair(this.assetIn, this.assetOut),
+      await this.assetApi.getMetadataById([this.assetIn, this.assetOut]),
+      await this.assetApi.getBalanceById(address, [
+        this.assetIn,
+        this.assetOut,
+      ]),
     ]);
 
     const accumulatedId = pair.assetAId.toString();
     const distributedId = pair.assetBId.toString();
-    const accumulatedMeta = pairMetadata.get(accumulatedId);
-    const distributedMeta = pairMetadata.get(distributedId);
+    const accumulatedMeta = metadata.get(accumulatedId);
+    const distributedMeta = metadata.get(distributedId);
+
+    if (this.lbp.pools.length === 0) {
+      this.trade.assetOut = { ...distributedMeta, id: distributedId };
+    }
 
     this.lbp = {
       ...this.lbp,
@@ -92,6 +98,17 @@ export class LbpApp extends TradeApp {
       pools: pools,
       assets: pools.map((pool) => pool.tokens[1]),
     };
+  }
+
+  protected isFormLoaded() {
+    return super.isFormLoaded() && !!this.trade.assetOut;
+  }
+
+  protected isFormReadOnly() {
+    if (this.lbp.pools.length > 0) {
+      return false;
+    }
+    return true;
   }
 
   selectAssetTab() {

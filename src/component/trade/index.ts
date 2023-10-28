@@ -68,11 +68,14 @@ export class TradeApp extends PoolApp {
     this,
     tradeSettingsCursor,
   );
-  private tx: Transaction = null;
-  private tradeApi: TradeApi = null;
 
+  protected tx: Transaction = null;
+  protected tradeApi: TradeApi = null;
   protected shouldUpdateQuery: boolean = true;
   protected headerTitle: string = i18n.t('trade.title');
+
+  @property({ type: Boolean }) chart: Boolean = false;
+  @property({ type: Boolean }) twap: Boolean = false;
 
   @state() tab: TradeTab = TradeTab.TradeForm;
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
@@ -81,11 +84,6 @@ export class TradeApp extends PoolApp {
     active: null as string,
     selector: null as AssetSelector,
   };
-
-  @property({ type: Boolean }) chart: Boolean = false;
-  @property({ type: Boolean }) twap: Boolean = false;
-  @property({ type: String }) assetIn: string = null;
-  @property({ type: String }) assetOut: string = null;
 
   static styles = [
     baseStyles,
@@ -714,6 +712,9 @@ export class TradeApp extends PoolApp {
   protected updateBalances() {
     const balanceIn = this.assets.balance.get(this.trade.assetIn?.id);
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
+    console.log('before');
+    console.log(this.trade);
+
     this.trade = {
       ...this.trade,
       balanceIn:
@@ -721,6 +722,10 @@ export class TradeApp extends PoolApp {
       balanceOut:
         balanceOut && formatAmount(balanceOut.amount, balanceOut.decimals),
     };
+    console.log('after');
+    balanceIn && console.log('balanceIn');
+    balanceOut && console.log('balanceOut');
+    console.log(this.trade);
   }
 
   private async calculateTransactionFee(
@@ -1158,11 +1163,19 @@ export class TradeApp extends PoolApp {
 
   protected isFormDisabled() {
     return (
-      !this.isSwapSelected() ||
       this.isSwapEmpty() ||
+      !this.isSwapSelected() ||
       !this.hasAccount() ||
       !this.tx
     );
+  }
+
+  protected isFormLoaded() {
+    return this.assets.list.length > 0;
+  }
+
+  protected isFormReadOnly() {
+    return false;
   }
 
   tradeFormTab() {
@@ -1178,6 +1191,8 @@ export class TradeApp extends PoolApp {
         .locations=${this.assets.locations}
         .inProgress=${this.trade.inProgress}
         .disabled=${this.isFormDisabled()}
+        .loaded=${this.isFormLoaded()}
+        .readonly=${this.isFormReadOnly()}
         .switchAllowed=${this.isSwitchEnabled()}
         .tradeType=${this.trade.type}
         .twap=${this.tradeTwap.twap}

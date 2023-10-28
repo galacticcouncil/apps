@@ -49,9 +49,12 @@ export class TimeApi {
   }
 
   async getBlockTime(blockNumberSub = 100000): Promise<number> {
-    const now = await this._api.query.timestamp.now();
-    const blockNumber = await this._api.query.system.number();
-    const blockNumberAt = blockNumber.subn(blockNumberSub);
+    const [now, block] = await Promise.all([
+      await this._api.query.timestamp.now(),
+      await this._api.query.system.number(),
+    ]);
+
+    const blockNumberAt = block.subn(blockNumberSub);
     const blockHashAt = await this._api.rpc.chain.getBlockHash(blockNumberAt);
     const apiAt = await this._api.at(blockHashAt);
     const apiAtTs = await apiAt.query.timestamp.now();
@@ -60,9 +63,11 @@ export class TimeApi {
   }
 
   async toTimestamp(blockTime: number, blockNumberAt: number): Promise<number> {
-    const now = await this._api.query.timestamp.now();
-    const blockNumberNow = await this._api.query.system.number();
-    const diff = (blockNumberAt - blockNumberNow.toNumber()) * blockTime;
+    const [now, block] = await Promise.all([
+      await this._api.query.timestamp.now(),
+      await this._api.query.system.number(),
+    ]);
+    const diff = (blockNumberAt - block.toNumber()) * blockTime;
     return now.toNumber() + diff;
   }
 

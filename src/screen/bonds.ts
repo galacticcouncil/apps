@@ -56,6 +56,6 @@ export class BondsScreen extends LitElement implements BeforeEnterObserver {
   }
 
   render() {
-    return this.hdxTemplate();
+    return this.hdxTemplateRococo();
   }
 }

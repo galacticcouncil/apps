@@ -65,14 +65,14 @@ export class XcmApp extends BaseApp {
   private disconnectSubscribeBalance: Subscription = null;
   private disconnectSubscribeInput: Subscription = null;
 
-  @state() tab: TransferTab = TransferTab.TransferForm;
-  @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
-  @state() chain: ChainState = DEFAULT_CHAIN_STATE;
-
   @property({ type: Boolean }) testnet: Boolean = false;
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) dstChain: string = null;
   @property({ type: String }) chains: string = null;
+
+  @state() tab: TransferTab = TransferTab.TransferForm;
+  @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
+  @state() chain: ChainState = DEFAULT_CHAIN_STATE;
 
   static styles = [
     baseStyles,

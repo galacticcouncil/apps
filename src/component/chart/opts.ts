@@ -7,7 +7,6 @@ import {
   GridOptions,
   CrosshairOptions,
 } from 'lightweight-charts';
-import { Range } from './types';
 
 export const layoutOptions = {
   background: {

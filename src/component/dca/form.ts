@@ -21,13 +21,12 @@ export class DcaForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
   private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
 
-  @state() advanced: boolean = false;
-
   @property({ attribute: false }) assets: Map<string, PoolAsset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
+  @property({ type: Boolean }) loaded = false;
   @property({ type: Object }) assetIn: PoolAsset = null;
   @property({ type: Object }) assetOut: PoolAsset = null;
   @property({ type: String }) interval: Interval = '1h';
@@ -42,6 +41,8 @@ export class DcaForm extends BaseElement {
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) est = null;
   @property({ attribute: false }) error = {};
+
+  @state() advanced: boolean = false;
 
   static styles = [
     baseStyles,
@@ -278,7 +279,7 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetTemplate(asset: PoolAsset, slot?: string) {
-    if (this.assets.size > 0) {
+    if (this.loaded) {
       return html`
         <gc-asset-id
           slot=${slot}
@@ -330,14 +331,13 @@ export class DcaForm extends BaseElement {
 
   formAssetInTemplate() {
     const error = this.error['minAmountTooLow'];
-    const loaded = this.assets.size > 0;
     return html` <uigc-asset-transfer
       id="assetIn"
       title="Swap"
-      ?readonly=${!loaded}
-      .readonly=${!loaded}
-      ?selectable=${loaded}
-      .selectable=${loaded}
+      ?readonly=${!this.loaded}
+      .readonly=${!this.loaded}
+      ?selectable=${this.loaded}
+      .selectable=${this.loaded}
       ?error=${error}
       .error=${error}
       dense
@@ -371,11 +371,10 @@ export class DcaForm extends BaseElement {
   }
 
   formAssetOutTemplate() {
-    const loaded = this.assets.size > 0;
     return html` <uigc-selector
       title="For"
-      ?readonly=${!loaded}
-      .readonly=${!loaded}
+      ?readonly=${!this.loaded}
+      .readonly=${!this.loaded}
       .item=${this.assetOut?.symbol}
     >
       ${this.formAssetTemplate(this.assetOut)}
@@ -387,12 +386,11 @@ export class DcaForm extends BaseElement {
       this.error['balanceTooLow'] ||
       this.error['budgetTooLow'] ||
       this.error['minBudgetTooLow'];
-    const loaded = this.assets.size > 0;
     return html` <uigc-asset-transfer
       id="assetInBudget"
       title=${i18n.t('dca.settings.budget')}
-      ?readonly=${!loaded}
-      .readonly=${!loaded}
+      ?readonly=${!this.loaded}
+      .readonly=${!this.loaded}
       ?error=${error}
       .error=${error}
       dense

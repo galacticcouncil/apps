@@ -36,6 +36,13 @@ export abstract class PoolApp extends BaseApp {
   protected paymentApi: PaymentApi = null;
   protected timeApi: TimeApi = null;
 
+  @property({ type: String }) assetIn: string = null;
+  @property({ type: String }) assetOut: string = null;
+  @property({ type: String }) apiAddress: string = null;
+  @property({ type: String }) pools: string = null;
+  @property({ type: String }) stableCoinAssetId: string = null;
+  @property({ type: String }) ecosystem: Ecosystem = null;
+
   @state() assets = {
     list: [] as PoolAsset[],
     map: new Map<string, PoolAsset>([]),
@@ -47,11 +54,6 @@ export abstract class PoolApp extends BaseApp {
     nativePrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
   };
-
-  @property({ type: String }) apiAddress: string = null;
-  @property({ type: String }) pools: string = null;
-  @property({ type: String }) stableCoinAssetId: string = null;
-  @property({ type: String }) ecosystem: Ecosystem = null;
 
   protected abstract onInit(): void;
   protected abstract onBlockChange(blockNumber: number): void;
@@ -168,10 +170,17 @@ export abstract class PoolApp extends BaseApp {
   protected async syncPoolBalances() {
     const account = this.account.state;
     if (account) {
-      this.assets.balance = await this.assetApi.getBalance(
-        account.address,
-        this.assets.list,
-      );
+      const [balance, balancePair] = await Promise.all([
+        await this.assetApi.getBalance(account.address, this.assets.list),
+        await this.assetApi.getBalanceById(account.address, [
+          this.assetIn,
+          this.assetOut,
+        ]),
+      ]);
+      this.assets = {
+        ...this.assets,
+        balance: new Map([...balance, ...balancePair]),
+      };
     }
   }
 

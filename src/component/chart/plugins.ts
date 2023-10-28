@@ -2,7 +2,6 @@ import { humanizeAmount } from '../../utils/amount';
 import {
   IChartApi,
   ISeriesApi,
-  LineData,
   SingleValueData,
   UTCTimestamp,
 } from 'lightweight-charts';

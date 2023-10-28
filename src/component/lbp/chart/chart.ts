@@ -49,12 +49,11 @@ export class LbpChart extends BaseElement {
 
   protected chartApi: LbpChartApi = null;
   protected timeApi: TimeApi = null;
-
   protected chart: IChartApi = null;
+
   private chartContainer: HTMLElement = null;
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
   private chartPredictionSeries: ISeriesApi<'Baseline'> = null;
-  private ready: boolean = false;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((entry) => {
       const iWidth = window.innerWidth;
@@ -75,10 +74,8 @@ export class LbpChart extends BaseElement {
       this.loadData();
     });
   });
+  private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
-
-  @state() chartState: ChartState = ChartState.Loading;
-  @state() chartData: TradeData = null;
 
   @property({ type: String }) squidUrl = null;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
@@ -88,6 +85,9 @@ export class LbpChart extends BaseElement {
   @property({ type: Object }) assetInMeta: AssetMetadata = null;
   @property({ type: Object }) assetOutMeta: AssetMetadata = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
+
+  @state() chartState: ChartState = ChartState.Loading;
+  @state() chartData: TradeData = null;
 
   static styles = [
     baseStyles,
