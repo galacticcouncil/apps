@@ -60,6 +60,20 @@ export class LbpApp extends TradeApp {
     );
   }
 
+  protected async syncPoolBalances() {
+    const account = this.account.state;
+    if (account) {
+      const [balance, balancePair] = await Promise.all([
+        this.assetApi.getBalance(account.address, this.assets.list),
+        this.assetApi.getBalanceById(account.address, [
+          this.assetIn,
+          this.assetOut,
+        ]),
+      ]);
+      this.assets.balance = new Map([...balance, ...balancePair]);
+    }
+  }
+
   protected override async onInit(): Promise<void> {
     super.onInit();
 

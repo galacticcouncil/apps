@@ -170,17 +170,10 @@ export abstract class PoolApp extends BaseApp {
   protected async syncPoolBalances() {
     const account = this.account.state;
     if (account) {
-      const [balance, balancePair] = await Promise.all([
-        this.assetApi.getBalance(account.address, this.assets.list),
-        this.assetApi.getBalanceById(account.address, [
-          this.assetIn || '0',
-          this.assetOut || '0',
-        ]),
-      ]);
-      this.assets = {
-        ...this.assets,
-        balance: new Map([...balance, ...balancePair]),
-      };
+      this.assets.balance = await this.assetApi.getBalance(
+        account.address,
+        this.assets.list,
+      );
     }
   }
 
