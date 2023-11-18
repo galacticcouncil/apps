@@ -3,7 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import {
   AssetMetadata,
-  PoolAsset,
+  PoolToken,
   PoolBase,
   PoolType,
 } from '@galacticcouncil/sdk';
@@ -20,7 +20,6 @@ import '../selector/asset';
 import { TradeApp } from '../trade';
 import { TradeTab } from '../trade/types';
 import { LbpApi } from '../../api/lbp';
-import { formatAmount } from '../../utils/amount';
 
 @customElement('gc-lbp-app')
 export class LbpApp extends TradeApp {
@@ -35,12 +34,12 @@ export class LbpApp extends TradeApp {
     distributed: null as string,
     distributedMeta: null as AssetMetadata,
     pools: [] as PoolBase[],
-    assets: [] as PoolAsset[],
+    assets: [] as PoolToken[],
   };
 
   protected async calculateSell(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountIn: string,
   ) {
     await super.calculateSell(assetIn, assetOut, amountIn);
@@ -50,8 +49,8 @@ export class LbpApp extends TradeApp {
   }
 
   protected async calculateBuy(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountOut: string,
   ) {
     await super.calculateBuy(assetIn, assetOut, amountOut);
@@ -60,46 +59,29 @@ export class LbpApp extends TradeApp {
     );
   }
 
-  protected async syncPoolBalances() {
-    const account = this.account.state;
-    if (account) {
-      const [balance, balancePair] = await Promise.all([
-        this.assetApi.getBalance(account.address, this.assets.list),
-        this.assetApi.getBalanceById(account.address, [
-          this.assetIn,
-          this.assetOut,
-        ]),
-      ]);
-      this.assets.balance = new Map([...balance, ...balancePair]);
-    }
-  }
-
   protected override async onInit(): Promise<void> {
     super.onInit();
 
-    const { api } = this.chain.state;
-    const { address } = this.account.state;
+    const { api, router } = this.chain.state;
 
-    this.lbpApi = new LbpApi(api, this.router);
+    this.lbpApi = new LbpApi(api, router);
     this.lbpChartApi = new LbpChartApi(api, this.squidUrl);
 
-    const [pools, pair, metadata, balance] = await Promise.all([
+    const [pools, pair] = await Promise.all([
       await this.lbpApi.getPools(),
       await this.lbpChartApi.getPoolPair(this.assetIn, this.assetOut),
-      await this.assetApi.getMetadataById([this.assetIn, this.assetOut]),
-      await this.assetApi.getBalanceById(address, [
-        this.assetIn,
-        this.assetOut,
-      ]),
     ]);
 
     const accumulatedId = pair.assetAId.toString();
     const distributedId = pair.assetBId.toString();
-    const accumulatedMeta = metadata.get(accumulatedId);
-    const distributedMeta = metadata.get(distributedId);
+    const accumulatedMeta = this.assets.meta.get(accumulatedId);
+    const distributedMeta = this.assets.meta.get(distributedId);
 
     if (this.lbp.pools.length === 0) {
-      this.trade.assetOut = { ...distributedMeta, id: distributedId };
+      this.trade.assetOut = {
+        ...(distributedMeta as PoolToken),
+        id: distributedId,
+      };
     }
 
     this.lbp = {
@@ -112,6 +94,7 @@ export class LbpApp extends TradeApp {
       pools: pools,
       assets: pools.map((pool) => pool.tokens[1]),
     };
+    this.syncBalances();
   }
 
   protected isFormLoaded() {
@@ -137,7 +120,6 @@ export class LbpApp extends TradeApp {
         .assetsAlt=${this.lbp.assets}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
-        .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.trade.assetIn}

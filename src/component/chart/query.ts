@@ -6,7 +6,11 @@ const priceQueryGroup = `SELECT
   FROM pair_price
   `;
 
-export function buildPriceQuery(assetIn: string, assetOut: string, endOfDay: string) {
+export function buildPriceQuery(
+  assetIn: string,
+  assetOut: string,
+  endOfDay: string,
+) {
   return `
     WITH nor_trades AS (
       SELECT 

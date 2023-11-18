@@ -1,6 +1,10 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Ecosystem, chainCursor } from './db';
-import { CachingPoolService, IPoolService } from '@galacticcouncil/sdk';
+import {
+  CachingPoolService,
+  PoolType,
+  TradeRouter,
+} from '@galacticcouncil/sdk';
 
 async function info(api: ApiPromise): Promise<void> {
   const [systemChain, systemChainType, systemName, systemVersion] =
@@ -16,7 +20,8 @@ async function info(api: ApiPromise): Promise<void> {
 function initApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
-  onReady: (api: ApiPromise, poolService: IPoolService) => void,
+  pools: PoolType[],
+  onReady: (api: ApiPromise, router: TradeRouter) => void,
 ) {
   api
     .on('connected', () => console.log('API connected'))
@@ -26,19 +31,26 @@ function initApi(
       console.log('API ready ✅');
       info(api);
       const poolService = new CachingPoolService(api);
-      chainCursor.reset({
-        api: api,
-        ecosystem: ecosystem,
-        poolService: poolService,
+      const router = new TradeRouter(poolService, { includeOnly: pools });
+      // Get pools and cache the result
+      router.getPools().then(() => {
+        console.log('Router ready ✅');
+        chainCursor.reset({
+          api: api,
+          ecosystem: ecosystem,
+          poolService: poolService,
+          router: router,
+        });
+        onReady(api, router);
       });
-      onReady(api, poolService);
     });
 }
 
 export async function createApi(
   apiUrl: string,
   ecosystem: Ecosystem,
-  onReady: (api: ApiPromise, poolService: IPoolService) => void,
+  pools: PoolType[],
+  onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void,
 ) {
   try {
@@ -46,7 +58,7 @@ export async function createApi(
     const api = new ApiPromise({
       provider: provider,
     });
-    initApi(api, ecosystem, onReady);
+    initApi(api, ecosystem, pools, onReady);
   } catch (error) {
     onError(error);
   }
@@ -55,11 +67,12 @@ export async function createApi(
 export async function useApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
-  onReady: (api: ApiPromise, poolService: IPoolService) => void,
+  pools: PoolType[],
+  onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void,
 ) {
   try {
-    initApi(api, ecosystem, onReady);
+    initApi(api, ecosystem, pools, onReady);
   } catch (error) {
     onError(error);
   }

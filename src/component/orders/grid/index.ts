@@ -31,7 +31,9 @@ export class DcaOrdersGrid extends DcaBaseDatagrid {
     const classes = {
       expanded: row.getIsSelected(),
     };
-    return html` <uigc-icon-dropdown class=${classMap(classes)}></uigc-icon-dropdown> `;
+    return html`
+      <uigc-icon-dropdown class=${classMap(classes)}></uigc-icon-dropdown>
+    `;
   }
 
   protected defaultColumns(): ColumnDef<DcaOrder>[] {
@@ -72,7 +74,10 @@ export class DcaOrdersGrid extends DcaBaseDatagrid {
       <div class="row">
         ${this.summaryTemplate(row.original)}
         <div class="transactions">Past transactions</div>
-        <gc-dca-grid-tx .order=${row.original} .defaultData=${tx.slice(0, 10)}></gc-dca-grid-tx>
+        <gc-dca-grid-tx
+          .order=${row.original}
+          .defaultData=${tx.slice(0, 10)}
+        ></gc-dca-grid-tx>
       </div>
     `;
   }
@@ -82,7 +87,10 @@ export class DcaOrdersGrid extends DcaBaseDatagrid {
       <slot name="header"></slot>
       <slot name="tabs"></slot>
       ${super.render()}
-      ${when(this.defaultData.length === 0, () => html` <slot name="empty"></slot> `)}
+      ${when(
+        this.defaultData.length === 0,
+        () => html` <slot name="empty"></slot> `,
+      )}
     `;
   }
 }

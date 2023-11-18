@@ -14,7 +14,8 @@ export class NotificationCenter extends BaseElement {
   @state() toasts: TemplateResult[] = [];
   @state() notifications: Map<string, Notification> = new Map([]);
 
-  private _handleNotification = (e: CustomEvent<Notification>) => this.appendNewNotification(e.detail);
+  private _handleNotification = (e: CustomEvent<Notification>) =>
+    this.appendNewNotification(e.detail);
 
   static styles = [
     baseStyles,
@@ -70,7 +71,12 @@ export class NotificationCenter extends BaseElement {
       <uigc-alert class="notification" variant=${n.type} drawer>
         <span class="message">${n.message}</span>
         <span class="secondary">
-          <span>${this._humanizer.humanize(Date.now() - n.timestamp, { round: true })} ago</span>
+          <span
+            >${this._humanizer.humanize(Date.now() - n.timestamp, {
+              round: true,
+            })}
+            ago</span
+          >
         </span>
       </uigc-alert>
     `;
@@ -87,7 +93,12 @@ export class NotificationCenter extends BaseElement {
         <uigc-alert variant=${n.type}>
           <span class="message">${n.message}</span>
           <span class="secondary">
-            <span>${this._humanizer.humanize(Date.now() - n.timestamp, { round: true })} ago</span>
+            <span
+              >${this._humanizer.humanize(Date.now() - n.timestamp, {
+                round: true,
+              })}
+              ago</span
+            >
             <span class="grow"></span>
             <span class="count"></span>
           </span>

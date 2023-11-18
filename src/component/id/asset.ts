@@ -2,16 +2,15 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
-import { AssetDetail, PoolAsset } from '@galacticcouncil/sdk';
+import { PoolToken } from '@galacticcouncil/sdk';
 
 import { Ecosystem } from '../../db';
 import { getChainKey } from '../../utils/chain';
 
 @customElement('gc-asset-id')
 export class AssetId extends LitElement {
-  @property({ type: Boolean }) loadable: boolean = false;
-  @property({ attribute: false }) asset: PoolAsset = null;
-  @property({ attribute: false }) detail: AssetDetail = null;
+  @property({ type: Boolean }) showDesc: boolean = false;
+  @property({ attribute: false }) asset: PoolToken = null;
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
@@ -46,13 +45,15 @@ export class AssetId extends LitElement {
   }
 
   render() {
-    const { id, icon, symbol, meta } = this.asset || {};
-    const desc = this.detail?.name;
-
+    const { id, name, icon, symbol, meta } = this.asset || {};
     if (meta) {
       const icons = Object.entries(meta);
       return html`
-        <uigc-asset ?icon=${!symbol} symbol=${symbol} desc=${desc}>
+        <uigc-asset
+          ?icon=${!symbol}
+          symbol=${symbol}
+          desc=${this.showDesc ? name : null}
+        >
           ${map(icons, ([key, value]) => {
             return this.iconTemplate(key, value);
           })}
@@ -61,7 +62,11 @@ export class AssetId extends LitElement {
     }
 
     return html`
-      <uigc-asset ?icon=${!symbol} symbol=${symbol} desc=${desc}>
+      <uigc-asset
+        ?icon=${!symbol}
+        symbol=${symbol}
+        desc=${this.showDesc ? name : null}
+      >
         ${this.iconTemplate(id, icon)}
       </uigc-asset>
     `;

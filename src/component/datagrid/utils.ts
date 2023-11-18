@@ -1,8 +1,13 @@
-import { RowData, TableOptions, TableOptionsResolved, createTable } from '@tanstack/table-core';
+import {
+  RowData,
+  TableOptions,
+  TableOptionsResolved,
+  createTable,
+} from '@tanstack/table-core';
 
 export function flexRender<TProps extends object>(
   Comp: ((props: TProps) => string) | string | undefined,
-  props: TProps
+  props: TProps,
 ) {
   if (!Comp) {
     return '';
@@ -10,7 +15,9 @@ export function flexRender<TProps extends object>(
   return typeof Comp == 'function' ? Comp(props) : Comp;
 }
 
-export function useLitTable<TData extends RowData>(options: TableOptions<TData>) {
+export function useLitTable<TData extends RowData>(
+  options: TableOptions<TData>,
+) {
   const resolvedOptions: TableOptionsResolved<TData> = {
     state: {},
     onStateChange: () => {},

@@ -104,7 +104,7 @@
       <nav>
         <a href="/trade"><span>Trade</span></a>
         <a href="/dca"><span>Dca</span></a>
-        <a href="/bonds"><span>Bonds</span></a>
+        <a href="/bonds?assetIn=5&assetOut=1000010"><span>Bonds</span></a>
         <a href="/cross-chain"><span>Cross-chain</span></a>
       </nav>
     </header>
@@ -113,7 +113,9 @@
     </main>
     <footer></footer>
     <script>
-      new EventSource('/esbuild').addEventListener('change', () => location.reload());
+      new EventSource('/esbuild').addEventListener('change', () =>
+        location.reload(),
+      );
     </script>
     <script type="module" src="./out/app.js"></script>
   </body>

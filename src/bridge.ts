@@ -1,9 +1,21 @@
 import { ApiProvider, Bridge, ChainId } from '@galacticcouncil/bridge';
 import { BaseCrossChainAdapter } from '@galacticcouncil/bridge/base-chain-adapter';
-import { KusamaAdapter, PolkadotAdapter } from '@galacticcouncil/bridge/adapters/polkadot';
-import { AcalaAdapter, KaruraAdapter } from '@galacticcouncil/bridge/adapters/acala';
-import { HydraDxAdapter, BasiliskAdapter } from '@galacticcouncil/bridge/adapters/hydradx';
-import { StatemineAdapter, StatemintAdapter } from '@galacticcouncil/bridge/adapters/statemint';
+import {
+  KusamaAdapter,
+  PolkadotAdapter,
+} from '@galacticcouncil/bridge/adapters/polkadot';
+import {
+  AcalaAdapter,
+  KaruraAdapter,
+} from '@galacticcouncil/bridge/adapters/acala';
+import {
+  HydraDxAdapter,
+  BasiliskAdapter,
+} from '@galacticcouncil/bridge/adapters/hydradx';
+import {
+  StatemineAdapter,
+  StatemintAdapter,
+} from '@galacticcouncil/bridge/adapters/statemint';
 import { TinkernetAdapter } from '@galacticcouncil/bridge/adapters/tinkernet';
 import { RobonomicsAdapter } from '@galacticcouncil/bridge/adapters/robonomics';
 import { InterlayAdapter } from '@galacticcouncil/bridge/adapters/interlay';
@@ -96,7 +108,10 @@ export async function initBridge(chains: string[]) {
   xChainCursor.reset({ apiProvider: provider, bridge: bridge });
 }
 
-export async function initAdapterConnection(adapter: BaseCrossChainAdapter, testnet?: Boolean) {
+export async function initAdapterConnection(
+  adapter: BaseCrossChainAdapter,
+  testnet?: Boolean,
+) {
   const api = adapter.getApi();
   if (api != null) {
     return;
@@ -105,7 +120,10 @@ export async function initAdapterConnection(adapter: BaseCrossChainAdapter, test
   const provider = xChainCursor.deref().apiProvider;
   const chain = adapter.chain.id;
   const notConnectedChain = [chain] as ChainId[];
-  const connectedChain = provider.connectFromChain(notConnectedChain, testnet ? CHAINS_TESTNET : CHAINS);
+  const connectedChain = provider.connectFromChain(
+    notConnectedChain,
+    testnet ? CHAINS_TESTNET : CHAINS,
+  );
   await firstValueFrom(connectedChain);
 
   if (chain == 'acala') {

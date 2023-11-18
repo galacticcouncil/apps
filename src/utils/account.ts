@@ -1,7 +1,14 @@
-import { decodeAddress, encodeAddress, validateAddress } from '@polkadot/util-crypto';
+import {
+  decodeAddress,
+  encodeAddress,
+  validateAddress,
+} from '@polkadot/util-crypto';
 import { u8aToHex } from '@polkadot/util';
 
-export function convertAddressSS58(address: string, ss58prefix: number): string {
+export function convertAddressSS58(
+  address: string,
+  ss58prefix: number,
+): string {
   try {
     return encodeAddress(decodeAddress(address), ss58prefix);
   } catch {

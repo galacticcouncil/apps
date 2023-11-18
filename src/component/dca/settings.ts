@@ -123,7 +123,9 @@ export class DcaSettings extends LitElement {
   }
 
   onSlippageChange() {
-    const value = this.customSlippage ? this._slippageMask.unmaskedValue : this.slippage;
+    const value = this.customSlippage
+      ? this._slippageMask.unmaskedValue
+      : this.slippage;
     const currentValue = dcaSettingsCursor.deref();
     if (currentValue == value) {
       return;
@@ -201,7 +203,10 @@ export class DcaSettings extends LitElement {
             this._slippageHandler();
           }}
         >
-          ${SLIPPAGE_OPTS.map((s: string) => html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `)}
+          ${SLIPPAGE_OPTS.map(
+            (s: string) =>
+              html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `,
+          )}
           <uigc-input
             id="slippage"
             class="slippage-input"

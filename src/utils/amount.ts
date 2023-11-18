@@ -19,7 +19,9 @@ export function humanizeAmount(amount: string): string {
     const intPartLen = Math.ceil(Math.log10(Number(amountNo) + 1));
     maxSignDigits = maxSignDigits + intPartLen;
   }
-  const formattedNo = new Intl.NumberFormat('en-US', { maximumSignificantDigits: maxSignDigits }).format(amountNo);
+  const formattedNo = new Intl.NumberFormat('en-US', {
+    maximumSignificantDigits: maxSignDigits,
+  }).format(amountNo);
   return formattedNo.replaceAll(',', ' ');
 }
 

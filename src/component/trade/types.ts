@@ -1,4 +1,4 @@
-import { PoolAsset, TradeType } from '@galacticcouncil/sdk';
+import { PoolToken, TradeType } from '@galacticcouncil/sdk';
 
 import { TradeTwap } from '../../api/trade';
 
@@ -19,8 +19,8 @@ export type TransactionFee = {
 export type TradeState = {
   inProgress: boolean;
   type: TradeType;
-  assetIn: PoolAsset;
-  assetOut: PoolAsset;
+  assetIn: PoolToken;
+  assetOut: PoolToken;
   amountIn: string;
   amountOut: string;
   balanceIn: string;

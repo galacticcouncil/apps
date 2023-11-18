@@ -11,13 +11,7 @@ import { DatabaseController } from '../../db.ctrl';
 import * as i18n from 'i18next';
 
 import '@galacticcouncil/ui';
-import {
-  AssetMetadata,
-  BigNumber,
-  PoolType,
-  TradeRouter,
-  bnum,
-} from '@galacticcouncil/sdk';
+import { AssetMetadata, BigNumber, bnum } from '@galacticcouncil/sdk';
 
 import './grid';
 import './list';
@@ -287,9 +281,7 @@ export class TradeOrders extends BaseApp {
   }
 
   private async init() {
-    const { api, poolService } = this.chain.state;
-    const pools = this.parseListArgs(this.pools) as PoolType[];
-    const router = new TradeRouter(poolService, { includeOnly: pools });
+    const { api, router } = this.chain.state;
     this.assetApi = new AssetApi(api, router);
     this.ordersApi = new DcaOrdersApi(
       api,
@@ -299,13 +291,13 @@ export class TradeOrders extends BaseApp {
     );
     this.timeApi = new TimeApi(api);
     const assets = await router.getAllAssets();
-    const [assetsMeta, assetsLocations] = await Promise.all([
-      this.assetApi.getMetadata(assets),
+    const [metadata, locations] = await Promise.all([
+      this.assetApi.getMetadata(),
       this.assetApi.getLocations(assets),
     ]);
 
-    this.meta = assetsMeta;
-    this.locations = assetsLocations;
+    this.meta = metadata;
+    this.locations = locations;
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });

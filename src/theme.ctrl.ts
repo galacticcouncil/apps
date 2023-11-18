@@ -8,7 +8,9 @@ export class ThemeController implements ReactiveController {
     mutations.forEach((mutation) => {
       if (mutation.type === 'attributes' && mutation.attributeName == 'theme') {
         const mutationTarget = <HTMLElement>mutation.target;
-        const newTheme = mutationTarget.attributes.getNamedItem(mutation.attributeName).value;
+        const newTheme = mutationTarget.attributes.getNamedItem(
+          mutation.attributeName,
+        ).value;
         this.state = newTheme;
         this.host.requestUpdate();
         chainCursor.deref()?.api?.disconnect();

@@ -14,25 +14,22 @@ import {
 } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
-import { Amount, AssetDetail, PoolAsset } from '@galacticcouncil/sdk';
+import { Amount, PoolToken } from '@galacticcouncil/sdk';
 import { AssetSelector } from './types';
 
 import '../id/asset';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
-  @property({ attribute: false }) assets: PoolAsset[] = [];
-  @property({ attribute: false }) assetsAlt: PoolAsset[] = null;
-  @property({ attribute: false }) pairs: Map<string, PoolAsset[]> = new Map([]);
+  @property({ attribute: false }) assets: PoolToken[] = [];
+  @property({ attribute: false }) assetsAlt: PoolToken[] = null;
+  @property({ attribute: false }) pairs: Map<string, PoolToken[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
-  @property({ attribute: false }) details: Map<string, AssetDetail> = new Map(
-    [],
-  );
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
-  @property({ type: Object }) assetIn: PoolAsset = null;
-  @property({ type: Object }) assetOut: PoolAsset = null;
+  @property({ type: Object }) assetIn: PoolToken = null;
+  @property({ type: Object }) assetOut: PoolToken = null;
   @property({ type: Boolean }) switchAllowed = true;
   @property({ type: String }) query = '';
 
@@ -42,7 +39,7 @@ export class SelectAsset extends LitElement {
     this.query = searchDetail.value;
   }
 
-  private getDollarPrice(asset: PoolAsset, amount: string) {
+  private getDollarPrice(asset: PoolToken, amount: string) {
     if (this.usdPrice.size == 0) {
       return null;
     }
@@ -54,7 +51,7 @@ export class SelectAsset extends LitElement {
     return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
-  private getAssetBalance(asset: PoolAsset) {
+  private getAssetBalance(asset: PoolToken) {
     const balance = this.balances.get(asset.id);
     const balanceFormated = balance
       ? formatAmount(balance.amount, balance.decimals)
@@ -69,15 +66,14 @@ export class SelectAsset extends LitElement {
     };
   }
 
-  private filterAsset(query: string, asset: PoolAsset) {
-    const assetDetail = this.details.get(asset.id);
+  private filterAsset(query: string, asset: PoolToken) {
     const symbolEq = asset.symbol.toLowerCase().includes(query.toLowerCase());
-    const nameEq = assetDetail.name.toLowerCase().includes(query.toLowerCase());
+    const nameEq = asset.name.toLowerCase().includes(query.toLowerCase());
     const isEq = symbolEq || nameEq;
     return isEq;
   }
 
-  private filterAssets(query: string, assets: PoolAsset[]) {
+  private filterAssets(query: string, assets: PoolToken[]) {
     return assets
       .filter((a) => this.filterAsset(query, a))
       .map((a) => this.getAssetBalance(a))
@@ -101,7 +97,7 @@ export class SelectAsset extends LitElement {
     return this.filterAssets(query, this.assetsAlt);
   }
 
-  isDisabled(asset: PoolAsset): boolean {
+  isDisabled(asset: PoolToken): boolean {
     const asAssetInAllowed = isAssetInAllowed(
       this.assets,
       this.pairs,
@@ -124,14 +120,14 @@ export class SelectAsset extends LitElement {
     }
   }
 
-  isSelected(asset: PoolAsset): boolean {
+  isSelected(asset: PoolToken): boolean {
     if (this.selector?.asset) {
       return this[this.selector.id].id === asset.id;
     }
     return false;
   }
 
-  getSlot(asset: PoolAsset): string {
+  getSlot(asset: PoolToken): string {
     if (this.isSelected(asset)) {
       return 'selected';
     } else if (this.isDisabled(asset)) {
@@ -183,7 +179,6 @@ export class SelectAsset extends LitElement {
         () => html` <uigc-asset-list>
           ${map(this.filter(this.query), ({ asset, balance, balanceUsd }) => {
             const icons = asset.icon.split('/');
-            const detail = this.details.get(asset.id);
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
@@ -196,8 +191,9 @@ export class SelectAsset extends LitElement {
               >
                 <gc-asset-id
                   slot="asset"
+                  ?showDesc=${true}
                   .asset=${asset}
-                  .detail=${detail}
+                  .detail=${asset.name}
                   .locations=${this.locations}
                 ></gc-asset-id>
               </uigc-asset-list-item>

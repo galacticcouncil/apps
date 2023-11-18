@@ -22,7 +22,7 @@ import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
 import {
-  PoolAsset,
+  PoolToken,
   Transaction,
   SYSTEM_ASSET_ID,
   Amount,
@@ -99,7 +99,8 @@ export class DcaApp extends PoolApp {
       return;
     }
 
-    const price: Amount = await this.router.getBestSpotPrice(
+    const router = this.chain.state.router;
+    const price: Amount = await router.getBestSpotPrice(
       assetIn.id,
       assetOut.id,
     );
@@ -120,7 +121,7 @@ export class DcaApp extends PoolApp {
     this.recalculateSpotPrice();
   }
 
-  private async changeAssetIn(previous: string, asset: PoolAsset) {
+  private async changeAssetIn(previous: string, asset: PoolToken) {
     const assetIn = asset;
     const assetOut = this.dca.assetOut;
 
@@ -137,7 +138,7 @@ export class DcaApp extends PoolApp {
     this.recalculateSpotPrice();
   }
 
-  private async changeAssetOut(previous: string, asset: PoolAsset) {
+  private async changeAssetOut(previous: string, asset: PoolToken) {
     const assetIn = this.dca.assetIn;
     const assetOut = asset;
 
@@ -340,7 +341,7 @@ export class DcaApp extends PoolApp {
 
   private async schedule() {
     const account = this.account.state;
-    const { api } = this.chain.state;
+    const { api, router } = this.chain.state;
     if (account) {
       const { assetIn, assetOut, amountInBudget, interval, intervalBlock } =
         this.dca;
@@ -356,7 +357,7 @@ export class DcaApp extends PoolApp {
         periodMsec,
       );
       const slippage = dcaSettingsCursor.deref().slippage;
-      const sell = await this.router.getBestSell(
+      const sell = await router.getBestSell(
         assetIn.id,
         assetOut.id,
         this.dca.amountIn,
@@ -423,7 +424,10 @@ export class DcaApp extends PoolApp {
     this.syncBalance();
   }
 
-  protected onBlockChange(): void {
+  protected onBlockChange(): void {}
+
+  protected onBalanceUpdate(): void {
+    this.requestUpdate();
     this.syncBalance();
   }
 
@@ -497,7 +501,6 @@ export class DcaApp extends PoolApp {
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
-        .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.dca.assetIn}
@@ -657,7 +660,6 @@ export class DcaApp extends PoolApp {
             .assetOut=${this.dca.assetOut}
             .spotPrice=${this.dca.spotPrice}
             .usdPrice=${this.assets.usdPrice}
-            .details=${this.assets.details}
           >
             <div class="header section" slot="header">
               <uigc-icon-button

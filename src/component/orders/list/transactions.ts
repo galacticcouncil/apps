@@ -108,24 +108,27 @@ export class DcaOrdersListTx extends BaseElement {
   render() {
     return html`
       <div class="list">
-        ${map(this.order?.transactions.slice(0, 10), (transaction: DcaTransaction) => {
-          return html`
-            <div class="row">
-              ${this.itemTemplate('Date', this.formatDate(transaction))}
-              ${this.itemTemplate('Received', this.formatAmount(transaction))}
-              ${this.itemTemplate('Price', this.formatPrice(transaction))}
-              ${when(
-                transaction.status.type === 'TradeFailed',
-                () => html`
-                  <div class="error">
-                    <uigc-icon-warning></uigc-icon-warning>
-                    <span>${transaction.status.desc}</span>
-                  </div>
-                `
-              )}
-            </div>
-          `;
-        })}
+        ${map(
+          this.order?.transactions.slice(0, 10),
+          (transaction: DcaTransaction) => {
+            return html`
+              <div class="row">
+                ${this.itemTemplate('Date', this.formatDate(transaction))}
+                ${this.itemTemplate('Received', this.formatAmount(transaction))}
+                ${this.itemTemplate('Price', this.formatPrice(transaction))}
+                ${when(
+                  transaction.status.type === 'TradeFailed',
+                  () => html`
+                    <div class="error">
+                      <uigc-icon-warning></uigc-icon-warning>
+                      <span>${transaction.status.desc}</span>
+                    </div>
+                  `,
+                )}
+              </div>
+            `;
+          },
+        )}
       </div>
     `;
   }

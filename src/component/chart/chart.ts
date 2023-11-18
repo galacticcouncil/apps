@@ -39,12 +39,7 @@ import './states/error';
 import './states/empty';
 import './states/loading';
 
-import {
-  Amount,
-  AssetDetail,
-  PoolAsset,
-  TradeType,
-} from '@galacticcouncil/sdk';
+import { Amount, PoolToken, TradeType } from '@galacticcouncil/sdk';
 
 import { BaseElement } from '../base/BaseElement';
 
@@ -93,13 +88,10 @@ export class TradeChart extends BaseElement {
   @property({ type: Number }) grafanaDsn = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
-  @property({ type: Object }) assetIn: PoolAsset = null;
-  @property({ type: Object }) assetOut: PoolAsset = null;
+  @property({ type: Object }) assetIn: PoolToken = null;
+  @property({ type: Object }) assetOut: PoolToken = null;
   @property({ type: String }) spotPrice = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
-  @property({ attribute: false }) details: Map<string, AssetDetail> = new Map(
-    [],
-  );
 
   static styles = [
     baseStyles,
@@ -335,7 +327,7 @@ export class TradeChart extends BaseElement {
   }
 
   async subscribe() {
-    const api = chainCursor.deref().api;
+    const { api } = this.chain.state;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
       async (lastHeader) => {
         this.fetchData();

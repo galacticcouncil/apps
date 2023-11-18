@@ -24,7 +24,9 @@ export class SelectChain extends LitElement {
   }
 
   filterChains(query: string) {
-    return this.chains.filter((c) => c.toLowerCase().includes(query.toLowerCase()));
+    return this.chains.filter((c) =>
+      c.toLowerCase().includes(query.toLowerCase()),
+    );
   }
 
   isDisabled(chain: string): boolean {
@@ -86,7 +88,7 @@ export class SelectChain extends LitElement {
             <span slot="header">Supported chains</span>
             ${map(range(3), (i) => this.loadingTemplate())}
           </uigc-list>
-        `
+        `,
       )}
     `;
   }

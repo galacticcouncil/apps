@@ -1,4 +1,4 @@
-import { PoolAsset } from '@galacticcouncil/sdk';
+import { PoolToken } from '@galacticcouncil/sdk';
 import { Interval } from '../../api/time';
 
 export enum DcaTab {
@@ -10,8 +10,8 @@ export enum DcaTab {
 }
 
 export type DcaState = {
-  assetIn: PoolAsset;
-  assetOut: PoolAsset;
+  assetIn: PoolToken;
+  assetOut: PoolToken;
   amountIn: string;
   amountInBudget: string;
   amountInUsd: string;

@@ -21,8 +21,10 @@ export class TransactionCenter extends LitElement {
   @state() message: TemplateResult = null;
   @state() currentTx: string = null;
 
-  private _handleOnChainTx = (e: CustomEvent<TxInfo>) => this.handleTx(short.generate(), e.detail);
-  private _handleCrossChainTx = (e: CustomEvent<TxInfo>) => this.handleTxXcm(short.generate(), e.detail);
+  private _handleOnChainTx = (e: CustomEvent<TxInfo>) =>
+    this.handleTx(short.generate(), e.detail);
+  private _handleCrossChainTx = (e: CustomEvent<TxInfo>) =>
+    this.handleTxXcm(short.generate(), e.detail);
 
   static styles = [
     css`
@@ -56,7 +58,10 @@ export class TransactionCenter extends LitElement {
     console.log(`[${txId}] Completed at block hash #${hash}`);
   }
 
-  private blockMeta(result: ISubmittableResult, blockHash: string): Record<string, string> {
+  private blockMeta(
+    result: ISubmittableResult,
+    blockHash: string,
+  ): Record<string, string> {
     const meta: Record<string, string> = {};
     meta['blockHash'] = blockHash;
     meta['txIndex'] = result.txIndex.toString();
@@ -85,8 +90,14 @@ export class TransactionCenter extends LitElement {
           case 'finalized':
             if (dispatchError) {
               const api = chainCursor.deref().api;
-              const decoded = api.registry.findMetaError(dispatchError.asModule);
-              console.error(`${decoded.section}.${decoded.method}: ${decoded.docs.join(' ')}`);
+              const decoded = api.registry.findMetaError(
+                dispatchError.asModule,
+              );
+              console.error(
+                `${decoded.section}.${decoded.method}: ${decoded.docs.join(
+                  ' ',
+                )}`,
+              );
               this.handleError(txId, txInfo.notification);
             }
             break;
@@ -94,7 +105,7 @@ export class TransactionCenter extends LitElement {
       },
       (_error) => {
         this.handleError(txId, txInfo.notification);
-      }
+      },
     );
   }
 
@@ -121,7 +132,7 @@ export class TransactionCenter extends LitElement {
       },
       (_error) => {
         this.handleError(txId, txInfo.notification);
-      }
+      },
     );
   }
 
@@ -134,7 +145,12 @@ export class TransactionCenter extends LitElement {
     }
     this.currentTx = id;
     this.message = this.broadcastTemplate(id, processing.message);
-    this.sendNotification(id, NotificationType.progress, processing.message, false);
+    this.sendNotification(
+      id,
+      NotificationType.progress,
+      processing.message,
+      false,
+    );
   }
 
   private handleError(id: string, { failure }: TxNotification) {
@@ -146,16 +162,28 @@ export class TransactionCenter extends LitElement {
     id: string,
     { success, failure }: TxNotification,
     error: boolean,
-    meta?: Record<string, string>
+    meta?: Record<string, string>,
   ) {
     if (id == this.currentTx) {
       this.closeDialog(id);
     }
 
     if (error) {
-      this.sendNotification(id, NotificationType.error, failure.message, true, meta);
+      this.sendNotification(
+        id,
+        NotificationType.error,
+        failure.message,
+        true,
+        meta,
+      );
     } else {
-      this.sendNotification(id, NotificationType.success, success.message, true, meta);
+      this.sendNotification(
+        id,
+        NotificationType.success,
+        success.message,
+        true,
+        meta,
+      );
     }
   }
 
@@ -164,7 +192,7 @@ export class TransactionCenter extends LitElement {
     type: NotificationType,
     message: string | TemplateResult,
     toast: boolean,
-    meta?: Record<string, string>
+    meta?: Record<string, string>,
   ) {
     const options = {
       bubbles: true,
@@ -178,7 +206,10 @@ export class TransactionCenter extends LitElement {
         meta: meta,
       } as Notification,
     };
-    const notificationEvent = new CustomEvent<Notification>('gc:notification:new', options);
+    const notificationEvent = new CustomEvent<Notification>(
+      'gc:notification:new',
+      options,
+    );
     this.dispatchEvent(notificationEvent);
   }
 
@@ -205,12 +236,17 @@ export class TransactionCenter extends LitElement {
         open
         id=${id}
         timeout="3000"
-        @closeable-closed=${(e: CustomEvent) => this.closeBroadcastDialog(id, message)}
+        @closeable-closed=${(e: CustomEvent) =>
+          this.closeBroadcastDialog(id, message)}
       >
         <uigc-circular-progress class="icon"></uigc-circular-progress>
-        <uigc-typography variant="title">${i18n.t('tx.submitted')}</uigc-typography>
+        <uigc-typography variant="title"
+          >${i18n.t('tx.submitted')}</uigc-typography
+        >
         <span>${i18n.t('tx.submittedText')}</span>
-        <uigc-button variant="secondary" @click=${() => this.closeBroadcastDialog(id, message)}
+        <uigc-button
+          variant="secondary"
+          @click=${() => this.closeBroadcastDialog(id, message)}
           >${i18n.t('tx.close')}</uigc-button
         >
       </uigc-dialog>
@@ -221,9 +257,13 @@ export class TransactionCenter extends LitElement {
     return html`
       <uigc-dialog open id=${id}>
         <uigc-icon-error-alt fit class="icon"></uigc-icon-error-alt>
-        <uigc-typography variant="title" error>${i18n.t('tx.failed')}</uigc-typography>
+        <uigc-typography variant="title" error
+          >${i18n.t('tx.failed')}</uigc-typography
+        >
         <span>${i18n.t('tx.failedText')}</span>
-        <uigc-button variant="secondary" @click=${() => this.closeDialog(id)}>${i18n.t('tx.close')}</uigc-button>
+        <uigc-button variant="secondary" @click=${() => this.closeDialog(id)}
+          >${i18n.t('tx.close')}</uigc-button
+        >
       </uigc-dialog>
     `;
   }

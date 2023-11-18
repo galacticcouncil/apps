@@ -12,7 +12,11 @@ export function getTradeMinAmountOut(sell: Trade, slippagePct: string): Amount {
   return getMinAmountOut(sell.amountOut, assetOutDecimals, slippagePct);
 }
 
-export function getMinAmountOut(amountOut: BigNumber, assetOutDecimals: number, slippagePct: string): Amount {
+export function getMinAmountOut(
+  amountOut: BigNumber,
+  assetOutDecimals: number,
+  slippagePct: string,
+): Amount {
   const slippage = calculateSlippage(amountOut, slippagePct);
   const minAmountOut = amountOut.minus(slippage);
 
@@ -27,7 +31,11 @@ export function getTradeMaxAmountIn(buy: Trade, slippagePct: string): Amount {
   return getMaxAmountIn(buy.amountIn, assetInDecimals, slippagePct);
 }
 
-export function getMaxAmountIn(amountIn: BigNumber, assetInDecimals: number, slippagePct: string): Amount {
+export function getMaxAmountIn(
+  amountIn: BigNumber,
+  assetInDecimals: number,
+  slippagePct: string,
+): Amount {
   const slippage = calculateSlippage(amountIn, slippagePct);
   const maxAmountIn = amountIn.plus(slippage);
 

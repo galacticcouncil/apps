@@ -7,7 +7,7 @@ export function calculateEffectiveBalance(
   asset: string,
   assetEd: string,
   txFeeAsset: string,
-  txFee: string
+  txFee: string,
 ) {
   if (asset == txFeeAsset) {
     const balance = new BigNumber(free);

@@ -1,4 +1,8 @@
-import { SingleValueData, UTCTimestamp, WhitespaceData } from 'lightweight-charts';
+import {
+  SingleValueData,
+  UTCTimestamp,
+  WhitespaceData,
+} from 'lightweight-charts';
 
 export const MINUTE_MS = 1 * 60;
 export const HOUR_MS = MINUTE_MS * 60;
@@ -105,7 +109,9 @@ export class Bucket {
    * @returns filtered chart data
    */
   public withRange(from: number): this {
-    const newDataset = this.data.filter((point: SingleValueData) => (point.time as number) > from);
+    const newDataset = this.data.filter(
+      (point: SingleValueData) => (point.time as number) > from,
+    );
     this._data = newDataset;
     this._from = from;
     return this;
@@ -121,15 +127,22 @@ export class Bucket {
    */
   public aggregate(
     granularity: number = HOUR_MS,
-    aggregator: (bucketData: SingleValueData[], bucket: number) => SingleValueData = Bucket.maxAggregator,
-    fillLastKnown: boolean = false
+    aggregator: (
+      bucketData: SingleValueData[],
+      bucket: number,
+    ) => SingleValueData = Bucket.maxAggregator,
+    fillLastKnown: boolean = false,
   ): this {
     const buckets = this.generateBuckets(granularity);
     const normalizedData: SingleValueData[] = [];
     let prevNonEmpty = this.first().value;
     buckets.forEach((bucket: number) => {
       const bucketData = this.data
-        .filter((svd: SingleValueData) => (svd.time as number) > bucket - granularity && (svd.time as number) <= bucket)
+        .filter(
+          (svd: SingleValueData) =>
+            (svd.time as number) > bucket - granularity &&
+            (svd.time as number) <= bucket,
+        )
         .sort((a, b) => a.value - b.value);
 
       const next = aggregator(bucketData, bucket);
@@ -153,19 +166,28 @@ export class Bucket {
     return this;
   }
 
-  public static sumAggregator(data: SingleValueData[], bucket: number): SingleValueData {
+  public static sumAggregator(
+    data: SingleValueData[],
+    bucket: number,
+  ): SingleValueData {
     return data.reduce(
       (previous: SingleValueData, current: SingleValueData) => {
-        return { time: bucket as UTCTimestamp, value: previous.value + current.value };
+        return {
+          time: bucket as UTCTimestamp,
+          value: previous.value + current.value,
+        };
       },
       {
         time: bucket as UTCTimestamp,
         value: 0,
-      }
+      },
     );
   }
 
-  public static maxAggregator(data: SingleValueData[], _bucket: number): SingleValueData {
+  public static maxAggregator(
+    data: SingleValueData[],
+    _bucket: number,
+  ): SingleValueData {
     return data.pop();
   }
 
@@ -180,7 +202,11 @@ export class Bucket {
     return this.generateBucketsRecur(interval, buckets, bucket);
   }
 
-  private generateBucketsRecur(interval: number, buckets: number[], bucket: number) {
+  private generateBucketsRecur(
+    interval: number,
+    buckets: number[],
+    bucket: number,
+  ) {
     const end = this.last().time as number;
     if (bucket > end) {
       return buckets;

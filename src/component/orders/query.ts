@@ -3,7 +3,10 @@ import { gql, request } from 'graphql-request';
 const QUERY_SCHEDULED = gql`
   query ($who: String!) {
     events(
-      where: { args_jsonContains: { who: $who }, AND: { name_eq: "DCA.Scheduled" } }
+      where: {
+        args_jsonContains: { who: $who }
+        AND: { name_eq: "DCA.Scheduled" }
+      }
       orderBy: block_height_DESC
       limit: 100
     ) {
@@ -60,7 +63,10 @@ export async function queryScheduled(indexerUrl: string, who: string) {
 const QUERY_STATUS = gql`
   query ($who: String!) {
     events(
-      where: { args_jsonContains: { who: $who }, AND: { name_in: ["DCA.Terminated", "DCA.Completed"] } }
+      where: {
+        args_jsonContains: { who: $who }
+        AND: { name_in: ["DCA.Terminated", "DCA.Completed"] }
+      }
       orderBy: block_height_DESC
       limit: 100
     ) {
@@ -90,7 +96,10 @@ export async function queryStatus(indexerUrl: string, who: string) {
 const QUERY_TRADES = gql`
   query ($id: Int!) {
     events(
-      where: { args_jsonContains: { id: $id }, AND: { name_in: ["DCA.TradeExecuted", "DCA.TradeFailed"] } }
+      where: {
+        args_jsonContains: { id: $id }
+        AND: { name_in: ["DCA.TradeExecuted", "DCA.TradeFailed"] }
+      }
       orderBy: block_height_DESC
       offset: 0
       limit: 10
@@ -131,7 +140,10 @@ export async function queryTrades(indexerUrl: string, id: number) {
 const QUERY_PLANNED = gql`
   query ($id: Int!) {
     events(
-      where: { args_jsonContains: { id: $id }, AND: { name_eq: "DCA.ExecutionPlanned" } }
+      where: {
+        args_jsonContains: { id: $id }
+        AND: { name_eq: "DCA.ExecutionPlanned" }
+      }
       orderBy: block_height_DESC
       limit: 1
     ) {

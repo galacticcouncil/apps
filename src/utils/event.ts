@@ -2,7 +2,9 @@ import type { EventRecord, Event } from '@polkadot/types/interfaces/system';
 
 export function txRecord(events: EventRecord[]): EventRecord {
   return events.find(
-    ({ event: { method, section } }) => section === 'system' && ['ExtrinsicFailed', 'ExtrinsicSuccess'].includes(method)
+    ({ event: { method, section } }) =>
+      section === 'system' &&
+      ['ExtrinsicFailed', 'ExtrinsicSuccess'].includes(method),
   );
 }
 

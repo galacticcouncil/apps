@@ -1,12 +1,13 @@
-import { IPoolService } from '@galacticcouncil/sdk';
+import { IPoolService, TradeRouter } from '@galacticcouncil/sdk';
 import { ApiProvider, Bridge } from '@galacticcouncil/bridge';
 import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
 import { defAtom } from '@thi.ng/atom/atom';
 import { defCursor } from '@thi.ng/atom/cursor';
 import { TLRUCache } from '@thi.ng/cache';
-import { getObj, setObj } from './storage';
 import { SingleValueData } from 'lightweight-charts';
+
+import { getObj, setObj } from './storage';
 
 export const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
@@ -41,6 +42,7 @@ export interface Chain {
   api: ApiPromise;
   ecosystem: Ecosystem;
   poolService: IPoolService;
+  router: TradeRouter;
 }
 
 export interface XChain {

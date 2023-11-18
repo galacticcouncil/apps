@@ -23,10 +23,17 @@ export abstract class BaseApp extends BaseElement {
     this.watchId = 'account-watch-' + short.generate();
   }
 
-  protected abstract onAccountChange(prev: Account, curr: Account): Promise<void>;
+  protected abstract onAccountChange(
+    prev: Account,
+    curr: Account,
+  ): Promise<void>;
 
   hasAccount(): boolean {
     return !!this.account.state;
+  }
+
+  getShortened(address: string): string {
+    return address.substring(0, 10).concat('...');
   }
 
   private updateAccount() {
@@ -42,7 +49,10 @@ export abstract class BaseApp extends BaseElement {
   }
 
   override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('accountAddress') || changedProperties.has('accountProvider')) {
+    if (
+      changedProperties.has('accountAddress') ||
+      changedProperties.has('accountProvider')
+    ) {
       this.updateAccount();
     }
     super.update(changedProperties);

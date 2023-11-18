@@ -17,7 +17,7 @@ export class ChartApi {
     assetOut: string,
     endOfDay: string,
     onSuccess: (price: TradeData) => void,
-    onError: (error: any) => void
+    onError: (error: any) => void,
   ) {
     fetch(this._grafanaUrl, {
       headers: {

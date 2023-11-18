@@ -1,10 +1,10 @@
 import {
   Amount,
   AssetClient,
-  AssetDetail,
   AssetMetadata,
   BalanceClient,
-  PoolAsset,
+  BigNumber,
+  PoolToken,
   TradeRouter,
 } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
@@ -24,24 +24,14 @@ export class AssetApi {
     this._balanceClient = new BalanceClient(api);
   }
 
-  async getMetadata(assets: PoolAsset[]): Promise<Map<string, AssetMetadata>> {
-    const ids = assets.map(({ id }) => id);
-    return this.getMetadataById(ids);
+  async getMetadata(): Promise<Map<string, AssetMetadata>> {
+    const metadata = await this._assetClient.getOnChainMetadata();
+    return new Map(metadata.map((m) => [m.id, m]));
   }
 
-  async getMetadataById(ids: string[]): Promise<Map<string, AssetMetadata>> {
-    const meta: [string, AssetMetadata][] = await Promise.all(
-      ids.map(async (id: string) => [
-        id,
-        await this._assetClient.getAssetMetadata(id),
-      ]),
-    );
-    return pairs2Map(meta);
-  }
-
-  async getLocations(assets: PoolAsset[]): Promise<Map<string, number>> {
+  async getLocations(assets: PoolToken[]): Promise<Map<string, number>> {
     const locations: [string, number][] = await Promise.all(
-      assets.map(async (asset: PoolAsset) => [
+      assets.map(async (asset: PoolToken) => [
         asset.id,
         await this.getParachainId(asset.id),
       ]),
@@ -49,25 +39,10 @@ export class AssetApi {
     return pairs2Map(locations);
   }
 
-  async getDetails(assets: PoolAsset[]): Promise<Map<string, AssetDetail>> {
-    const ids = assets.map(({ id }) => id);
-    return this.getDetailsById(ids);
-  }
-
-  async getDetailsById(ids: string[]): Promise<Map<string, AssetDetail>> {
-    const details: [string, AssetDetail][] = await Promise.all(
-      ids.map(async (id: string) => [
-        id,
-        await this._assetClient.getAssetDetail(id),
-      ]),
-    );
-    return pairs2Map(details);
-  }
-
   async getBalance(
     address: string,
-    assets: PoolAsset[],
-  ): Promise<Map<string, Amount>> {
+    assets: PoolToken[],
+  ): Promise<Map<string, BigNumber>> {
     const ids = assets.map(({ id }) => id);
     return this.getBalanceById(address, ids);
   }
@@ -75,22 +50,22 @@ export class AssetApi {
   async getBalanceById(
     address: string,
     ids: string[],
-  ): Promise<Map<string, Amount>> {
-    const balances: [string, Amount][] = await Promise.all(
+  ): Promise<Map<string, BigNumber>> {
+    const balances: [string, BigNumber][] = await Promise.all(
       ids.map(async (id: string) => [
         id,
-        await this._balanceClient.getAccountBalance(address, id),
+        await this._balanceClient.getBalance(address, id),
       ]),
     );
     return pairs2Map(balances);
   }
 
   async getPrice(
-    assets: PoolAsset[],
+    assets: PoolToken[],
     stableCoinAssetId: string,
   ): Promise<Map<string, Amount>> {
     const prices: [string, Amount][] = await Promise.all(
-      assets.map(async (asset: PoolAsset) => [
+      assets.map(async (asset: PoolToken) => [
         asset.id,
         await this._router.getBestSpotPrice(asset.id, stableCoinAssetId),
       ]),
@@ -98,9 +73,9 @@ export class AssetApi {
     return pairs2Map(prices);
   }
 
-  async getPairs(assets: PoolAsset[]): Promise<Map<string, PoolAsset[]>> {
-    const pairs: [string, PoolAsset[]][] = await Promise.all(
-      assets.map(async (asset: PoolAsset) => [
+  async getPairs(assets: PoolToken[]): Promise<Map<string, PoolToken[]>> {
+    const pairs: [string, PoolToken[]][] = await Promise.all(
+      assets.map(async (asset: PoolToken) => [
         asset.id,
         await this._router.getAssetPairs(asset.id),
       ]),

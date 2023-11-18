@@ -4,7 +4,13 @@ import { ApiPromise } from '@polkadot/api';
 
 import { BigNumber, ZERO, bnum } from '@galacticcouncil/sdk';
 
-import { buildReceivedAmountQuery, queryPlanned, queryScheduled, queryStatus, queryTrades } from './query';
+import {
+  buildReceivedAmountQuery,
+  queryPlanned,
+  queryScheduled,
+  queryStatus,
+  queryTrades,
+} from './query';
 import { Account, chainCursor } from '../../db';
 import { convertToHex } from '../../utils/account';
 
@@ -16,7 +22,12 @@ export class DcaOrdersApi {
   private _grafanaUrl: string;
   private _grafanaDsn: number;
 
-  public constructor(api: ApiPromise, indexerUrl: string, grafanaUrl: string, grafanaDsn: number) {
+  public constructor(
+    api: ApiPromise,
+    indexerUrl: string,
+    grafanaUrl: string,
+    grafanaDsn: number,
+  ) {
     this._api = api;
     this._indexerUrl = indexerUrl;
     this._grafanaUrl = grafanaUrl;
@@ -44,7 +55,9 @@ export class DcaOrdersApi {
         const apiAt = await this._api.at(event.block.hash);
         const scheduleOpt = await apiAt.query.dca.schedules(id);
         const schedule = scheduleOpt.unwrap();
-        const scheduleOrder = schedule.order.isSell ? schedule.order.asSell : schedule.order.asBuy;
+        const scheduleOrder = schedule.order.isSell
+          ? schedule.order.asSell
+          : schedule.order.asBuy;
         order = scheduleOrder;
         period = schedule.period.toNumber();
         totalAmount = schedule.totalAmount.toString();

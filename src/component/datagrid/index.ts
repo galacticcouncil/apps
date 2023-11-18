@@ -175,7 +175,10 @@ export abstract class Datagrid<T> extends BaseElement {
       getFilteredRowModel: getFilteredRowModel(),
       getExpandedRowModel: getExpandedRowModel(),
       onStateChange: (updater) => {
-        this.tableState = typeof updater === 'function' ? updater(this.table.getState()) : updater;
+        this.tableState =
+          typeof updater === 'function'
+            ? updater(this.table.getState())
+            : updater;
       },
     });
   }
@@ -188,7 +191,11 @@ export abstract class Datagrid<T> extends BaseElement {
     return html`
       <tr>
         ${headerGroup.headers.map((header: Header<T, unknown>) => {
-          return html` <th>${flexRender(header.column.columnDef.header, header.getContext())}</th> `;
+          return html`
+            <th>
+              ${flexRender(header.column.columnDef.header, header.getContext())}
+            </th>
+          `;
         })}
       </tr>
     `;
@@ -196,7 +203,9 @@ export abstract class Datagrid<T> extends BaseElement {
 
   rowExpandTemplate(row: Row<T>) {
     return html`<tr class="expanded sub">
-      <td colspan=${row.getAllCells().length}>${this.expandedRowTemplate(row)}</td>
+      <td colspan=${row.getAllCells().length}>
+        ${this.expandedRowTemplate(row)}
+      </td>
     </tr> `;
   }
 
@@ -212,7 +221,11 @@ export abstract class Datagrid<T> extends BaseElement {
         ${row.getVisibleCells().map((cell: Cell<T, unknown>) => {
           const collDef = cell.column.columnDef;
           const tdClass = collDef.id == 'actions' ? 'actions' : null;
-          return html` <td class=${tdClass}>${flexRender(collDef.cell, cell.getContext())}</td> `;
+          return html`
+            <td class=${tdClass}>
+              ${flexRender(collDef.cell, cell.getContext())}
+            </td>
+          `;
         })}
       </tr>
       ${when(isExpanded, () => this.rowExpandTemplate(row))}

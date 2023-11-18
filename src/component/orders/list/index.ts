@@ -96,7 +96,9 @@ export class DcaOrdersList extends DcaBaseDatagrid {
     const classes = {
       right: true,
     };
-    return html` <uigc-icon-dropdown class=${classMap(classes)}></uigc-icon-dropdown> `;
+    return html`
+      <uigc-icon-dropdown class=${classMap(classes)}></uigc-icon-dropdown>
+    `;
   }
 
   protected defaultColumns(): ColumnDef<DcaOrder>[] {
@@ -139,8 +141,10 @@ export class DcaOrdersList extends DcaBaseDatagrid {
       </div>
       <div class="row">
         <div class="overview item">
-          ${this.itemTemplate('', this.pairTemplate(order))} ${this.itemTemplate('Status', this.statusTemplate(order))}
-          ${this.itemTemplate('Block Interval', order.interval)} ${this.itemTemplate('Amount', this.getAmount(order))}
+          ${this.itemTemplate('', this.pairTemplate(order))}
+          ${this.itemTemplate('Status', this.statusTemplate(order))}
+          ${this.itemTemplate('Block Interval', order.interval)}
+          ${this.itemTemplate('Amount', this.getAmount(order))}
         </div>
         ${this.summaryTemplate(order)}
         <div class="transactions">Past Transactions</div>
@@ -153,7 +157,9 @@ export class DcaOrdersList extends DcaBaseDatagrid {
     super.update(changedProperties);
     const isDataChange = changedProperties.has('defaultData');
     if (isDataChange && this.active) {
-      this.active = this.defaultData.find((order) => order.id == this.active.id);
+      this.active = this.defaultData.find(
+        (order) => order.id == this.active.id,
+      );
     }
   }
 
@@ -161,9 +167,15 @@ export class DcaOrdersList extends DcaBaseDatagrid {
     return html`
       <slot name="header"></slot>
       <slot name="tabs"></slot>
-      ${super.render()} 
-      ${when(this.defaultData.length === 0, () => html` <slot name="empty"></slot> `)}
-      ${when(this.active, () => html` <div class="modal">${this.modalRowTemplate()}</div>`)}
+      ${super.render()}
+      ${when(
+        this.defaultData.length === 0,
+        () => html` <slot name="empty"></slot> `,
+      )}
+      ${when(
+        this.active,
+        () => html` <div class="modal">${this.modalRowTemplate()}</div>`,
+      )}
     `;
   }
 }

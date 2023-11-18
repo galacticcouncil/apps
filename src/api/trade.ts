@@ -1,5 +1,5 @@
 import {
-  type PoolAsset,
+  type PoolToken,
   type Transaction,
   type Trade,
   calculateDiffToRef,
@@ -58,8 +58,8 @@ export class TradeApi {
   }
 
   async getSell(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountIn: string,
     slippage: string,
   ): Promise<TradeInfo> {
@@ -83,8 +83,8 @@ export class TradeApi {
   }
 
   async getBuy(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountOut: string,
     slippage: string,
   ): Promise<TradeInfo> {
@@ -121,8 +121,8 @@ export class TradeApi {
   }
 
   async getSellTwap(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountIn: number,
     amountMin: number,
     txFee: number,
@@ -185,8 +185,8 @@ export class TradeApi {
   }
 
   async getBuyTwap(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountOut: number,
     amountMin: number,
     txFee: number,

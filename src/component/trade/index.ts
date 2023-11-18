@@ -34,9 +34,8 @@ import '@galacticcouncil/ui';
 import {
   Amount,
   BigNumber,
-  bnum,
   ONE,
-  PoolAsset,
+  PoolToken,
   PoolType,
   scale,
   SYSTEM_ASSET_ID,
@@ -109,10 +108,10 @@ export class TradeApp extends PoolApp {
   }
 
   isTwapEnabled(): boolean {
-    const { transactionFee, swaps } = this.trade;
+    const { swaps } = this.trade;
     const pools: string[] = swaps.map((swap: any) => swap.pool);
     const notSupportedRoute = pools.includes(PoolType.LBP);
-    return this.twap && !notSupportedRoute && !!transactionFee;
+    return this.twap && !notSupportedRoute;
   }
 
   isSwitchEnabled(): boolean {
@@ -137,7 +136,7 @@ export class TradeApp extends PoolApp {
   }
 
   isEmptyAmount(amount: string): boolean {
-    return amount == '' || amount == '0';
+    return amount == null || amount == '' || amount == '0';
   }
 
   isPoolError(): boolean {
@@ -167,8 +166,8 @@ export class TradeApp extends PoolApp {
   }
 
   private async safeSell(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountIn: string,
   ): Promise<TradeInfo> {
     const { slippage } = this.settings.state;
@@ -224,8 +223,8 @@ export class TradeApp extends PoolApp {
   }
 
   protected async calculateSell(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountIn: string,
   ) {
     const { trade, transaction, slippage } = await this.safeSell(
@@ -260,14 +259,16 @@ export class TradeApp extends PoolApp {
     this.tx = transaction;
     this.validateTrade(TradeType.Sell);
     this.validateEnoughBalance();
-    this.syncTransactionFee();
+    this.trade.transactionFee
+      ? this.syncTransactionFee()
+      : await this.syncTransactionFee();
     this.calculateSellTwap();
     console.log(tradeHuman);
   }
 
   private async safeBuy(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountOut: string,
   ): Promise<TradeInfo> {
     const { slippage } = this.settings.state;
@@ -320,8 +321,8 @@ export class TradeApp extends PoolApp {
   }
 
   protected async calculateBuy(
-    assetIn: PoolAsset,
-    assetOut: PoolAsset,
+    assetIn: PoolToken,
+    assetOut: PoolToken,
     amountOut: string,
   ) {
     const { trade, transaction, slippage } = await this.safeBuy(
@@ -355,7 +356,9 @@ export class TradeApp extends PoolApp {
     this.tx = transaction;
     this.validateTrade(TradeType.Buy);
     this.validateEnoughBalance();
-    this.syncTransactionFee();
+    this.trade.transactionFee
+      ? this.syncTransactionFee()
+      : await this.syncTransactionFee();
     this.calculateBuyTwap();
     console.log(tradeHuman);
   }
@@ -394,7 +397,8 @@ export class TradeApp extends PoolApp {
       return;
     }
 
-    const price: Amount = await this.router.getBestSpotPrice(
+    const router = this.chain.state.router;
+    const price: Amount = await router.getBestSpotPrice(
       assetIn.id,
       assetOut.id,
     );
@@ -448,7 +452,7 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  protected async changeAssetIn(previous: string, asset: PoolAsset) {
+  protected async changeAssetIn(previous: string, asset: PoolToken) {
     const assetIn = asset;
     const assetOut = this.trade.assetOut;
 
@@ -508,7 +512,7 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  protected async changeAssetOut(previous: string, asset: PoolAsset) {
+  protected async changeAssetOut(previous: string, asset: PoolToken) {
     const assetIn = this.trade.assetIn;
     const assetOut = asset;
 
@@ -571,14 +575,17 @@ export class TradeApp extends PoolApp {
   validateEnoughBalance() {
     const assetIn = this.trade.assetIn?.id;
     const ammountIn = this.trade.amountIn;
-    const account = this.account.state;
 
-    if (!assetIn || !ammountIn || !account) {
+    if (
+      this.isEmptyAmount(ammountIn) ||
+      !this.isSwapSelected ||
+      !this.hasAccount()
+    ) {
       return;
     }
 
     const balanceIn = this.assets.balance.get(assetIn);
-    const amount = scale(bnum(ammountIn), balanceIn.decimals);
+    const amount = toBn(ammountIn, balanceIn.decimals);
     if (amount.gt(balanceIn.amount)) {
       this.trade.error['balance'] = i18n.t('trade.error.balance');
     } else {
@@ -727,7 +734,7 @@ export class TradeApp extends PoolApp {
     feeAssetNativeBalance: Balance,
   ): Promise<TransactionFee> {
     const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
-    const feeAssetEd = this.assets.details.get(feeAssetId).existentialDeposit;
+    const feeAssetEd = this.assets.meta.get(feeAssetId).existentialDeposit;
     const { amount, ed } = await this.paymentApi.getPaymentFee(
       feeAssetId,
       feeAssetNativeBalance,
@@ -743,19 +750,18 @@ export class TradeApp extends PoolApp {
 
   async syncTransactionFee() {
     const account = this.account.state;
-    const { partialFee } = await this.paymentApi.getPaymentInfo(
-      this.tx,
-      account,
-    );
-    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+    const [paymentInfo, feeAssetId] = await Promise.all([
+      this.paymentApi.getPaymentInfo(this.tx, account),
+      this.paymentApi.getPaymentFeeAsset(account),
+    ]);
     this.trade.transactionFee = await this.calculateTransactionFee(
       feeAssetId,
-      partialFee,
+      paymentInfo.partialFee,
     );
     this.requestUpdate();
   }
 
-  private async updateMaxAmountIn(asset: PoolAsset) {
+  private async updateMaxAmountIn(asset: PoolToken) {
     const account = this.account.state;
     const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
 
@@ -785,7 +791,7 @@ export class TradeApp extends PoolApp {
     this.updateAmountIn(eb);
   }
 
-  private async updateMaxAmountOut(asset: PoolAsset) {
+  private async updateMaxAmountOut(asset: PoolToken) {
     const account = this.account.state;
     const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
 
@@ -871,7 +877,7 @@ export class TradeApp extends PoolApp {
 
   dcaNotificationTemplate(
     twap: TradeTwap,
-    asset: PoolAsset,
+    asset: PoolToken,
     status: string,
   ): TxNotificationMssg {
     const { trade, tradeReps, tradeTime, budget } = twap;
@@ -925,7 +931,7 @@ export class TradeApp extends PoolApp {
     account: Account,
     transaction: Transaction,
     twap: TradeTwap,
-    asset: PoolAsset,
+    asset: PoolToken,
   ) {
     const notification = {
       processing: this.dcaNotificationTemplate(twap, asset, 'submitted'),
@@ -1018,17 +1024,22 @@ export class TradeApp extends PoolApp {
   }
 
   protected async onInit(): Promise<void> {
-    this.tradeApi = new TradeApi(this.router);
+    const { api, router } = this.chain.state;
+    this.tradeApi = new TradeApi(router);
     this.initAssets();
     this.validatePool();
     this.recalculateSpotPrice();
   }
 
   protected onBlockChange(): void {
-    this.syncBalances();
     if (!this.trade.inProgress) {
       this.recalculateTrade();
     }
+  }
+
+  protected onBalanceUpdate() {
+    this.requestUpdate();
+    this.syncBalances();
   }
 
   protected override async onAccountChange(
@@ -1056,7 +1067,6 @@ export class TradeApp extends PoolApp {
   }
 
   override disconnectedCallback() {
-    this.disconnectSubscribeNewHeads?.();
     window.removeEventListener('resize', this.onResize);
     super.disconnectedCallback();
   }
@@ -1106,7 +1116,6 @@ export class TradeApp extends PoolApp {
         .assets=${this.assets.list}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
-        .details=${this.assets.details}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.trade.assetIn}
@@ -1259,7 +1268,6 @@ export class TradeApp extends PoolApp {
             .assetOut=${this.trade.assetOut}
             .spotPrice=${this.trade.spotPrice}
             .usdPrice=${this.assets.usdPrice}
-            .details=${this.assets.details}
           >
             <div class="header section" slot="header">
               <uigc-icon-button

@@ -4,7 +4,11 @@ import { customElement, state } from 'lit/decorators.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { tradeSettingsCursor, DEFAULT_TRADE_CONFIG, TradeConfig } from '../../db';
+import {
+  tradeSettingsCursor,
+  DEFAULT_TRADE_CONFIG,
+  TradeConfig,
+} from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
 import { debounce } from 'ts-debounce';
@@ -14,7 +18,10 @@ const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('gc-trade-settings')
 export class TradeSettings extends LitElement {
-  protected settings = new DatabaseController<TradeConfig>(this, tradeSettingsCursor);
+  protected settings = new DatabaseController<TradeConfig>(
+    this,
+    tradeSettingsCursor,
+  );
   private _slippageHandler = null;
   private _slippageMask = null;
 
@@ -151,7 +158,9 @@ export class TradeSettings extends LitElement {
   }
 
   onSlippageChange() {
-    const value = this.customSlippage ? this._slippageMask.unmaskedValue : this.slippage;
+    const value = this.customSlippage
+      ? this._slippageMask.unmaskedValue
+      : this.slippage;
     this.onChange(value, 'slippage');
 
     const options = {
@@ -221,7 +230,10 @@ export class TradeSettings extends LitElement {
           this._slippageHandler();
         }}
       >
-        ${SLIPPAGE_OPTS.map((s: string) => html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `)}
+        ${SLIPPAGE_OPTS.map(
+          (s: string) =>
+            html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `,
+        )}
         <uigc-input
           id="slippage"
           class="slippage-input"
