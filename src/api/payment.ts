@@ -42,11 +42,7 @@ export class PaymentApi {
   ): Promise<RuntimeDispatchInfo> {
     const address = this.getAddress(account);
     const transactionExtrinsic = this._api.tx(transaction.hex);
-    console.time('pinfo');
-    const a = await transactionExtrinsic.paymentInfo(address);
-    console.timeEnd('pinfo');
-
-    return a;
+    return await transactionExtrinsic.paymentInfo(address);
   }
 
   async getPaymentFee(
