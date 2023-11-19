@@ -4,6 +4,8 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
+import { Amount, Asset } from '@galacticcouncil/sdk';
+
 import { baseStyles } from '../styles/base.css';
 import { selectorStyles } from '../styles/selector.css';
 
@@ -14,22 +16,21 @@ import {
 } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 
-import { Amount, PoolToken } from '@galacticcouncil/sdk';
 import { AssetSelector } from './types';
 
 import '../id/asset';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
-  @property({ attribute: false }) assets: PoolToken[] = [];
-  @property({ attribute: false }) assetsAlt: PoolToken[] = null;
-  @property({ attribute: false }) pairs: Map<string, PoolToken[]> = new Map([]);
+  @property({ attribute: false }) assets: Asset[] = [];
+  @property({ attribute: false }) assetsAlt: Asset[] = null;
+  @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
-  @property({ type: Object }) assetIn: PoolToken = null;
-  @property({ type: Object }) assetOut: PoolToken = null;
+  @property({ type: Object }) assetIn: Asset = null;
+  @property({ type: Object }) assetOut: Asset = null;
   @property({ type: Boolean }) switchAllowed = true;
   @property({ type: String }) query = '';
 
@@ -39,7 +40,7 @@ export class SelectAsset extends LitElement {
     this.query = searchDetail.value;
   }
 
-  private getDollarPrice(asset: PoolToken, amount: string) {
+  private getDollarPrice(asset: Asset, amount: string) {
     if (this.usdPrice.size == 0) {
       return null;
     }
@@ -51,7 +52,7 @@ export class SelectAsset extends LitElement {
     return multipleAmounts(amount, usdPrice).toFixed(2);
   }
 
-  private getAssetBalance(asset: PoolToken) {
+  private getAssetBalance(asset: Asset) {
     const balance = this.balances.get(asset.id);
     const balanceFormated = balance
       ? formatAmount(balance.amount, balance.decimals)
@@ -66,14 +67,14 @@ export class SelectAsset extends LitElement {
     };
   }
 
-  private filterAsset(query: string, asset: PoolToken) {
+  private filterAsset(query: string, asset: Asset) {
     const symbolEq = asset.symbol.toLowerCase().includes(query.toLowerCase());
     const nameEq = asset.name.toLowerCase().includes(query.toLowerCase());
     const isEq = symbolEq || nameEq;
     return isEq;
   }
 
-  private filterAssets(query: string, assets: PoolToken[]) {
+  private filterAssets(query: string, assets: Asset[]) {
     return assets
       .filter((a) => this.filterAsset(query, a))
       .map((a) => this.getAssetBalance(a))
@@ -97,7 +98,7 @@ export class SelectAsset extends LitElement {
     return this.filterAssets(query, this.assetsAlt);
   }
 
-  isDisabled(asset: PoolToken): boolean {
+  isDisabled(asset: Asset): boolean {
     const asAssetInAllowed = isAssetInAllowed(
       this.assets,
       this.pairs,
@@ -120,14 +121,14 @@ export class SelectAsset extends LitElement {
     }
   }
 
-  isSelected(asset: PoolToken): boolean {
+  isSelected(asset: Asset): boolean {
     if (this.selector?.asset) {
       return this[this.selector.id].id === asset.id;
     }
     return false;
   }
 
-  getSlot(asset: PoolToken): string {
+  getSlot(asset: Asset): string {
     if (this.isSelected(asset)) {
       return 'selected';
     } else if (this.isDisabled(asset)) {
@@ -191,7 +192,7 @@ export class SelectAsset extends LitElement {
               >
                 <gc-asset-id
                   slot="asset"
-                  ?showDesc=${true}
+                  .showDesc=${true}
                   .asset=${asset}
                   .detail=${asset.name}
                   .locations=${this.locations}

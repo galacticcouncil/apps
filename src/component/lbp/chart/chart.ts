@@ -35,7 +35,7 @@ import '../../chart/states/error';
 import '../../chart/states/empty';
 import '../../chart/states/loading';
 
-import { Amount, AssetMetadata, PoolType } from '@galacticcouncil/sdk';
+import { Amount, Asset, PoolType } from '@galacticcouncil/sdk';
 
 import { BaseElement } from '../../base/BaseElement';
 
@@ -80,10 +80,8 @@ export class LbpChart extends BaseElement {
   @property({ type: String }) squidUrl = null;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ type: String }) poolId: string = null;
-  @property({ type: String }) assetIn: string = null;
-  @property({ type: String }) assetOut: string = null;
-  @property({ type: Object }) assetInMeta: AssetMetadata = null;
-  @property({ type: Object }) assetOutMeta: AssetMetadata = null;
+  @property({ type: Object }) assetIn: Asset = null;
+  @property({ type: Object }) assetOut: Asset = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
 
   @state() chartState: ChartState = ChartState.Loading;
@@ -107,7 +105,7 @@ export class LbpChart extends BaseElement {
       return null;
     }
 
-    const usdPrice = this.usdPrice.get(this.assetIn);
+    const usdPrice = this.usdPrice.get(this.assetIn.id);
     if (usdPrice == null) {
       return price;
     }
@@ -170,8 +168,8 @@ export class LbpChart extends BaseElement {
 
     this.chartApi.getPoolPrices(
       pool,
-      this.assetInMeta,
-      this.assetOutMeta,
+      this.assetIn,
+      this.assetOut,
       fromBlock,
       toBlock,
       ({ dataset, lastBlock }) => {
@@ -179,8 +177,8 @@ export class LbpChart extends BaseElement {
         if (pool.endBlockNumber > relayBlockHeight) {
           prediction = this.chartApi.getPoolPredictionPrices(
             pool,
-            this.assetInMeta,
-            this.assetOutMeta,
+            this.assetIn,
+            this.assetOut,
             lastBlock,
           );
         }
@@ -355,8 +353,8 @@ export class LbpChart extends BaseElement {
 
   pairTemplate() {
     if (this.assetIn || this.assetOut) {
-      const inputAsset = this.assetInMeta?.symbol;
-      const outputAsset = this.assetOutMeta?.symbol;
+      const inputAsset = this.assetIn?.symbol;
+      const outputAsset = this.assetOut?.symbol;
       return html`<div class="pair">
         ${outputAsset ?? '-'} / ${inputAsset ?? '-'}
       </div>`;
@@ -393,7 +391,7 @@ export class LbpChart extends BaseElement {
       };
       return html`<div class="price">
           ${humanizeAmount(spotPrice.toString())}
-          <span class="asset"> ${this.assetInMeta?.symbol}</span>
+          <span class="asset"> ${this.assetIn?.symbol}</span>
         </div>
         <div class=${classMap(usdClasses)}>
           ≈$${humanizeAmount(spotPriceUsd)}

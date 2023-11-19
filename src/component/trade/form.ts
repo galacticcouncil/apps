@@ -16,7 +16,7 @@ import { TradeApi, TradeTwap, TradeTwapError } from '../../api/trade';
 import { humanizeAmount } from '../../utils/amount';
 
 import {
-  PoolToken,
+  Asset,
   TradeType,
   bnum,
   calculateDiffToRef,
@@ -28,8 +28,8 @@ import { TransactionFee } from './types';
 export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
-  @property({ attribute: false }) assets: Map<string, PoolToken> = new Map([]);
-  @property({ attribute: false }) pairs: Map<string, PoolToken[]> = new Map([]);
+  @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
+  @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) inProgress = false;
@@ -40,8 +40,8 @@ export class TradeForm extends BaseElement {
   @property({ attribute: false }) twap: TradeTwap = null;
   @property({ type: Boolean }) twapAllowed = false;
   @property({ type: Boolean }) twapProgress = false;
-  @property({ type: Object }) assetIn: PoolToken = null;
-  @property({ type: Object }) assetOut: PoolToken = null;
+  @property({ type: Object }) assetIn: Asset = null;
+  @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountOut = null;
@@ -462,7 +462,7 @@ export class TradeForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('setup-clicked', options));
   }
 
-  maxClickHandler(id: string, asset: PoolToken) {
+  maxClickHandler(id: string, asset: Asset) {
     return function (_e: Event) {
       const options = {
         bubbles: true,
@@ -701,7 +701,7 @@ export class TradeForm extends BaseElement {
     `;
   }
 
-  formAssetTemplate(asset: PoolToken) {
+  formAssetTemplate(asset: Asset) {
     if (this.loaded) {
       return html`
         <gc-asset-id
@@ -714,7 +714,7 @@ export class TradeForm extends BaseElement {
     return this.formAssetLoadingTemplate();
   }
 
-  formAssetBalanceTemplate(id: string, asset: PoolToken, balance: string) {
+  formAssetBalanceTemplate(id: string, asset: Asset, balance: string) {
     return html`
       <uigc-asset-balance
         slot="balance"

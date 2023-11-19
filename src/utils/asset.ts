@@ -1,4 +1,4 @@
-import { PoolToken } from '@galacticcouncil/sdk';
+import { Asset } from '@galacticcouncil/sdk';
 
 /**
  * Check if assetIn allowed.
@@ -10,16 +10,16 @@ import { PoolToken } from '@galacticcouncil/sdk';
  * @returns true if asset allowed, otherwise false
  */
 export function isAssetInAllowed(
-  assets: PoolToken[],
-  pairs: Map<string, PoolToken[]>,
+  assets: Asset[],
+  pairs: Map<string, Asset[]>,
   assetIn: string,
 ) {
   const allowed = assets
-    .filter((asset: PoolToken) => {
+    .filter((asset: Asset) => {
       const assetPairs = pairs.get(asset.id);
       return assetPairs.length !== 0;
     })
-    .map((asset: PoolToken) => asset.id);
+    .map((asset: Asset) => asset.id);
   return new Set(allowed).has(assetIn);
 }
 
@@ -33,17 +33,15 @@ export function isAssetInAllowed(
  * @returns true if asset allowed, otherwise false
  */
 export function isAssetOutAllowed(
-  assets: PoolToken[],
-  pairs: Map<string, PoolToken[]>,
+  assets: Asset[],
+  pairs: Map<string, Asset[]>,
   assetOut: string,
 ) {
-  const unique: Map<string, PoolToken> = new Map([]);
-  const allDests = assets.map((asset: PoolToken) => pairs.get(asset.id)).flat();
-  allDests.forEach((asset: PoolToken) => {
+  const unique: Map<string, Asset> = new Map([]);
+  const allDests = assets.map((asset: Asset) => pairs.get(asset.id)).flat();
+  allDests.forEach((asset: Asset) => {
     unique.set(asset.id, asset);
   });
-  const allowed = Array.from(unique.values()).map(
-    (asset: PoolToken) => asset.id,
-  );
+  const allowed = Array.from(unique.values()).map((asset: Asset) => asset.id);
   return new Set(allowed).has(assetOut);
 }

@@ -10,10 +10,9 @@ import { multipleAmounts } from '../../utils/amount';
 
 import {
   Amount,
-  AssetMetadata,
+  Asset,
   BalanceClient,
   BigNumber,
-  PoolToken,
   PoolType,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
@@ -45,10 +44,10 @@ export abstract class PoolApp extends BaseApp {
   @property({ type: String }) ecosystem: Ecosystem = null;
 
   @state() assets = {
-    list: [] as PoolToken[],
-    map: new Map<string, PoolToken>([]),
-    pairs: new Map<string, PoolToken[]>([]),
-    meta: new Map<string, AssetMetadata>([]),
+    list: [] as Asset[],
+    map: new Map<string, Asset>([]),
+    pairs: new Map<string, Asset[]>([]),
+    meta: new Map<string, Asset>([]),
     locations: new Map<string, number>([]),
     usdPrice: new Map<string, Amount>([]),
     nativePrice: new Map<string, Amount>([]),
@@ -120,7 +119,7 @@ export abstract class PoolApp extends BaseApp {
     this.assets = {
       ...this.assets,
       list: assets,
-      map: new Map<string, PoolToken>(assets.map((i) => [i.id, i])),
+      map: new Map<string, Asset>(assets.map((i) => [i.id, i])),
       meta: assetsMeta,
       pairs: assetsPairs,
       locations: assetsLocations,
@@ -177,7 +176,7 @@ export abstract class PoolApp extends BaseApp {
       account.address,
       subsTokens,
       (token: string, balance: BigNumber) => {
-        const asset: AssetMetadata = meta.get(token);
+        const asset: Asset = meta.get(token);
         const newBalance: Amount = {
           amount: balance,
           decimals: asset.decimals,
@@ -240,7 +239,7 @@ export abstract class PoolApp extends BaseApp {
    * @param amount - asset amount
    * @returns - asset amount represented by $ (stablecoin)
    */
-  protected calculateDollarPrice(asset: PoolToken, amount: string) {
+  protected calculateDollarPrice(asset: Asset, amount: string) {
     if (this.stableCoinAssetId == asset.id) {
       return Number(amount).toFixed(2);
     }
@@ -255,7 +254,7 @@ export abstract class PoolApp extends BaseApp {
    * @param nativeAmount - asset amount represented by native token value
    * @returns - asset amount represented by token value
    */
-  protected calculateAssetPrice(asset: PoolToken, nativeAmount: string) {
+  protected calculateAssetPrice(asset: Asset, nativeAmount: string) {
     if (SYSTEM_ASSET_ID == asset.id) {
       return bnum(nativeAmount).shiftedBy(-1 * SYSTEM_ASSET_DECIMALS);
     }

@@ -1,10 +1,9 @@
 import {
   Amount,
+  Asset,
   AssetClient,
-  AssetMetadata,
   BalanceClient,
   BigNumber,
-  PoolToken,
   TradeRouter,
 } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
@@ -24,14 +23,14 @@ export class AssetApi {
     this._balanceClient = new BalanceClient(api);
   }
 
-  async getMetadata(): Promise<Map<string, AssetMetadata>> {
+  async getMetadata(): Promise<Map<string, Asset>> {
     const metadata = await this._assetClient.getOnChainMetadata();
     return new Map(metadata.map((m) => [m.id, m]));
   }
 
-  async getLocations(assets: PoolToken[]): Promise<Map<string, number>> {
+  async getLocations(assets: Asset[]): Promise<Map<string, number>> {
     const locations: [string, number][] = await Promise.all(
-      assets.map(async (asset: PoolToken) => [
+      assets.map(async (asset: Asset) => [
         asset.id,
         await this.getParachainId(asset.id),
       ]),
@@ -41,7 +40,7 @@ export class AssetApi {
 
   async getBalance(
     address: string,
-    assets: PoolToken[],
+    assets: Asset[],
   ): Promise<Map<string, BigNumber>> {
     const ids = assets.map(({ id }) => id);
     return this.getBalanceById(address, ids);
@@ -61,11 +60,11 @@ export class AssetApi {
   }
 
   async getPrice(
-    assets: PoolToken[],
+    assets: Asset[],
     stableCoinAssetId: string,
   ): Promise<Map<string, Amount>> {
     const prices: [string, Amount][] = await Promise.all(
-      assets.map(async (asset: PoolToken) => [
+      assets.map(async (asset: Asset) => [
         asset.id,
         await this._router.getBestSpotPrice(asset.id, stableCoinAssetId),
       ]),
@@ -73,9 +72,9 @@ export class AssetApi {
     return pairs2Map(prices);
   }
 
-  async getPairs(assets: PoolToken[]): Promise<Map<string, PoolToken[]>> {
-    const pairs: [string, PoolToken[]][] = await Promise.all(
-      assets.map(async (asset: PoolToken) => [
+  async getPairs(assets: Asset[]): Promise<Map<string, Asset[]>> {
+    const pairs: [string, Asset[]][] = await Promise.all(
+      assets.map(async (asset: Asset) => [
         asset.id,
         await this._router.getAssetPairs(asset.id),
       ]),

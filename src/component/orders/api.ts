@@ -2,7 +2,7 @@ import type { RegistryError } from '@polkadot/types/types';
 import { BN, hexToU8a } from '@polkadot/util';
 import { ApiPromise } from '@polkadot/api';
 
-import { BigNumber, ZERO, bnum } from '@galacticcouncil/sdk';
+import { Asset, BigNumber, ZERO, bnum } from '@galacticcouncil/sdk';
 
 import {
   buildReceivedAmountQuery,
@@ -34,7 +34,10 @@ export class DcaOrdersApi {
     this._grafanaDsn = grafanaDsn;
   }
 
-  async getScheduled(account: Account): Promise<DcaOrder[]> {
+  async getScheduled(
+    account: Account,
+    metadata: Map<string, Asset>,
+  ): Promise<DcaOrder[]> {
     const who = convertToHex(account.address);
     const scheduled = await queryScheduled(this._indexerUrl, who);
     const scheduledStatus = await this.getStatus(account);
@@ -64,10 +67,12 @@ export class DcaOrdersApi {
       }
 
       const amount = order.amountIn ?? order.maxAmountIn;
+      const assetInId = order.assetIn.toString();
+      const assetOutId = order.assetOut.toString();
       return {
         id: id,
-        assetIn: order.assetIn.toString(),
-        assetOut: order.assetOut.toString(),
+        assetIn: metadata.get(assetInId),
+        assetOut: metadata.get(assetOutId),
         interval: period,
         amount: bnum(amount),
         total: bnum(totalAmount),

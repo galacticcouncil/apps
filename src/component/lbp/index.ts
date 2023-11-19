@@ -1,12 +1,7 @@
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import {
-  AssetMetadata,
-  PoolToken,
-  PoolBase,
-  PoolType,
-} from '@galacticcouncil/sdk';
+import { Asset, PoolToken, PoolBase, PoolType } from '@galacticcouncil/sdk';
 
 import * as i18n from 'i18next';
 
@@ -29,17 +24,15 @@ export class LbpApp extends TradeApp {
   @state() lbpSwap = null;
   @state() lbp = {
     id: null as string,
-    accumulated: null as string,
-    accumulatedMeta: null as AssetMetadata,
-    distributed: null as string,
-    distributedMeta: null as AssetMetadata,
+    accumulated: null as Asset,
+    distributed: null as Asset,
     pools: [] as PoolBase[],
     assets: [] as PoolToken[],
   };
 
   protected async calculateSell(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountIn: string,
   ) {
     await super.calculateSell(assetIn, assetOut, amountIn);
@@ -49,8 +42,8 @@ export class LbpApp extends TradeApp {
   }
 
   protected async calculateBuy(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountOut: string,
   ) {
     await super.calculateBuy(assetIn, assetOut, amountOut);
@@ -74,23 +67,18 @@ export class LbpApp extends TradeApp {
 
     const accumulatedId = pair.assetAId.toString();
     const distributedId = pair.assetBId.toString();
-    const accumulatedMeta = this.assets.meta.get(accumulatedId);
-    const distributedMeta = this.assets.meta.get(distributedId);
+    const accumulatedAsset = this.assets.meta.get(accumulatedId);
+    const distributedAsset = this.assets.meta.get(distributedId);
 
     if (this.lbp.pools.length === 0) {
-      this.trade.assetOut = {
-        ...(distributedMeta as PoolToken),
-        id: distributedId,
-      };
+      this.trade.assetOut = distributedAsset;
     }
 
     this.lbp = {
       ...this.lbp,
       id: pair.id,
-      accumulated: pair.assetAId.toString(),
-      distributed: pair.assetBId.toString(),
-      accumulatedMeta: accumulatedMeta,
-      distributedMeta: distributedMeta,
+      accumulated: accumulatedAsset,
+      distributed: distributedAsset,
       pools: pools,
       assets: pools.map((pool) => pool.tokens[1]),
     };
@@ -156,9 +144,7 @@ export class LbpApp extends TradeApp {
         .tradeProgress=${this.trade.inProgress}
         .poolId=${this.lbp.id}
         .assetIn=${this.lbp.accumulated}
-        .assetInMeta=${this.lbp.accumulatedMeta}
         .assetOut=${this.lbp.distributed}
-        .assetOutMeta=${this.lbp.distributedMeta}
         .usdPrice=${this.assets.usdPrice}
       >
         <div class="header section" slot="header">

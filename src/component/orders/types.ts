@@ -1,4 +1,4 @@
-import { AssetMetadata, BigNumber, ZERO } from '@galacticcouncil/sdk';
+import { Asset, BigNumber, ZERO } from '@galacticcouncil/sdk';
 
 export type DcaStatus = {
   type: string;
@@ -16,10 +16,8 @@ export type DcaTransaction = {
 
 export type DcaOrder = {
   id: number;
-  assetIn: string;
-  assetOut: string;
-  assetInMeta: AssetMetadata;
-  assetOutMeta: AssetMetadata;
+  assetIn: Asset;
+  assetOut: Asset;
   nextExecution: number;
   nextExecutionBlock: number;
   interval: number;

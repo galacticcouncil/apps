@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
-import { PoolToken } from '@galacticcouncil/sdk';
+import { Asset } from '@galacticcouncil/sdk';
 
 import { Ecosystem } from '../../db';
 import { getChainKey } from '../../utils/chain';
@@ -10,14 +10,14 @@ import { getChainKey } from '../../utils/chain';
 @customElement('gc-asset-id')
 export class AssetId extends LitElement {
   @property({ type: Boolean }) showDesc: boolean = false;
-  @property({ attribute: false }) asset: PoolToken = null;
+  @property({ type: Boolean }) showSymbol: boolean = true;
+  @property({ attribute: false }) asset: Asset = null;
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
   static styles = [
     css`
       :host([size='small']) uigc-asset {
-        width: 24px;
         height: 24px;
       }
 
@@ -50,7 +50,7 @@ export class AssetId extends LitElement {
       const icons = Object.entries(meta);
       return html`
         <uigc-asset
-          ?icon=${!symbol}
+          ?icon=${!this.showSymbol}
           symbol=${symbol}
           desc=${this.showDesc ? name : null}
         >
@@ -63,7 +63,7 @@ export class AssetId extends LitElement {
 
     return html`
       <uigc-asset
-        ?icon=${!symbol}
+        ?icon=${!this.showSymbol}
         symbol=${symbol}
         desc=${this.showDesc ? name : null}
       >

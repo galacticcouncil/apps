@@ -39,7 +39,7 @@ import './states/error';
 import './states/empty';
 import './states/loading';
 
-import { Amount, PoolToken, TradeType } from '@galacticcouncil/sdk';
+import { Amount, Asset, TradeType } from '@galacticcouncil/sdk';
 
 import { BaseElement } from '../base/BaseElement';
 
@@ -88,8 +88,8 @@ export class TradeChart extends BaseElement {
   @property({ type: Number }) grafanaDsn = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
-  @property({ type: Object }) assetIn: PoolToken = null;
-  @property({ type: Object }) assetOut: PoolToken = null;
+  @property({ type: Object }) assetIn: Asset = null;
+  @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) spotPrice = null;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
 

@@ -8,14 +8,15 @@ import { Datagrid } from '../datagrid';
 import { Account, Chain, accountCursor, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { formatAmount, humanizeAmount } from '../../utils/amount';
-import { getChainKey } from '../../utils/chain';
 import { getRenderString } from '../../utils/dom';
 
-import { AssetMetadata, PoolToken, Transaction } from '@galacticcouncil/sdk';
+import { Asset, Transaction } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { DcaOrder } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
+
+import '../id/asset';
 
 export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   protected chain = new DatabaseController<Chain>(this, chainCursor);
@@ -101,31 +102,23 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   }
 
   protected pairTemplate(order: DcaOrder) {
-    const { assetIn, assetInMeta, assetOut, assetOutMeta } = order;
+    const { assetIn, assetOut } = order;
     return html`
       <div class="pair">
-        ${this.assetTemplate(assetIn, assetInMeta, order.locations)}
+        ${this.assetTemplate(assetIn, order.locations)}
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        ${this.assetTemplate(assetOut, assetOutMeta, order.locations)}
+        ${this.assetTemplate(assetOut, order.locations)}
       </div>
     `;
   }
 
-  private assetTemplate(
-    id: string,
-    meta: AssetMetadata,
-    locations: Map<string, number>,
-  ) {
+  private assetTemplate(asset: Asset, locations: Map<string, number>) {
     const chain = this.chain.state;
-    const asset: PoolToken = {
-      ...(meta as PoolToken),
-      id: id,
-      symbol: '',
-    };
     return html`
       <gc-asset-id
         slot="asset"
         size="small"
+        .showSymbol=${false}
         .asset=${asset}
         .ecosystem=${chain.ecosystem}
         .locations=${locations}
@@ -143,38 +136,33 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
   }
 
   protected getReceived(order: DcaOrder) {
-    const assetOutMeta = order.assetOutMeta;
+    const { decimals, symbol } = order.assetOut;
     const received = order.received;
     if (received) {
-      const receivedAmount = formatAmount(received, assetOutMeta.decimals);
-      return [humanizeAmount(receivedAmount), assetOutMeta.symbol].join(' ');
+      const receivedAmount = formatAmount(received, decimals);
+      return [humanizeAmount(receivedAmount), symbol].join(' ');
     } else {
       return '-';
     }
   }
 
   protected getBudget(order: DcaOrder) {
-    const assetInMeta = order.assetInMeta;
-    const totalBudget = formatAmount(order.total, assetInMeta.decimals);
+    const { decimals, symbol } = order.assetIn;
+    const totalBudget = formatAmount(order.total, decimals);
     const totalBudgetHuman = humanizeAmount(totalBudget);
     if (order.status?.type == 'Completed') {
-      return ['0', '/', totalBudgetHuman, assetInMeta.symbol].join(' ');
+      return ['0', '/', totalBudgetHuman, symbol].join(' ');
     }
 
-    const remainingBudget = formatAmount(order.remaining, assetInMeta.decimals);
+    const remainingBudget = formatAmount(order.remaining, decimals);
     const remainingBudgetHuman = humanizeAmount(remainingBudget);
-    return [
-      remainingBudgetHuman,
-      '/',
-      totalBudgetHuman,
-      assetInMeta.symbol,
-    ].join(' ');
+    return [remainingBudgetHuman, '/', totalBudgetHuman, symbol].join(' ');
   }
 
   protected getAmount(order: DcaOrder) {
-    const assetInMeta = order.assetInMeta;
-    const amount = formatAmount(order.amount, assetInMeta.decimals);
-    return [humanizeAmount(amount), assetInMeta.symbol].join(' ');
+    const { decimals, symbol } = order.assetIn;
+    const amount = formatAmount(order.amount, decimals);
+    return [humanizeAmount(amount), symbol].join(' ');
   }
 
   protected getNextExecution(order: DcaOrder) {

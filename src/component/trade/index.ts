@@ -32,12 +32,12 @@ import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
 import {
+  Asset,
   Amount,
   BigNumber,
-  ONE,
-  PoolToken,
   PoolType,
   scale,
+  ONE,
   SYSTEM_ASSET_ID,
   TradeType,
   Transaction,
@@ -166,8 +166,8 @@ export class TradeApp extends PoolApp {
   }
 
   private async safeSell(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountIn: string,
   ): Promise<TradeInfo> {
     const { slippage } = this.settings.state;
@@ -223,8 +223,8 @@ export class TradeApp extends PoolApp {
   }
 
   protected async calculateSell(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountIn: string,
   ) {
     const { trade, transaction, slippage } = await this.safeSell(
@@ -267,8 +267,8 @@ export class TradeApp extends PoolApp {
   }
 
   private async safeBuy(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountOut: string,
   ): Promise<TradeInfo> {
     const { slippage } = this.settings.state;
@@ -321,8 +321,8 @@ export class TradeApp extends PoolApp {
   }
 
   protected async calculateBuy(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountOut: string,
   ) {
     const { trade, transaction, slippage } = await this.safeBuy(
@@ -452,7 +452,7 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  protected async changeAssetIn(previous: string, asset: PoolToken) {
+  protected async changeAssetIn(previous: string, asset: Asset) {
     const assetIn = asset;
     const assetOut = this.trade.assetOut;
 
@@ -512,7 +512,7 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  protected async changeAssetOut(previous: string, asset: PoolToken) {
+  protected async changeAssetOut(previous: string, asset: Asset) {
     const assetIn = this.trade.assetIn;
     const assetOut = asset;
 
@@ -733,15 +733,14 @@ export class TradeApp extends PoolApp {
     feeAssetId: string,
     feeAssetNativeBalance: Balance,
   ): Promise<TransactionFee> {
-    const feeAssetSymbol = this.assets.map.get(feeAssetId).symbol;
-    const feeAssetEd = this.assets.meta.get(feeAssetId).existentialDeposit;
+    const { symbol, existentialDeposit } = this.assets.map.get(feeAssetId);
     const { amount, ed } = await this.paymentApi.getPaymentFee(
       feeAssetId,
       feeAssetNativeBalance,
-      feeAssetEd,
+      existentialDeposit,
     );
     return {
-      asset: feeAssetSymbol,
+      asset: symbol,
       amount: amount,
       amountNative: feeAssetNativeBalance.toString(),
       ed: ed,
@@ -761,7 +760,7 @@ export class TradeApp extends PoolApp {
     this.requestUpdate();
   }
 
-  private async updateMaxAmountIn(asset: PoolToken) {
+  private async updateMaxAmountIn(asset: Asset) {
     const account = this.account.state;
     const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
 
@@ -791,7 +790,7 @@ export class TradeApp extends PoolApp {
     this.updateAmountIn(eb);
   }
 
-  private async updateMaxAmountOut(asset: PoolToken) {
+  private async updateMaxAmountOut(asset: Asset) {
     const account = this.account.state;
     const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
 
@@ -877,7 +876,7 @@ export class TradeApp extends PoolApp {
 
   dcaNotificationTemplate(
     twap: TradeTwap,
-    asset: PoolToken,
+    asset: Asset,
     status: string,
   ): TxNotificationMssg {
     const { trade, tradeReps, tradeTime, budget } = twap;
@@ -931,7 +930,7 @@ export class TradeApp extends PoolApp {
     account: Account,
     transaction: Transaction,
     twap: TradeTwap,
-    asset: PoolToken,
+    asset: Asset,
   ) {
     const notification = {
       processing: this.dcaNotificationTemplate(twap, asset, 'submitted'),
@@ -957,10 +956,9 @@ export class TradeApp extends PoolApp {
     if (account) {
       const { assetIn } = this.trade;
       const { twap } = this.tradeTwap;
-      const assetInMeta = this.assets.meta.get(assetIn.id);
       const totalBudget: BigNumber = toBn(
         twap.budget.toString(),
-        assetInMeta.decimals,
+        assetIn.decimals,
       );
 
       const { api } = this.chain.state;

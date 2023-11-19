@@ -14,21 +14,21 @@ import { Account, accountCursor, DcaConfig, dcaSettingsCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
 
-import { PoolToken } from '@galacticcouncil/sdk';
+import { Asset } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
   private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
 
-  @property({ attribute: false }) assets: Map<string, PoolToken> = new Map([]);
-  @property({ attribute: false }) pairs: Map<string, PoolToken[]> = new Map([]);
+  @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
+  @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
   @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) loaded = false;
-  @property({ type: Object }) assetIn: PoolToken = null;
-  @property({ type: Object }) assetOut: PoolToken = null;
+  @property({ type: Object }) assetIn: Asset = null;
+  @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) interval: Interval = '1h';
   @property({ type: Number }) intervalBlock: number = null;
   @property({ type: String }) amountIn = null;
@@ -278,7 +278,7 @@ export class DcaForm extends BaseElement {
       )}`;
   }
 
-  formAssetTemplate(asset: PoolToken, slot?: string) {
+  formAssetTemplate(asset: Asset, slot?: string) {
     if (this.loaded) {
       return html`
         <gc-asset-id

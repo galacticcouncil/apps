@@ -22,15 +22,15 @@ import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
 import {
-  PoolToken,
-  Transaction,
-  SYSTEM_ASSET_ID,
-  Amount,
-  BigNumber,
   bnum,
-  scale,
-  ONE,
   buildRoute,
+  Amount,
+  Asset,
+  BigNumber,
+  scale,
+  Transaction,
+  ONE,
+  SYSTEM_ASSET_ID,
 } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -121,7 +121,7 @@ export class DcaApp extends PoolApp {
     this.recalculateSpotPrice();
   }
 
-  private async changeAssetIn(previous: string, asset: PoolToken) {
+  private async changeAssetIn(previous: string, asset: Asset) {
     const assetIn = asset;
     const assetOut = this.dca.assetOut;
 
@@ -138,7 +138,7 @@ export class DcaApp extends PoolApp {
     this.recalculateSpotPrice();
   }
 
-  private async changeAssetOut(previous: string, asset: PoolToken) {
+  private async changeAssetOut(previous: string, asset: Asset) {
     const assetIn = this.dca.assetIn;
     const assetOut = asset;
 

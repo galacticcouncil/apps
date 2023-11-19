@@ -81,9 +81,9 @@ export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
     if (received.isEqualTo(ZERO)) {
       return '-';
     }
-    const assetOutMeta = this.order.assetOutMeta;
-    const amount = formatAmount(row.original.amountOut, assetOutMeta.decimals);
-    return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
+    const { decimals, symbol } = this.order.assetOut;
+    const amount = formatAmount(row.original.amountOut, decimals);
+    return [humanizeAmount(amount), symbol].join(' ');
   }
 
   protected formatPrice(row: Row<DcaTransaction>) {
@@ -92,13 +92,13 @@ export class DcaOrdersGridTx extends Datagrid<DcaTransaction> {
       return '-';
     }
 
-    const { assetInMeta, assetOutMeta } = this.order;
+    const { assetIn, assetOut } = this.order;
 
-    const aIn = row.original.amountIn.shiftedBy(-1 * assetInMeta.decimals);
-    const aOut = row.original.amountOut.shiftedBy(-1 * assetOutMeta.decimals);
+    const aIn = row.original.amountIn.shiftedBy(-1 * assetIn.decimals);
+    const aOut = row.original.amountOut.shiftedBy(-1 * assetOut.decimals);
 
     const price = aIn.div(aOut);
-    return [humanizeAmount(price.toFixed()), assetInMeta.symbol].join(' ');
+    return [humanizeAmount(price.toFixed()), assetIn.symbol].join(' ');
   }
 
   errorStatusTemplate(error: string) {

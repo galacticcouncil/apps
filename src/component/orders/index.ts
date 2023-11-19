@@ -11,7 +11,7 @@ import { DatabaseController } from '../../db.ctrl';
 import * as i18n from 'i18next';
 
 import '@galacticcouncil/ui';
-import { AssetMetadata, BigNumber, bnum } from '@galacticcouncil/sdk';
+import { Asset, BigNumber, bnum } from '@galacticcouncil/sdk';
 
 import './grid';
 import './list';
@@ -46,7 +46,7 @@ export class TradeOrders extends BaseApp {
   };
 
   @state() width: number = window.innerWidth;
-  @state() meta: Map<string, AssetMetadata> = new Map([]);
+  @state() meta: Map<string, Asset> = new Map([]);
   @state() locations: Map<string, number> = new Map([]);
 
   static styles = [
@@ -229,13 +229,10 @@ export class TradeOrders extends BaseApp {
     }
 
     const account = this.account.state;
-    const scheduled = await this.ordersApi.getScheduled(account);
+    const scheduled = await this.ordersApi.getScheduled(account, this.meta);
     if (this.meta.size > 0) {
       const orders = scheduled.map(async (order: DcaOrder) => {
-        const assetInMeta = this.meta.get(order.assetIn);
-        const assetOutMeta = this.meta.get(order.assetOut);
         const remaining = await this.getRemaining(order.id);
-
         const open = this.orders.open.has(order.id);
         if (open) {
           const transactions = await this.getTransactions(order.id);
@@ -254,8 +251,6 @@ export class TradeOrders extends BaseApp {
             ...order,
             remaining,
             received,
-            assetInMeta,
-            assetOutMeta,
             locations: this.locations,
             transactions,
             nextExecution,
@@ -267,8 +262,6 @@ export class TradeOrders extends BaseApp {
         return {
           ...order,
           remaining,
-          assetInMeta,
-          assetOutMeta,
           locations: this.locations,
           hasPendingTx: () => false,
         } as DcaOrder;

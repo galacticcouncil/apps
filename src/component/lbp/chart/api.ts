@@ -1,4 +1,4 @@
-import { AssetMetadata } from '@galacticcouncil/sdk';
+import { Asset } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
 import {
   HistoricalPrice,
@@ -62,8 +62,8 @@ export class LbpChartApi {
 
   async getPoolPrices(
     pool: LbpPoolData,
-    assetInMeta: AssetMetadata,
-    assetOutMeta: AssetMetadata,
+    assetIn: Asset,
+    assetOut: Asset,
     fromBlock: HistoricalPrice,
     toBlock: HistoricalPrice,
     onSuccess: (balance: HistoricalBalance) => void,
@@ -81,7 +81,7 @@ export class LbpChartApi {
         const lastBlock = historicalPoolPriceData[0];
         const datapoints: [number, number][] = historicalPoolPriceData.map(
           (price) => {
-            return getBlockPrice(assetInMeta, assetOutMeta, price, pool);
+            return getBlockPrice(assetIn, assetOut, price, pool);
           },
         );
         const historicalBalance = {
@@ -95,8 +95,8 @@ export class LbpChartApi {
 
   getPoolPredictionPrices(
     pool: LbpPoolData,
-    assetInMeta: AssetMetadata,
-    assetOutMeta: AssetMetadata,
+    assetIn: Asset,
+    assetOut: Asset,
     lastKnownBlock: HistoricalPrice,
   ) {
     const maturity = 1 - getPoolMaturity(pool, lastKnownBlock);
@@ -106,8 +106,8 @@ export class LbpChartApi {
       maturity,
     ).map((block) => {
       return getBlockPrice(
-        assetInMeta,
-        assetOutMeta,
+        assetIn,
+        assetOut,
         { ...lastKnownBlock, relayChainBlockHeight: block },
         pool,
       );

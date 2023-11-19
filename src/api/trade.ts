@@ -1,12 +1,12 @@
 import {
-  type PoolToken,
-  type Transaction,
+  type Asset,
   type Trade,
-  calculateDiffToRef,
+  type Transaction,
   bnum,
+  buildRoute,
+  calculateDiffToRef,
   BigNumber,
   TradeRouter,
-  buildRoute,
 } from '@galacticcouncil/sdk';
 import type { PalletDcaOrder } from '@polkadot/types/lookup';
 
@@ -58,8 +58,8 @@ export class TradeApi {
   }
 
   async getSell(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountIn: string,
     slippage: string,
   ): Promise<TradeInfo> {
@@ -83,8 +83,8 @@ export class TradeApi {
   }
 
   async getBuy(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountOut: string,
     slippage: string,
   ): Promise<TradeInfo> {
@@ -121,8 +121,8 @@ export class TradeApi {
   }
 
   async getSellTwap(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountIn: number,
     amountMin: number,
     txFee: number,
@@ -185,8 +185,8 @@ export class TradeApi {
   }
 
   async getBuyTwap(
-    assetIn: PoolToken,
-    assetOut: PoolToken,
+    assetIn: Asset,
+    assetOut: Asset,
     amountOut: number,
     amountMin: number,
     txFee: number,

@@ -1,4 +1,4 @@
-import { AssetMetadata, LbpMath, ONE, bnum, scale } from '@galacticcouncil/sdk';
+import { Asset, LbpMath, ONE, bnum, scale } from '@galacticcouncil/sdk';
 import { HistoricalPrice, LbpPoolData } from './query';
 
 const KEEP_RECORD = 50;
@@ -15,8 +15,8 @@ export const getPoolMaturity = (pool: LbpPoolData, price: HistoricalPrice) => {
 };
 
 export const getBlockPrice = (
-  assetInMeta: AssetMetadata,
-  assetOutMeta: AssetMetadata,
+  assetIn: Asset,
+  assetOut: Asset,
   historicalPrice: HistoricalPrice,
   pool: LbpPoolData,
 ): [number, number] => {
@@ -39,10 +39,10 @@ export const getBlockPrice = (
     assetABalance,
     assetBWeight.toString(),
     assetAWeight.toString(),
-    scale(ONE, assetOutMeta.decimals).toString(),
+    scale(ONE, assetOut.decimals).toString(),
   );
   const priceHuman = bnum(price)
-    .shiftedBy(-1 * assetInMeta.decimals)
+    .shiftedBy(-1 * assetIn.decimals)
     .toNumber();
   return [relayChainBlockHeight, priceHuman];
 };

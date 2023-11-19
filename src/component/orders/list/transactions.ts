@@ -76,9 +76,9 @@ export class DcaOrdersListTx extends BaseElement {
     if (received.isEqualTo(ZERO)) {
       return '-';
     }
-    const assetOutMeta = this.order.assetOutMeta;
-    const amount = formatAmount(transaction.amountOut, assetOutMeta.decimals);
-    return [humanizeAmount(amount), assetOutMeta.symbol].join(' ');
+    const { decimals, symbol } = this.order.assetOut;
+    const amount = formatAmount(transaction.amountOut, decimals);
+    return [humanizeAmount(amount), symbol].join(' ');
   }
 
   protected formatPrice(transaction: DcaTransaction) {
@@ -87,13 +87,13 @@ export class DcaOrdersListTx extends BaseElement {
       return '-';
     }
 
-    const { assetInMeta, assetOutMeta } = this.order;
+    const { assetIn, assetOut } = this.order;
 
-    const aIn = transaction.amountIn.shiftedBy(-1 * assetInMeta.decimals);
-    const aOut = transaction.amountOut.shiftedBy(-1 * assetOutMeta.decimals);
+    const aIn = transaction.amountIn.shiftedBy(-1 * assetIn.decimals);
+    const aOut = transaction.amountOut.shiftedBy(-1 * assetOut.decimals);
 
     const price = aOut.div(aIn);
-    return [humanizeAmount(price.toFixed()), assetOutMeta.symbol].join(' ');
+    return [humanizeAmount(price.toFixed()), assetOut.symbol].join(' ');
   }
 
   protected itemTemplate(label: string, value: any) {
