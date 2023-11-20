@@ -54,7 +54,7 @@ export class DcaOrdersApi {
         period = schedule.period;
         totalAmount = schedule.totalAmount;
       } else {
-        // Fallback for batch orders and orders unable to match 1:1 with event
+        // Fallback for batch orders triggered by protocol on initialize (TRSRY)
         const apiAt = await this._api.at(event.block.hash);
         const scheduleOpt = await apiAt.query.dca.schedules(id);
         const schedule = scheduleOpt.unwrap();

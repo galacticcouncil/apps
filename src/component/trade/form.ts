@@ -839,12 +839,8 @@ export class TradeForm extends BaseElement {
         </uigc-asset-switch>
         <uigc-asset-price
           class=${classMap(spotPriceClasses)}
-          .inputAsset=${this.tradeType == TradeType.Sell
-            ? this.assetIn?.symbol
-            : this.assetOut?.symbol}
-          .outputAsset=${this.tradeType == TradeType.Sell
-            ? this.assetOut?.symbol
-            : this.assetIn?.symbol}
+          .inputAsset=${this.assetOut?.symbol}
+          .outputAsset=${this.assetIn?.symbol}
           .outputBalance=${this.spotPrice}
           .loading=${this.inProgress}
         >

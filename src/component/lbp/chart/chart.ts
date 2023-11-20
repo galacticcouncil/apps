@@ -117,7 +117,7 @@ export class LbpChart extends BaseElement {
   }
 
   private getDataKey() {
-    return [PoolType.LBP, this.assetIn, this.assetOut].join(':');
+    return [PoolType.LBP, this.assetIn.id, this.assetOut.id].join(':');
   }
 
   private getRecord() {
@@ -310,13 +310,13 @@ export class LbpChart extends BaseElement {
     );
   }
 
-  async init() {
+  private async init() {
     const { api } = this.chain.state;
     this.chartApi = new LbpChartApi(api, this.squidUrl);
     this.timeApi = new TimeApi(api);
   }
 
-  async subscribe() {
+  private async subscribe() {
     const api = chainCursor.deref().api;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
       async (lastHeader) => {
@@ -391,7 +391,7 @@ export class LbpChart extends BaseElement {
       };
       return html`<div class="price">
           ${humanizeAmount(spotPrice.toString())}
-          <span class="asset"> ${this.assetIn?.symbol}</span>
+          <span class="asset"> ${this.assetIn.symbol}</span>
         </div>
         <div class=${classMap(usdClasses)}>
           ≈$${humanizeAmount(spotPriceUsd)}

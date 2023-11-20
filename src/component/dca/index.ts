@@ -222,21 +222,18 @@ export class DcaApp extends PoolApp {
   }
 
   async validateMinAmount() {
-    const { api } = this.chain.state;
     if (this.isSwapEmpty()) {
       delete this.dca.error['minAmountTooLow'];
       return;
     }
 
     const { amountIn, assetIn } = this.dca;
-    const assetInMeta = this.assets.meta.get(assetIn.id);
-
     const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
     const amount = new BigNumber(amountIn);
     if (minAmount.isGreaterThan(amount)) {
       this.dca.error['minAmountTooLow'] = i18n.t('dca.error.minAmountTooLow', {
         amount: humanizeAmount(minAmount.toString()),
-        asset: assetInMeta.symbol,
+        asset: assetIn.symbol,
       });
     } else {
       delete this.dca.error['minAmountTooLow'];
@@ -252,14 +249,13 @@ export class DcaApp extends PoolApp {
 
     const { amountInBudget, assetIn } = this.dca;
 
-    const assetInMeta = this.assets.meta.get(assetIn.id);
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
     const minBudget = this.calculateAssetPrice(assetIn, minBudgetNative);
     const budget = new BigNumber(amountInBudget);
     if (minBudget.isGreaterThan(budget)) {
       this.dca.error['minBudgetTooLow'] = i18n.t('dca.error.minBudgetTooLow', {
         amount: humanizeAmount(minBudget.toString()),
-        asset: assetInMeta.symbol,
+        asset: assetIn.symbol,
       });
     } else {
       delete this.dca.error['minBudgetTooLow'];
@@ -346,10 +342,8 @@ export class DcaApp extends PoolApp {
       const { assetIn, assetOut, amountInBudget, interval, intervalBlock } =
         this.dca;
 
-      const assetInMeta = this.assets.meta.get(assetIn.id);
-
-      const amountInBn = toBn(this.dca.amountIn, assetInMeta.decimals);
-      const amountInBudgetBn = toBn(amountInBudget, assetInMeta.decimals);
+      const amountInBn = toBn(this.dca.amountIn, assetIn.decimals);
+      const amountInBudgetBn = toBn(amountInBudget, assetIn.decimals);
 
       const periodMsec = INTERVAL_MS[interval];
       const periodBlock = this.timeApi.toBlockPeriod(
@@ -402,7 +396,7 @@ export class DcaApp extends PoolApp {
 
   private updateAsset(asset: string, assetKey: string) {
     if (asset) {
-      this.dca[assetKey] = this.assets.map.get(asset);
+      this.dca[assetKey] = this.assets.registry.get(asset);
     } else {
       this.dca[assetKey] = null;
     }
@@ -410,8 +404,8 @@ export class DcaApp extends PoolApp {
 
   protected initAssets() {
     if (!this.assetIn && !this.assetOut) {
-      this.dca.assetIn = this.assets.map.get(this.stableCoinAssetId);
-      this.dca.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
+      this.dca.assetIn = this.assets.registry.get(this.stableCoinAssetId);
+      this.dca.assetOut = this.assets.registry.get(SYSTEM_ASSET_ID);
     } else {
       this.updateAsset(this.assetIn, 'assetIn');
       this.updateAsset(this.assetOut, 'assetOut');
@@ -498,7 +492,7 @@ export class DcaApp extends PoolApp {
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-select-asset
-        .assets=${this.assets.list}
+        .assets=${this.assets.tradeable}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
         .balances=${this.assets.balance}
@@ -566,7 +560,7 @@ export class DcaApp extends PoolApp {
   }
 
   protected isFormLoaded() {
-    return this.assets.list.length > 0;
+    return this.assets.tradeable.length > 0;
   }
 
   dcaFormTab() {
@@ -577,7 +571,7 @@ export class DcaApp extends PoolApp {
     };
     return html` <uigc-paper class=${classMap(classes)} id="default-tab">
       <gc-dca-form
-        .assets=${this.assets.map}
+        .assets=${this.assets.registry}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
         .disabled=${this.isFormDisabled()}
@@ -629,7 +623,8 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     return html` <gc-trade-orders
       class="orders"
-      .pools=${this.pools}
+      .assets=${this.assets.registry}
+      .locations=${this.assets.locations}
       .indexerUrl=${this.indexerUrl}
       .grafanaUrl=${this.grafanaUrl}
       .grafanaDsn=${this.grafanaDsn}

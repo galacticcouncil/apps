@@ -67,8 +67,8 @@ export class LbpApp extends TradeApp {
 
     const accumulatedId = pair.assetAId.toString();
     const distributedId = pair.assetBId.toString();
-    const accumulatedAsset = this.assets.meta.get(accumulatedId);
-    const distributedAsset = this.assets.meta.get(distributedId);
+    const accumulatedAsset = this.assets.registry.get(accumulatedId);
+    const distributedAsset = this.assets.registry.get(distributedId);
 
     if (this.lbp.pools.length === 0) {
       this.trade.assetOut = distributedAsset;
@@ -104,7 +104,7 @@ export class LbpApp extends TradeApp {
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-select-asset
-        .assets=${this.assets.list}
+        .assets=${this.assets.tradeable}
         .assetsAlt=${this.lbp.assets}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}

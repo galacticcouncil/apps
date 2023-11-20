@@ -23,9 +23,9 @@ export class AssetApi {
     this._balanceClient = new BalanceClient(api);
   }
 
-  async getMetadata(): Promise<Map<string, Asset>> {
-    const metadata = await this._assetClient.getOnChainMetadata();
-    return new Map(metadata.map((m) => [m.id, m]));
+  async getAssets(): Promise<Map<string, Asset>> {
+    const assets = await this._assetClient.getOnChainMetadata();
+    return new Map(assets.map((a) => [a.id, a]));
   }
 
   async getLocations(assets: Asset[]): Promise<Map<string, number>> {

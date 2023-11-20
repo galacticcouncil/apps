@@ -123,12 +123,12 @@ export class TradeApp extends PoolApp {
     }
 
     const assetInAllowed = isAssetInAllowed(
-      this.assets.list,
+      this.assets.tradeable,
       this.assets.pairs,
       assetOut,
     );
     const assetOutAllowed = isAssetOutAllowed(
-      this.assets.list,
+      this.assets.tradeable,
       this.assets.pairs,
       assetIn,
     );
@@ -148,12 +148,12 @@ export class TradeApp extends PoolApp {
     }
 
     const assetInAllowed = isAssetInAllowed(
-      this.assets.list,
+      this.assets.tradeable,
       this.assets.pairs,
       assetIn,
     );
     const assetOutAllowed = isAssetOutAllowed(
-      this.assets.list,
+      this.assets.tradeable,
       this.assets.pairs,
       assetOut,
     );
@@ -239,13 +239,18 @@ export class TradeApp extends PoolApp {
       tradeHuman.amountOut,
     );
     const slippageUsd = this.calculateDollarPrice(assetOut, slippage);
+    const spotPrice = scale(ONE, assetOut.decimals)
+      .div(trade.spotPrice)
+      .toFixed();
 
-    // Disable overriding of active asset amount (assetIn) if typing
+    // Disable overriding of active asset amount (assetIn) if typing, normalize spotPrice
     const tradeState = Object.assign({}, tradeHuman);
     delete tradeState.amountIn;
+    delete tradeState.spotPrice;
 
     this.trade = {
       ...this.trade,
+      spotPrice: spotPrice,
       inProgress: false,
       assetIn: assetIn,
       amountInUsd: amountInUsd,
@@ -390,26 +395,17 @@ export class TradeApp extends PoolApp {
   }
 
   protected async recalculateSpotPrice() {
-    const assetIn = this.trade.assetIn;
-    const assetOut = this.trade.assetOut;
-
-    if (!assetIn || !assetOut) {
+    if (!this.isSwapSelected()) {
       return;
     }
 
-    const router = this.chain.state.router;
+    const { assetIn, assetOut } = this.trade;
+    const { router } = this.chain.state;
     const price: Amount = await router.getBestSpotPrice(
       assetIn.id,
       assetOut.id,
     );
-
-    let spotPrice: string;
-    if (this.trade.type == TradeType.Buy) {
-      spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
-    } else {
-      spotPrice = formatAmount(price.amount, price.decimals);
-    }
-
+    const spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
     this.trade = {
       ...this.trade,
       inProgress: false,
@@ -585,6 +581,10 @@ export class TradeApp extends PoolApp {
     }
 
     const balanceIn = this.assets.balance.get(assetIn);
+    if (!balanceIn) {
+      return;
+    }
+
     const amount = toBn(ammountIn, balanceIn.decimals);
     if (amount.gt(balanceIn.amount)) {
       this.trade.error['balance'] = i18n.t('trade.error.balance');
@@ -733,7 +733,7 @@ export class TradeApp extends PoolApp {
     feeAssetId: string,
     feeAssetNativeBalance: Balance,
   ): Promise<TransactionFee> {
-    const { symbol, existentialDeposit } = this.assets.map.get(feeAssetId);
+    const { symbol, existentialDeposit } = this.assets.registry.get(feeAssetId);
     const { amount, ed } = await this.paymentApi.getPaymentFee(
       feeAssetId,
       feeAssetNativeBalance,
@@ -1005,7 +1005,7 @@ export class TradeApp extends PoolApp {
 
   protected updateAsset(asset: string, assetKey: string) {
     if (asset) {
-      this.trade[assetKey] = this.assets.map.get(asset);
+      this.trade[assetKey] = this.assets.registry.get(asset);
     } else {
       this.trade[assetKey] = null;
     }
@@ -1013,8 +1013,8 @@ export class TradeApp extends PoolApp {
 
   protected initAssets() {
     if (!this.assetIn && !this.assetOut) {
-      this.trade.assetIn = this.assets.map.get(this.stableCoinAssetId);
-      this.trade.assetOut = this.assets.map.get(SYSTEM_ASSET_ID);
+      this.trade.assetIn = this.assets.registry.get(this.stableCoinAssetId);
+      this.trade.assetOut = this.assets.registry.get(SYSTEM_ASSET_ID);
     } else {
       this.updateAsset(this.assetIn, 'assetIn');
       this.updateAsset(this.assetOut, 'assetOut');
@@ -1022,7 +1022,7 @@ export class TradeApp extends PoolApp {
   }
 
   protected async onInit(): Promise<void> {
-    const { api, router } = this.chain.state;
+    const { router } = this.chain.state;
     this.tradeApi = new TradeApi(router);
     this.initAssets();
     this.validatePool();
@@ -1036,7 +1036,7 @@ export class TradeApp extends PoolApp {
   }
 
   protected onBalanceUpdate() {
-    this.requestUpdate();
+    //this.requestUpdate();
     this.syncBalances();
   }
 
@@ -1044,9 +1044,9 @@ export class TradeApp extends PoolApp {
     prev: Account,
     curr: Account,
   ): Promise<void> {
-    await super.onAccountChange(prev, curr);
-    this.resetBalances();
-    this.syncBalances();
+    super.onAccountChange(prev, curr);
+    //this.resetBalances();
+    //this.syncBalances();
     if (curr == null) {
       this.resetTrade();
     }
@@ -1111,7 +1111,7 @@ export class TradeApp extends PoolApp {
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-select-asset
-        .assets=${this.assets.list}
+        .assets=${this.assets.tradeable}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
         .balances=${this.assets.balance}
@@ -1172,7 +1172,7 @@ export class TradeApp extends PoolApp {
   }
 
   protected isFormLoaded() {
-    return this.assets.list.length > 0;
+    return this.assets.tradeable.length > 0;
   }
 
   protected isFormReadOnly() {
@@ -1187,7 +1187,7 @@ export class TradeApp extends PoolApp {
     };
     return html` <uigc-paper class=${classMap(classes)} id="default-tab">
       <gc-trade-form
-        .assets=${this.assets.map}
+        .assets=${this.assets.registry}
         .pairs=${this.assets.pairs}
         .locations=${this.assets.locations}
         .inProgress=${this.trade.inProgress}
@@ -1258,10 +1258,9 @@ export class TradeApp extends PoolApp {
         this.chart,
         () => html`
           <gc-trade-chart
+            .tradeProgress=${this.trade.inProgress}
             .grafanaUrl=${this.grafanaUrl}
             .grafanaDsn=${this.grafanaDsn}
-            .tradeType=${this.trade.type}
-            .tradeProgress=${this.trade.inProgress}
             .assetIn=${this.trade.assetIn}
             .assetOut=${this.trade.assetOut}
             .spotPrice=${this.trade.spotPrice}
@@ -1291,7 +1290,8 @@ export class TradeApp extends PoolApp {
       return html`
         <gc-trade-orders
           class="orders"
-          .pools=${this.pools}
+          .assets=${this.assets.registry}
+          .locations=${this.assets.locations}
           .indexerUrl=${this.indexerUrl}
           .grafanaUrl=${this.grafanaUrl}
           .grafanaDsn=${this.grafanaDsn}

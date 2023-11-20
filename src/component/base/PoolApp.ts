@@ -44,10 +44,9 @@ export abstract class PoolApp extends BaseApp {
   @property({ type: String }) ecosystem: Ecosystem = null;
 
   @state() assets = {
-    list: [] as Asset[],
-    map: new Map<string, Asset>([]),
+    tradeable: [] as Asset[],
+    registry: new Map<string, Asset>([]),
     pairs: new Map<string, Asset[]>([]),
-    meta: new Map<string, Asset>([]),
     locations: new Map<string, number>([]),
     usdPrice: new Map<string, Amount>([]),
     nativePrice: new Map<string, Amount>([]),
@@ -109,18 +108,17 @@ export abstract class PoolApp extends BaseApp {
     this.timeApi = new TimeApi(api);
     this.balanceClient = new BalanceClient(api);
 
-    const assets = await router.getAllAssets();
-    const [assetsMeta, assetsPairs, assetsLocations] = await Promise.all([
-      this.assetApi.getMetadata(),
-      this.assetApi.getPairs(assets),
-      this.assetApi.getLocations(assets),
+    const tradeable = await router.getAllAssets();
+    const [assets, assetsPairs, assetsLocations] = await Promise.all([
+      this.assetApi.getAssets(),
+      this.assetApi.getPairs(tradeable),
+      this.assetApi.getLocations(tradeable),
     ]);
 
     this.assets = {
       ...this.assets,
-      list: assets,
-      map: new Map<string, Asset>(assets.map((i) => [i.id, i])),
-      meta: assetsMeta,
+      tradeable: tradeable,
+      registry: assets,
       pairs: assetsPairs,
       locations: assetsLocations,
     };
@@ -168,15 +166,15 @@ export abstract class PoolApp extends BaseApp {
 
   private subscribeTokensAccountBalance(): UnsubscribePromise {
     const account = this.account.state;
-    const meta = this.assets.meta;
+    const assets = this.assets.registry;
     const balances = this.assets.balance;
-    const subsTokens = [...meta.values()].map((t) => t.id);
+    const subsTokens = [...assets.values()].map((t) => t.id);
     const last = subsTokens[subsTokens.length - 1];
     return this.balanceClient.subscribeTokenBalance(
       account.address,
       subsTokens,
       (token: string, balance: BigNumber) => {
-        const asset: Asset = meta.get(token);
+        const asset: Asset = assets.get(token);
         const newBalance: Amount = {
           amount: balance,
           decimals: asset.decimals,
@@ -220,14 +218,14 @@ export abstract class PoolApp extends BaseApp {
 
   protected async syncDolarPrice() {
     this.assets.usdPrice = await this.assetApi.getPrice(
-      this.assets.list,
+      this.assets.tradeable,
       this.stableCoinAssetId,
     );
   }
 
   protected async syncNativePrice() {
     this.assets.nativePrice = await this.assetApi.getPrice(
-      this.assets.list,
+      this.assets.tradeable,
       SYSTEM_ASSET_ID,
     );
   }

@@ -3,7 +3,6 @@ import { customElement, property, state } from 'lit/decorators.js';
 
 import { BaseApp } from '../base/BaseApp';
 
-import { AssetApi } from '../../api/asset';
 import { TimeApi } from '../../api/time';
 import { Account, Chain, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
@@ -22,9 +21,9 @@ import { DcaOrdersApi } from './api';
 @customElement('gc-trade-orders')
 export class TradeOrders extends BaseApp {
   private chain = new DatabaseController<Chain>(this, chainCursor);
+  private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
 
-  private assetApi: AssetApi = null;
   private ordersApi: DcaOrdersApi = null;
   private timeApi: TimeApi = null;
 
@@ -37,7 +36,8 @@ export class TradeOrders extends BaseApp {
     finished: (order: DcaOrder) => !!order.status,
   };
 
-  @property({ type: String }) pools: string = null;
+  @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
+  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
 
   @state() orders = {
     list: [] as DcaOrder[],
@@ -46,8 +46,6 @@ export class TradeOrders extends BaseApp {
   };
 
   @state() width: number = window.innerWidth;
-  @state() meta: Map<string, Asset> = new Map([]);
-  @state() locations: Map<string, number> = new Map([]);
 
   static styles = [
     css`
@@ -229,8 +227,9 @@ export class TradeOrders extends BaseApp {
     }
 
     const account = this.account.state;
-    const scheduled = await this.ordersApi.getScheduled(account, this.meta);
-    if (this.meta.size > 0) {
+
+    const scheduled = await this.ordersApi.getScheduled(account, this.assets);
+    if (this.assets.size > 0) {
       const orders = scheduled.map(async (order: DcaOrder) => {
         const remaining = await this.getRemaining(order.id);
         const open = this.orders.open.has(order.id);
@@ -274,8 +273,7 @@ export class TradeOrders extends BaseApp {
   }
 
   private async init() {
-    const { api, router } = this.chain.state;
-    this.assetApi = new AssetApi(api, router);
+    const { api } = this.chain.state;
     this.ordersApi = new DcaOrdersApi(
       api,
       this.indexerUrl,
@@ -283,14 +281,6 @@ export class TradeOrders extends BaseApp {
       this.grafanaDsn,
     );
     this.timeApi = new TimeApi(api);
-    const assets = await router.getAllAssets();
-    const [metadata, locations] = await Promise.all([
-      this.assetApi.getMetadata(),
-      this.assetApi.getLocations(assets),
-    ]);
-
-    this.meta = metadata;
-    this.locations = locations;
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
     });
@@ -317,7 +307,8 @@ export class TradeOrders extends BaseApp {
   }
 
   override async updated() {
-    if (this.chain.state && !this.ordersApi) {
+    if (this.chain.state && !this.ready) {
+      this.ready = true;
       await this.init();
       await this.subscribe();
     }
@@ -335,8 +326,8 @@ export class TradeOrders extends BaseApp {
     this.width = window.innerWidth;
   }
 
-  isApiReady() {
-    return this.chain.state && this.ordersApi;
+  private isApiReady() {
+    return this.chain.state && this.ready;
   }
 
   override connectedCallback() {

@@ -39,7 +39,7 @@ import './states/error';
 import './states/empty';
 import './states/loading';
 
-import { Amount, Asset, TradeType } from '@galacticcouncil/sdk';
+import { Amount, Asset } from '@galacticcouncil/sdk';
 
 import { BaseElement } from '../base/BaseElement';
 
@@ -75,7 +75,7 @@ export class TradeChart extends BaseElement {
         const chartWidth = calculateWidth(entry);
         this.chart.resize(chartWidth - 2 * 28, entry.contentRect.height - 180);
       }
-      this.fetchData();
+      this.loadData();
     });
   });
   private ready: boolean = false;
@@ -84,10 +84,9 @@ export class TradeChart extends BaseElement {
   @state() range: Range = Range['1w'];
   @state() chartState: ChartState = ChartState.Loading;
 
+  @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ type: String }) grafanaUrl = null;
   @property({ type: Number }) grafanaDsn = null;
-  @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
-  @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) spotPrice = null;
@@ -106,76 +105,60 @@ export class TradeChart extends BaseElement {
     `,
   ];
 
-  private hasPoolPair(): boolean {
-    return this.assetIn != null && this.assetOut != null;
-  }
-
   private calculateDollarPrice(price: string) {
     if (this.usdPrice.size == 0) {
       return null;
     }
 
-    const spotPriceAsset =
-      this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
-    const usdPrice = this.usdPrice.get(spotPriceAsset.id);
-
+    const usdPrice = this.usdPrice.get(this.assetIn.id);
     if (usdPrice == null) {
-      return Number(price).toFixed(4);
+      return price;
     }
-    return multipleAmounts(price, usdPrice).toFixed(2);
+    return multipleAmounts(price, usdPrice).toString();
   }
 
-  /**
-   * Create composite key for pair dataset. Keys are stored as Buys.
-   *
-   * @param inputAsset - Trade input asset
-   * @param outputAsset - Trade output asset
-   * @returns - composite key with semicolon between assets
-   */
-  private createDataKey(inputAsset: string, outputAsset: string) {
-    return inputAsset + ':' + outputAsset;
+  private hasPoolPair(): boolean {
+    return this.assetIn != null && this.assetOut != null;
   }
 
-  /**
-   * Return composite key for dataset pair. In case of sell assets are switched.
-   *
-   * @returns composite key representing assetIn:assetOut
-   */
-  private dataKey() {
-    return this.tradeType == TradeType.Buy
-      ? this.assetIn?.id + ':' + this.assetOut?.id
-      : this.assetOut?.id + ':' + this.assetIn?.id;
+  private getDataKey() {
+    return [this.assetIn.id, this.assetOut.id].join(':');
+  }
+
+  private getRecord() {
+    const cache = tradeDataCursor.deref();
+    return cache.get(this.getDataKey());
   }
 
   private hasRecord() {
-    return tradeDataCursor.deref().has(this.dataKey());
+    const cache = tradeDataCursor.deref();
+    return cache.has(this.getDataKey());
   }
 
-  private fetchData() {
-    if (this.hasRecord()) {
-      const cachedData = tradeDataCursor.deref().get(this.dataKey());
-      this.syncChart(cachedData);
+  private storeRecord(data: TradeData) {
+    const cache = tradeDataCursor.deref();
+    cache.set(this.getDataKey(), data);
+  }
+
+  private loadData() {
+    if (!this.hasPoolPair()) {
       return;
     }
 
-    const inputAsset =
-      this.tradeType == TradeType.Buy ? this.assetIn : this.assetOut;
-    const outputAsset =
-      this.tradeType == TradeType.Buy ? this.assetOut : this.assetIn;
-
-    if (!inputAsset?.symbol || !outputAsset?.symbol) {
+    if (this.hasRecord()) {
+      const cachedData = this.getRecord();
+      this.syncChart(cachedData);
       return;
     }
 
     const endOfDay = this._dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
     this.chartState = ChartState.Loading;
     this.chartApi.getTradeData(
-      inputAsset.symbol,
-      outputAsset.symbol,
+      this.assetIn.symbol,
+      this.assetOut.symbol,
       endOfDay,
       (data: TradeData) => {
-        const dataKey = this.createDataKey(inputAsset.id, outputAsset.id);
-        tradeDataCursor.deref().set(dataKey, data);
+        this.storeRecord(data);
         this.syncChart(data);
       },
       (_err) => {
@@ -326,11 +309,11 @@ export class TradeChart extends BaseElement {
     );
   }
 
-  async subscribe() {
+  private async subscribe() {
     const { api } = this.chain.state;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
       async (lastHeader) => {
-        this.fetchData();
+        this.loadData();
       },
     );
   }
@@ -344,7 +327,7 @@ export class TradeChart extends BaseElement {
 
   override update(changedProperties: Map<string, unknown>) {
     if (this.chart && changedProperties.has('spotPrice')) {
-      this.fetchData();
+      this.loadData();
     }
     super.update(changedProperties);
   }
@@ -362,16 +345,10 @@ export class TradeChart extends BaseElement {
 
   pairTemplate() {
     if (this.assetIn || this.assetOut) {
-      const inputAsset =
-        this.tradeType == TradeType.Sell
-          ? this.assetIn?.symbol
-          : this.assetOut?.symbol;
-      const outputAsset =
-        this.tradeType == TradeType.Sell
-          ? this.assetOut?.symbol
-          : this.assetIn?.symbol;
+      const inputAsset = this.assetIn?.symbol;
+      const outputAsset = this.assetOut?.symbol;
       return html`<div class="pair">
-        ${inputAsset ?? '-'} / ${outputAsset ?? '-'}
+        ${outputAsset ?? '-'} / ${inputAsset ?? '-'}
       </div>`;
     } else {
       return html`<uigc-skeleton
@@ -385,11 +362,6 @@ export class TradeChart extends BaseElement {
   }
 
   priceTemplate() {
-    const usdClasses = {
-      usd: true,
-      hidden: this.usdPrice.size == 0,
-    };
-
     if (!this.hasPoolPair()) {
       return;
     }
@@ -405,13 +377,13 @@ export class TradeChart extends BaseElement {
         height="18px"
       ></uigc-skeleton>`;
     } else {
+      const usdClasses = {
+        usd: true,
+        hidden: this.usdPrice.size == 0,
+      };
       return html`<div class="price">
           ${humanizeAmount(this.spotPrice)}
-          <span class="asset">
-            ${this.tradeType == TradeType.Sell
-              ? this.assetOut?.symbol
-              : this.assetIn?.symbol}</span
-          >
+          <span class="asset"> ${this.assetIn.symbol}</span>
         </div>
         <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>`;
     }
@@ -424,7 +396,7 @@ export class TradeChart extends BaseElement {
       @range-button-clicked=${(e: CustomEvent) => {
         this.range = Range[e.detail.value];
         this.requestUpdate();
-        this.fetchData();
+        this.loadData();
       }}
     >
       ${Object.values(Range).map(
