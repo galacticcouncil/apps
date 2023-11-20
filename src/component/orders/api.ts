@@ -36,7 +36,7 @@ export class DcaOrdersApi {
 
   async getScheduled(
     account: Account,
-    metadata: Map<string, Asset>,
+    assets: Map<string, Asset>,
   ): Promise<DcaOrder[]> {
     const who = convertToHex(account.address);
     const scheduled = await queryScheduled(this._indexerUrl, who);
@@ -71,8 +71,8 @@ export class DcaOrdersApi {
       const assetOutId = order.assetOut.toString();
       return {
         id: id,
-        assetIn: metadata.get(assetInId),
-        assetOut: metadata.get(assetOutId),
+        assetIn: assets.get(assetInId),
+        assetOut: assets.get(assetOutId),
         interval: period,
         amount: bnum(amount),
         total: bnum(totalAmount),

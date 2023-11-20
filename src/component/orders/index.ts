@@ -227,9 +227,8 @@ export class TradeOrders extends BaseApp {
     }
 
     const account = this.account.state;
-
-    const scheduled = await this.ordersApi.getScheduled(account, this.assets);
     if (this.assets.size > 0) {
+      const scheduled = await this.ordersApi.getScheduled(account, this.assets);
       const orders = scheduled.map(async (order: DcaOrder) => {
         const remaining = await this.getRemaining(order.id);
         const open = this.orders.open.has(order.id);
@@ -304,6 +303,13 @@ export class TradeOrders extends BaseApp {
         }
       },
     );
+  }
+
+  override update(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('assets')) {
+      this.syncOrders();
+    }
+    super.update(changedProperties);
   }
 
   override async updated() {
