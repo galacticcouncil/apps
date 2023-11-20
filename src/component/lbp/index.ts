@@ -20,6 +20,7 @@ import { LbpApi } from '../../api/lbp';
 export class LbpApp extends TradeApp {
   protected lbpApi: LbpApi = null;
   protected lbpChartApi: LbpChartApi = null;
+  protected ready: boolean = false;
 
   @state() lbpSwap = null;
   @state() lbp = {
@@ -82,11 +83,12 @@ export class LbpApp extends TradeApp {
       pools: pools,
       assets: pools.map((pool) => pool.tokens[1]),
     };
+    this.ready = true;
     this.syncBalances();
   }
 
   protected isFormLoaded() {
-    return super.isFormLoaded() && !!this.trade.assetOut;
+    return super.isFormLoaded() && this.ready;
   }
 
   protected isFormReadOnly() {
