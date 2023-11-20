@@ -179,9 +179,8 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  private async calculateSellTwap() {
-    const { transactionFee, assetIn, assetOut, amountIn, spotPrice, swaps } =
-      this.trade;
+  private async calculateSellTwap(spotPrice: string) {
+    const { transactionFee, assetIn, assetOut, amountIn, swaps } = this.trade;
     if (this.isTwapEnabled()) {
       const txFee = this.calculateAssetPrice(
         assetIn,
@@ -243,7 +242,7 @@ export class TradeApp extends PoolApp {
       .div(trade.spotPrice)
       .toFixed();
 
-    // Disable overriding of active asset amount (assetIn) if typing, normalize spotPrice
+    // Disable overriding of active asset amount (assetIn) if typing, normalize spotPrice(buy)
     const tradeState = Object.assign({}, tradeHuman);
     delete tradeState.amountIn;
     delete tradeState.spotPrice;
@@ -267,7 +266,7 @@ export class TradeApp extends PoolApp {
     this.trade.transactionFee
       ? this.syncTransactionFee()
       : await this.syncTransactionFee();
-    this.calculateSellTwap();
+    this.calculateSellTwap(tradeHuman.spotPrice);
     console.log(tradeHuman);
   }
 
