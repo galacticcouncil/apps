@@ -165,6 +165,273 @@ export class XcmWallet {
     return await firstValueFrom(observer);
   }
 
+  /**
+   * Return source chain input asset balance
+   *
+   * @param address
+   * @param transferConfig
+   * @returns
+   */
+  public async getBalance(
+    address: string,
+    transferConfig: TransferConfig,
+  ): Promise<AssetAmount> {
+    const { source, asset } = transferConfig;
+    const { chain } = source;
+
+    const assetId = chain.getBalanceAssetId(asset);
+    const assetConfig = source.config;
+    const balanceConfig = assetConfig.balance.build({
+      address: address,
+      asset: assetId,
+    });
+
+    let balance: Balance;
+    if (balanceConfig.type === CallType.Evm) {
+      balance = await this.getEvmBalance(asset, chain, balanceConfig);
+    } else {
+      balance = await this.getSubstrateBalance(asset, chain, balanceConfig);
+    }
+
+    const polkadot = await PolkadotService.create(chain, this.configService);
+    const decimals = await polkadot.getAssetDecimals(asset);
+    return AssetAmount.fromAsset(asset, {
+      amount: balance.balance,
+      decimals: decimals,
+    });
+  }
+
+  /**
+   * Return source chain input asset fee balance
+   *
+   * @param address
+   * @param transferConfig
+   * @returns
+   */
+  public async getFeeBalance(
+    address: string,
+    transferConfig: TransferConfig,
+  ): Promise<AssetAmount> {
+    const { source, asset } = transferConfig;
+    const { chain } = source;
+
+    const assetId = chain.getBalanceAssetId(asset);
+    const assetConfig = source.config;
+
+    let balance: Balance;
+    let feeAsset: Asset;
+    if (assetConfig.fee) {
+      const balanceConfig = assetConfig.fee.balance.build({
+        address: address,
+        asset: assetId,
+      });
+      feeAsset = assetConfig.fee.asset;
+      balance = await this.getSubstrateBalance(asset, chain, balanceConfig);
+    } else {
+      feeAsset = asset;
+      balance = {
+        key: asset.key,
+        balance: 0n,
+      };
+    }
+
+    const polkadot = await PolkadotService.create(chain, this.configService);
+    const decimals = await polkadot.getAssetDecimals(feeAsset);
+    return AssetAmount.fromAsset(feeAsset, {
+      amount: balance.balance,
+      decimals: decimals,
+    });
+  }
+
+  /**
+   * Return destination chain fee
+   *
+   * @param config
+   * @param chain
+   * @returns
+   */
+  public async getDestinationFee(
+    transferConfig: TransferConfig,
+  ): Promise<AssetAmount> {
+    const { source, destination } = transferConfig;
+    const { config } = source;
+    const { amount, asset } = config.destinationFee;
+
+    const polkadot = await PolkadotService.create(
+      destination.chain,
+      this.configService,
+    );
+    const decimals = await polkadot.getAssetDecimals(asset);
+
+    if (Number.isFinite(amount)) {
+      return AssetAmount.fromAsset(asset, {
+        amount: toBigInt(amount as number, decimals),
+        decimals,
+      });
+    }
+
+    const feeConfig = (amount as FeeConfigBuilder).build({
+      api: polkadot.api,
+      asset: polkadot.chain.getAssetId(asset),
+    });
+    const feeBalance: bigint = await feeConfig.call();
+    return AssetAmount.fromAsset(asset, {
+      amount: feeBalance,
+      decimals,
+    });
+  }
+
+  private async buildTransfer(
+    amount: bigint,
+    dstAddress: string,
+    dstFee: AssetAmount,
+    transferConfig: TransferConfig,
+  ): Promise<ExtrinsicConfig | ContractConfig> {
+    const { source, destination, asset } = transferConfig;
+    const { config } = source;
+
+    const assetId = source.chain.getAssetId(asset);
+    const feeAssetId = source.chain.getAssetId(dstFee);
+
+    if (config.extrinsic) {
+      const palletInstance = source.chain.getAssetPalletInstance(asset);
+      return config.extrinsic.build({
+        address: dstAddress,
+        amount: amount,
+        asset: assetId,
+        destination: destination.chain,
+        fee: dstFee.amount,
+        feeAsset: feeAssetId,
+        palletInstance: palletInstance,
+        source: source.chain,
+      });
+    }
+
+    if (config.contract) {
+      return config.contract.build({
+        address: dstAddress,
+        amount: amount,
+        asset: assetId,
+        destination: destination.chain,
+        fee: dstFee.amount,
+        feeAsset: feeAssetId,
+      });
+    }
+    throw new Error('Either contract or extrinsic must be provided');
+  }
+
+  /**
+   * Return source chain fee
+   *
+   * @param config
+   * @param chain
+   * @returns
+   */
+  public async getSourceFee(
+    amount: bigint,
+    srcAddress: string,
+    dstAddress: string,
+    dstFee: AssetAmount,
+    transferConfig: TransferConfig,
+  ) {
+    const { source } = transferConfig;
+
+    const polkadot = await PolkadotService.create(
+      source.chain,
+      this.configService,
+    );
+    const decimals = await polkadot.getAssetDecimals(dstFee);
+
+    const transfer = await this.buildTransfer(
+      amount,
+      dstAddress,
+      dstFee,
+      transferConfig,
+    );
+
+    let fee: bigint;
+    if (transfer.type === CallType.Evm) {
+      const evmProvider = this.evmProviders[source.chain.key];
+      const contract = new XTokens(
+        transfer as ContractConfig,
+        evmProvider.getPublicClient(),
+      );
+      fee = await contract.getFee(amount);
+      fee = convertDecimals(fee, 18, decimals);
+    } else {
+      fee = await polkadot.getFee(srcAddress, transfer as ExtrinsicConfig);
+    }
+
+    return AssetAmount.fromAsset(dstFee, {
+      amount: fee,
+      decimals: decimals,
+    });
+  }
+
+  public async getSourceData(
+    srcAddr: string,
+    srcChain: AnyChain,
+    dstAddr: string,
+    dstChain: AnyChain,
+    asset: Asset,
+  ) {
+    const transferConfig = this.getTransferConfig(srcChain, dstChain, asset);
+
+    const balance = await this.getBalance(srcAddr, transferConfig);
+    const feeBalance = await this.getFeeBalance(srcAddr, transferConfig);
+    const destinationFee = await this.getDestinationFee(transferConfig);
+
+    console.log(balance);
+    console.log(feeBalance);
+    console.log(destinationFee);
+
+    const sourceFee = await this.getSourceFee(
+      balance.amount,
+      srcAddr,
+      dstAddr,
+      destinationFee,
+      transferConfig,
+    );
+    console.log(sourceFee);
+
+    //console.log(min);
+  }
+
+  private async getMin(config: AssetConfig, chain: AnyChain): Promise<bigint> {
+    const { asset } = config;
+    if (config.min) {
+      const minAssetId = chain.getMinAssetId(asset);
+      const minConfig = config.min.build({
+        asset: minAssetId,
+      });
+      const balance = await this.getSubstrateBalance(asset, chain, minConfig);
+      return balance.balance;
+    }
+
+    const min = chain.getAssetMin(config.asset);
+    if (min) {
+      return toBigInt(min, 12);
+    }
+    return 0n;
+  }
+
+  private async getFee(config: AssetConfig, chain: AnyChain): Promise<bigint> {
+    if (config.min) {
+      const minAssetId = chain.getMinAssetId(config.asset);
+      const cfg = config.min.build({
+        asset: minAssetId,
+      });
+      const balance = await this.getSubstrateBalance(config.asset, chain, cfg);
+      return balance.balance;
+    }
+
+    const min = chain.getAssetMin(config.asset);
+    if (min) {
+      return toBigInt(min, 12);
+    }
+    return 0n;
+  }
+
   public async getTransferData(
     srcAddr: string,
     srcChain: AnyChain,
