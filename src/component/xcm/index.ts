@@ -181,13 +181,13 @@ export class XcmApp extends BaseApp {
 
     const srcChainConfig = chainsConfigMap.get(srcChain.key);
     const srcAddress = this.formatAddress(address, srcChain);
-    const observer = await this.wallet.subscribeBalance(
+    const subscriber = await this.wallet.subscribeBalance(
       srcAddress,
       srcChain,
       srcChainConfig,
     );
 
-    this.disconnectSubscribeBalance = observer.subscribe((val: Balance) => {
+    this.disconnectSubscribeBalance = subscriber.subscribe((val: Balance) => {
       console.log(val.key, '=>', val.balance);
       const balances: Map<string, string> = new Map(this.chain.balance);
       balances.set(val.key, val.balance.toString());

@@ -1,3 +1,2 @@
-export { EvmProvider } from './EvmProvider';
-export { AcalaEvmProvider, DefaultEvmProvider } from './providers';
+export { EvmClient } from './EvmClient';
 export { acala, moonbeam, hydradx } from './chains';

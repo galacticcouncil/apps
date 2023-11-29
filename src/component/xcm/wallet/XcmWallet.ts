@@ -44,18 +44,10 @@ import {
   http,
 } from 'viem';
 
-import { EvmBalanceAdapter, SubstrateBalanceAdapter } from './balance';
+import { Erc20BalanceObservable, SubstrateBalanceObservable } from './balance';
 import { Balance } from './types';
-import { convertAddressSS58, convertToH160 } from '../../../utils/account';
 
-import {
-  AcalaEvmProvider,
-  DefaultEvmProvider,
-  EvmProvider,
-  acala,
-  hydradx,
-  moonbeam,
-} from './evm';
+import { EvmClient } from './evm';
 import { PolkadotService } from './PolkadotService';
 import { XTokens } from './contracts/XTokens';
 
@@ -70,10 +62,8 @@ export interface XcmWalletOptions {
 
 export class XcmWallet {
   private readonly configService: IConfigService = null;
-  private readonly evmProviders: Record<string, EvmProvider> = {};
-
+  private readonly evmCliets: Record<string, EvmClient> = {};
   private readonly evmChains: Record<string, Chain> = {};
-  private readonly publicClients: Record<string, PublicClient> = {};
   private readonly transfer: (
     params: SdkTransferParams,
   ) => Promise<TransferData> = null;
@@ -87,25 +77,20 @@ export class XcmWallet {
   private async initChains(evmChains: EvmChains) {
     Object.entries(evmChains).forEach(([name, chain]) => {
       this.evmChains[name] = chain;
-      this.publicClients[name] = createPublicClient({
-        chain: chain,
-        transport: http(),
-      });
-
-      let provider: EvmProvider;
-      if (name === 'acala') {
-        provider = new AcalaEvmProvider(chain);
-      } else {
-        provider = new DefaultEvmProvider(chain);
-      }
-      this.evmProviders[name] = provider;
+      this.evmCliets[name] = new EvmClient(chain);
     });
   }
 
-  private isEvmChain(chain: AnyChain) {
-    const isParachain = chain.isEvmParachain();
-    const evmProvider = this.evmProviders[chain.key];
-    return isParachain || evmProvider;
+  public getEvmClient(chain: AnyChain): EvmClient {
+    const client = this.evmCliets[chain.key];
+    if (!client) {
+      throw new Error(`No evm configuration found for "${chain}"`);
+    }
+    return client;
+  }
+
+  public async getPolkadotApi(chain: AnyChain): Promise<ApiPromise> {
+    return getPolkadotApi(chain.ws);
   }
 
   private getTransferConfig(
@@ -121,48 +106,26 @@ export class XcmWallet {
       .build();
   }
 
-  private getBalanceConfig(
-    srcAddr: string,
-    srcChain: AnyChain,
-    srcChainConfig: ChainConfig,
-  ) {
-    return srcChainConfig.getAssetsConfigs().map(({ asset, balance }) => {
-      const assetId = srcChain.getBalanceAssetId(asset);
-      const config = balance.build({
-        address: srcAddr,
-        asset: assetId,
-      });
-      return { key: asset.key, config };
-    });
-  }
-
-  private async getEvmBalance(
+  private async getErc20Balance(
     asset: Asset,
     chain: AnyChain,
     config: ContractConfig,
   ): Promise<Balance> {
-    const api = await getPolkadotApi(chain.ws);
-    const evmProvider = this.evmProviders[chain.key];
-    const evmAdapter = new EvmBalanceAdapter(evmProvider, api);
-    const observer = evmAdapter.getObserver(
-      asset.key,
-      config as ContractConfig,
-    );
-    return await firstValueFrom(observer);
+    const evmClient = this.getEvmClient(chain);
+    const balanceObservable = new Erc20BalanceObservable(evmClient, config);
+    const balanceStream = balanceObservable.for(asset.key);
+    return await firstValueFrom(balanceStream);
   }
 
   private async getSubstrateBalance(
     asset: Asset,
     chain: AnyChain,
-    config: ContractConfig,
+    config: SubstrateQueryConfig,
   ): Promise<Balance> {
-    const api = await getPolkadotApi(chain.ws);
-    const substrateAdapter = new SubstrateBalanceAdapter(api);
-    const observer = substrateAdapter.getObserver(
-      asset.key,
-      config as SubstrateQueryConfig,
-    );
-    return await firstValueFrom(observer);
+    const api = await this.getPolkadotApi(chain);
+    const balanceObservable = new SubstrateBalanceObservable(api, config);
+    const balanceStream = balanceObservable.for(asset.key);
+    return await firstValueFrom(balanceStream);
   }
 
   /**
@@ -188,9 +151,17 @@ export class XcmWallet {
 
     let balance: Balance;
     if (balanceConfig.type === CallType.Evm) {
-      balance = await this.getEvmBalance(asset, chain, balanceConfig);
+      balance = await this.getErc20Balance(
+        asset,
+        chain,
+        balanceConfig as ContractConfig,
+      );
     } else {
-      balance = await this.getSubstrateBalance(asset, chain, balanceConfig);
+      balance = await this.getSubstrateBalance(
+        asset,
+        chain,
+        balanceConfig as SubstrateQueryConfig,
+      );
     }
 
     const polkadot = await PolkadotService.create(chain, this.configService);
@@ -226,7 +197,11 @@ export class XcmWallet {
         asset: assetId,
       });
       feeAsset = assetConfig.fee.asset;
-      balance = await this.getSubstrateBalance(asset, chain, balanceConfig);
+      balance = await this.getSubstrateBalance(
+        asset,
+        chain,
+        balanceConfig as SubstrateQueryConfig,
+      );
     } else {
       feeAsset = asset;
       balance = {
@@ -351,10 +326,10 @@ export class XcmWallet {
 
     let fee: bigint;
     if (transfer.type === CallType.Evm) {
-      const evmProvider = this.evmProviders[source.chain.key];
+      const evmClient = this.evmCliets[source.chain.key];
       const contract = new XTokens(
         transfer as ContractConfig,
-        evmProvider.getPublicClient(),
+        evmClient.getProvider(),
       );
       fee = await contract.getFee(amount);
       fee = convertDecimals(fee, 18, decimals);
@@ -473,26 +448,60 @@ export class XcmWallet {
     chain: AnyChain,
     chainConfig: ChainConfig,
   ): Promise<Observable<Balance>> {
-    const api = await getPolkadotApi(chain.ws);
-    const balanceConfigs = this.getBalanceConfig(address, chain, chainConfig);
+    const configs = this.getBalanceConfigs(address, chain, chainConfig);
 
-    let evmObservers: Observable<Balance>[] = [];
-    const evmProvider = this.evmProviders[chain.key];
-    if (evmProvider) {
-      const evmAdapter = new EvmBalanceAdapter(evmProvider, api);
-      evmObservers = balanceConfigs
-        .filter(({ config }) => config.type === CallType.Evm)
-        .map(({ key, config }) =>
-          evmAdapter.getObserver(key, config as ContractConfig),
-        );
-    }
+    const erc20Observables = configs
+      .filter(({ config }) => config.type === CallType.Evm)
+      .map(({ key, config }) =>
+        this.subscribeErc20Balance(key, config as ContractConfig, chain),
+      );
 
-    const substrateAdapter = new SubstrateBalanceAdapter(api);
-    const substrateObservers = balanceConfigs
+    const substrateObservables = configs
       .filter(({ config }) => config.type === CallType.Substrate)
       .map(({ key, config }) =>
-        substrateAdapter.getObserver(key, config as SubstrateQueryConfig),
+        this.subscribeSubstrateBalance(
+          key,
+          config as SubstrateQueryConfig,
+          chain,
+        ),
       );
-    return merge(...substrateObservers, ...evmObservers);
+
+    const rest = await Promise.all(substrateObservables);
+    return merge(...erc20Observables, ...rest);
+  }
+
+  private getBalanceConfigs(
+    srcAddr: string,
+    srcChain: AnyChain,
+    srcChainConfig: ChainConfig,
+  ) {
+    return srcChainConfig.getAssetsConfigs().map(({ asset, balance }) => {
+      const assetId = srcChain.getBalanceAssetId(asset);
+      const config = balance.build({
+        address: srcAddr,
+        asset: assetId,
+      });
+      return { key: asset.key, config };
+    });
+  }
+
+  private subscribeErc20Balance(
+    asset: string,
+    config: ContractConfig,
+    chain: AnyChain,
+  ): Observable<Balance> {
+    const evmClient = this.getEvmClient(chain);
+    const balanceObservable = new Erc20BalanceObservable(evmClient, config);
+    return balanceObservable.for(asset);
+  }
+
+  private async subscribeSubstrateBalance(
+    asset: string,
+    config: SubstrateQueryConfig,
+    chain: AnyChain,
+  ): Promise<Observable<Balance>> {
+    const api = await this.getPolkadotApi(chain);
+    const balanceObservable = new SubstrateBalanceObservable(api, config);
+    return balanceObservable.for(asset);
   }
 }

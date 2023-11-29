@@ -1,2 +1,2 @@
-export { EvmBalanceAdapter } from './EvmBalanceAdapter';
-export { SubstrateBalanceAdapter } from './SubstrateBalanceAdapter';
+export { Erc20BalanceObservable } from './Erc20BalanceObservable';
+export { SubstrateBalanceObservable } from './SubstrateBalanceObservable';
