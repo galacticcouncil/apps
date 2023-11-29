@@ -26,7 +26,7 @@ export function buildPriceQuery(
       INNER JOIN block ON block_id = block.id
       INNER JOIN token_metadata AS token_metadata_in ON (args->>'assetIn')::integer = token_metadata_in.id
       INNER JOIN token_metadata AS token_metadata_out ON (args->>'assetOut')::integer = token_metadata_out.id
-      WHERE name IN ('Omnipool.BuyExecuted', 'Omnipool.SellExecuted')
+      WHERE name IN ('Omnipool.BuyExecuted', 'Omnipool.SellExecuted', 'Router.RouteExecuted')
         AND timestamp BETWEEN '${INIT_DATE}' AND '${endOfDay}'
     ),
     pair_price AS (
