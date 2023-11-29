@@ -1,0 +1,1 @@
+export { XcmWallet } from './XcmWallet';

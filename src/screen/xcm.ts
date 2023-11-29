@@ -17,7 +17,6 @@ export class XcmScreen extends LitElement {
       <gc-xcm-app
         srcChain="kusama"
         dstChain="basilisk"
-        chains="basilisk,karura,kusama,tinkernet,statemine,robonomics"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
@@ -28,9 +27,8 @@ export class XcmScreen extends LitElement {
   hdxTemplate() {
     return html`
       <gc-xcm-app
-        srcChain="polkadot"
-        dstChain="hydradx"
-        chains="polkadot,hydradx,acala,statemint,interlay,zeitgeist,astar,centrifuge,bifrost"
+        srcChain="hydradx"
+        dstChain="moonbeam"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}

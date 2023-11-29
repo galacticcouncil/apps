@@ -4,6 +4,8 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
+import { Asset } from '@moonbeam-network/xcm-types';
+
 import { baseStyles } from '../styles/base.css';
 import { selectorStyles } from '../styles/selector.css';
 
@@ -11,7 +13,7 @@ import { humanizeAmount } from '../../utils/amount';
 
 @customElement('gc-select-token')
 export class SelectToken extends LitElement {
-  @property({ attribute: false }) assets: string[] = [];
+  @property({ attribute: false }) assets: Asset[] = [];
   @property({ attribute: false }) balances: Map<string, string> = new Map([]);
   @property({ type: String }) asset = null;
   @property({ type: String }) query = '';
@@ -32,7 +34,7 @@ export class SelectToken extends LitElement {
 
   filterAssets(query: string) {
     return this.assets.filter((a) =>
-      a.toLowerCase().includes(query.toLowerCase()),
+      a.originSymbol.toLowerCase().includes(query.toLowerCase()),
     );
   }
 
@@ -81,18 +83,21 @@ export class SelectToken extends LitElement {
       ${when(
         this.assets.length > 0,
         () => html` <uigc-asset-list>
-          ${map(this.filterAssets(this.query), (asset: string) => {
-            const balance = this.balances.get(asset) || null;
+          ${map(this.filterAssets(this.query), (asset: Asset) => {
+            const balance = this.balances.get(asset.key) || null;
             return html`
               <uigc-asset-list-item
-                slot=${this.getSlot(asset)}
-                ?selected=${this.isSelected(asset)}
-                .asset=${{ symbol: asset }}
-                .unit=${asset}
+                slot=${this.getSlot(asset.key)}
+                ?selected=${this.isSelected(asset.key)}
+                .asset=${{ symbol: asset.key }}
+                .unit=${asset.originSymbol}
                 .balance=${humanizeAmount(balance)}
               >
-                <uigc-asset slot="asset" symbol=${asset}>
-                  <uigc-asset-id slot="icon" symbol=${asset}></uigc-asset-id>
+                <uigc-asset slot="asset" symbol=${asset.originSymbol}>
+                  <uigc-asset-id
+                    slot="icon"
+                    symbol=${asset.originSymbol}
+                  ></uigc-asset-id>
                 </uigc-asset>
               </uigc-asset-list-item>
             `;

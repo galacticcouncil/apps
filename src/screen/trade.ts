@@ -82,9 +82,14 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         twap
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
-        pools=${[PoolType.Omni, PoolType.LBP, PoolType.Stable].join(',')}
-        stableCoinAssetId="2"
+        apiAddress="wss://rpc.nice.hydration.cloud"
+        pools=${[
+          PoolType.Omni,
+          PoolType.LBP,
+          PoolType.Stable,
+          PoolType.XYK,
+        ].join(',')}
+        stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
@@ -97,7 +102,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
 
   render() {
     if (this.theme.state == 'hdx') {
-      return this.hdxTemplate();
+      return this.hdxTemplateRococo();
     } else {
       return this.bsxTemplate();
     }

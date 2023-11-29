@@ -31,7 +31,6 @@ export class AssetId extends LitElement {
   iconTemplate(id: string, icon: string) {
     const originLocation = this.locations.get(id);
     const originChain = getChainKey(originLocation, this.ecosystem);
-
     if (originChain) {
       return html`
         <uigc-asset-id

@@ -1,5 +1,4 @@
 import { Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
-import { FN } from '@galacticcouncil/bridge';
 
 export const MIN_NATIVE_AMOUNT = '500000000000000';
 
@@ -30,11 +29,6 @@ export function multipleAmounts(amountA: string, amountB: Amount) {
   const amounA = Number(amountA);
   const amounB = Number(formattedAmountB);
   return amounA * amounB;
-}
-
-export function toFN(amount: string, decimals: number) {
-  const amountBN = scale(bnum(amount), decimals);
-  return FN._fromBN(amountBN, decimals);
 }
 
 export function toBn(amount: string, decimals: number) {

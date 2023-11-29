@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
+import { Asset, AnyChain } from '@moonbeam-network/xcm-types';
+
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
@@ -19,11 +21,11 @@ import '../id/account';
 export class XcmForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
-  @property({ type: String }) srcChain = null;
-  @property({ type: String }) dstChain = null;
+  @property({ type: Object }) srcChain: AnyChain = null;
+  @property({ type: Object }) dstChain: AnyChain = null;
   @property({ type: String }) amount = null;
   @property({ type: String }) address = null;
-  @property({ type: String }) asset = null;
+  @property({ type: Object }) asset: Asset = null;
   @property({ type: String }) balance = null;
   @property({ type: String }) effectiveBalance = null;
   @property({ type: String }) nativeAsset = null;
@@ -132,6 +134,8 @@ export class XcmForm extends LitElement {
   }
 
   isChainConnected(): boolean {
+    return true;
+
     const chainAdapter = xChainCursor.deref().bridge.findAdapter(this.srcChain);
     const chainApi = chainAdapter.getApi();
     return chainApi && chainApi.isConnected;
@@ -170,6 +174,8 @@ export class XcmForm extends LitElement {
   }
 
   render() {
+    console.log(this.balance);
+
     const isUserAddr = isSameAddress(
       this.address,
       accountCursor.deref()?.address,
@@ -188,7 +194,7 @@ export class XcmForm extends LitElement {
         <div class="chain">
           <uigc-chain-selector
             title="${i18n.t('xcm.selectSrc')}"
-            .chain=${this.srcChain}
+            .chain=${this.srcChain?.key}
           ></uigc-chain-selector>
           <div class="switch__mobile">
             <div class="divider"></div>
@@ -197,7 +203,7 @@ export class XcmForm extends LitElement {
           <uigc-asset-switch basic class="switch__desktop"> </uigc-asset-switch>
           <uigc-chain-selector
             title="${i18n.t('xcm.selectDest')}"
-            .chain=${this.dstChain}
+            .chain=${this.dstChain?.key}
           ></uigc-chain-selector>
         </div>
         <uigc-typography variant="subsection"
@@ -206,14 +212,17 @@ export class XcmForm extends LitElement {
         <uigc-asset-transfer
           id="asset"
           title="${i18n.t('xcm.asset')}"
-          .asset=${this.asset}
+          .asset=${this.asset?.originSymbol}
           .amount=${this.amount}
-          .unit=${this.asset}
+          .unit=${this.asset?.originSymbol}
           ?error=${this.error['amount']}
           .error=${this.error['amount']}
         >
-          <uigc-asset slot="asset" symbol=${this.asset}>
-            <uigc-asset-id slot="icon" symbol=${this.asset}></uigc-asset-id>
+          <uigc-asset slot="asset" symbol=${this.asset?.originSymbol}>
+            <uigc-asset-id
+              slot="icon"
+              symbol=${this.asset?.originSymbol}
+            ></uigc-asset-id>
           </uigc-asset>
           <uigc-asset-balance
             slot="balance"
@@ -257,7 +266,7 @@ export class XcmForm extends LitElement {
           ${this.transferFeeTemplate(
             i18n.t('xcm.destFee'),
             this.dstChainFee,
-            this.asset,
+            this.asset?.originSymbol,
           )}
         </div>
       </div>
@@ -266,7 +275,7 @@ export class XcmForm extends LitElement {
         <span>
           ${i18n.t('xcm.warning', {
             asset: this.asset,
-            chain: capitalize(this.dstChain),
+            chain: capitalize(this.dstChain.name),
           })}
         </span>
       </div>
