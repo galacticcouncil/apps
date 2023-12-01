@@ -10,9 +10,9 @@ import {
 
 import { Erc20 } from '../contracts/Erc20';
 import { EvmClient } from '../evm';
-import { Balance } from '../types';
+import { Balance, BalanceAdapter } from '../types';
 
-export class Erc20BalanceObservable {
+export class Erc20BalanceAdapter implements BalanceAdapter {
   readonly #client: EvmClient;
   readonly #contract: Erc20;
 
@@ -21,7 +21,7 @@ export class Erc20BalanceObservable {
     this.#contract = new Erc20(config, client);
   }
 
-  public for(asset: string): Observable<Balance> {
+  getObservable(assetKey: string): Observable<Balance> {
     const subject = new Subject<Balance>();
     const observable = subject.pipe(shareReplay(1));
     const provider = this.#client.getProvider();
@@ -29,7 +29,7 @@ export class Erc20BalanceObservable {
     const run = async () => {
       const updateBalance = async () => {
         const balance = await this.#contract.getBalance();
-        subject.next({ key: asset, balance });
+        subject.next({ key: assetKey, amount: balance });
       };
       await updateBalance();
 
@@ -44,7 +44,12 @@ export class Erc20BalanceObservable {
 
     return observable.pipe(
       finalize(() => disconnect?.()),
-      distinctUntilChanged((prev, curr) => prev.balance === curr.balance),
+      distinctUntilChanged((prev, curr) => prev.amount === curr.amount),
     ) as Observable<Balance>;
+  }
+
+  async getBalance(assetKey: string): Promise<Balance> {
+    const balance = await this.#contract.getBalance();
+    return { key: assetKey, amount: balance } as Balance;
   }
 }

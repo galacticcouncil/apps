@@ -2,17 +2,22 @@ import {
   ContractConfig,
   SubstrateQueryConfig,
 } from '@moonbeam-network/xcm-builder';
-import { WalletClient } from 'viem';
+import { Asset, AnyChain } from '@moonbeam-network/xcm-types';
+
+import { Observable } from 'rxjs';
 
 export interface Balance {
   key: string;
-  balance: bigint;
+  amount: bigint;
 }
 
-export interface BalanceQueryConfig {
-  [key: string]: SubstrateQueryConfig | ContractConfig;
+export interface BalanceParams {
+  asset: Asset;
+  chain: AnyChain;
+  config: ContractConfig | SubstrateQueryConfig;
 }
 
-export interface XcmWalletClient {
-  get(address: string): WalletClient;
+export interface BalanceAdapter {
+  getObservable(assetKey: string): Observable<Balance>;
+  getBalance(assetKey: string): Promise<Balance>;
 }

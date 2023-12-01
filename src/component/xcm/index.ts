@@ -77,7 +77,7 @@ export class XcmApp extends BaseApp {
     });
   });
 
-  private disconnectSubscribeBalance: Subscription = null;
+  private disconnectBalanceSubscription: Subscription = null;
 
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) dstChain: string = null;
@@ -181,18 +181,19 @@ export class XcmApp extends BaseApp {
 
     const srcChainConfig = chainsConfigMap.get(srcChain.key);
     const srcAddress = this.formatAddress(address, srcChain);
-    const subscriber = await this.wallet.subscribeBalance(
-      srcAddress,
-      srcChain,
-      srcChainConfig,
-    );
 
-    this.disconnectSubscribeBalance = subscriber.subscribe((val: Balance) => {
-      console.log(val.key, '=>', val.balance);
+    const observer = (val: Balance) => {
+      console.log(val.key, '=>', val.amount);
       const balances: Map<string, string> = new Map(this.chain.balance);
-      balances.set(val.key, val.balance.toString());
+      balances.set(val.key, val.amount.toString());
       this.chain.balance = balances;
-    });
+    };
+
+    this.disconnectBalanceSubscription = await this.wallet.subscribeBalance(
+      srcAddress,
+      srcChainConfig,
+      observer,
+    );
   }
 
   private async syncInput() {
@@ -213,11 +214,11 @@ export class XcmApp extends BaseApp {
     console.log(dstAddr);
 
     await this.wallet.getSourceData(
-      srcAddr,
-      srcChain,
+      asset,
       dstAddr,
       dstChain,
-      asset,
+      srcAddr,
+      srcChain,
     );
 
     const txData = await this.wallet.getTransferData(
@@ -341,7 +342,7 @@ export class XcmApp extends BaseApp {
   }
 
   private disconnectSubscriptions() {
-    this.disconnectSubscribeBalance?.unsubscribe();
+    this.disconnectBalanceSubscription?.unsubscribe();
   }
 
   override disconnectedCallback() {

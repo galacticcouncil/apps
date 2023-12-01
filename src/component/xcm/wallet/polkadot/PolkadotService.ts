@@ -1,7 +1,4 @@
-import {
-  ExtrinsicConfig,
-  SubstrateQueryConfig,
-} from '@moonbeam-network/xcm-builder';
+import { ExtrinsicConfig } from '@moonbeam-network/xcm-builder';
 import { IConfigService } from '@moonbeam-network/xcm-config';
 import { AnyParachain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 import { getPolkadotApi } from '@moonbeam-network/xcm-utils';
@@ -65,26 +62,19 @@ export class PolkadotService {
     });
   }
 
-  async getAssetDecimals(asset: Asset): Promise<number> {
+  async getDecimals(asset: Asset): Promise<number> {
     return this.chain.getAssetDecimals(asset) || this.decimals;
   }
 
-  async query(config: SubstrateQueryConfig): Promise<bigint> {
-    const response = await this.api.query[config.module][config.func](
-      ...config.args,
-    );
-    return config.transform(response);
+  async getFee(account: string, config: ExtrinsicConfig): Promise<bigint> {
+    const extrinsic = this.buildExtrinsic(config);
+    const info = await extrinsic.paymentInfo(account, { nonce: -1 });
+    return info.partialFee.toBigInt();
   }
 
-  getExtrinsic(config: ExtrinsicConfig): SubmittableExtrinsic {
+  private buildExtrinsic(config: ExtrinsicConfig): SubmittableExtrinsic {
     const fn = this.api.tx[config.module][config.func];
     const args = config.getArgs(fn);
     return fn(...args);
-  }
-
-  async getFee(account: string, config: ExtrinsicConfig): Promise<bigint> {
-    const extrinsic = this.getExtrinsic(config);
-    const info = await extrinsic.paymentInfo(account, { nonce: -1 });
-    return info.partialFee.toBigInt();
   }
 }

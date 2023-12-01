@@ -1,1 +1,1 @@
-export { XcmWallet } from './XcmWallet';
+export { Wallet as XcmWallet } from './Wallet';

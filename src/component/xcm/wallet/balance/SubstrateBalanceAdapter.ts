@@ -4,9 +4,9 @@ import { QueryableStorage } from '@polkadot/api/types';
 
 import { concatMap, map, switchMap, Observable, ReplaySubject } from 'rxjs';
 
-import { Balance } from '../types';
+import { Balance, BalanceAdapter } from '../types';
 
-export class SubstrateBalanceObservable {
+export class SubstrateBalanceAdapter implements BalanceAdapter {
   readonly #api: ApiPromise;
   readonly #config: SubstrateQueryConfig;
 
@@ -15,7 +15,7 @@ export class SubstrateBalanceObservable {
     this.#config = config;
   }
 
-  public for(asset: string): Observable<Balance> {
+  getObservable(assetKey: string): Observable<Balance> {
     const subject = new ReplaySubject<QueryableStorage<'rxjs'>>(1);
     subject.next(this.#api.rx.query);
 
@@ -24,8 +24,15 @@ export class SubstrateBalanceObservable {
       switchMap((q) => q[module][func](...args)),
       concatMap((b) => transform(b)),
       map((balance) => {
-        return { key: asset, balance } as Balance;
+        return { key: assetKey, amount: balance } as Balance;
       }),
     );
+  }
+
+  async getBalance(assetKey: string): Promise<Balance> {
+    const { module, func, args, transform } = this.#config;
+    const response = await this.#api.query[module][func](...args);
+    const balance = await transform(response);
+    return { key: assetKey, amount: balance } as Balance;
   }
 }
