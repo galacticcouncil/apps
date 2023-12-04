@@ -5,7 +5,7 @@ import { getPolkadotApi } from '@moonbeam-network/xcm-utils';
 import { ApiPromise } from '@polkadot/api';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-export class PolkadotService {
+export class SubstrateService {
   readonly api: ApiPromise;
 
   readonly chain: AnyParachain;
@@ -25,8 +25,8 @@ export class PolkadotService {
   static async create(
     chain: AnyParachain,
     configService: IConfigService,
-  ): Promise<PolkadotService> {
-    return new PolkadotService(
+  ): Promise<SubstrateService> {
+    return new SubstrateService(
       await getPolkadotApi(chain.ws),
       chain,
       configService,
@@ -62,7 +62,7 @@ export class PolkadotService {
     });
   }
 
-  async getDecimals(asset: Asset): Promise<number> {
+  getDecimals(asset: Asset): number {
     return this.chain.getAssetDecimals(asset) || this.decimals;
   }
 

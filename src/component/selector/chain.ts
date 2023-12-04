@@ -13,7 +13,7 @@ import { selectorStyles } from '../styles/selector.css';
 export class SelectChain extends LitElement {
   @property({ attribute: false }) chains: string[] = [];
   @property({ type: String }) srcChain = null;
-  @property({ type: String }) dstChain = null;
+  @property({ type: String }) destChain = null;
   @property({ type: String }) selector = null;
   @property({ type: String }) query = '';
 
@@ -30,7 +30,7 @@ export class SelectChain extends LitElement {
   }
 
   isDisabled(chain: string): boolean {
-    return this.selector === this.srcChain && chain === this.dstChain;
+    return this.selector === this.srcChain && chain === this.destChain;
   }
 
   isSelected(chain: string): boolean {

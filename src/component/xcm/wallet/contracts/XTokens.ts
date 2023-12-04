@@ -1,52 +1,54 @@
 import { ContractConfig } from '@moonbeam-network/xcm-builder';
 import { PublicClient } from 'viem';
+import { EvmClient } from '../evm';
 
 import abi from './XTokensABI.json';
 
 export class XTokens {
   readonly address = '0x0000000000000000000000000000000000000804';
-  readonly #config: ContractConfig;
-  readonly #signer: PublicClient;
+  readonly #provider: PublicClient;
 
-  constructor(config: ContractConfig, signer: PublicClient) {
-    this.#config = config;
-    this.#signer = signer;
+  constructor(client: EvmClient) {
+    this.validateClient(client);
+    this.#provider = client.getProvider();
   }
 
-  async getEstimatedGas(): Promise<bigint> {
-    const { func, args } = this.#config;
-    console.log({
+  private validateClient(client: EvmClient) {
+    if (!client) {
+      throw new Error(`No EVM client found`);
+    }
+  }
+
+  async getEstimatedGas(
+    address: string,
+    config: ContractConfig,
+  ): Promise<bigint> {
+    const { func, args } = config;
+    return await this.#provider.estimateContractGas({
       address: this.address as `0x${string}`,
       abi: abi,
       functionName: func,
       args: args,
-    });
-    return await this.#signer.estimateContractGas({
-      address: this.address as `0x${string}`,
-      abi: abi,
-      functionName: func,
-      args: args,
-      account: '0x26f5C2370e563e9f4dDA435f03A63D7C109D8D04',
+      account: address,
     });
   }
 
   async getGasPrice(): Promise<bigint> {
-    return this.#signer.getGasPrice();
+    return this.#provider.getGasPrice();
   }
 
-  async getFee(amount: bigint): Promise<bigint> {
-    console.log('amount: ' + amount);
-
+  async getFee(
+    address: string,
+    amount: bigint,
+    config: ContractConfig,
+  ): Promise<bigint> {
     if (amount === 0n) {
       return 0n;
     }
 
     try {
-      const estimatedGas = await this.getEstimatedGas();
+      const estimatedGas = await this.getEstimatedGas(address, config);
       const gasPrice = await this.getGasPrice();
-      console.log('estGas: ' + estimatedGas);
-      console.log('gasPrice: ' + gasPrice);
-
       return estimatedGas * gasPrice;
     } catch (error) {
       console.log(error);

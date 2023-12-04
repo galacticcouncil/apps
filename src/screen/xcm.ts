@@ -16,7 +16,7 @@ export class XcmScreen extends LitElement {
     return html`
       <gc-xcm-app
         srcChain="kusama"
-        dstChain="basilisk"
+        destChain="basilisk"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
@@ -28,7 +28,7 @@ export class XcmScreen extends LitElement {
     return html`
       <gc-xcm-app
         srcChain="hydradx"
-        dstChain="moonbeam"
+        destChain="moonbeam"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}

@@ -9,7 +9,7 @@ export enum TransferTab {
 
 export type TransferState = {
   srcChain: AnyChain;
-  dstChain: AnyChain;
+  destChain: AnyChain;
   asset: Asset;
   amount: string;
   balance: string;
@@ -17,14 +17,14 @@ export type TransferState = {
   effectiveBalance: string;
   nativeAsset: string;
   srcChainFee: string;
-  dstChainFee: string;
-  dstChainSs58Prefix: string;
+  destChainFee: string;
+  destChainSs58Prefix: string;
   error: {};
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
   srcChain: null,
-  dstChain: null,
+  destChain: null,
   asset: null,
   amount: null,
   balance: null,
@@ -32,8 +32,8 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   effectiveBalance: null,
   nativeAsset: null,
   srcChainFee: null,
-  dstChainFee: null,
-  dstChainSs58Prefix: null,
+  destChainFee: null,
+  destChainSs58Prefix: null,
   error: {},
 };
 

@@ -22,7 +22,7 @@ export class XcmForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
   @property({ type: Object }) srcChain: AnyChain = null;
-  @property({ type: Object }) dstChain: AnyChain = null;
+  @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: String }) amount = null;
   @property({ type: String }) address = null;
   @property({ type: Object }) asset: Asset = null;
@@ -30,8 +30,8 @@ export class XcmForm extends LitElement {
   @property({ type: String }) effectiveBalance = null;
   @property({ type: String }) nativeAsset = null;
   @property({ type: String }) srcChainFee = null;
-  @property({ type: String }) dstChainFee = null;
-  @property({ type: String }) dstChainSs58Prefix = null;
+  @property({ type: String }) destChainFee = null;
+  @property({ type: String }) destChainSs58Prefix = null;
   @property({ type: Object }) error = {};
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) warning = false;
@@ -203,7 +203,7 @@ export class XcmForm extends LitElement {
           <uigc-asset-switch basic class="switch__desktop"> </uigc-asset-switch>
           <uigc-chain-selector
             title="${i18n.t('xcm.selectDest')}"
-            .chain=${this.dstChain?.key}
+            .chain=${this.destChain?.key}
           ></uigc-chain-selector>
         </div>
         <uigc-typography variant="subsection"
@@ -237,18 +237,18 @@ export class XcmForm extends LitElement {
           id="address"
           title="${i18n.t('xcm.toAddr')}"
           .address=${this.address}
-          .chain=${this.dstChain}
+          .chain=${this.destChain}
           ?error=${this.error['address']}
           .error=${this.error['address']}
         >
           ${when(
-            isValidAddr && this.dstChainSs58Prefix,
+            isValidAddr && this.destChainSs58Prefix,
             () =>
               html`
                 <gc-account-id
                   slot="id"
                   .address=${this.address}
-                  .ss58prefix=${this.dstChainSs58Prefix}
+                  .ss58prefix=${this.destChainSs58Prefix}
                 ></gc-account-id>
               `,
           )}
@@ -265,7 +265,7 @@ export class XcmForm extends LitElement {
         <div class="row">
           ${this.transferFeeTemplate(
             i18n.t('xcm.destFee'),
-            this.dstChainFee,
+            this.destChainFee,
             this.asset?.originSymbol,
           )}
         </div>
@@ -275,7 +275,7 @@ export class XcmForm extends LitElement {
         <span>
           ${i18n.t('xcm.warning', {
             asset: this.asset,
-            chain: capitalize(this.dstChain.name),
+            chain: capitalize(this.destChain.name),
           })}
         </span>
       </div>

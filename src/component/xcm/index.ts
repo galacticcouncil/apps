@@ -32,7 +32,7 @@ import {
   TransferData,
   getSourceData,
 } from '@moonbeam-network/xcm-sdk';
-import { Asset, AnyChain } from '@moonbeam-network/xcm-types';
+import { Asset, AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
 import { getPolkadotApi } from '@moonbeam-network/xcm-utils';
 
 import './form';
@@ -52,7 +52,6 @@ import {
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 import { XcmWallet } from './wallet';
-import { Balance } from './wallet/types';
 import { acala, hydradx, moonbeam } from './wallet/evm/chains';
 
 @customElement('gc-xcm-app')
@@ -80,7 +79,7 @@ export class XcmApp extends BaseApp {
   private disconnectBalanceSubscription: Subscription = null;
 
   @property({ type: String }) srcChain: string = null;
-  @property({ type: String }) dstChain: string = null;
+  @property({ type: String }) destChain: string = null;
   @property({ type: String }) blacklist: string = null;
 
   @state() tab: TransferTab = TransferTab.TransferForm;
@@ -118,8 +117,8 @@ export class XcmApp extends BaseApp {
   private async switchChains() {
     this.transfer = {
       ...this.transfer,
-      srcChain: this.transfer.dstChain,
-      dstChain: this.transfer.srcChain,
+      srcChain: this.transfer.destChain,
+      destChain: this.transfer.srcChain,
       balance: null,
     };
     this.disconnectSubscriptions();
@@ -143,7 +142,7 @@ export class XcmApp extends BaseApp {
   private async changeDestinationChain(chain: string) {
     this.transfer = {
       ...this.transfer,
-      dstChain: chainsMap.get(chain),
+      destChain: chainsMap.get(chain),
       balance: null,
     };
     this.disconnectSubscriptions();
@@ -158,7 +157,7 @@ export class XcmApp extends BaseApp {
       asset: assetsMap.get(asset),
       balance: this.chain.balance.get(asset),
       srcChainFee: null,
-      dstChainFee: null,
+      destChainFee: null,
     };
     await this.syncInput();
   }
@@ -179,80 +178,69 @@ export class XcmApp extends BaseApp {
     const { srcChain } = this.transfer;
     const { address } = this.account.state;
 
-    const srcChainConfig = chainsConfigMap.get(srcChain.key);
     const srcAddress = this.formatAddress(address, srcChain);
 
-    const observer = (val: Balance) => {
-      console.log(val.key, '=>', val.amount);
+    const observer = (val: AssetAmount) => {
+      //console.log(val.key + ' => ' + val.toDecimal() + ' ' + val.originSymbol);
       const balances: Map<string, string> = new Map(this.chain.balance);
-      balances.set(val.key, val.amount.toString());
+      balances.set(val.key, val.toDecimal());
       this.chain.balance = balances;
     };
 
     this.disconnectBalanceSubscription = await this.wallet.subscribeBalance(
       srcAddress,
-      srcChainConfig,
+      srcChain,
       observer,
     );
   }
 
   private async syncInput() {
-    const { srcChain, dstChain, asset } = this.transfer;
+    const { srcChain, destChain, asset } = this.transfer;
     const { address, provider } = this.account.state;
 
     console.time('connection');
     const [srcApi, dstApi] = await Promise.all([
       getPolkadotApi(srcChain.ws),
-      getPolkadotApi(dstChain.ws),
+      getPolkadotApi(destChain.ws),
     ]);
     console.timeEnd('connection');
 
     const srcAddr = this.formatAddress(address, srcChain);
-    const dstAddr = this.formatAddress(address, dstChain);
+    const destAddr = this.formatAddress(address, destChain);
 
     console.log(srcAddr);
-    console.log(dstAddr);
+    console.log(destAddr);
 
-    await this.wallet.getSourceData(
+    const transferInput = await this.wallet.getTransferInput(
       asset,
-      dstAddr,
-      dstChain,
       srcAddr,
       srcChain,
+      destAddr,
+      destChain,
     );
+    console.log(transferInput);
 
-    const txData = await this.wallet.getTransferData(
-      srcAddr,
-      srcChain,
-      dstAddr,
-      dstChain,
-      asset,
-    );
-    console.log(txData);
-
-    let dstAddress: string;
-    if (dstChain.isEvmParachain()) {
-      dstAddress = convertToH160(address);
+    let destAddress: string;
+    if (destChain.isEvmParachain()) {
+      destAddress = convertToH160(address);
     } else {
-      dstAddress = convertAddressSS58(address, dstChain.ss58Format);
+      destAddress = convertAddressSS58(address, destChain.ss58Format);
     }
 
-    const { source, destination } = txData;
-    const srcFee = source.fee;
-    const dstFee = destination.fee;
+    const { balance, srcFee, destFee } = transferInput;
 
     this.transfer = {
       ...this.transfer,
-      address: dstAddress,
-      balance: source.balance.toDecimal(),
+      address: destAddress,
+      balance: balance.toDecimal(),
       nativeAsset: srcFee.originSymbol,
       srcChainFee: srcFee.toDecimal(),
-      dstChainFee: dstFee.toDecimal(),
+      destChainFee: destFee.toDecimal(),
     };
   }
 
   private syncChains() {
-    const { srcChain, dstChain, asset } = this.transfer;
+    const { srcChain, destChain, asset } = this.transfer;
 
     const srcChainCfg: ChainConfig = chainsConfigMap.get(srcChain.key);
     const srcChainAssetCfg: AssetConfig[] = srcChainCfg.getAssetsConfigs();
@@ -260,13 +248,13 @@ export class XcmApp extends BaseApp {
     const destChains: AnyChain[] = srcChainAssetCfg.map((a) => a.destination);
     const destChainsList = new Set<AnyChain>(destChains);
 
-    const isDestValid: boolean = destChainsList.has(dstChain);
-    const validDstChain: AnyChain = isDestValid
-      ? dstChain
+    const isDestValid: boolean = destChainsList.has(destChain);
+    const validDestChain: AnyChain = isDestValid
+      ? destChain
       : destChainsList.values().next().value;
 
     const supportedAssets: Asset[] = srcChainAssetCfg
-      .filter((a) => a.destination === validDstChain)
+      .filter((a) => a.destination === validDestChain)
       .map((a) => a.asset);
 
     const isTransferable = supportedAssets.includes(asset);
@@ -282,10 +270,10 @@ export class XcmApp extends BaseApp {
     this.transfer = {
       ...this.transfer,
       asset: selectedAsset,
-      dstChain: validDstChain,
+      destChain: validDestChain,
       balance: null,
       srcChainFee: null,
-      dstChainFee: null,
+      destChainFee: null,
     };
   }
 
@@ -311,7 +299,7 @@ export class XcmApp extends BaseApp {
       this.transfer = {
         ...this.transfer,
         srcChain: chainsMap.get(this.srcChain),
-        dstChain: chainsMap.get(this.dstChain),
+        destChain: chainsMap.get(this.destChain),
       };
     }
     super.update(changedProperties);
@@ -367,14 +355,14 @@ export class XcmApp extends BaseApp {
       tab: true,
       active: this.tab == TransferTab.SelectChain,
     };
-    const isDest = this.chain.selector === this.transfer.dstChain.key;
+    const isDest = this.chain.selector === this.transfer.destChain.key;
     return html`<uigc-paper class=${classMap(classes)}>
       <gc-select-chain
         .chains=${isDest
           ? this.chain.dest.map((c) => c.key)
           : this.chain.list.map((c) => c.key)}
         .srcChain=${this.transfer.srcChain}
-        .dstChain=${this.transfer.dstChain}
+        .destChain=${this.transfer.destChain}
         .selector=${this.chain.selector}
         @list-item-clicked=${this.listItemClickedListener(isDest)}
       >
@@ -457,15 +445,15 @@ export class XcmApp extends BaseApp {
       <gc-xcm-form
         .disabled=${this.isFormDisabled()}
         .srcChain=${this.transfer.srcChain}
-        .dstChain=${this.transfer.dstChain}
+        .destChain=${this.transfer.destChain}
         .asset=${this.transfer.asset}
         .amount=${this.transfer.amount}
         .balance=${this.transfer.balance}
         .effectiveBalance=${this.transfer.effectiveBalance}
         .nativeAsset=${this.transfer.nativeAsset}
         .srcChainFee=${this.transfer.srcChainFee}
-        .dstChainFee=${this.transfer.dstChainFee}
-        .dstChainSs58Prefix=${this.transfer.dstChainSs58Prefix}
+        .destChainFee=${this.transfer.destChainFee}
+        .destChainSs58Prefix=${this.transfer.destChainSs58Prefix}
         .error=${this.transfer.error}
         .address=${this.transfer.address}
         @asset-input-changed=${this.assetInputChangedListener}

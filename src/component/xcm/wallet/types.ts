@@ -1,23 +1,34 @@
-import {
-  ContractConfig,
-  SubstrateQueryConfig,
-} from '@moonbeam-network/xcm-builder';
-import { Asset, AnyChain } from '@moonbeam-network/xcm-types';
+import { BaseConfig } from '@moonbeam-network/xcm-builder';
+import { Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import { Observable } from 'rxjs';
 
-export interface Balance {
-  key: string;
-  amount: bigint;
+export interface BalanceProvider {
+  getBalance(asset: Asset, config: BaseConfig): Promise<AssetAmount>;
+  getFee(
+    address: string,
+    amount: bigint,
+    feeBalance: AssetAmount,
+    config: BaseConfig,
+  ): Promise<AssetAmount>;
+  subscribeBalance(asset: Asset, config: BaseConfig): Observable<AssetAmount>;
 }
 
-export interface BalanceParams {
-  asset: Asset;
-  chain: AnyChain;
-  config: ContractConfig | SubstrateQueryConfig;
+export interface TransferProvider {
+  getFee(
+    address: string,
+    amount: bigint,
+    feeBalance: AssetAmount,
+    config: BaseConfig,
+  ): Promise<AssetAmount>;
 }
 
-export interface BalanceAdapter {
-  getObservable(assetKey: string): Observable<Balance>;
-  getBalance(assetKey: string): Promise<Balance>;
+export interface TransferInput {
+  balance: AssetAmount;
+  max: AssetAmount;
+  min: AssetAmount;
+  srcFee: AssetAmount;
+  destFee: AssetAmount;
+  // swap(amount: bigint | number | string): Promise<string>;
+  // calldata(amount: bigint | number | string): Promise<string>;
 }
