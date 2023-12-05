@@ -4,11 +4,11 @@ import { Asset, AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
 import { merge, Subscription } from 'rxjs';
 import { Chain } from 'viem';
 
-import { BalanceAdapter } from './balance';
+import { BalanceAdapter } from './adapters';
 import { EvmClient } from './evm';
 import { SubstrateService } from './substrate';
 
-import { DestinationDataResolver, SourceDataResolver } from './transfer';
+import { TransferService, calculateMax, calculateMin } from './transfer';
 import { TransferInput } from './types';
 
 export interface EvmChains {
@@ -59,23 +59,25 @@ export class Wallet {
 
     const srcEvm = this.getEvmClient(srcChain);
     const srcSubstrate = await this.getSubstrateService(srcChain);
-    const srcResolver = new SourceDataResolver(srcEvm, srcSubstrate);
+    const srcEd = srcSubstrate.existentialDeposit;
+    const srcData = new TransferService(srcEvm, srcSubstrate);
 
     const destEvm = this.getEvmClient(destChain);
     const destSubstrate = await this.getSubstrateService(destChain);
-    const destResolver = new DestinationDataResolver(destEvm, destSubstrate);
+    const destEd = destSubstrate.existentialDeposit;
+    const destData = new TransferService(destEvm, destSubstrate);
 
     const [srcBalance, srcFeeBalance, srcMin, destBalance, destFee, destMin] =
       await Promise.all([
-        srcResolver.getBalance(srcAddr, source),
-        srcResolver.getFeeBalance(srcAddr, source),
-        srcResolver.getMin(source),
-        destResolver.getBalance(destAddr, destination),
-        destResolver.getFee(source),
-        destResolver.getMin(destination),
+        srcData.getBalance(srcAddr, source),
+        srcData.getFeeBalance(srcAddr, source),
+        srcData.getMin(source),
+        destData.getBalance(destAddr, destination),
+        destData.getDestinationFee(source),
+        destData.getMin(destination),
       ]);
 
-    const srcFee = await srcResolver.getFee(
+    const srcFee = await srcData.getFee(
       srcAddr,
       srcBalance.amount,
       srcFeeBalance,
@@ -85,11 +87,8 @@ export class Wallet {
       source,
     );
 
-    const [max, min] = await Promise.all([
-      srcResolver.calculateMax(srcBalance, srcFee, srcMin),
-      destResolver.calculateMin(destBalance, destFee, destMin),
-    ]);
-
+    const min = calculateMin(destBalance, destEd, destFee, destMin);
+    const max = calculateMax(srcBalance, srcEd, srcFee, srcMin);
     return {
       balance: srcBalance,
       min,
@@ -117,7 +116,7 @@ export class Wallet {
         address: address,
         asset: assetId,
       });
-      return balanceAdapter.subscribeBalance(asset, balanceConfig);
+      return balanceAdapter.subscribe(asset, balanceConfig);
     });
 
     const observable = merge(...observables);

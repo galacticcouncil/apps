@@ -1,4 +1,3 @@
-import { ContractConfig } from '@moonbeam-network/xcm-builder';
 import { Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import {
@@ -9,25 +8,22 @@ import {
   distinctUntilChanged,
 } from 'rxjs';
 
-import { Erc20, XTokens } from '../contracts';
-import { EvmClient } from '../evm';
+import { Erc20 } from '../../contracts';
+import { EvmClient } from '../../evm';
+
 import { BalanceProvider } from '../types';
 
-export class Erc20BalanceProvider implements BalanceProvider {
+export class Erc20Balance implements BalanceProvider<Erc20> {
   readonly #client: EvmClient;
-  readonly #erc20: Erc20;
-  readonly #xTokens: XTokens;
 
   constructor(client: EvmClient) {
     this.#client = client;
-    this.#erc20 = new Erc20(client);
-    this.#xTokens = new XTokens(client);
   }
 
-  async getBalance(asset: Asset, config: ContractConfig): Promise<AssetAmount> {
+  async read(asset: Asset, erc20: Erc20): Promise<AssetAmount> {
     const [balance, decimals] = await Promise.all([
-      this.#erc20.getBalance(config),
-      this.#erc20.getDecimals(config),
+      erc20.getBalance(),
+      erc20.getDecimals(),
     ]);
     return AssetAmount.fromAsset(asset, {
       amount: balance,
@@ -35,29 +31,14 @@ export class Erc20BalanceProvider implements BalanceProvider {
     });
   }
 
-  async getFee(
-    address: string,
-    amount: bigint,
-    feeBalance: AssetAmount,
-    config: ContractConfig,
-  ): Promise<AssetAmount> {
-    const fee = await this.#xTokens.getFee(address, amount, config);
-    return feeBalance.copyWith({
-      amount: fee,
-    });
-  }
-
-  subscribeBalance(
-    asset: Asset,
-    config: ContractConfig,
-  ): Observable<AssetAmount> {
+  subscribe(asset: Asset, erc20: Erc20): Observable<AssetAmount> {
     const subject = new Subject<AssetAmount>();
     const observable = subject.pipe(shareReplay(1));
     const provider = this.#client.getProvider();
 
     const run = async () => {
       const updateBalance = async () => {
-        const balance = await this.getBalance(asset, config);
+        const balance = await this.read(asset, erc20);
         subject.next(balance);
       };
       await updateBalance();

@@ -7,9 +7,11 @@ import abi from './XTokensABI.json';
 export class XTokens {
   readonly address = '0x0000000000000000000000000000000000000804';
   readonly #provider: PublicClient;
+  readonly #config: ContractConfig;
 
-  constructor(client: EvmClient) {
+  constructor(client: EvmClient, config: ContractConfig) {
     this.validateClient(client);
+    this.#config = config;
     this.#provider = client.getProvider();
   }
 
@@ -19,11 +21,8 @@ export class XTokens {
     }
   }
 
-  async getEstimatedGas(
-    address: string,
-    config: ContractConfig,
-  ): Promise<bigint> {
-    const { func, args } = config;
+  async getEstimatedGas(address: string): Promise<bigint> {
+    const { func, args } = this.#config;
     return await this.#provider.estimateContractGas({
       address: this.address as `0x${string}`,
       abi: abi,
@@ -37,17 +36,13 @@ export class XTokens {
     return this.#provider.getGasPrice();
   }
 
-  async getFee(
-    address: string,
-    amount: bigint,
-    config: ContractConfig,
-  ): Promise<bigint> {
+  async getFee(address: string, amount: bigint): Promise<bigint> {
     if (amount === 0n) {
       return 0n;
     }
 
     try {
-      const estimatedGas = await this.getEstimatedGas(address, config);
+      const estimatedGas = await this.getEstimatedGas(address);
       const gasPrice = await this.getGasPrice();
       return estimatedGas * gasPrice;
     } catch (error) {
