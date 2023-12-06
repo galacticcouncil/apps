@@ -72,7 +72,7 @@ export class SubstrateService {
     return info.partialFee.toBigInt();
   }
 
-  private buildExtrinsic(config: ExtrinsicConfig): SubmittableExtrinsic {
+  buildExtrinsic(config: ExtrinsicConfig): SubmittableExtrinsic {
     const fn = this.api.tx[config.module][config.func];
     const args = config.getArgs(fn);
     return fn(...args);

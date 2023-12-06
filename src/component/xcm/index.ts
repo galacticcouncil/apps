@@ -51,7 +51,7 @@ import {
 } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
-import { XcmWallet } from './wallet';
+import { Wallet } from './wallet';
 import { acala, hydradx, moonbeam } from './wallet/evm/chains';
 
 @customElement('gc-xcm-app')
@@ -62,7 +62,7 @@ export class XcmApp extends BaseApp {
     chainsConfig: chainsConfigMap,
   });
 
-  private wallet: XcmWallet = null;
+  private wallet: Wallet = null;
 
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
@@ -211,14 +211,26 @@ export class XcmApp extends BaseApp {
     console.log(srcAddr);
     console.log(destAddr);
 
-    const transferInput = await this.wallet.getTransferInput(
+    const xData = await this.wallet.transfer(
       asset,
       srcAddr,
       srcChain,
       destAddr,
       destChain,
     );
-    console.log(transferInput);
+
+    const call = xData.transfer(1n);
+
+    console.log(xData);
+    console.log(call);
+
+    // const evmClient = this.wallet.getEvmClient(srcChain);
+    // evmClient.getSigner(srcAddr, true).sendTransaction({
+    //   account: srcAddr as `0x${string}`,
+    //   chain: evmClient.chain,
+    //   data: call.data,
+    //   to: call.to,
+    // });
 
     let destAddress: string;
     if (destChain.isEvmParachain()) {
@@ -227,7 +239,7 @@ export class XcmApp extends BaseApp {
       destAddress = convertAddressSS58(address, destChain.ss58Format);
     }
 
-    const { balance, srcFee, destFee } = transferInput;
+    const { balance, srcFee, destFee } = xData;
 
     this.transfer = {
       ...this.transfer,
@@ -278,7 +290,7 @@ export class XcmApp extends BaseApp {
   }
 
   override async firstUpdated() {
-    this.wallet = new XcmWallet({
+    this.wallet = new Wallet({
       configService: this.configService,
       evmChains: {
         acala: acala,

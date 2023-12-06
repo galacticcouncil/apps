@@ -1,5 +1,6 @@
 import { ConfigBuilder, ConfigService } from '@moonbeam-network/xcm-config';
 import { Asset, AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
+import { toBigInt } from '@moonbeam-network/xcm-utils';
 
 import { merge, Subscription } from 'rxjs';
 import { Chain } from 'viem';
@@ -8,8 +9,13 @@ import { BalanceAdapter } from './adapters';
 import { EvmClient } from './evm';
 import { SubstrateService } from './substrate';
 
-import { TransferService, calculateMax, calculateMin } from './transfer';
-import { TransferInput } from './types';
+import {
+  TransferService,
+  calculateMax,
+  calculateMin,
+  buildTransfer,
+} from './transfer';
+import { XCall, XData } from './types';
 
 export interface EvmChains {
   [key: string]: Chain;
@@ -32,24 +38,24 @@ export class Wallet {
   }
 
   public getEvmClient(chain: string | AnyChain): EvmClient {
-    const _chain = this.configService.getChain(chain);
-    return this.evmClients[_chain.key];
+    const aChain = this.configService.getChain(chain);
+    return this.evmClients[aChain.key];
   }
 
   public async getSubstrateService(
     chain: string | AnyChain,
   ): Promise<SubstrateService> {
-    const _chain = this.configService.getChain(chain);
-    return await SubstrateService.create(_chain, this.configService);
+    const aChain = this.configService.getChain(chain);
+    return await SubstrateService.create(aChain, this.configService);
   }
 
-  public async getTransferInput(
+  public async transfer(
     asset: string | Asset,
     srcAddr: string,
     srcChain: string | AnyChain,
     destAddr: string,
     destChain: string | AnyChain,
-  ): Promise<TransferInput> {
+  ): Promise<XData> {
     const { source, destination } = ConfigBuilder(this.configService)
       .assets()
       .asset(asset)
@@ -95,7 +101,17 @@ export class Wallet {
       max,
       srcFee,
       destFee,
-    } as TransferInput;
+      transfer(amount): XCall {
+        const config = buildTransfer(
+          toBigInt(amount, srcBalance.decimals),
+          destAddr,
+          destination.chain,
+          destFee,
+          source,
+        );
+        return srcData.transfer.calldata(config);
+      },
+    } as XData;
   }
 
   public async subscribeBalance(

@@ -12,6 +12,7 @@ import { XTokensTransfer } from './XTokensTransfer';
 import { XTokens } from '../../contracts';
 import { EvmClient } from '../../evm';
 import { SubstrateService } from '../../substrate';
+import { XCall } from '../../types';
 
 export type TransferOptions = {
   evmClient?: EvmClient;
@@ -35,19 +36,27 @@ export class TransferAdapter {
     }
   }
 
+  calldata(config: BaseConfig): XCall {
+    if (config.type === CallType.Evm) {
+      const xTokens = new XTokens(this.evmClient, config as ContractConfig);
+      return this.xTokensTransfer.calldata(xTokens);
+    }
+    return this.extrinsicTransfer.calldata(config as ExtrinsicConfig);
+  }
+
   async getFee(
-    address: string,
+    account: string,
     amount: bigint,
     feeBalance: AssetAmount,
     config: BaseConfig,
   ): Promise<AssetAmount> {
     if (config.type === CallType.Evm) {
-      const contract = new XTokens(this.evmClient, config as ContractConfig);
-      return this.xTokensTransfer.getFee(address, amount, feeBalance, contract);
+      const xTokens = new XTokens(this.evmClient, config as ContractConfig);
+      return this.xTokensTransfer.getFee(account, amount, feeBalance, xTokens);
     }
 
     return this.extrinsicTransfer.getFee(
-      address,
+      account,
       amount,
       feeBalance,
       config as ExtrinsicConfig,

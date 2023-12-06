@@ -1,5 +1,6 @@
 import { ContractConfig } from '@moonbeam-network/xcm-builder';
-import { PublicClient, parseAbi } from 'viem';
+import { parseAbi } from 'viem';
+
 import { EvmClient } from '../evm';
 
 const ABI = parseAbi([
@@ -8,14 +9,14 @@ const ABI = parseAbi([
 ]);
 
 export class Erc20 {
-  readonly #provider: PublicClient;
+  readonly #client: EvmClient;
   readonly #config: ContractConfig;
 
   constructor(client: EvmClient, config: ContractConfig) {
     this.validateClient(client);
     this.validateConfig(config);
+    this.#client = client;
     this.#config = config;
-    this.#provider = client.getProvider();
   }
 
   private validateClient(client: EvmClient) {
@@ -31,10 +32,11 @@ export class Erc20 {
   }
 
   async getBalance(): Promise<bigint> {
+    const provider = this.#client.getProvider();
     const { address, args } = this.#config;
     const [recipient] = args;
 
-    return await this.#provider.readContract({
+    return await provider.readContract({
       address: address as `0x${string}`,
       abi: ABI,
       functionName: 'balanceOf',
@@ -43,9 +45,10 @@ export class Erc20 {
   }
 
   async getDecimals(): Promise<number> {
+    const provider = this.#client.getProvider();
     const { address } = this.#config;
 
-    return await this.#provider.readContract({
+    return await provider.readContract({
       address: address as `0x${string}`,
       abi: ABI,
       functionName: 'decimals',

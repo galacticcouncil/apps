@@ -1,1 +1,2 @@
-export { Wallet as XcmWallet } from './Wallet';
+export { Wallet } from './Wallet';
+export { EvmClient } from './evm';

@@ -1,6 +1,7 @@
 import {
   createPublicClient,
   createWalletClient,
+  custom,
   http,
   Chain,
   PublicClient,
@@ -21,11 +22,11 @@ export class EvmClient {
     });
   }
 
-  getSigner(address: string): WalletClient {
+  getSigner(address: string, browser?: boolean): WalletClient {
     return createWalletClient({
       account: address as `0x${string}`,
       chain: this.chain,
-      transport: http(),
+      transport: browser ? custom(window['ethereum']) : http(),
     });
   }
 }

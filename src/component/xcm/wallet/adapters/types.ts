@@ -1,6 +1,7 @@
 import { Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import { Observable } from 'rxjs';
+import { XCall } from '../types';
 
 export interface BalanceProvider<T> {
   read(asset: Asset, config: T): Promise<AssetAmount>;
@@ -9,9 +10,10 @@ export interface BalanceProvider<T> {
 
 export interface TransferProvider<T> {
   getFee(
-    address: string,
+    account: string,
     amount: bigint,
     feeBalance: AssetAmount,
     config: T,
   ): Promise<AssetAmount>;
+  calldata(config: T): XCall;
 }

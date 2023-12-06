@@ -10,8 +10,8 @@ import { SubstrateService } from '../substrate';
 import { buildTransfer } from './TransferUtils';
 
 export class TransferService {
-  protected balance: BalanceAdapter;
-  protected transfer: TransferAdapter;
+  readonly balance: BalanceAdapter;
+  readonly transfer: TransferAdapter;
 
   protected substrate: SubstrateService;
 

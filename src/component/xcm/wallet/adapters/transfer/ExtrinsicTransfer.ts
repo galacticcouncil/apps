@@ -2,6 +2,8 @@ import { ExtrinsicConfig } from '@moonbeam-network/xcm-builder';
 import { AssetAmount } from '@moonbeam-network/xcm-types';
 
 import { SubstrateService } from '../../substrate';
+import { XCall } from '../../types';
+
 import { TransferProvider } from '../types';
 
 export class ExtrinsicTransfer implements TransferProvider<ExtrinsicConfig> {
@@ -11,13 +13,20 @@ export class ExtrinsicTransfer implements TransferProvider<ExtrinsicConfig> {
     this.#substrate = substrate;
   }
 
+  calldata(config: ExtrinsicConfig): XCall {
+    const extrinic = this.#substrate.buildExtrinsic(config);
+    return {
+      data: extrinic.toHex(),
+    } as XCall;
+  }
+
   async getFee(
-    address: string,
+    account: string,
     amount: bigint,
     feeBalance: AssetAmount,
     config: ExtrinsicConfig,
   ): Promise<AssetAmount> {
-    const fee = await this.#substrate.getFee(address, config);
+    const fee = await this.#substrate.getFee(account, config);
     return feeBalance.copyWith({
       amount: fee,
     });

@@ -20,10 +20,10 @@ export class Erc20Balance implements BalanceProvider<Erc20> {
     this.#client = client;
   }
 
-  async read(asset: Asset, erc20: Erc20): Promise<AssetAmount> {
+  async read(asset: Asset, contract: Erc20): Promise<AssetAmount> {
     const [balance, decimals] = await Promise.all([
-      erc20.getBalance(),
-      erc20.getDecimals(),
+      contract.getBalance(),
+      contract.getDecimals(),
     ]);
     return AssetAmount.fromAsset(asset, {
       amount: balance,
@@ -31,14 +31,14 @@ export class Erc20Balance implements BalanceProvider<Erc20> {
     });
   }
 
-  subscribe(asset: Asset, erc20: Erc20): Observable<AssetAmount> {
+  subscribe(asset: Asset, contract: Erc20): Observable<AssetAmount> {
     const subject = new Subject<AssetAmount>();
     const observable = subject.pipe(shareReplay(1));
     const provider = this.#client.getProvider();
 
     const run = async () => {
       const updateBalance = async () => {
-        const balance = await this.read(asset, erc20);
+        const balance = await this.read(asset, contract);
         subject.next(balance);
       };
       await updateBalance();
