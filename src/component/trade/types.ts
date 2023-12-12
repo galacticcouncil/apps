@@ -18,46 +18,46 @@ export type TransactionFee = {
 
 export type TradeState = {
   inProgress: boolean;
-  type: TradeType;
+  afterSlippage: string;
+  afterSlippageUsd: string;
   assetIn: Asset;
   assetOut: Asset;
   amountIn: string;
+  amountInUsd: string;
   amountOut: string;
+  amountOutUsd: string;
   balanceIn: string;
   balanceOut: string;
-  amountInUsd: string;
-  amountOutUsd: string;
-  spotPrice: string;
-  afterSlippage: string;
-  afterSlippageUsd: string;
   priceImpactPct: string;
+  spotPrice: string;
   tradeFee: string;
   tradeFeePct: string;
   tradeFeeRange: [number, number];
   transactionFee: TransactionFee;
+  type: TradeType;
   swaps: [];
   error: {};
 };
 
 export const DEFAULT_TRADE_STATE: TradeState = {
   inProgress: false,
-  type: TradeType.Buy,
+  afterSlippage: '0',
+  afterSlippageUsd: '0',
   assetIn: null,
   assetOut: null,
   amountIn: null,
+  amountInUsd: null,
   amountOut: null,
+  amountOutUsd: null,
   balanceIn: null,
   balanceOut: null,
-  amountInUsd: null,
-  amountOutUsd: null,
-  spotPrice: null,
-  afterSlippage: '0',
-  afterSlippageUsd: '0',
   priceImpactPct: '0',
+  spotPrice: null,
   tradeFee: null,
   tradeFeePct: '0',
   tradeFeeRange: null,
   transactionFee: null,
+  type: TradeType.Buy,
   swaps: [],
   error: {},
 };

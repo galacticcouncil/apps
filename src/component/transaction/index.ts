@@ -1,30 +1,45 @@
-import { html, css, LitElement, TemplateResult } from 'lit';
+import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import { evmChains } from '@galacticcouncil/xcm-cfg';
+import { EvmClient, Wallet } from '@galacticcouncil/xcm-sdk';
+
+import { getPolkadotApi } from '@moonbeam-network/xcm-utils';
+
+import type { ApiPromise } from '@polkadot/api';
 import type { ISubmittableResult } from '@polkadot/types/types';
+import type { DispatchError } from '@polkadot/types/interfaces';
 
 import * as i18n from 'i18next';
 import short from 'short-uuid';
+
 import '@galacticcouncil/ui';
 
-import { chainCursor } from '../../db';
+import { Chain, chainCursor, walletCursor } from '../../db';
+import { DatabaseController } from '../../db.ctrl';
+import { EVM_PROVIDERS } from '../../utils/account';
 import { txRecord } from '../../utils/event';
 
-import { signAndSend, signAndSendOb } from './signer';
-import { TxInfo, TxNotification } from './types';
 import { Notification, NotificationType } from '../notification/types';
+
+import { signAndSend, signAndSendEvm } from './signer';
+import { TxInfo, TxNotification } from './types';
+import { EvmWalletClient } from './client';
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
+  protected chain = new DatabaseController<Chain>(this, chainCursor);
+  protected wallet = new DatabaseController<Wallet>(this, walletCursor);
+
   private txBroadcasted: Set<string> = new Set([]);
 
   @state() message: TemplateResult = null;
   @state() currentTx: string = null;
 
   private _handleOnChainTx = (e: CustomEvent<TxInfo>) =>
-    this.handleTx(short.generate(), e.detail);
+    this.processTx(short.generate(), e.detail);
   private _handleCrossChainTx = (e: CustomEvent<TxInfo>) =>
-    this.handleTxXcm(short.generate(), e.detail);
+    this.processXcm(short.generate(), e.detail);
 
   static styles = [
     css`
@@ -54,10 +69,6 @@ export class TransactionCenter extends LitElement {
     `,
   ];
 
-  private logInBlockMessage(txId: string, hash: string) {
-    console.log(`[${txId}] Completed at block hash #${hash}`);
-  }
-
   private blockMeta(
     result: ISubmittableResult,
     blockHash: string,
@@ -68,10 +79,49 @@ export class TransactionCenter extends LitElement {
     return meta;
   }
 
-  handleTx(txId: string, txInfo: TxInfo) {
+  private logInBlockMessage(txId: string, hash: string) {
+    console.log(`[${txId}] Completed at block hash #${hash}`);
+  }
+
+  private logDispatchError(
+    api: ApiPromise,
+    dispatchError: DispatchError,
+  ): void {
+    const decoded = api.registry.findMetaError(dispatchError.asModule);
+    console.error(
+      `${decoded.section}.${decoded.method}: ${decoded.docs.join(' ')}`,
+    );
+  }
+
+  private signWithEvm(
+    api: ApiPromise,
+    evmClient: EvmClient,
+    txId: string,
+    txInfo: TxInfo,
+  ) {
+    signAndSendEvm(
+      api,
+      evmClient,
+      txInfo,
+      (_hash) => {
+        this.handleBroadcasted(txId, txInfo.notification);
+      },
+      async ({ blockNumber, status }) => {
+        const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+        this.logInBlockMessage(txId, blockHash.toString());
+        const txError = 'success' !== status;
+        this.handleInBlock(txId, txInfo.notification, txError, {});
+      },
+      (_error) => {
+        this.handleError(txId, txInfo.notification);
+      },
+    );
+  }
+
+  private signWithSubstrate(api: ApiPromise, txId: string, txInfo: TxInfo) {
     signAndSend(
-      txInfo.transaction,
-      txInfo.account,
+      api,
+      txInfo,
       (res) => {
         const { events, status, dispatchError } = res;
         const type = status.type.toLowerCase();
@@ -89,51 +139,39 @@ export class TransactionCenter extends LitElement {
             break;
           case 'finalized':
             if (dispatchError) {
-              const api = chainCursor.deref().api;
-              const decoded = api.registry.findMetaError(
-                dispatchError.asModule,
-              );
-              console.error(
-                `${decoded.section}.${decoded.method}: ${decoded.docs.join(
-                  ' ',
-                )}`,
-              );
+              this.logDispatchError(api, dispatchError);
               this.handleError(txId, txInfo.notification);
             }
             break;
         }
       },
-      (_error) => {
-        this.handleError(txId, txInfo.notification);
-      },
+      () => this.handleError(txId, txInfo.notification),
     );
   }
 
-  handleTxXcm(txId: string, txInfo: TxInfo) {
-    signAndSendOb(
-      txInfo.transaction.get(),
-      txInfo.account,
-      (res) => {
-        const { events, status } = res;
-        const type = status.type.toLowerCase();
-        switch (type) {
-          case 'broadcast':
-            this.handleBroadcasted(txId, txInfo.notification);
-            break;
-          case 'inblock':
-            const blockHash = status.asInBlock.toString();
-            const meta = this.blockMeta(res, blockHash);
-            this.logInBlockMessage(txId, blockHash);
-            const txEvent = txRecord(events).event;
-            const txError = 'ExtrinsicFailed' === txEvent.method;
-            this.handleInBlock(txId, txInfo.notification, txError, meta);
-            break;
-        }
-      },
-      (_error) => {
-        this.handleError(txId, txInfo.notification);
-      },
-    );
+  private async processTx(txId: string, txInfo: TxInfo) {
+    const { api } = this.chain.state;
+    const { provider } = txInfo.account;
+    const isEvmProvider = EVM_PROVIDERS.includes(provider);
+    if (isEvmProvider) {
+      const chain = evmChains['hydradx'];
+      this.signWithEvm(api, new EvmWalletClient(chain), txId, txInfo);
+    } else {
+      this.signWithSubstrate(api, txId, txInfo);
+    }
+  }
+
+  private async processXcm(txId: string, txInfo: TxInfo) {
+    const { srcChain } = txInfo.meta;
+    const { provider } = txInfo.account;
+    const api = await getPolkadotApi(srcChain.ws);
+    const isEvmProvider = EVM_PROVIDERS.includes(provider);
+    if (isEvmProvider) {
+      const chain = evmChains[srcChain.key];
+      this.signWithEvm(api, new EvmWalletClient(chain), txId, txInfo);
+    } else {
+      this.signWithSubstrate(api, txId, txInfo);
+    }
   }
 
   private handleBroadcasted(id: string, { processing }: TxNotification) {
@@ -271,16 +309,16 @@ export class TransactionCenter extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
     this.addEventListener('gc:tx:new', this._handleOnChainTx);
-    this.addEventListener('gc:tx:newXcm', this._handleCrossChainTx);
     this.addEventListener('gc:tx:scheduleDca', this._handleOnChainTx);
     this.addEventListener('gc:tx:terminateDca', this._handleOnChainTx);
+    this.addEventListener('gc:xcm:new', this._handleCrossChainTx);
   }
 
   override disconnectedCallback() {
     this.removeEventListener('gc:tx:new', this._handleOnChainTx);
-    this.removeEventListener('gc:tx:newXcm', this._handleCrossChainTx);
     this.removeEventListener('gc:tx:scheduleDca', this._handleOnChainTx);
     this.removeEventListener('gc:tx:terminateDca', this._handleOnChainTx);
+    this.removeEventListener('gc:xcm:new', this._handleCrossChainTx);
     super.disconnectedCallback();
   }
 

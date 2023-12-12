@@ -11,6 +11,8 @@ import { Buffer } from 'buffer';
 
 const ETH_PREFIX = 'ETH\0';
 
+export const EVM_PROVIDERS = ['metamask'];
+
 export function convertAddressSS58(
   address: string,
   ss58prefix = HYDRADX_SS58_PREFIX,
@@ -65,4 +67,8 @@ export function isValidAddress(address: string): boolean {
   } catch {
     return false;
   }
+}
+
+export function isEthAddress(address: string) {
+  return address.length === 42 && address.startsWith('0x');
 }

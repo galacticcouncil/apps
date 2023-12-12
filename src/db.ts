@@ -1,5 +1,5 @@
 import { IPoolService, TradeRouter } from '@galacticcouncil/sdk';
-import { ApiProvider, Bridge } from '@galacticcouncil/bridge';
+import { Wallet } from '@galacticcouncil/xcm-sdk';
 import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
 import { defAtom } from '@thi.ng/atom/atom';
@@ -45,11 +45,6 @@ export interface Chain {
   router: TradeRouter;
 }
 
-export interface XChain {
-  apiProvider: ApiProvider;
-  bridge: Bridge;
-}
-
 export interface Account {
   name: string;
   address: string;
@@ -57,30 +52,30 @@ export interface Account {
 }
 
 export interface State {
-  chain: Chain;
-  xChain: XChain;
   account: Account;
+  chain: Chain;
   tradeSettings: TradeConfig;
   tradeData: TLRUCache<string, TradeData>;
   dcaSettings: DcaConfig;
+  wallet: Wallet;
 }
 
 const db = defAtom<State>({
-  chain: null,
-  xChain: null,
   account: null,
+  chain: null,
+  dcaSettings: null,
   tradeData: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
   tradeSettings: null,
-  dcaSettings: null,
+  wallet: null,
 });
 
 // Cursors (Direct & Immutable access to a nested value)
-export const chainCursor = defCursor(db, ['chain']);
-export const xChainCursor = defCursor(db, ['xChain']);
 export const accountCursor = defCursor(db, ['account']);
+export const chainCursor = defCursor(db, ['chain']);
+export const dcaSettingsCursor = defCursor(db, ['dcaSettings']);
 export const tradeSettingsCursor = defCursor(db, ['tradeSettings']);
 export const tradeDataCursor = defCursor(db, ['tradeData']);
-export const dcaSettingsCursor = defCursor(db, ['dcaSettings']);
+export const walletCursor = defCursor(db, ['wallet']);
 
 // Storage keys
 const ACCOUNT_KEY = 'trade.account';
@@ -89,13 +84,13 @@ const DCA_SETTINGS_KEY = 'dca.settings';
 
 // Load storage values
 const storedAccount = getObj<Account>(ACCOUNT_KEY);
-const storedTradeSettings = getObj<TradeConfig>(TRADE_SETTINGS_KEY);
 const storedDcaSettings = getObj<DcaConfig>(DCA_SETTINGS_KEY);
+const storedTradeSettings = getObj<TradeConfig>(TRADE_SETTINGS_KEY);
 
 // Initialize state from storage
 accountCursor.reset(storedAccount);
-tradeSettingsCursor.reset(storedTradeSettings || DEFAULT_TRADE_CONFIG);
 dcaSettingsCursor.reset(storedDcaSettings || DEFAULT_DCA_CONFIG);
+tradeSettingsCursor.reset(storedTradeSettings || DEFAULT_TRADE_CONFIG);
 
 /**
  * Create watchdog to update storage on state change
@@ -112,6 +107,6 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
 }
 
 // Update storage on state change
-addWatch(tradeSettingsCursor, TRADE_SETTINGS_KEY, 'trade-settings-update');
-addWatch(dcaSettingsCursor, DCA_SETTINGS_KEY, 'dca-settings-update');
 addWatch(accountCursor, ACCOUNT_KEY, 'account-update');
+addWatch(dcaSettingsCursor, DCA_SETTINGS_KEY, 'dca-settings-update');
+addWatch(tradeSettingsCursor, TRADE_SETTINGS_KEY, 'trade-settings-update');

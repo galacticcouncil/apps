@@ -18,5 +18,5 @@ export type TxInfo = {
   account: Account;
   transaction: Transaction;
   notification: TxNotification;
-  meta?: Record<string, string>;
+  meta?: Record<string, any>;
 };

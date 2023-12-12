@@ -1,6 +1,6 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 
-import { chainCursor, xChainCursor } from './db';
+import { chainCursor, walletCursor } from './db';
 
 export class ThemeController implements ReactiveController {
   private readonly host: ReactiveControllerHost;
@@ -15,7 +15,7 @@ export class ThemeController implements ReactiveController {
         this.host.requestUpdate();
         chainCursor.deref()?.api?.disconnect();
         chainCursor.reset(null);
-        xChainCursor.reset(null);
+        walletCursor.reset(null);
       }
     });
   });

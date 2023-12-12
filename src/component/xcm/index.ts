@@ -9,16 +9,26 @@ import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { basicLayoutStyles } from '../styles/layout/basic.css';
 
-import { DatabaseController } from '../../db.ctrl';
-import { Account, XChain, xChainCursor } from '../../db';
-import { formatAmount, humanizeAmount } from '../../utils/amount';
-import { convertAddressSS58, convertToH160 } from '../../utils/account';
+import { Account, walletCursor } from '../../db';
+import {
+  convertAddressSS58,
+  convertToH160,
+  isEthAddress,
+  isValidAddress,
+} from '../../utils/account';
+import { toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import { bnum, HYDRADX_SS58_PREFIX, Transaction } from '@galacticcouncil/sdk';
+import { bnum, Transaction } from '@galacticcouncil/sdk';
 
-import { assetsMap, chainsMap, chainsConfigMap } from '@galacticcouncil/xcm';
+import {
+  assetsMap,
+  chainsMap,
+  chainsConfigMap,
+  evmChains,
+} from '@galacticcouncil/xcm-cfg';
+import { Wallet, XCall, XData } from '@galacticcouncil/xcm-sdk';
 
 import {
   AssetConfig,
@@ -26,12 +36,6 @@ import {
   ChainConfig,
 } from '@moonbeam-network/xcm-config';
 
-import {
-  Sdk,
-  Signers,
-  TransferData,
-  getSourceData,
-} from '@moonbeam-network/xcm-sdk';
 import { Asset, AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
 import { getPolkadotApi } from '@moonbeam-network/xcm-utils';
 
@@ -47,23 +51,15 @@ import {
   TransferState,
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
-  AccountBalance,
 } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
-import { Wallet } from './wallet';
-import { acala, hydradx, moonbeam } from './wallet/evm/chains';
-
 @customElement('gc-xcm-app')
 export class XcmApp extends BaseApp {
-  private configService = new ConfigService({
-    assets: assetsMap,
-    chains: chainsMap,
-    chainsConfig: chainsConfigMap,
-  });
-
+  private configService: ConfigService = null;
   private wallet: Wallet = null;
 
+  private input: XData = null;
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
       if (TransferTab.TransferForm == this.tab) {
@@ -79,7 +75,9 @@ export class XcmApp extends BaseApp {
   private disconnectBalanceSubscription: Subscription = null;
 
   @property({ type: String }) srcChain: string = null;
+  @property({ type: String }) srcEvmChain: string = null;
   @property({ type: String }) destChain: string = null;
+  @property({ type: String }) evmChains: string = null;
   @property({ type: String }) blacklist: string = null;
 
   @state() tab: TransferTab = TransferTab.TransferForm;
@@ -155,23 +153,173 @@ export class XcmApp extends BaseApp {
     this.transfer = {
       ...this.transfer,
       asset: assetsMap.get(asset),
-      balance: this.chain.balance.get(asset),
+      balance: this.chain.balance.get(asset).toDecimal(),
       srcChainFee: null,
       destChainFee: null,
     };
     await this.syncInput();
   }
 
-  private formatAddress(address: string, chain: AnyChain): string {
-    if (chain.key === 'moonbeam') {
-      return '0x26f5C2370e563e9f4dDA435f03A63D7C109D8D04';
+  updateAddress(address: string) {
+    this.transfer = {
+      ...this.transfer,
+      address: address,
+    };
+  }
+
+  validateAddress() {
+    const { address, destChain } = this.transfer;
+    if (address == null || address == '') {
+      this.transfer.error['address'] = i18n.t('xcm.error.required');
+    } else if (destChain.isEvmParachain() && !isEthAddress(address)) {
+      this.transfer.error['address'] = i18n.t('xcm.error.addrIncorrect');
+    } else if (destChain.isParachain() && !isValidAddress(address)) {
+      this.transfer.error['address'] = i18n.t('xcm.error.addrIncorrect');
+    } else {
+      delete this.transfer.error['address'];
+    }
+  }
+
+  updateAmount(amount: string) {
+    if (this.isEmptyAmount(amount)) {
+      this.transfer.amount = null;
+    } else {
+      this.transfer.amount = amount;
+    }
+    this.requestUpdate();
+  }
+
+  validateAmount() {
+    const ammount = this.transfer.amount;
+
+    if (!ammount) {
+      delete this.transfer.error['amount'];
+      return;
     }
 
+    const decimals = this.input.balance.decimals;
+    const amountBN = toBn(ammount, decimals);
+
+    const { min, max } = this.input;
+    const minBN = bnum(min.amount.toString());
+    const maxBN = bnum(max.amount.toString());
+
+    if (amountBN.gt(maxBN)) {
+      this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', {
+        amount: max.toDecimal(),
+        asset: this.transfer.asset.originSymbol,
+      });
+    } else if (amountBN.lt(minBN)) {
+      this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', {
+        amount: min.toDecimal(),
+        asset: this.transfer.asset.originSymbol,
+      });
+    } else {
+      delete this.transfer.error['amount'];
+    }
+    this.requestUpdate();
+  }
+
+  private formatAddress(address: string, chain: AnyChain): string {
     if (chain.isEvmParachain()) {
-      return address;
+      return convertToH160(address);
     } else {
       return convertAddressSS58(address, chain.ss58Format);
     }
+  }
+
+  private formatDestEvmAddress(address: string, chain: AnyChain) {
+    if (chain.isEvmParachain()) {
+      return convertToH160(address);
+    } else {
+      return '';
+    }
+  }
+
+  private formatDestAddress(address: string, chain: AnyChain) {
+    if (chain.isEvmParachain()) {
+      return '';
+    } else {
+      return address;
+    }
+  }
+
+  private formatToAddress(address: string, chain: AnyChain): string {
+    if (this.hasEvmAccount()) {
+      return this.formatDestEvmAddress(address, chain);
+    }
+    return this.formatDestAddress(address, chain);
+  }
+
+  notificationTemplate(
+    transfer: TransferState,
+    status: string,
+  ): TxNotificationMssg {
+    const template = html`
+      <span
+        >${status
+          ? i18n.t('xcm.notify.sending')
+          : i18n.t('xcm.notify.sent')}</span
+      >
+      <span class="highlight">${transfer.amount}</span>
+      <span class="highlight">${transfer.asset.originSymbol}</span>
+      <span>${i18n.t('xcm.notify.from')}</span>
+      <span class="highlight">${transfer.srcChain.name}</span>
+      <span>${i18n.t('xcm.notify.to')}</span>
+      <span class="highlight">${transfer.destChain.name}</span>
+      <span>${status}</span>
+    `;
+    return {
+      message: template,
+      rawHtml: getRenderString(template),
+    } as TxNotificationMssg;
+  }
+
+  processTx(
+    account: Account,
+    transaction: Transaction,
+    transfer: TransferState,
+  ) {
+    const { srcChain, destChain } = this.transfer;
+    const notification = {
+      processing: this.notificationTemplate(
+        transfer,
+        i18n.t('xcm.tx.submitted'),
+      ),
+      success: this.notificationTemplate(transfer, i18n.t('xcm.tx.inBlock')),
+      failure: this.notificationTemplate(transfer, i18n.t('xcm.tx.failed')),
+    };
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        account: account,
+        transaction: transaction,
+        notification: notification,
+        meta: { srcChain: srcChain, dstChain: destChain },
+      } as TxInfo,
+    };
+    this.dispatchEvent(new CustomEvent<TxInfo>('gc:xcm:new', options));
+  }
+
+  async swap() {
+    const account = this.account.state;
+    const { amount } = this.transfer;
+    const call = this.input.transfer(amount);
+
+    const transaction = {
+      hex: call.data,
+      name: 'xcm',
+      get: (): XCall => {
+        return call;
+      },
+    } as Transaction;
+    this.processTx(account, transaction, this.transfer);
+  }
+
+  private resetBalances() {
+    this.transfer.balance = null;
+    this.chain.balance = new Map([]);
   }
 
   private async syncBalances() {
@@ -181,10 +329,13 @@ export class XcmApp extends BaseApp {
     const srcAddress = this.formatAddress(address, srcChain);
 
     const observer = (val: AssetAmount) => {
-      //console.log(val.key + ' => ' + val.toDecimal() + ' ' + val.originSymbol);
-      const balances: Map<string, string> = new Map(this.chain.balance);
-      balances.set(val.key, val.toDecimal());
+      const balances: Map<string, AssetAmount> = new Map(this.chain.balance);
+      balances.set(val.key, val);
+      const { asset } = this.transfer;
+      const assetBalance = balances.get(asset.key);
       this.chain.balance = balances;
+      this.transfer.balance = assetBalance?.toDecimal();
+      this.requestUpdate();
     };
 
     this.disconnectBalanceSubscription = await this.wallet.subscribeBalance(
@@ -219,35 +370,16 @@ export class XcmApp extends BaseApp {
       destChain,
     );
 
-    const call = xData.transfer(1n);
-
-    console.log(xData);
-    console.log(call);
-
-    // const evmClient = this.wallet.getEvmClient(srcChain);
-    // evmClient.getSigner(srcAddr, true).sendTransaction({
-    //   account: srcAddr as `0x${string}`,
-    //   chain: evmClient.chain,
-    //   data: call.data,
-    //   to: call.to,
-    // });
-
-    let destAddress: string;
-    if (destChain.isEvmParachain()) {
-      destAddress = convertToH160(address);
-    } else {
-      destAddress = convertAddressSS58(address, destChain.ss58Format);
-    }
-
     const { balance, srcFee, destFee } = xData;
 
+    this.input = xData;
     this.transfer = {
       ...this.transfer,
-      address: destAddress,
+      address: this.formatToAddress(address, destChain),
       balance: balance.toDecimal(),
-      nativeAsset: srcFee.originSymbol,
-      srcChainFee: srcFee.toDecimal(),
-      destChainFee: destFee.toDecimal(),
+      srcChainFee: srcFee,
+      destChainFee: destFee,
+      destChainSs58Prefix: destChain.ss58Format,
     };
   }
 
@@ -282,22 +414,24 @@ export class XcmApp extends BaseApp {
     this.transfer = {
       ...this.transfer,
       asset: selectedAsset,
-      destChain: validDestChain,
       balance: null,
       srcChainFee: null,
+      destChain: validDestChain,
       destChainFee: null,
     };
   }
 
   override async firstUpdated() {
+    this.configService = new ConfigService({
+      assets: assetsMap,
+      chains: chainsMap,
+      chainsConfig: chainsConfigMap,
+    });
     this.wallet = new Wallet({
       configService: this.configService,
-      evmChains: {
-        acala: acala,
-        moonbeam: moonbeam,
-        hydradx: hydradx,
-      },
+      evmChains: evmChains,
     });
+    walletCursor.reset(this.wallet);
     this.syncChains();
     this.syncBalances();
     this.syncInput();
@@ -306,11 +440,13 @@ export class XcmApp extends BaseApp {
   override async update(changedProperties: Map<string, unknown>) {
     if (
       changedProperties.has('srcChain') ||
-      changedProperties.has('dstChain')
+      changedProperties.has('srcEvmChain') ||
+      changedProperties.has('destChain')
     ) {
+      const srcChain = this.hasEvmAccount() ? this.srcEvmChain : this.srcChain;
       this.transfer = {
         ...this.transfer,
-        srcChain: chainsMap.get(this.srcChain),
+        srcChain: chainsMap.get(srcChain),
         destChain: chainsMap.get(this.destChain),
       };
     }
@@ -327,13 +463,11 @@ export class XcmApp extends BaseApp {
   }
 
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
-    /*   this.resetBalances();
+    this.resetBalances();
     curr && this.updateAddress(curr.address);
 
-    if (this.ready) {
-      await this.syncBalances();
-      await this.syncInput();
-    } */
+    await this.syncBalances();
+    await this.syncInput();
   }
 
   override connectedCallback() {
@@ -352,12 +486,11 @@ export class XcmApp extends BaseApp {
   }
 
   protected listItemClickedListener(isDest: boolean) {
+    const changeChainFn = isDest
+      ? this.changeDestinationChain.bind(this)
+      : this.changeSourceChain.bind(this);
     return function ({ detail: { item } }) {
-      if (isDest) {
-        this.changeDestinationChain(item);
-      } else {
-        this.changeSourceChain(item);
-      }
+      changeChainFn(item);
       this.changeTab(TransferTab.TransferForm);
     };
   }
@@ -430,13 +563,13 @@ export class XcmApp extends BaseApp {
   }
 
   protected assetInputChangedListener({ detail: { value } }) {
-    /*  this.updateAmount(value);
-    this.validateTransferAmount(); */
+    this.updateAmount(value);
+    this.validateAmount();
   }
 
   protected addressInputChangedListener({ detail: { address } }) {
-    /*  this.updateAddress(address);
-    this.validateAddress(); */
+    this.updateAddress(address);
+    this.validateAddress();
   }
 
   protected chainSelectorClickedListener({ detail: { chain } }) {
@@ -456,24 +589,23 @@ export class XcmApp extends BaseApp {
     return html` <uigc-paper class=${classMap(classes)} id="default-tab">
       <gc-xcm-form
         .disabled=${this.isFormDisabled()}
-        .srcChain=${this.transfer.srcChain}
-        .destChain=${this.transfer.destChain}
-        .asset=${this.transfer.asset}
+        .address=${this.transfer.address}
         .amount=${this.transfer.amount}
+        .asset=${this.transfer.asset}
         .balance=${this.transfer.balance}
         .effectiveBalance=${this.transfer.effectiveBalance}
-        .nativeAsset=${this.transfer.nativeAsset}
+        .srcChain=${this.transfer.srcChain}
         .srcChainFee=${this.transfer.srcChainFee}
+        .destChain=${this.transfer.destChain}
         .destChainFee=${this.transfer.destChainFee}
         .destChainSs58Prefix=${this.transfer.destChainSs58Prefix}
         .error=${this.transfer.error}
-        .address=${this.transfer.address}
         @asset-input-changed=${this.assetInputChangedListener}
         @address-input-changed=${this.addressInputChangedListener}
         @asset-switch-clicked=${this.switchChains}
         @asset-selector-clicked=${() => this.changeTab(TransferTab.SelectToken)}
         @chain-selector-clicked=${this.chainSelectorClickedListener}
-        @transfer-clicked=${() => console.log('transfer clicked')}
+        @transfer-clicked=${() => this.swap()}
       >
         <div class="header" slot="header">
           <uigc-typography gradient variant="title"

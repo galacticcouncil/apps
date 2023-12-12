@@ -1,5 +1,5 @@
-import { AnyChain, Asset } from '@moonbeam-network/xcm-types';
-import { chains, chainsMap, dot } from '@galacticcouncil/xcm';
+import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
+import { chainsMap } from '@galacticcouncil/xcm-cfg';
 
 export enum TransferTab {
   TransferForm,
@@ -8,32 +8,30 @@ export enum TransferTab {
 }
 
 export type TransferState = {
-  srcChain: AnyChain;
-  destChain: AnyChain;
-  asset: Asset;
-  amount: string;
-  balance: string;
   address: string;
+  amount: string;
+  asset: Asset;
+  balance: string;
   effectiveBalance: string;
-  nativeAsset: string;
-  srcChainFee: string;
-  destChainFee: string;
-  destChainSs58Prefix: string;
+  destChain: AnyChain;
+  destChainFee: AssetAmount;
+  destChainSs58Prefix: number;
+  srcChain: AnyChain;
+  srcChainFee: AssetAmount;
   error: {};
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
-  srcChain: null,
-  destChain: null,
-  asset: null,
-  amount: null,
-  balance: null,
   address: null,
+  amount: null,
+  asset: null,
+  balance: null,
   effectiveBalance: null,
-  nativeAsset: null,
-  srcChainFee: null,
+  destChain: null,
   destChainFee: null,
   destChainSs58Prefix: null,
+  srcChain: null,
+  srcChainFee: null,
   error: {},
 };
 
@@ -42,20 +40,13 @@ export type ChainState = {
   list: AnyChain[];
   dest: AnyChain[];
   tokens: Asset[];
-  balance: Map<string, string>;
+  balance: Map<string, AssetAmount>;
 };
 
 export const DEFAULT_CHAIN_STATE: ChainState = {
   selector: null,
-  list: chains,
+  list: Array.from(chainsMap.values()),
   dest: [],
   tokens: [],
   balance: new Map([]),
 };
-
-export interface AccountBalance {
-  balance: string;
-  extra: string;
-  reason: string;
-  status: string;
-}

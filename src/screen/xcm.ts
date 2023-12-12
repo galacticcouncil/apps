@@ -27,8 +27,9 @@ export class XcmScreen extends LitElement {
   hdxTemplate() {
     return html`
       <gc-xcm-app
-        srcChain="hydradx"
-        destChain="moonbeam"
+        srcChain="polkadot"
+        srcEvmChain="moonbeam"
+        destChain="hydradx"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}

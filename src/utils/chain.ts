@@ -1,5 +1,7 @@
-import { chains } from '@galacticcouncil/xcm';
+import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import { Ecosystem } from '../db';
+
+const chains = Array.from(chainsMap.values());
 
 export function getChainKey(paraId: number, ecosystem: Ecosystem) {
   const chainEcosystem = ecosystem ?? Ecosystem.Polkadot;

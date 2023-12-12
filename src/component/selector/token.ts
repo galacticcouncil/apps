@@ -4,7 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
-import { Asset } from '@moonbeam-network/xcm-types';
+import { Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import { baseStyles } from '../styles/base.css';
 import { selectorStyles } from '../styles/selector.css';
@@ -14,7 +14,9 @@ import { humanizeAmount } from '../../utils/amount';
 @customElement('gc-select-token')
 export class SelectToken extends LitElement {
   @property({ attribute: false }) assets: Asset[] = [];
-  @property({ attribute: false }) balances: Map<string, string> = new Map([]);
+  @property({ attribute: false }) balances: Map<string, AssetAmount> = new Map(
+    [],
+  );
   @property({ type: String }) asset = null;
   @property({ type: String }) query = '';
 
@@ -85,13 +87,16 @@ export class SelectToken extends LitElement {
         () => html` <uigc-asset-list>
           ${map(this.filterAssets(this.query), (asset: Asset) => {
             const balance = this.balances.get(asset.key) || null;
+            const displayBalance = balance
+              ? humanizeAmount(balance.toDecimal())
+              : '-';
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset.key)}
                 ?selected=${this.isSelected(asset.key)}
                 .asset=${{ symbol: asset.key }}
-                .unit=${asset.originSymbol}
-                .balance=${humanizeAmount(balance)}
+                .unit=${balance ? asset.originSymbol : null}
+                .balance=${displayBalance}
               >
                 <uigc-asset slot="asset" symbol=${asset.originSymbol}>
                   <uigc-asset-id

@@ -3,14 +3,14 @@ import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { Asset, AnyChain } from '@moonbeam-network/xcm-types';
+import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
-import { Account, accountCursor, xChainCursor } from '../../db';
+import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { capitalize } from '../../utils/text';
 import { isSameAddress, isValidAddress } from '../../utils/account';
@@ -21,16 +21,15 @@ import '../id/account';
 export class XcmForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
-  @property({ type: Object }) srcChain: AnyChain = null;
-  @property({ type: Object }) destChain: AnyChain = null;
-  @property({ type: String }) amount = null;
   @property({ type: String }) address = null;
+  @property({ type: String }) amount = null;
   @property({ type: Object }) asset: Asset = null;
   @property({ type: String }) balance = null;
   @property({ type: String }) effectiveBalance = null;
-  @property({ type: String }) nativeAsset = null;
-  @property({ type: String }) srcChainFee = null;
-  @property({ type: String }) destChainFee = null;
+  @property({ type: Object }) srcChain: AnyChain = null;
+  @property({ type: Object }) srcChainFee: AssetAmount = null;
+  @property({ type: Object }) destChain: AnyChain = null;
+  @property({ type: Object }) destChainFee: AssetAmount = null;
   @property({ type: String }) destChainSs58Prefix = null;
   @property({ type: Object }) error = {};
   @property({ type: Boolean }) disabled = false;
@@ -123,34 +122,17 @@ export class XcmForm extends LitElement {
     `,
   ];
 
-  transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
-    return html` <span class="label">${label}</span>
-      <span class="grow"></span>
-      ${when(
-        tradeFee,
-        () => html` <span class="value">${tradeFee} ${assetSymbol}</span>`,
-        () => html` <span class="value">-</span>`,
-      )}`;
+  private isDisabled(): boolean {
+    const account = this.account.state;
+    return !account || !this.isChainConnected();
   }
 
-  isChainConnected(): boolean {
+  private isChainConnected(): boolean {
     return true;
 
-    const chainAdapter = xChainCursor.deref().bridge.findAdapter(this.srcChain);
-    const chainApi = chainAdapter.getApi();
-    return chainApi && chainApi.isConnected;
-  }
-
-  transferButtonText(): string {
-    if (!this.account.state) {
-      return i18n.t('xcm.connect');
-    }
-
-    if (this.isChainConnected()) {
-      return i18n.t('xcm.transfer');
-    } else {
-      return i18n.t('xcm.connecting');
-    }
+    // const chainAdapter = xChainCursor.deref().bridge.findAdapter(this.srcChain);
+    // const chainApi = chainAdapter.getApi();
+    // return chainApi && chainApi.isConnected;
   }
 
   onTransferClick(e: any) {
@@ -173,13 +155,104 @@ export class XcmForm extends LitElement {
     };
   }
 
-  render() {
-    console.log(this.balance);
+  transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
+    return html` <span class="label">${label}</span>
+      <span class="grow"></span>
+      ${when(
+        tradeFee,
+        () => html` <span class="value">${tradeFee} ${assetSymbol}</span>`,
+        () => html` <span class="value">-</span>`,
+      )}`;
+  }
 
-    const isUserAddr = isSameAddress(
-      this.address,
-      accountCursor.deref()?.address,
-    );
+  transferButtonText(): string {
+    if (!this.account.state) {
+      return i18n.t('xcm.connect');
+    }
+
+    if (this.isChainConnected()) {
+      return i18n.t('xcm.transfer');
+    } else {
+      return i18n.t('xcm.connecting');
+    }
+  }
+
+  formSelectAssetTemplate() {
+    return html`
+      <uigc-asset-transfer
+        id="asset"
+        title="${i18n.t('xcm.asset')}"
+        .asset=${this.asset?.originSymbol}
+        .amount=${this.amount}
+        .unit=${this.asset?.originSymbol}
+        ?error=${this.error['amount']}
+        .error=${this.error['amount']}
+      >
+        <uigc-asset slot="asset" symbol=${this.asset?.originSymbol}>
+          <uigc-asset-id
+            slot="icon"
+            symbol=${this.asset?.originSymbol}
+          ></uigc-asset-id>
+        </uigc-asset>
+        <uigc-asset-balance
+          slot="balance"
+          .balance=${this.balance}
+          .onMaxClick=${this.maxClickHandler(
+            this.balance,
+            this.effectiveBalance,
+          )}
+        ></uigc-asset-balance>
+      </uigc-asset-transfer>
+    `;
+  }
+
+  formSelectChainTemplate() {
+    return html`
+      <div class="chain">
+        <uigc-chain-selector
+          title="${i18n.t('xcm.selectSrc')}"
+          .chain=${this.srcChain?.key}
+        ></uigc-chain-selector>
+        <div class="switch__mobile">
+          <div class="divider"></div>
+          <uigc-asset-switch class="switch"> </uigc-asset-switch>
+        </div>
+        <uigc-asset-switch basic class="switch__desktop"> </uigc-asset-switch>
+        <uigc-chain-selector
+          title="${i18n.t('xcm.selectDest')}"
+          .chain=${this.destChain?.key}
+        ></uigc-chain-selector>
+      </div>
+    `;
+  }
+
+  formAddressTemplate() {
+    const isValidAddr = isValidAddress(this.address);
+    return html` <uigc-address-input
+      id="address"
+      title="${i18n.t('xcm.toAddr')}"
+      .address=${this.address}
+      .chain=${this.destChain}
+      ?error=${this.error['address']}
+      .error=${this.error['address']}
+    >
+      ${when(
+        isValidAddr && this.destChainSs58Prefix,
+        () =>
+          html`
+            <gc-account-id
+              slot="id"
+              .address=${this.address}
+              .ss58prefix=${this.destChainSs58Prefix}
+            ></gc-account-id>
+          `,
+      )}
+    </uigc-address-input>`;
+  }
+
+  render() {
+    const account = this.account.state;
+    const isUserAddr = isSameAddress(this.address, account?.address);
     const isValidAddr = isValidAddress(this.address);
     const warningClasses = {
       warning: true,
@@ -191,82 +264,25 @@ export class XcmForm extends LitElement {
         <uigc-typography variant="subsection"
           >${i18n.t('xcm.selectChains')}</uigc-typography
         >
-        <div class="chain">
-          <uigc-chain-selector
-            title="${i18n.t('xcm.selectSrc')}"
-            .chain=${this.srcChain?.key}
-          ></uigc-chain-selector>
-          <div class="switch__mobile">
-            <div class="divider"></div>
-            <uigc-asset-switch class="switch"> </uigc-asset-switch>
-          </div>
-          <uigc-asset-switch basic class="switch__desktop"> </uigc-asset-switch>
-          <uigc-chain-selector
-            title="${i18n.t('xcm.selectDest')}"
-            .chain=${this.destChain?.key}
-          ></uigc-chain-selector>
-        </div>
+        ${this.formSelectChainTemplate()}
         <uigc-typography variant="subsection"
           >${i18n.t('xcm.assetAmount')}</uigc-typography
         >
-        <uigc-asset-transfer
-          id="asset"
-          title="${i18n.t('xcm.asset')}"
-          .asset=${this.asset?.originSymbol}
-          .amount=${this.amount}
-          .unit=${this.asset?.originSymbol}
-          ?error=${this.error['amount']}
-          .error=${this.error['amount']}
-        >
-          <uigc-asset slot="asset" symbol=${this.asset?.originSymbol}>
-            <uigc-asset-id
-              slot="icon"
-              symbol=${this.asset?.originSymbol}
-            ></uigc-asset-id>
-          </uigc-asset>
-          <uigc-asset-balance
-            slot="balance"
-            .balance=${this.balance}
-            .onMaxClick=${this.maxClickHandler(
-              this.balance,
-              this.effectiveBalance,
-            )}
-          ></uigc-asset-balance>
-        </uigc-asset-transfer>
-        <uigc-address-input
-          id="address"
-          title="${i18n.t('xcm.toAddr')}"
-          .address=${this.address}
-          .chain=${this.destChain}
-          ?error=${this.error['address']}
-          .error=${this.error['address']}
-        >
-          ${when(
-            isValidAddr && this.destChainSs58Prefix,
-            () =>
-              html`
-                <gc-account-id
-                  slot="id"
-                  .address=${this.address}
-                  .ss58prefix=${this.destChainSs58Prefix}
-                ></gc-account-id>
-              `,
-          )}
-        </uigc-address-input>
+        ${this.formSelectAssetTemplate()} ${this.formAddressTemplate()}
       </div>
       <div class="info show">
         <div class="row">
           ${this.transferFeeTemplate(
             i18n.t('xcm.sourceFee'),
-            this.srcChainFee,
-            this.nativeAsset,
+            this.srcChainFee?.toDecimal(),
+            this.srcChainFee?.originSymbol,
           )}
         </div>
         <div class="row">
           ${this.transferFeeTemplate(
             i18n.t('xcm.destFee'),
-            this.destChainFee,
-            this.asset?.originSymbol,
+            this.destChainFee?.toDecimal(),
+            this.destChainFee?.originSymbol,
           )}
         </div>
       </div>
@@ -281,9 +297,7 @@ export class XcmForm extends LitElement {
       </div>
       <div class="grow"></div>
       <uigc-button
-        ?disabled=${this.disabled ||
-        !this.account.state ||
-        !this.isChainConnected()}
+        ?disabled=${this.disabled || this.isDisabled()}
         class="confirm"
         variant="primary"
         fullWidth
