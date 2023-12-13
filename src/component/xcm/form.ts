@@ -124,15 +124,13 @@ export class XcmForm extends LitElement {
 
   private isDisabled(): boolean {
     const account = this.account.state;
-    return !account || !this.isChainConnected();
+    return (
+      !account || !this.isChainConnected() || !isValidAddress(this.address)
+    );
   }
 
   private isChainConnected(): boolean {
     return true;
-
-    // const chainAdapter = xChainCursor.deref().bridge.findAdapter(this.srcChain);
-    // const chainApi = chainAdapter.getApi();
-    // return chainApi && chainApi.isConnected;
   }
 
   onTransferClick(e: any) {
@@ -237,13 +235,13 @@ export class XcmForm extends LitElement {
       .error=${this.error['address']}
     >
       ${when(
-        isValidAddr && this.destChainSs58Prefix,
+        isValidAddr,
         () =>
           html`
             <gc-account-id
               slot="id"
               .address=${this.address}
-              .ss58prefix=${this.destChainSs58Prefix}
+              .ss58prefix=${63}
             ></gc-account-id>
           `,
       )}

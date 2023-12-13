@@ -11,7 +11,7 @@ import { basicLayoutStyles } from '../styles/layout/basic.css';
 
 import { Account, walletCursor } from '../../db';
 import {
-  convertAddressSS58,
+  convertFromH160,
   convertToH160,
   isEthAddress,
   isValidAddress,
@@ -37,7 +37,6 @@ import {
 } from '@moonbeam-network/xcm-config';
 
 import { Asset, AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
-import { getPolkadotApi } from '@moonbeam-network/xcm-utils';
 
 import './form';
 import '../selector/token';
@@ -112,23 +111,74 @@ export class XcmApp extends BaseApp {
     this.requestUpdate();
   }
 
+  private isEvmCompatible(chain: AnyChain) {
+    if (chain.key === 'hydradx') {
+      return true;
+    }
+    return chain.isEvmParachain();
+  }
+
+  private isSubstrateCompatible(chain: AnyChain) {
+    if (chain.key === 'hydradx') {
+      return true;
+    }
+    return chain.isParachain();
+  }
+
+  private isSupportedWallet(srcChain: AnyChain) {
+    if (this.hasEvmAccount()) {
+      return this.isEvmCompatible(srcChain);
+    } else if (this.hasSubstrateAccount()) {
+      return this.isSubstrateCompatible(srcChain);
+    } else {
+      return true;
+    }
+  }
+
+  private onChangeWallet(srcChain: AnyChain) {
+    const requiredWallet = srcChain.isParachain() ? 'substrate' : 'evm';
+    alert('Please change your wallet to ' + requiredWallet.toUpperCase());
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent<TxInfo>('gc:wallet:change', options));
+  }
+
   private async switchChains() {
+    const { destChain, srcChain } = this.transfer;
+
+    const supportedWallet: boolean = this.isSupportedWallet(destChain);
+    if (!supportedWallet) {
+      this.onChangeWallet(destChain);
+      return;
+    }
+
     this.transfer = {
       ...this.transfer,
-      srcChain: this.transfer.destChain,
-      destChain: this.transfer.srcChain,
+      srcChain: destChain,
+      destChain: srcChain,
       balance: null,
     };
     this.disconnectSubscriptions();
     this.syncChains();
+    this.validateAddress();
     await this.syncBalances();
     await this.syncInput();
   }
 
   private async changeSourceChain(chain: string) {
+    const srcChain = chainsMap.get(chain);
+
+    const supportedWallet: boolean = this.isSupportedWallet(srcChain);
+    if (!supportedWallet) {
+      this.onChangeWallet(srcChain);
+      return;
+    }
+
     this.transfer = {
       ...this.transfer,
-      srcChain: chainsMap.get(chain),
+      srcChain: srcChain,
       balance: null,
     };
     this.disconnectSubscriptions();
@@ -138,13 +188,15 @@ export class XcmApp extends BaseApp {
   }
 
   private async changeDestinationChain(chain: string) {
+    const srcChain = chainsMap.get(chain);
     this.transfer = {
       ...this.transfer,
-      destChain: chainsMap.get(chain),
+      destChain: srcChain,
       balance: null,
     };
     this.disconnectSubscriptions();
     this.syncChains();
+    this.validateAddress();
     await this.syncBalances();
     await this.syncInput();
   }
@@ -165,6 +217,7 @@ export class XcmApp extends BaseApp {
       ...this.transfer,
       address: address,
     };
+    this.requestUpdate();
   }
 
   validateAddress() {
@@ -173,7 +226,7 @@ export class XcmApp extends BaseApp {
       this.transfer.error['address'] = i18n.t('xcm.error.required');
     } else if (destChain.isEvmParachain() && !isEthAddress(address)) {
       this.transfer.error['address'] = i18n.t('xcm.error.addrIncorrect');
-    } else if (destChain.isParachain() && !isValidAddress(address)) {
+    } else if (!isValidAddress(address)) {
       this.transfer.error['address'] = i18n.t('xcm.error.addrIncorrect');
     } else {
       delete this.transfer.error['address'];
@@ -218,37 +271,6 @@ export class XcmApp extends BaseApp {
       delete this.transfer.error['amount'];
     }
     this.requestUpdate();
-  }
-
-  private formatAddress(address: string, chain: AnyChain): string {
-    if (chain.isEvmParachain()) {
-      return convertToH160(address);
-    } else {
-      return convertAddressSS58(address, chain.ss58Format);
-    }
-  }
-
-  private formatDestEvmAddress(address: string, chain: AnyChain) {
-    if (chain.isEvmParachain()) {
-      return convertToH160(address);
-    } else {
-      return '';
-    }
-  }
-
-  private formatDestAddress(address: string, chain: AnyChain) {
-    if (chain.isEvmParachain()) {
-      return '';
-    } else {
-      return address;
-    }
-  }
-
-  private formatToAddress(address: string, chain: AnyChain): string {
-    if (this.hasEvmAccount()) {
-      return this.formatDestEvmAddress(address, chain);
-    }
-    return this.formatDestAddress(address, chain);
   }
 
   notificationTemplate(
@@ -296,17 +318,44 @@ export class XcmApp extends BaseApp {
         account: account,
         transaction: transaction,
         notification: notification,
-        meta: { srcChain: srcChain, dstChain: destChain },
+        meta: { srcChain: srcChain.key, dstChain: destChain.key },
       } as TxInfo,
     };
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:xcm:new', options));
   }
 
+  private formatAddress(address: string, chain: AnyChain): string {
+    if (chain.isEvmParachain()) {
+      return convertToH160(address);
+    } else {
+      return address;
+    }
+  }
+
+  private formatDestAddress(address: string, chain: AnyChain): string {
+    if (isEthAddress(address) && chain.isParachain()) {
+      return convertFromH160(address);
+    } else {
+      return address;
+    }
+  }
+
   async swap() {
     const account = this.account.state;
-    const { amount } = this.transfer;
-    const call = this.input.transfer(amount);
+    const { address, asset, amount, srcChain, destChain } = this.transfer;
 
+    const srcAddr = this.formatAddress(account.address, srcChain);
+    const destAddr = this.formatDestAddress(address, destChain);
+
+    const xData = await this.wallet.transfer(
+      asset,
+      srcAddr,
+      srcChain,
+      destAddr,
+      destChain,
+    );
+
+    const call = xData.transfer(amount);
     const transaction = {
       hex: call.data,
       name: 'xcm',
@@ -347,20 +396,10 @@ export class XcmApp extends BaseApp {
 
   private async syncInput() {
     const { srcChain, destChain, asset } = this.transfer;
-    const { address, provider } = this.account.state;
-
-    console.time('connection');
-    const [srcApi, dstApi] = await Promise.all([
-      getPolkadotApi(srcChain.ws),
-      getPolkadotApi(destChain.ws),
-    ]);
-    console.timeEnd('connection');
+    const { address } = this.account.state;
 
     const srcAddr = this.formatAddress(address, srcChain);
     const destAddr = this.formatAddress(address, destChain);
-
-    console.log(srcAddr);
-    console.log(destAddr);
 
     const xData = await this.wallet.transfer(
       asset,
@@ -375,7 +414,6 @@ export class XcmApp extends BaseApp {
     this.input = xData;
     this.transfer = {
       ...this.transfer,
-      address: this.formatToAddress(address, destChain),
       balance: balance.toDecimal(),
       srcChainFee: srcFee,
       destChainFee: destFee,
@@ -453,14 +491,7 @@ export class XcmApp extends BaseApp {
     super.update(changedProperties);
   }
 
-  override async updated() {
-    /*  if (this.xChain.state && !this.ready) {
-      console.log('Initialization...');
-      this.ready = true;
-      await this.init();
-      console.log('Done ✅');
-    } */
-  }
+  override async updated() {}
 
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
     this.resetBalances();

@@ -1,9 +1,9 @@
+import { u8aToHex } from '@polkadot/util';
 import {
   decodeAddress,
   encodeAddress,
   validateAddress,
 } from '@polkadot/util-crypto';
-import { u8aToHex } from '@polkadot/util';
 
 import { HYDRADX_SS58_PREFIX } from '@galacticcouncil/sdk';
 
@@ -12,6 +12,7 @@ import { Buffer } from 'buffer';
 const ETH_PREFIX = 'ETH\0';
 
 export const EVM_PROVIDERS = ['metamask'];
+export const EVM_CHAINS = ['hydradx', 'moonbeam'];
 
 export function convertAddressSS58(
   address: string,
@@ -63,12 +64,15 @@ export function isSameAddress(address1: string, address2: string): boolean {
 
 export function isValidAddress(address: string): boolean {
   try {
-    return address && validateAddress(address);
+    return validateAddress(address);
   } catch {
     return false;
   }
 }
 
 export function isEthAddress(address: string) {
-  return address.length === 42 && address.startsWith('0x');
+  if (address) {
+    return address.length === 42 && address.startsWith('0x');
+  }
+  return false;
 }

@@ -6,7 +6,7 @@ import { generateAvatarURL } from '@cfx-kit/wallet-avatar';
 import { u8aToHex } from '@polkadot/util';
 import { decodeAddress } from '@polkadot/util-crypto';
 
-import { convertAddressSS58, isEthAddress } from '../../utils/account';
+import { isEthAddress } from '../../utils/account';
 
 import { toSvg } from 'jdenticon';
 
@@ -24,14 +24,12 @@ export class AccountId extends LitElement {
   ];
 
   render() {
-    const isEth = isEthAddress(this.address);
-    if (isEth) {
+    const isEthAddr = isEthAddress(this.address);
+    if (isEthAddr) {
       const avatarUrl = generateAvatarURL(this.address);
       return html`<img class="avatar" src="${avatarUrl}" />`;
     }
-
-    const address = convertAddressSS58(this.address, this.ss58prefix);
-    const decoded = decodeAddress(address, false, Number(this.ss58prefix));
+    const decoded = decodeAddress(this.address, false, this.ss58prefix);
     const publicKey = u8aToHex(decoded);
     const svgString = toSvg(publicKey.substring(2), 26);
     return html` ${unsafeHTML(svgString)} `;

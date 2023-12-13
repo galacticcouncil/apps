@@ -39,6 +39,11 @@ export abstract class BaseApp extends BaseElement {
     return this.hasAccount() && EVM_PROVIDERS.includes(account.provider);
   }
 
+  hasSubstrateAccount(): boolean {
+    const account = this.account.state;
+    return this.hasAccount() && !EVM_PROVIDERS.includes(account.provider);
+  }
+
   getShortened(address: string): string {
     return address.substring(0, 10).concat('...');
   }
