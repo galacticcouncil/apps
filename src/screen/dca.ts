@@ -7,9 +7,11 @@ import { DatabaseController } from '../db.ctrl';
 
 import '../component/dca';
 import { PoolType } from '@galacticcouncil/sdk';
+import {ThemeController} from "../theme.ctrl";
 
 @customElement('gc-dca-screen')
 export class DcaScreen extends LitElement implements BeforeEnterObserver {
+  private theme = new ThemeController(this);
   private account = new DatabaseController<Account>(this, accountCursor);
 
   @state() assetIn: string = null;
@@ -40,6 +42,25 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
     `;
   }
 
+  bsxTemplate() {
+    return html`
+      <gc-dca-app
+        chart
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
+        apiAddress="wss://chopsticks.rpc.hydration.cloud"
+        pools=${[PoolType.XYK].join(',')}
+        stableCoinAssetId="14"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
+        indexerUrl="https://basilisk-explorer.play.hydration.cloud/graphql"
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="5"
+      ></gc-dca-app>
+    `;
+  }
+
   hdxTemplateRococo() {
     return html`
       <gc-dca-app
@@ -60,6 +81,10 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
   }
 
   render() {
-    return this.hdxTemplate();
+    if (this.theme.state == 'hdx') {
+      return this.hdxTemplate();
+    } else {
+      return this.bsxTemplate();
+    }
   }
 }

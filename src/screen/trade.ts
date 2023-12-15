@@ -26,22 +26,26 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
   bsxTemplate() {
     return html`
       <gc-trade-app
+        chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://rpc.basilisk.cloud"
+        apiAddress="wss://chopsticks.rpc.hydration.cloud"
         ecosystem=${Ecosystem.Kusama}
         pools=${PoolType.XYK}
         stableCoinAssetId="14"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
+        indexerUrl="https://basilisk-explorer.play.hydration.cloud/graphql"
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="5"
       ></gc-trade-app>
     `;
   }
 
   bsxTemplateRococo() {
     return html`
-      <gc-trade-app
+      <gc-trade-app 
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://basilisk-rococo-rpc.play.hydration.cloud"
