@@ -1,9 +1,7 @@
 import { bnum } from '@galacticcouncil/sdk';
-import type { ISubmittableResult } from '@polkadot/types/types';
-
-import { ApiPromise } from '@polkadot/api';
-
 import { EvmClient, XCall } from '@galacticcouncil/xcm-sdk';
+import type { ISubmittableResult } from '@polkadot/types/types';
+import { ApiPromise } from '@polkadot/api';
 import { getWalletBySource } from '@talismn/connect-wallets';
 
 import { convertToH160 } from '../../utils/account';

@@ -4,7 +4,7 @@ import { AssetApi } from '../../api/asset';
 import { PaymentApi } from '../../api/payment';
 import { TimeApi } from '../../api/time';
 import { createApi } from '../../chain';
-import { Account, Chain, Ecosystem, chainCursor } from '../../db';
+import { Account, Chain, chainCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { multipleAmounts } from '../../utils/amount';
 
@@ -13,7 +13,6 @@ import {
   Asset,
   BalanceClient,
   BigNumber,
-  PoolType,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
   bnum,
@@ -32,16 +31,14 @@ export abstract class PoolApp extends BaseApp {
   protected blockTime: number = null;
 
   protected assetApi: AssetApi = null;
+  protected balanceClient: BalanceClient = null;
   protected paymentApi: PaymentApi = null;
   protected timeApi: TimeApi = null;
-  protected balanceClient: BalanceClient = null;
 
+  @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
-  @property({ type: String }) apiAddress: string = null;
-  @property({ type: String }) pools: string = null;
   @property({ type: String }) stableCoinAssetId: string = null;
-  @property({ type: String }) ecosystem: Ecosystem = null;
 
   @state() assets = {
     tradeable: [] as Asset[],
@@ -65,11 +62,9 @@ export abstract class PoolApp extends BaseApp {
     if (this.isApiReady()) {
       this._init();
     } else {
-      const pools = this.pools ? this.pools.split(',') : [];
       createApi(
         this.apiAddress,
         this.ecosystem,
-        pools as PoolType[],
         () => this._init(),
         () => {},
       );

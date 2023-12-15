@@ -30,7 +30,6 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.basilisk.cloud"
         ecosystem=${Ecosystem.Kusama}
-        pools=${PoolType.XYK}
         stableCoinAssetId="14"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
@@ -46,7 +45,6 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetOut=${this.assetOut}
         apiAddress="wss://basilisk-rococo-rpc.play.hydration.cloud"
         ecosystem=${Ecosystem.Kusama}
-        pools=${PoolType.XYK}
         stableCoinAssetId="19"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
@@ -63,12 +61,6 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.hydradx.cloud"
-        pools=${[
-          PoolType.Omni,
-          PoolType.LBP,
-          PoolType.Stable,
-          PoolType.XYK,
-        ].join(',')}
         stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
@@ -88,12 +80,6 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.nice.hydration.cloud"
-        pools=${[
-          PoolType.Omni,
-          PoolType.LBP,
-          PoolType.Stable,
-          PoolType.XYK,
-        ].join(',')}
         stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}

@@ -2,7 +2,7 @@ import { property } from 'lit/decorators.js';
 
 import short from 'short-uuid';
 
-import { Account, accountCursor } from '../../db';
+import { Account, Ecosystem, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { EVM_PROVIDERS } from '../../utils/account';
 
@@ -10,14 +10,16 @@ import { BaseElement } from './BaseElement';
 
 export abstract class BaseApp extends BaseElement {
   protected account = new DatabaseController<Account>(this, accountCursor);
+
   private watchId: string;
 
   @property({ type: String }) accountAddress: string = null;
   @property({ type: String }) accountProvider: string = null;
   @property({ type: String }) accountName: string = null;
-  @property({ type: String }) indexerUrl: string = null;
+  @property({ type: String }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ type: String }) grafanaUrl: string = null;
   @property({ type: Number }) grafanaDsn: number = null;
+  @property({ type: String }) indexerUrl: string = null;
   @property({ type: String }) squidUrl: string = null;
 
   constructor() {
@@ -29,6 +31,8 @@ export abstract class BaseApp extends BaseElement {
     prev: Account,
     curr: Account,
   ): Promise<void>;
+  protected abstract onBlockChange(blockNumber: number): void;
+  protected abstract onInit(): void;
 
   hasAccount(): boolean {
     return !!this.account.state;
