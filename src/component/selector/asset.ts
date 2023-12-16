@@ -25,7 +25,6 @@ export class SelectAsset extends LitElement {
   @property({ attribute: false }) assets: Asset[] = [];
   @property({ attribute: false }) assetsAlt: Asset[] = null;
   @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
-  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
@@ -35,6 +34,14 @@ export class SelectAsset extends LitElement {
   @property({ type: String }) query = '';
 
   static styles = [baseStyles, selectorStyles];
+
+  private getAssets() {
+    return new Map(
+      this.assets.map((asset: Asset) => {
+        return [asset.id, asset];
+      }),
+    );
+  }
 
   private updateSearch(searchDetail: any) {
     this.query = searchDetail.value;
@@ -180,6 +187,7 @@ export class SelectAsset extends LitElement {
         () => html` <uigc-asset-list>
           ${map(this.filter(this.query), ({ asset, balance, balanceUsd }) => {
             const icons = asset.icon.split('/');
+
             return html`
               <uigc-asset-list-item
                 slot=${this.getSlot(asset)}
@@ -194,8 +202,7 @@ export class SelectAsset extends LitElement {
                   slot="asset"
                   .showDesc=${true}
                   .asset=${asset}
-                  .detail=${asset.name}
-                  .locations=${this.locations}
+                  .assets=${this.getAssets()}
                 ></gc-asset-id>
               </uigc-asset-list-item>
             `;

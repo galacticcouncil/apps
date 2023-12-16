@@ -105,14 +105,14 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
     const { assetIn, assetOut } = order;
     return html`
       <div class="pair">
-        ${this.assetTemplate(assetIn, order.locations)}
+        ${this.assetTemplate(assetIn, order.assets)}
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        ${this.assetTemplate(assetOut, order.locations)}
+        ${this.assetTemplate(assetOut, order.assets)}
       </div>
     `;
   }
 
-  private assetTemplate(asset: Asset, locations: Map<string, number>) {
+  private assetTemplate(asset: Asset, assets: Map<string, Asset>) {
     const chain = this.chain.state;
     return html`
       <gc-asset-id
@@ -120,8 +120,8 @@ export abstract class DcaBaseDatagrid extends Datagrid<DcaOrder> {
         size="small"
         .showSymbol=${false}
         .asset=${asset}
+        .assets=${assets}
         .ecosystem=${chain.ecosystem}
-        .locations=${locations}
       ></gc-asset-id>
     `;
   }

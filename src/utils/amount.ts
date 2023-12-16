@@ -31,7 +31,7 @@ export function multipleAmounts(amountA: string, amountB: Amount) {
   return amounA * amounB;
 }
 
-export function toBn(amount: string, decimals: number) {
+export function toBn(amount: string, decimals: number): BigNumber {
   const amountBN = scale(bnum(amount), decimals);
   return amountBN.decimalPlaces(0, 1);
 }

@@ -109,7 +109,6 @@ export class LbpApp extends TradeApp {
         .assets=${this.assets.tradeable}
         .assetsAlt=${this.lbp.assets}
         .pairs=${this.assets.pairs}
-        .locations=${this.assets.locations}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.trade.assetIn}

@@ -9,7 +9,6 @@ import {
 import { ApiPromise } from '@polkadot/api';
 
 import { pairs2Map } from '../utils/mapper';
-import { parseLocation } from '../utils/location';
 
 export class AssetApi {
   private _api: ApiPromise;
@@ -27,16 +26,6 @@ export class AssetApi {
   async getAssets(): Promise<Map<string, Asset>> {
     const assets = await this._assetClient.getOnChainAssets();
     return new Map(assets.map((a) => [a.id, a]));
-  }
-
-  async getLocations(assets: Asset[]): Promise<Map<string, number>> {
-    const locations: [string, number][] = await Promise.all(
-      assets.map(async (asset: Asset) => [
-        asset.id,
-        await this.getParachainId(asset.id),
-      ]),
-    );
-    return pairs2Map(locations);
   }
 
   async getBalance(
@@ -81,13 +70,5 @@ export class AssetApi {
       ]),
     );
     return pairs2Map(pairs);
-  }
-
-  private async getParachainId(assetId: string): Promise<number> {
-    const locations = await this._api.query.assetRegistry.assetLocations(
-      assetId,
-    );
-    const data = locations.unwrapOr(null);
-    return parseLocation(data);
   }
 }

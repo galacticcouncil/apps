@@ -37,7 +37,6 @@ export class TradeOrders extends BaseApp {
   };
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
-  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
 
   @state() orders = {
     list: [] as DcaOrder[],
@@ -249,7 +248,7 @@ export class TradeOrders extends BaseApp {
             ...order,
             remaining,
             received,
-            locations: this.locations,
+            assets: this.assets,
             transactions,
             nextExecution,
             nextExecutionBlock,
@@ -260,7 +259,7 @@ export class TradeOrders extends BaseApp {
         return {
           ...order,
           remaining,
-          locations: this.locations,
+          assets: this.assets,
           hasPendingTx: () => false,
         } as DcaOrder;
       });

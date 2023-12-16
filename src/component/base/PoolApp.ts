@@ -44,7 +44,6 @@ export abstract class PoolApp extends BaseApp {
     tradeable: [] as Asset[],
     registry: new Map<string, Asset>([]),
     pairs: new Map<string, Asset[]>([]),
-    locations: new Map<string, number>([]),
     usdPrice: new Map<string, Amount>([]),
     nativePrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
@@ -104,10 +103,9 @@ export abstract class PoolApp extends BaseApp {
     this.balanceClient = new BalanceClient(api);
 
     const tradeable = await router.getAllAssets();
-    const [assets, assetsPairs, assetsLocations] = await Promise.all([
+    const [assets, assetsPairs] = await Promise.all([
       this.assetApi.getAssets(),
       this.assetApi.getPairs(tradeable),
-      this.assetApi.getLocations(tradeable),
     ]);
 
     this.assets = {
@@ -115,7 +113,6 @@ export abstract class PoolApp extends BaseApp {
       tradeable: tradeable,
       registry: assets,
       pairs: assetsPairs,
-      locations: assetsLocations,
     };
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
@@ -252,6 +249,6 @@ export abstract class PoolApp extends BaseApp {
       return bnum(nativeAmount).shiftedBy(-1 * SYSTEM_ASSET_DECIMALS);
     }
     const assetNativePrice = this.assets.nativePrice.get(asset.id);
-    return new BigNumber(nativeAmount).div(assetNativePrice.amount);
+    return bnum(nativeAmount).div(assetNativePrice.amount);
   }
 }

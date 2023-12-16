@@ -12,7 +12,7 @@ export class AssetId extends LitElement {
   @property({ type: Boolean }) showDesc: boolean = false;
   @property({ type: Boolean }) showSymbol: boolean = true;
   @property({ attribute: false }) asset: Asset = null;
-  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
+  @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
   static styles = [
@@ -29,9 +29,9 @@ export class AssetId extends LitElement {
   ];
 
   iconTemplate(id: string, icon: string) {
-    const originLocation = this.locations.get(id);
-    const originChain = getChainKey(originLocation, this.ecosystem);
-    if (originChain) {
+    const asset = this.assets.get(id);
+    if (asset.origin) {
+      const originChain = getChainKey(asset.origin, this.ecosystem);
       return html`
         <uigc-asset-id
           slot="icon"

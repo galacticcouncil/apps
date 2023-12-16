@@ -23,7 +23,6 @@ export class DcaForm extends BaseElement {
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
-  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) loaded = false;
@@ -284,7 +283,7 @@ export class DcaForm extends BaseElement {
         <gc-asset-id
           slot=${slot}
           .asset=${asset}
-          .locations=${this.locations}
+          .assets=${this.assets}
         ></gc-asset-id>
       `;
     }

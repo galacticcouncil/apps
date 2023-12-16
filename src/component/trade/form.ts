@@ -30,7 +30,6 @@ export class TradeForm extends BaseElement {
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
-  @property({ attribute: false }) locations: Map<string, number> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
@@ -707,7 +706,7 @@ export class TradeForm extends BaseElement {
         <gc-asset-id
           slot="asset"
           .asset=${asset}
-          .locations=${this.locations}
+          .assets=${this.assets}
         ></gc-asset-id>
       `;
     }

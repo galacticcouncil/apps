@@ -1,6 +1,7 @@
 import type { Balance, RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import { ApiPromise } from '@polkadot/api';
 import {
+  Asset,
   bnum,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
@@ -10,8 +11,11 @@ import {
 
 import { Account } from '../db';
 import { formatAmount, multipleAmounts } from '../utils/amount';
+import { isEvmAccount } from '../utils/account';
 
 const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
+const EVM_PAYMENT_ASSET = 'WETH';
+const EVM_PAYMENT_ORIGIN = 2004;
 
 export type PaymentFee = { amount: string; ed: string };
 
@@ -25,6 +29,16 @@ export class PaymentApi {
   }
 
   async getPaymentFeeAsset(account: Account): Promise<string> {
+    if (isEvmAccount(account.address)) {
+      const assets = await this._router.getAllAssets();
+      const paymentAsset = assets.find(
+        (asset: Asset) =>
+          asset.symbol === EVM_PAYMENT_ASSET &&
+          asset.origin === EVM_PAYMENT_ORIGIN,
+      );
+      return paymentAsset.id;
+    }
+
     try {
       const feeAsset =
         await this._api.query.multiTransactionPayment.accountCurrencyMap(

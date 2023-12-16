@@ -33,6 +33,8 @@ export class XcmScreen extends LitElement {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
+        apiAddress="wss://rpc.hydradx.cloud"
+        stableCoinAssetId="10"
       ></gc-xcm-app>
     `;
   }

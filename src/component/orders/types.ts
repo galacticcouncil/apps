@@ -16,6 +16,7 @@ export type DcaTransaction = {
 
 export type DcaOrder = {
   id: number;
+  assets: Map<string, Asset>;
   assetIn: Asset;
   assetOut: Asset;
   nextExecution: number;
@@ -26,7 +27,6 @@ export type DcaOrder = {
   remaining: BigNumber;
   received: BigNumber;
   status: DcaStatus;
-  locations: Map<string, number>;
   transactions: DcaTransaction[];
   hasPendingTx(): boolean;
 };

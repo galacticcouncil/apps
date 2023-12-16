@@ -31,8 +31,6 @@ export abstract class BaseApp extends BaseElement {
     prev: Account,
     curr: Account,
   ): Promise<void>;
-  protected abstract onBlockChange(blockNumber: number): void;
-  protected abstract onInit(): void;
 
   hasAccount(): boolean {
     return !!this.account.state;

@@ -76,3 +76,15 @@ export function isEthAddress(address: string) {
   }
   return false;
 }
+
+export function isEvmAccount(address: string) {
+  if (!address) return false;
+
+  try {
+    const prefixBytes = Buffer.from(ETH_PREFIX);
+    const pub = decodeAddress(address, true);
+    return Buffer.from(pub.subarray(0, prefixBytes.length)).equals(prefixBytes);
+  } catch {
+    return false;
+  }
+}

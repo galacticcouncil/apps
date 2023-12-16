@@ -1035,7 +1035,7 @@ export class TradeApp extends PoolApp {
   }
 
   protected onBalanceUpdate() {
-    //this.requestUpdate();
+    this.requestUpdate();
     this.syncBalances();
   }
 
@@ -1044,10 +1044,10 @@ export class TradeApp extends PoolApp {
     curr: Account,
   ): Promise<void> {
     super.onAccountChange(prev, curr);
-    //this.resetBalances();
-    //this.syncBalances();
-    if (curr == null) {
-      this.resetTrade();
+    if (curr) {
+      this.syncBalances();
+    } else {
+      this.resetBalances();
     }
   }
 
@@ -1112,7 +1112,6 @@ export class TradeApp extends PoolApp {
       <gc-select-asset
         .assets=${this.assets.tradeable}
         .pairs=${this.assets.pairs}
-        .locations=${this.assets.locations}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.trade.assetIn}
@@ -1188,7 +1187,6 @@ export class TradeApp extends PoolApp {
       <gc-trade-form
         .assets=${this.assets.registry}
         .pairs=${this.assets.pairs}
-        .locations=${this.assets.locations}
         .inProgress=${this.trade.inProgress}
         .disabled=${this.isFormDisabled()}
         .loaded=${this.isFormLoaded()}
@@ -1290,7 +1288,6 @@ export class TradeApp extends PoolApp {
         <gc-trade-orders
           class="orders"
           .assets=${this.assets.registry}
-          .locations=${this.assets.locations}
           .indexerUrl=${this.indexerUrl}
           .grafanaUrl=${this.grafanaUrl}
           .grafanaDsn=${this.grafanaDsn}
