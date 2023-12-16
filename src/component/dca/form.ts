@@ -22,7 +22,6 @@ export class DcaForm extends BaseElement {
   private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
-  @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) loaded = false;

@@ -1,16 +1,15 @@
-import type { Balance, RuntimeDispatchInfo } from '@polkadot/types/interfaces';
+import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import { ApiPromise } from '@polkadot/api';
 import {
   Asset,
+  Amount,
   bnum,
-  SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
   TradeRouter,
   Transaction,
 } from '@galacticcouncil/sdk';
 
 import { Account } from '../db';
-import { formatAmount, multipleAmounts } from '../utils/amount';
 import { isEvmAccount } from '../utils/account';
 
 const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
@@ -59,33 +58,15 @@ export class PaymentApi {
     return await transactionExtrinsic.paymentInfo(address);
   }
 
-  async getPaymentFee(
-    feeAssetId: string,
-    feeAssetNativeBalance: Balance,
-    feeAssetEd: string,
-  ): Promise<PaymentFee> {
-    const feeAssetEdBN = bnum(feeAssetEd.toString());
-    const feeNativeBN = bnum(feeAssetNativeBalance.toString());
-    const feeHuman = formatAmount(feeNativeBN, SYSTEM_ASSET_DECIMALS);
-
-    if (feeAssetId == SYSTEM_ASSET_ID) {
-      const ed = formatAmount(feeAssetEdBN, SYSTEM_ASSET_DECIMALS);
+  async getPaymentFee(feeAsset: Asset, feeNative: string): Promise<Amount> {
+    const feeNativeBN = bnum(feeNative);
+    if (feeAsset.id == SYSTEM_ASSET_ID) {
       return {
-        amount: feeHuman,
-        ed: ed,
-      } as PaymentFee;
+        amount: feeNativeBN,
+        decimals: feeAsset.decimals,
+      };
     }
-
-    const feeAssetPrice = await this._router.getBestSpotPrice(
-      SYSTEM_ASSET_ID,
-      feeAssetId,
-    );
-    const fee = multipleAmounts(feeHuman, feeAssetPrice);
-    const ed = formatAmount(feeAssetEdBN, feeAssetPrice.decimals);
-    return {
-      amount: fee.toString(),
-      ed: ed,
-    } as PaymentFee;
+    return await this._router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAsset.id);
   }
 
   private getAddress(account: Account) {

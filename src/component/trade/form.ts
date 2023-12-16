@@ -13,9 +13,10 @@ import { formStyles } from '../styles/form.css';
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { TradeApi, TradeTwap, TradeTwapError } from '../../api/trade';
-import { humanizeAmount } from '../../utils/amount';
+import { formatAmount, humanizeAmount } from '../../utils/amount';
 
 import {
+  Amount,
   Asset,
   TradeType,
   bnum,
@@ -29,7 +30,6 @@ export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
-  @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
@@ -45,8 +45,8 @@ export class TradeForm extends BaseElement {
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountOut = null;
   @property({ type: String }) amountOutUsd = null;
-  @property({ type: String }) balanceIn = null;
-  @property({ type: String }) balanceOut = null;
+  @property({ type: Object }) balanceIn: Amount = null;
+  @property({ type: Object }) balanceOut: Amount = null;
   @property({ type: String }) spotPrice = null;
   @property({ type: String }) afterSlippage = '0';
   @property({ type: String }) afterSlippageUsd = '0';
@@ -594,10 +594,18 @@ export class TradeForm extends BaseElement {
   }
 
   infoTransactionFeeTemplate() {
-    let amount: string = this.transactionFee?.amount;
-    if (this.twapEnabled && this.transactionFee) {
-      const amountNo = Number(amount);
-      amount = TradeApi.getTwapTxFee(this.twap.tradeReps, amountNo).toString();
+    let fee: string;
+    let feeSymbol: string;
+
+    if (this.transactionFee) {
+      const { amount, asset } = this.transactionFee;
+      feeSymbol = asset.symbol;
+      fee = formatAmount(amount, asset.decimals);
+    }
+
+    if (this.twapEnabled && fee) {
+      const amountNo = Number(fee);
+      fee = TradeApi.getTwapTxFee(this.twap.tradeReps, amountNo).toString();
     }
 
     return html`
@@ -615,7 +623,7 @@ export class TradeForm extends BaseElement {
         () =>
           html`<span class="value"
             >${this.transactionFee
-              ? humanizeAmount(amount) + ' ' + this.transactionFee.asset
+              ? humanizeAmount(fee) + ' ' + feeSymbol
               : '-'}</span
           >`,
       )}
@@ -713,11 +721,11 @@ export class TradeForm extends BaseElement {
     return this.formAssetLoadingTemplate();
   }
 
-  formAssetBalanceTemplate(id: string, asset: Asset, balance: string) {
+  formAssetBalanceTemplate(id: string, asset: Asset, balance: Amount) {
     return html`
       <uigc-asset-balance
         slot="balance"
-        .balance=${balance}
+        .balance=${balance && formatAmount(balance.amount, balance.decimals)}
         .formatter=${humanizeAmount}
         .onMaxClick=${this.maxClickHandler(id, asset)}
         ?disabled=${this.readonly}

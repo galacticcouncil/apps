@@ -494,7 +494,6 @@ export class DcaApp extends PoolApp {
       <gc-select-asset
         .assets=${this.assets.tradeable}
         .pairs=${this.assets.pairs}
-        .locations=${this.assets.locations}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.dca.assetIn}
@@ -572,8 +571,6 @@ export class DcaApp extends PoolApp {
     return html` <uigc-paper class=${classMap(classes)} id="default-tab">
       <gc-dca-form
         .assets=${this.assets.registry}
-        .pairs=${this.assets.pairs}
-        .locations=${this.assets.locations}
         .disabled=${this.isFormDisabled()}
         .loaded=${this.isFormLoaded()}
         .assetIn=${this.dca.assetIn}
@@ -624,7 +621,6 @@ export class DcaApp extends PoolApp {
     return html` <gc-trade-orders
       class="orders"
       .assets=${this.assets.registry}
-      .locations=${this.assets.locations}
       .indexerUrl=${this.indexerUrl}
       .grafanaUrl=${this.grafanaUrl}
       .grafanaDsn=${this.grafanaDsn}

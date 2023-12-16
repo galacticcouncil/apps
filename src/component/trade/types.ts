@@ -1,4 +1,4 @@
-import { Asset, TradeType } from '@galacticcouncil/sdk';
+import { Amount, Asset, BigNumber, TradeType } from '@galacticcouncil/sdk';
 
 import { TradeTwap } from '../../api/trade';
 
@@ -10,10 +10,9 @@ export enum TradeTab {
 }
 
 export type TransactionFee = {
-  asset: string;
-  amount: string;
+  asset: Asset;
+  amount: BigNumber;
   amountNative: string;
-  ed: string;
 };
 
 export type TradeState = {
@@ -26,8 +25,8 @@ export type TradeState = {
   amountInUsd: string;
   amountOut: string;
   amountOutUsd: string;
-  balanceIn: string;
-  balanceOut: string;
+  balanceIn: Amount;
+  balanceOut: Amount;
   priceImpactPct: string;
   spotPrice: string;
   tradeFee: string;

@@ -41,6 +41,7 @@ import {
   SYSTEM_ASSET_ID,
   TradeType,
   Transaction,
+  bnum,
 } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Balance } from '@polkadot/types/interfaces';
@@ -721,28 +722,21 @@ export class TradeApp extends PoolApp {
     const balanceOut = this.assets.balance.get(this.trade.assetOut?.id);
     this.trade = {
       ...this.trade,
-      balanceIn:
-        balanceIn && formatAmount(balanceIn.amount, balanceIn.decimals),
-      balanceOut:
-        balanceOut && formatAmount(balanceOut.amount, balanceOut.decimals),
+      balanceIn,
+      balanceOut,
     };
   }
 
   private async calculateTransactionFee(
     feeAssetId: string,
-    feeAssetNativeBalance: Balance,
+    feeNative: string,
   ): Promise<TransactionFee> {
-    const { symbol, existentialDeposit } = this.assets.registry.get(feeAssetId);
-    const { amount, ed } = await this.paymentApi.getPaymentFee(
-      feeAssetId,
-      feeAssetNativeBalance,
-      existentialDeposit,
-    );
+    const feeAsset = this.assets.registry.get(feeAssetId);
+    const { amount } = await this.paymentApi.getPaymentFee(feeAsset, feeNative);
     return {
-      asset: symbol,
+      asset: feeAsset,
       amount: amount,
-      amountNative: feeAssetNativeBalance.toString(),
-      ed: ed,
+      amountNative: feeNative,
     } as TransactionFee;
   }
 
@@ -752,9 +746,10 @@ export class TradeApp extends PoolApp {
       this.paymentApi.getPaymentInfo(this.tx, account),
       this.paymentApi.getPaymentFeeAsset(account),
     ]);
+
     this.trade.transactionFee = await this.calculateTransactionFee(
       feeAssetId,
-      paymentInfo.partialFee,
+      paymentInfo.partialFee.toString(),
     );
     this.requestUpdate();
   }
@@ -762,9 +757,11 @@ export class TradeApp extends PoolApp {
   private async updateMaxAmountIn(asset: Asset) {
     const account = this.account.state;
     const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+    const { amount, decimals } = this.trade.balanceIn;
 
     if (asset.id !== feeAssetId) {
-      this.updateAmountIn(this.trade.balanceIn);
+      const balanceIn = formatAmount(amount, decimals);
+      this.updateAmountIn(balanceIn);
       return;
     }
 
@@ -773,28 +770,37 @@ export class TradeApp extends PoolApp {
       this.trade.assetOut,
       ONE.toFixed(),
     );
+
     const { partialFee } = await this.paymentApi.getPaymentInfo(
       transaction,
       account,
     );
-    const txFee = await this.calculateTransactionFee(feeAssetId, partialFee);
+
+    const txFee = await this.calculateTransactionFee(
+      feeAssetId,
+      partialFee.toString(),
+    );
 
     const eb = calculateEffectiveBalance(
-      this.trade.balanceIn,
+      this.trade.balanceIn.amount,
       this.trade.assetIn.symbol,
-      txFee.ed,
-      txFee.asset,
       txFee.amount,
+      txFee.asset.symbol,
+      bnum(txFee.asset.existentialDeposit),
     );
-    this.updateAmountIn(eb);
+    const effectiveIn = formatAmount(eb, decimals);
+    this.updateAmountIn(effectiveIn);
   }
 
   private async updateMaxAmountOut(asset: Asset) {
     const account = this.account.state;
     const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
 
+    const { amount, decimals } = this.trade.balanceOut;
+
     if (asset.id !== feeAssetId) {
-      this.updateAmountOut(this.trade.balanceOut);
+      const balanceOut = formatAmount(amount, decimals);
+      this.updateAmountOut(balanceOut);
       return;
     }
 
@@ -803,20 +809,26 @@ export class TradeApp extends PoolApp {
       this.trade.assetOut,
       ONE.toFixed(),
     );
+
     const { partialFee } = await this.paymentApi.getPaymentInfo(
       transaction,
       account,
     );
-    const txFee = await this.calculateTransactionFee(feeAssetId, partialFee);
+
+    const txFee = await this.calculateTransactionFee(
+      feeAssetId,
+      partialFee.toString(),
+    );
 
     const eb = calculateEffectiveBalance(
-      this.trade.balanceOut,
+      this.trade.balanceOut.amount,
       this.trade.assetOut.symbol,
-      txFee.ed,
-      txFee.asset,
       txFee.amount,
+      txFee.asset.symbol,
+      bnum(txFee.asset.existentialDeposit),
     );
-    this.updateAmountOut(eb);
+    const effectiveOut = formatAmount(eb, decimals);
+    this.updateAmountOut(effectiveOut);
   }
 
   notificationTemplate(trade: TradeState, status: string): TxNotificationMssg {
@@ -1186,7 +1198,6 @@ export class TradeApp extends PoolApp {
     return html` <uigc-paper class=${classMap(classes)} id="default-tab">
       <gc-trade-form
         .assets=${this.assets.registry}
-        .pairs=${this.assets.pairs}
         .inProgress=${this.trade.inProgress}
         .disabled=${this.isFormDisabled()}
         .loaded=${this.isFormLoaded()}
