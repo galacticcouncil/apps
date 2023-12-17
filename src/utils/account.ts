@@ -1,4 +1,4 @@
-import { u8aToHex } from '@polkadot/util';
+import { hexToU8a, isHex, u8aToHex } from '@polkadot/util';
 import {
   decodeAddress,
   encodeAddress,
@@ -54,8 +54,10 @@ export function convertToHex(address: string): string {
 
 export function isSameAddress(address1: string, address2: string): boolean {
   try {
-    const decodedAddress1 = decodeAddress(address1)?.toString();
-    const decodedAddress2 = decodeAddress(address2)?.toString();
+    const sub1 = isEthAddress(address1) ? convertFromH160(address1) : address1;
+    const sub2 = isEthAddress(address2) ? convertFromH160(address2) : address2;
+    const decodedAddress1 = decodeAddress(sub1)?.toString();
+    const decodedAddress2 = decodeAddress(sub2)?.toString();
     return decodedAddress1 === decodedAddress2;
   } catch {
     return false;
@@ -66,6 +68,15 @@ export function isValidAddress(address: string): boolean {
   try {
     return validateAddress(address);
   } catch {
+    return false;
+  }
+}
+
+export function isNativeAddress(address: string) {
+  try {
+    encodeAddress(isHex(address) ? hexToU8a(address) : decodeAddress(address));
+    return true;
+  } catch (error) {
     return false;
   }
 }

@@ -9,11 +9,13 @@ import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { basicLayoutStyles } from '../styles/layout/basic.css';
 
-import { Account, walletCursor } from '../../db';
+import { Account } from '../../db';
 import {
+  convertAddressSS58,
   convertFromH160,
   convertToH160,
   isEthAddress,
+  isEvmAccount,
   isValidAddress,
 } from '../../utils/account';
 import { getRenderString } from '../../utils/dom';
@@ -57,8 +59,9 @@ import { TxInfo, TxNotificationMssg } from '../transaction/types';
 export class XcmApp extends PoolApp {
   private configService: ConfigService = null;
   private wallet: Wallet = null;
-
   private input: XData = null;
+
+  private shouldPrefill: boolean = true;
 
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
@@ -74,8 +77,8 @@ export class XcmApp extends PoolApp {
 
   private disconnectBalanceSubscription: Subscription = null;
 
-  @property({ type: String, reflect: true }) srcChain: string = null;
-  @property({ type: String, reflect: true }) destChain: string = null;
+  @property({ type: String }) srcChain: string = null;
+  @property({ type: String }) destChain: string = null;
   @property({ type: String }) blacklist: string = null;
 
   @state() tab: TransferTab = TransferTab.TransferForm;
@@ -92,6 +95,10 @@ export class XcmApp extends PoolApp {
       }
     `,
   ];
+
+  isDestChainSelection(): boolean {
+    return this.xchain.selector === this.transfer.destChain.key;
+  }
 
   isTransferEmpty(): boolean {
     return this.transfer.amount == null;
@@ -110,6 +117,10 @@ export class XcmApp extends PoolApp {
     this.requestUpdate();
   }
 
+  disablePrefill() {
+    this.shouldPrefill = false;
+  }
+
   private isEvmCompatible(chain: AnyChain) {
     if (chain.key === 'hydradx') {
       return true;
@@ -117,20 +128,19 @@ export class XcmApp extends PoolApp {
     return chain.isEvmParachain();
   }
 
-  private isSubstrateCompatible(chain: AnyChain) {
+  private isNativeCompatible(chain: AnyChain) {
     if (chain.key === 'hydradx') {
       return true;
     }
     return chain.isParachain();
   }
 
-  private isSupportedWallet(srcChain: AnyChain) {
-    if (this.hasEvmAccount()) {
-      return this.isEvmCompatible(srcChain);
-    } else if (this.hasSubstrateAccount()) {
-      return this.isSubstrateCompatible(srcChain);
+  private isSupportedWallet(chain: AnyChain) {
+    const { address } = this.account.state;
+    if (isEvmAccount(address)) {
+      return this.isEvmCompatible(chain);
     } else {
-      return true;
+      return this.isNativeCompatible(chain);
     }
   }
 
@@ -142,12 +152,12 @@ export class XcmApp extends PoolApp {
         srcChain: srcChain.key,
       },
     };
+    console.log('Wallet change requested from ' + srcChain.key);
     this.dispatchEvent(new CustomEvent('gc:wallet:change', options));
   }
 
   private async switchChains() {
     const { destChain, srcChain } = this.transfer;
-
     const supportedWallet: boolean = this.isSupportedWallet(destChain);
     if (!supportedWallet) {
       this.onChangeWallet(destChain);
@@ -160,18 +170,17 @@ export class XcmApp extends PoolApp {
       destChain: srcChain,
       balance: null,
     };
-    this.srcChain = destChain.key;
-    this.destChain = srcChain.key;
+
     this.disconnectSubscriptions();
     this.syncChains();
-    this.validateAddress();
     await this.syncBalances();
     await this.syncInput();
+    this.prefillAddress();
+    this.validateAddress();
   }
 
   private async changeSourceChain(chain: string) {
     const srcChain = chainsMap.get(chain);
-
     const supportedWallet: boolean = this.isSupportedWallet(srcChain);
     if (!supportedWallet) {
       this.onChangeWallet(srcChain);
@@ -183,7 +192,7 @@ export class XcmApp extends PoolApp {
       srcChain: srcChain,
       balance: null,
     };
-    this.srcChain = srcChain.key;
+
     this.disconnectSubscriptions();
     this.syncChains();
     await this.syncBalances();
@@ -192,50 +201,31 @@ export class XcmApp extends PoolApp {
 
   private async changeDestinationChain(chain: string) {
     const destChain = chainsMap.get(chain);
+
     this.transfer = {
       ...this.transfer,
       destChain: destChain,
       balance: null,
     };
-    this.destChain = destChain.key;
+
     this.disconnectSubscriptions();
     this.syncChains();
-    this.validateAddress();
     await this.syncBalances();
     await this.syncInput();
+    this.prefillAddress();
+    this.validateAddress();
   }
 
   private async changeAsset(asset: string) {
+    const balance = this.xchain.balance.get(asset);
     this.transfer = {
       ...this.transfer,
       asset: assetsMap.get(asset),
-      balance: this.xchain.balance.get(asset).toDecimal(),
+      balance: balance.toDecimal(),
       srcChainFee: null,
       destChainFee: null,
     };
     await this.syncInput();
-  }
-
-  updateAddress(address: string) {
-    // todo
-    this.transfer = {
-      ...this.transfer,
-      address: address,
-    };
-    this.requestUpdate();
-  }
-
-  validateAddress() {
-    const { address, destChain } = this.transfer;
-    if (address == null || address == '') {
-      this.transfer.error['address'] = i18n.t('xcm.error.required');
-    } else if (destChain.isEvmParachain() && !isEthAddress(address)) {
-      this.transfer.error['address'] = i18n.t('xcm.error.addrIncorrect');
-    } else if (!isValidAddress(address)) {
-      this.transfer.error['address'] = i18n.t('xcm.error.addrIncorrect');
-    } else {
-      delete this.transfer.error['address'];
-    }
   }
 
   updateAmount(amount: string) {
@@ -261,13 +251,15 @@ export class XcmApp extends PoolApp {
     const feeBalance = this.xchain.balance.get(srcChainFee.key);
 
     const amountBN = toBigInt(amount, balance.decimals);
+    const maxBN = toBigInt(max.toDecimal(), balance.decimals);
+    const minBN = toBigInt(min.toDecimal(), balance.decimals);
 
-    if (amountBN > max.amount) {
+    if (amountBN > maxBN) {
       this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', {
         amount: max.toDecimal(),
         asset: asset.originSymbol,
       });
-    } else if (amountBN < min.amount) {
+    } else if (amountBN < minBN) {
       this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', {
         amount: min.toDecimal(),
         asset: asset.originSymbol,
@@ -337,15 +329,82 @@ export class XcmApp extends PoolApp {
     if (chain.isEvmParachain()) {
       return convertToH160(address);
     } else {
-      return address;
+      return convertAddressSS58(address);
     }
   }
 
   private formatDestAddress(address: string, chain: AnyChain): string {
-    if (isEthAddress(address) && chain.isParachain()) {
+    if (chain.key === 'hydradx' && isEthAddress(address)) {
       return convertFromH160(address);
+    }
+    return address;
+
+    // if (isEthAddress(address) && chain.isParachain()) {
+    //   return convertFromH160(address);
+    // }
+
+    // if (isEthAddress(address)) {
+    //   return address;
+    // } else {
+    //   return convertAddressSS58(address);
+    // }
+  }
+
+  private prefillNative(address: string, chain: AnyChain) {
+    if (this.isNativeCompatible(chain)) {
+      return convertAddressSS58(address);
     } else {
-      return address;
+      return null;
+    }
+  }
+
+  private prefillEvm(address: string, chain: AnyChain) {
+    if (this.isEvmCompatible(chain)) {
+      return convertToH160(address);
+    } else {
+      return null;
+    }
+  }
+
+  private prefillAddress() {
+    const { address } = this.account.state;
+    const { destChain } = this.transfer;
+
+    if (!this.shouldPrefill) {
+      return;
+    }
+
+    let prefilled: string;
+    if (isEvmAccount(address)) {
+      prefilled = this.prefillEvm(address, destChain);
+    } else {
+      prefilled = this.prefillNative(address, destChain);
+    }
+
+    this.transfer = {
+      ...this.transfer,
+      address: prefilled,
+    };
+  }
+
+  private updateAddress(address: string) {
+    this.transfer = {
+      ...this.transfer,
+      address: address,
+    };
+  }
+
+  private validateAddress() {
+    const { address, destChain } = this.transfer;
+
+    if (address == null || address == '') {
+      this.transfer.error['address'] = i18n.t('xcm.error.required');
+    } else if (destChain.isEvmParachain() && !isEthAddress(address)) {
+      this.transfer.error['address'] = i18n.t('xcm.error.notEvmAddr');
+    } else if (!isValidAddress(address)) {
+      this.transfer.error['address'] = i18n.t('xcm.error.notValidAddr');
+    } else {
+      delete this.transfer.error['address'];
     }
   }
 
@@ -355,6 +414,8 @@ export class XcmApp extends PoolApp {
 
     const srcAddr = this.formatAddress(account.address, srcChain);
     const destAddr = this.formatDestAddress(address, destChain);
+
+    console.log(destAddr);
 
     const xData = await this.wallet.transfer(
       asset,
@@ -373,11 +434,6 @@ export class XcmApp extends PoolApp {
       },
     } as Transaction;
     this.processTx(account, transaction, this.transfer);
-  }
-
-  private resetBalances() {
-    this.transfer.balance = null;
-    this.xchain.balance = new Map([]);
   }
 
   private async getPaymentFee(srcFee: AssetAmount) {
@@ -399,6 +455,11 @@ export class XcmApp extends PoolApp {
       amount: toBigInt(fee.toString(), feeAsset.decimals),
       decimals: feeAsset.decimals,
     });
+  }
+
+  private resetBalances() {
+    this.transfer.balance = null;
+    this.xchain.balance = new Map([]);
   }
 
   private async syncBalances() {
@@ -447,18 +508,20 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const { balance, srcFee, destFee } = xData;
+    const { balance, srcFee, destFee, max } = xData;
 
     const fee = await this.getPaymentFee(srcFee);
 
+    this.input = xData;
     this.transfer = {
       ...this.transfer,
       balance: balance.toDecimal(),
+      effectiveBalance: max.toDecimal(),
       srcChainFee: fee,
       destChainFee: destFee,
       destChainSs58Prefix: destChain.ss58Format,
     };
-    this.input = xData;
+    this.validateAmount();
   }
 
   private syncChains() {
@@ -509,17 +572,18 @@ export class XcmApp extends PoolApp {
       configService: this.configService,
       evmChains: evmChains,
     });
-    walletCursor.reset(this.wallet);
+    this.prefillAddress();
     this.syncChains();
     this.syncBalances();
     this.syncInput();
   }
 
-  protected onBlockChange(blockNumber: number): void {}
+  protected onBlockChange(): void {}
 
-  protected onBalanceUpdate(): void {
-    // Do nothing, cross chain balance is handled by xcm app itself
-  }
+  /**
+   * Do nothing, asset balance is synced by wallet
+   */
+  protected onBalanceUpdate(): void {}
 
   protected override async onAccountChange(
     prev: Account,
@@ -527,12 +591,24 @@ export class XcmApp extends PoolApp {
   ): Promise<void> {
     super.onAccountChange(prev, curr);
     if (curr) {
-      this.updateAddress(curr.address);
+      this.prefillAddress();
       this.syncBalances();
       this.syncInput();
     } else {
       this.resetBalances();
     }
+  }
+
+  private onAccountInit() {
+    const account = this.account.state;
+    this.srcChain = isEvmAccount(account.address)
+      ? Array.from(chainsMap.values()).find((c) => c.isEvmParachain()).key
+      : this.srcChain;
+  }
+
+  override async firstUpdated(): Promise<void> {
+    this.onAccountInit();
+    super.firstUpdated();
   }
 
   override async update(changedProperties: Map<string, unknown>) {
@@ -564,14 +640,11 @@ export class XcmApp extends PoolApp {
     super.disconnectedCallback();
   }
 
-  protected listItemClickedListener(isDest: boolean) {
-    const changeChainFn = isDest
-      ? this.changeDestinationChain.bind(this)
-      : this.changeSourceChain.bind(this);
-    return function ({ detail: { item } }) {
-      changeChainFn(item);
-      this.changeTab(TransferTab.TransferForm);
-    };
+  protected chainClickedListener({ detail: { item } }) {
+    this.isDestChainSelection()
+      ? this.changeDestinationChain(item)
+      : this.changeSourceChain(item);
+    this.changeTab(TransferTab.TransferForm);
   }
 
   selectChainTab() {
@@ -579,7 +652,7 @@ export class XcmApp extends PoolApp {
       tab: true,
       active: this.tab == TransferTab.SelectChain,
     };
-    const isDest = this.xchain.selector === this.transfer.destChain.key;
+    const isDest = this.isDestChainSelection();
     return html`<uigc-paper class=${classMap(classes)}>
       <gc-select-chain
         .chains=${isDest
@@ -588,7 +661,7 @@ export class XcmApp extends PoolApp {
         .srcChain=${this.transfer.srcChain}
         .destChain=${this.transfer.destChain}
         .selector=${this.xchain.selector}
-        @list-item-clicked=${this.listItemClickedListener(isDest)}
+        @list-item-clicked=${this.chainClickedListener}
       >
         <div class="header section" slot="header">
           <uigc-icon-button
@@ -647,6 +720,7 @@ export class XcmApp extends PoolApp {
   }
 
   protected addressInputChangedListener({ detail: { address } }) {
+    this.disablePrefill();
     this.updateAddress(address);
     this.validateAddress();
   }
@@ -677,7 +751,7 @@ export class XcmApp extends PoolApp {
         .srcChainFee=${this.transfer.srcChainFee}
         .destChain=${this.transfer.destChain}
         .destChainFee=${this.transfer.destChainFee}
-        .destChainSs58Prefix=${this.transfer.destChainSs58Prefix}
+        .destChainSs58Prefix=${this.transfer.destChain.ss58Format}
         .error=${this.transfer.error}
         @asset-input-changed=${this.assetInputChangedListener}
         @address-input-changed=${this.addressInputChangedListener}

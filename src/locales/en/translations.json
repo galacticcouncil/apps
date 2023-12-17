@@ -53,6 +53,8 @@
   "xcm.connecting": "Connecting...",
   "xcm.error.required": "This field is required.",
   "xcm.error.addrIncorrect": "The address is incorrect. Please review it and try again.",
+  "xcm.error.notEvmAddr": "The address is incorrect. Please use valid ethereum address starting '0x'.",
+  "xcm.error.notValidAddr": "The address is incorrect. Please review it and try again.",
   "xcm.error.maxAmount": "The maximum transferable amount is {{amount}} {{asset}}.",
   "xcm.error.minAmount": "The minimum transferable amount is {{amount}} {{asset}}.",
   "xcm.error.insufficientFee": "You don't have enough {{asset}} to pay the fee.",

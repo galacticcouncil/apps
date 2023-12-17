@@ -4,7 +4,6 @@ import short from 'short-uuid';
 
 import { Account, Ecosystem, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { EVM_PROVIDERS } from '../../utils/account';
 
 import { BaseElement } from './BaseElement';
 
@@ -34,16 +33,6 @@ export abstract class BaseApp extends BaseElement {
 
   hasAccount(): boolean {
     return !!this.account.state;
-  }
-
-  hasEvmAccount(): boolean {
-    const account = this.account.state;
-    return this.hasAccount() && EVM_PROVIDERS.includes(account.provider);
-  }
-
-  hasSubstrateAccount(): boolean {
-    const account = this.account.state;
-    return this.hasAccount() && !EVM_PROVIDERS.includes(account.provider);
   }
 
   getShortened(address: string): string {

@@ -225,23 +225,23 @@ export class XcmForm extends LitElement {
   }
 
   formAddressTemplate() {
-    const isValidAddr = isValidAddress(this.address);
+    const error = this.error['address'];
     return html` <uigc-address-input
       id="address"
       title="${i18n.t('xcm.toAddr')}"
       .address=${this.address}
       .chain=${this.destChain}
-      ?error=${this.error['address']}
-      .error=${this.error['address']}
+      ?error=${error}
+      .error=${error}
     >
       ${when(
-        isValidAddr,
+        this.address && !error,
         () =>
           html`
             <gc-account-id
               slot="id"
               .address=${this.address}
-              .ss58prefix=${63}
+              .ss58prefix=${this.destChainSs58Prefix}
             ></gc-account-id>
           `,
       )}
@@ -250,11 +250,11 @@ export class XcmForm extends LitElement {
 
   render() {
     const account = this.account.state;
-    const isUserAddr = isSameAddress(this.address, account?.address);
+    const isAccountAddr = isSameAddress(this.address, account?.address);
     const isValidAddr = isValidAddress(this.address);
     const warningClasses = {
       warning: true,
-      show: accountCursor.deref() && isValidAddr && !isUserAddr,
+      show: account && isValidAddr && !isAccountAddr,
     };
     return html`
       <slot name="header"></slot>
