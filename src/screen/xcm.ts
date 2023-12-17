@@ -20,6 +20,8 @@ export class XcmScreen extends LitElement {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
+        apiAddress="wss://rpc.basilisk.cloud"
+        stableCoinAssetId="14"
       ></gc-xcm-app>
     `;
   }
@@ -28,7 +30,6 @@ export class XcmScreen extends LitElement {
     return html`
       <gc-xcm-app
         srcChain="polkadot"
-        srcEvmChain="moonbeam"
         destChain="hydradx"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}

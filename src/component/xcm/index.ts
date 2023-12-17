@@ -4,7 +4,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { BaseApp } from '../base/BaseApp';
+import { PoolApp } from '../base/PoolApp';
 import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
 import { basicLayoutStyles } from '../styles/layout/basic.css';
@@ -16,11 +16,10 @@ import {
   isEthAddress,
   isValidAddress,
 } from '../../utils/account';
-import { toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
 
 import '@galacticcouncil/ui';
-import { bnum, Transaction } from '@galacticcouncil/sdk';
+import { Transaction } from '@galacticcouncil/sdk';
 
 import {
   assetsMap,
@@ -37,6 +36,7 @@ import {
 } from '@moonbeam-network/xcm-config';
 
 import { Asset, AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
+import { toBigInt } from '@moonbeam-network/xcm-utils';
 
 import './form';
 import '../selector/token';
@@ -54,11 +54,12 @@ import {
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 
 @customElement('gc-xcm-app')
-export class XcmApp extends BaseApp {
+export class XcmApp extends PoolApp {
   private configService: ConfigService = null;
   private wallet: Wallet = null;
 
   private input: XData = null;
+
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
       if (TransferTab.TransferForm == this.tab) {
@@ -73,15 +74,13 @@ export class XcmApp extends BaseApp {
 
   private disconnectBalanceSubscription: Subscription = null;
 
-  @property({ type: String }) srcChain: string = null;
-  @property({ type: String }) srcEvmChain: string = null;
-  @property({ type: String }) destChain: string = null;
-  @property({ type: String }) evmChains: string = null;
+  @property({ type: String, reflect: true }) srcChain: string = null;
+  @property({ type: String, reflect: true }) destChain: string = null;
   @property({ type: String }) blacklist: string = null;
 
   @state() tab: TransferTab = TransferTab.TransferForm;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
-  @state() chain: ChainState = DEFAULT_CHAIN_STATE;
+  @state() xchain: ChainState = DEFAULT_CHAIN_STATE;
 
   static styles = [
     baseStyles,
@@ -136,13 +135,14 @@ export class XcmApp extends BaseApp {
   }
 
   private onChangeWallet(srcChain: AnyChain) {
-    const requiredWallet = srcChain.isParachain() ? 'substrate' : 'evm';
-    alert('Please change your wallet to ' + requiredWallet.toUpperCase());
     const options = {
       bubbles: true,
       composed: true,
+      detail: {
+        srcChain: srcChain.key,
+      },
     };
-    this.dispatchEvent(new CustomEvent<TxInfo>('gc:wallet:change', options));
+    this.dispatchEvent(new CustomEvent('gc:wallet:change', options));
   }
 
   private async switchChains() {
@@ -160,6 +160,8 @@ export class XcmApp extends BaseApp {
       destChain: srcChain,
       balance: null,
     };
+    this.srcChain = destChain.key;
+    this.destChain = srcChain.key;
     this.disconnectSubscriptions();
     this.syncChains();
     this.validateAddress();
@@ -181,6 +183,7 @@ export class XcmApp extends BaseApp {
       srcChain: srcChain,
       balance: null,
     };
+    this.srcChain = srcChain.key;
     this.disconnectSubscriptions();
     this.syncChains();
     await this.syncBalances();
@@ -188,12 +191,13 @@ export class XcmApp extends BaseApp {
   }
 
   private async changeDestinationChain(chain: string) {
-    const srcChain = chainsMap.get(chain);
+    const destChain = chainsMap.get(chain);
     this.transfer = {
       ...this.transfer,
-      destChain: srcChain,
+      destChain: destChain,
       balance: null,
     };
+    this.destChain = destChain.key;
     this.disconnectSubscriptions();
     this.syncChains();
     this.validateAddress();
@@ -205,7 +209,7 @@ export class XcmApp extends BaseApp {
     this.transfer = {
       ...this.transfer,
       asset: assetsMap.get(asset),
-      balance: this.chain.balance.get(asset).toDecimal(),
+      balance: this.xchain.balance.get(asset).toDecimal(),
       srcChainFee: null,
       destChainFee: null,
     };
@@ -213,6 +217,7 @@ export class XcmApp extends BaseApp {
   }
 
   updateAddress(address: string) {
+    // todo
     this.transfer = {
       ...this.transfer,
       address: address,
@@ -243,29 +248,33 @@ export class XcmApp extends BaseApp {
   }
 
   validateAmount() {
-    const ammount = this.transfer.amount;
+    const amount = this.transfer.amount;
 
-    if (!ammount) {
+    if (!amount) {
       delete this.transfer.error['amount'];
       return;
     }
 
-    const decimals = this.input.balance.decimals;
-    const amountBN = toBn(ammount, decimals);
+    const { asset, srcChainFee } = this.transfer;
+    const { min, max, balance } = this.input;
 
-    const { min, max } = this.input;
-    const minBN = bnum(min.amount.toString());
-    const maxBN = bnum(max.amount.toString());
+    const feeBalance = this.xchain.balance.get(srcChainFee.key);
 
-    if (amountBN.gt(maxBN)) {
+    const amountBN = toBigInt(amount, balance.decimals);
+
+    if (amountBN > max.amount) {
       this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', {
         amount: max.toDecimal(),
-        asset: this.transfer.asset.originSymbol,
+        asset: asset.originSymbol,
       });
-    } else if (amountBN.lt(minBN)) {
+    } else if (amountBN < min.amount) {
       this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', {
         amount: min.toDecimal(),
-        asset: this.transfer.asset.originSymbol,
+        asset: asset.originSymbol,
+      });
+    } else if (feeBalance.amount < srcChainFee.amount) {
+      this.transfer.error['amount'] = i18n.t('xcm.error.insufficientFee', {
+        asset: feeBalance.originSymbol,
       });
     } else {
       delete this.transfer.error['amount'];
@@ -368,21 +377,46 @@ export class XcmApp extends BaseApp {
 
   private resetBalances() {
     this.transfer.balance = null;
-    this.chain.balance = new Map([]);
+    this.xchain.balance = new Map([]);
+  }
+
+  private async getPaymentFee(srcFee: AssetAmount) {
+    const account = this.account.state;
+    const chain = this.transfer.srcChain;
+
+    if (chain.key !== 'hydradx') {
+      return srcFee;
+    }
+
+    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+    const feeAsset = this.assets.registry.get(feeAssetId);
+    const fee = this.calculateAssetPrice(feeAsset, srcFee.amount.toString());
+
+    const assets = Array.from(chain.assetsData.values());
+    const asset = assets.find((a) => a.id.toString() === feeAssetId);
+
+    return AssetAmount.fromAsset(asset.asset, {
+      amount: toBigInt(fee.toString(), feeAsset.decimals),
+      decimals: feeAsset.decimals,
+    });
   }
 
   private async syncBalances() {
     const { srcChain } = this.transfer;
-    const { address } = this.account.state;
+    const account = this.account.state;
 
-    const srcAddress = this.formatAddress(address, srcChain);
+    if (!account) {
+      return;
+    }
+
+    const srcAddress = this.formatAddress(account.address, srcChain);
 
     const observer = (val: AssetAmount) => {
-      const balances: Map<string, AssetAmount> = new Map(this.chain.balance);
+      const balances: Map<string, AssetAmount> = new Map(this.xchain.balance);
       balances.set(val.key, val);
       const { asset } = this.transfer;
       const assetBalance = balances.get(asset.key);
-      this.chain.balance = balances;
+      this.xchain.balance = balances;
       this.transfer.balance = assetBalance?.toDecimal();
       this.requestUpdate();
     };
@@ -396,10 +430,14 @@ export class XcmApp extends BaseApp {
 
   private async syncInput() {
     const { srcChain, destChain, asset } = this.transfer;
-    const { address } = this.account.state;
+    const account = this.account.state;
 
-    const srcAddr = this.formatAddress(address, srcChain);
-    const destAddr = this.formatAddress(address, destChain);
+    if (!account) {
+      return;
+    }
+
+    const srcAddr = this.formatAddress(account.address, srcChain);
+    const destAddr = this.formatAddress(account.address, destChain);
 
     const xData = await this.wallet.transfer(
       asset,
@@ -411,14 +449,16 @@ export class XcmApp extends BaseApp {
 
     const { balance, srcFee, destFee } = xData;
 
-    this.input = xData;
+    const fee = await this.getPaymentFee(srcFee);
+
     this.transfer = {
       ...this.transfer,
       balance: balance.toDecimal(),
-      srcChainFee: srcFee,
+      srcChainFee: fee,
       destChainFee: destFee,
       destChainSs58Prefix: destChain.ss58Format,
     };
+    this.input = xData;
   }
 
   private syncChains() {
@@ -442,8 +482,8 @@ export class XcmApp extends BaseApp {
     const isTransferable = supportedAssets.includes(asset);
     const selectedAsset = isTransferable ? asset : supportedAssets[0];
 
-    this.chain = {
-      ...this.chain,
+    this.xchain = {
+      ...this.xchain,
       dest: [...destChainsList],
       tokens: supportedAssets,
       balance: new Map([]),
@@ -459,7 +499,7 @@ export class XcmApp extends BaseApp {
     };
   }
 
-  override async firstUpdated() {
+  protected onInit(): void {
     this.configService = new ConfigService({
       assets: assetsMap,
       chains: chainsMap,
@@ -475,30 +515,38 @@ export class XcmApp extends BaseApp {
     this.syncInput();
   }
 
+  protected onBlockChange(blockNumber: number): void {}
+
+  protected onBalanceUpdate(): void {
+    // Do nothing, cross chain balance is handled by xcm app itself
+  }
+
+  protected override async onAccountChange(
+    prev: Account,
+    curr: Account,
+  ): Promise<void> {
+    super.onAccountChange(prev, curr);
+    if (curr) {
+      this.updateAddress(curr.address);
+      this.syncBalances();
+      this.syncInput();
+    } else {
+      this.resetBalances();
+    }
+  }
+
   override async update(changedProperties: Map<string, unknown>) {
     if (
       changedProperties.has('srcChain') ||
-      changedProperties.has('srcEvmChain') ||
       changedProperties.has('destChain')
     ) {
-      const srcChain = this.hasEvmAccount() ? this.srcEvmChain : this.srcChain;
       this.transfer = {
         ...this.transfer,
-        srcChain: chainsMap.get(srcChain),
+        srcChain: chainsMap.get(this.srcChain),
         destChain: chainsMap.get(this.destChain),
       };
     }
     super.update(changedProperties);
-  }
-
-  override async updated() {}
-
-  protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
-    this.resetBalances();
-    curr && this.updateAddress(curr.address);
-
-    await this.syncBalances();
-    await this.syncInput();
   }
 
   override connectedCallback() {
@@ -531,15 +579,15 @@ export class XcmApp extends BaseApp {
       tab: true,
       active: this.tab == TransferTab.SelectChain,
     };
-    const isDest = this.chain.selector === this.transfer.destChain.key;
+    const isDest = this.xchain.selector === this.transfer.destChain.key;
     return html`<uigc-paper class=${classMap(classes)}>
       <gc-select-chain
         .chains=${isDest
-          ? this.chain.dest.map((c) => c.key)
-          : this.chain.list.map((c) => c.key)}
+          ? this.xchain.dest.map((c) => c.key)
+          : this.xchain.list.map((c) => c.key)}
         .srcChain=${this.transfer.srcChain}
         .destChain=${this.transfer.destChain}
-        .selector=${this.chain.selector}
+        .selector=${this.xchain.selector}
         @list-item-clicked=${this.listItemClickedListener(isDest)}
       >
         <div class="header section" slot="header">
@@ -572,8 +620,8 @@ export class XcmApp extends BaseApp {
     };
     return html`<uigc-paper class=${classMap(classes)}>
       <gc-select-token
-        .assets=${this.chain.tokens}
-        .balances=${this.chain.balance}
+        .assets=${this.xchain.tokens}
+        .balances=${this.xchain.balance}
         .asset=${this.transfer.asset}
         @asset-clicked=${this.assetClickedListener}
       >
@@ -604,7 +652,7 @@ export class XcmApp extends BaseApp {
   }
 
   protected chainSelectorClickedListener({ detail: { chain } }) {
-    this.chain.selector = chain;
+    this.xchain.selector = chain;
     this.changeTab(TransferTab.SelectChain);
   }
 
