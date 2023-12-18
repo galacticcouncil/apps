@@ -2,9 +2,7 @@ import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { chainsMap, evmChains } from '@galacticcouncil/xcm-cfg';
-import { EvmClient, Wallet } from '@galacticcouncil/xcm-sdk';
-
-import { getPolkadotApi } from '@moonbeam-network/xcm-utils';
+import { EvmClient, SubstrateApis, Wallet } from '@galacticcouncil/xcm-sdk';
 
 import type { ApiPromise } from '@polkadot/api';
 import type { ISubmittableResult } from '@polkadot/types/types';
@@ -165,7 +163,8 @@ export class TransactionCenter extends LitElement {
     const { srcChain } = txInfo.meta;
     const { provider } = txInfo.account;
     const chain = chainsMap.get(srcChain);
-    const api = await getPolkadotApi(chain.ws);
+    const apiPool = SubstrateApis.getInstance();
+    const api = await apiPool.api(chain.ws);
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
     if (isEvmProvider) {
       const chain = evmChains[srcChain];

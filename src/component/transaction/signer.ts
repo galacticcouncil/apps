@@ -1,4 +1,3 @@
-import { bnum } from '@galacticcouncil/sdk';
 import { EvmClient, XCall } from '@galacticcouncil/xcm-sdk';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import { ApiPromise } from '@polkadot/api';
@@ -7,7 +6,7 @@ import { getWalletBySource } from '@talismn/connect-wallets';
 import { convertToH160 } from '../../utils/account';
 import { TxInfo } from './types';
 
-const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';
+export const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';
 
 export async function signAndSend(
   api: ApiPromise,
@@ -51,19 +50,16 @@ export async function signAndSendEvm(
   const signer = evmClient.getSigner(evmAddress);
   await signer.switchChain({ id: evmClient.chain.id });
 
-  let data: `0x${string}` = null;
-  let txHash: `0x${string}` = null;
-  try {
-    const extrinsic = api.tx(transaction.hex);
-    data = extrinsic.inner.toHex();
-  } catch (error) {}
+  const xcall = transaction.get<XCall>();
+  const isExtrinsic = isExtrinsicCall(api, xcall);
 
-  if (data) {
+  let txHash: `0x${string}` = null;
+  if (isExtrinsic) {
     const [gas, gasPrice] = await Promise.all([
       provider.estimateGas({
         account: evmAddress as `0x${string}`,
         chain: evmClient.chain,
-        data: data,
+        data: xcall.data,
         to: DISPATCH_ADDRESS as `0x${string}`,
       }),
       provider.getGasPrice(),
@@ -72,14 +68,12 @@ export async function signAndSendEvm(
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
       chain: evmClient.chain,
-      data: data,
-      gasLimit: calculateGasLimit(gas),
+      data: xcall.data,
       maxPriorityFeePerGas: gasPrice,
       maxFeePerGas: gasPrice,
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
-    const xcall = transaction.get<XCall>();
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
       chain: evmClient.chain,
@@ -100,13 +94,11 @@ export async function signAndSendEvm(
     });
 }
 
-/**
- * Calculate gas limit
- *
- * @param gas - current gas price
- * @returns - gas price with 10% margin
- */
-function calculateGasLimit(gas: bigint) {
-  const gasBN = bnum(gas.toString());
-  return gasBN.multipliedBy(11).div(10);
+export function isExtrinsicCall(api: ApiPromise, call: XCall) {
+  try {
+    api.createType('Call', call.data);
+    return true;
+  } catch {
+    return false;
+  }
 }

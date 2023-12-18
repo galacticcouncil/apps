@@ -13,7 +13,7 @@ import { formStyles } from '../styles/form.css';
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { capitalize } from '../../utils/text';
-import { isSameAddress, isValidAddress } from '../../utils/account';
+import { isSameAddress } from '../../utils/account';
 
 import '../id/account';
 
@@ -124,13 +124,15 @@ export class XcmForm extends LitElement {
 
   private isDisabled(): boolean {
     const account = this.account.state;
-    return (
-      !account || !this.isChainConnected() || !isValidAddress(this.address)
-    );
+    return !account || !this.isChainConnected() || !this.isValidAddress();
   }
 
   private isChainConnected(): boolean {
     return true;
+  }
+
+  private isValidAddress(): boolean {
+    return this.address && !this.error['address'];
   }
 
   onTransferClick(e: any) {
@@ -235,7 +237,7 @@ export class XcmForm extends LitElement {
       .error=${error}
     >
       ${when(
-        this.address && !error,
+        this.isValidAddress(),
         () =>
           html`
             <gc-account-id
@@ -250,8 +252,8 @@ export class XcmForm extends LitElement {
 
   render() {
     const account = this.account.state;
+    const isValidAddr = this.isValidAddress();
     const isAccountAddr = isSameAddress(this.address, account?.address);
-    const isValidAddr = isValidAddress(this.address);
     const warningClasses = {
       warning: true,
       show: account && isValidAddr && !isAccountAddr,

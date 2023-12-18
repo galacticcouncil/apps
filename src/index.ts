@@ -11,5 +11,8 @@ export { AssetId } from './component/id/asset';
 export * from './component/notification/types';
 export * from './component/transaction/types';
 
+/* Chain */
+export { useApi } from './chain';
+
 /* i18n */
 export * from './locales/i18n';
