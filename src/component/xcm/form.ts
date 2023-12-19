@@ -156,6 +156,14 @@ export class XcmForm extends LitElement {
   }
 
   transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
+    if (tradeFee === '0') {
+      return html`
+        <span class="label">${label}</span>
+        <span class="grow"></span>
+        <span class="value">Estimation not available</span>
+      `;
+    }
+
     return html` <span class="label">${label}</span>
       <span class="grow"></span>
       ${when(
