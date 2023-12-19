@@ -50,16 +50,19 @@ export async function signAndSendEvm(
   const signer = evmClient.getSigner(evmAddress);
   await signer.switchChain({ id: evmClient.chain.id });
 
-  const xcall = transaction.get<XCall>();
-  const isExtrinsic = isExtrinsicCall(api, xcall);
-
+  let data: `0x${string}` = null;
   let txHash: `0x${string}` = null;
-  if (isExtrinsic) {
+  try {
+    const extrinsic = api.tx(transaction.hex);
+    data = extrinsic.inner.toHex();
+  } catch (error) {}
+
+  if (data) {
     const [gas, gasPrice] = await Promise.all([
       provider.estimateGas({
         account: evmAddress as `0x${string}`,
         chain: evmClient.chain,
-        data: xcall.data,
+        data: data,
         to: DISPATCH_ADDRESS as `0x${string}`,
       }),
       provider.getGasPrice(),
@@ -68,12 +71,13 @@ export async function signAndSendEvm(
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
       chain: evmClient.chain,
-      data: xcall.data,
+      data: data,
       maxPriorityFeePerGas: gasPrice,
       maxFeePerGas: gasPrice,
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
+    const xcall = transaction.get<XCall>();
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
       chain: evmClient.chain,
@@ -92,13 +96,4 @@ export async function signAndSendEvm(
       console.log(error);
       onError(error);
     });
-}
-
-export function isExtrinsicCall(api: ApiPromise, call: XCall) {
-  try {
-    api.createType('Call', call.data);
-    return true;
-  } catch {
-    return false;
-  }
 }

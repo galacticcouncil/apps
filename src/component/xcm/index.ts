@@ -30,7 +30,7 @@ import {
   chainsConfigMap,
   evmChains,
 } from '@galacticcouncil/xcm-cfg';
-import { Wallet, XCall, XData } from '@galacticcouncil/xcm-sdk';
+import { SubstrateApis, Wallet, XCall, XData } from '@galacticcouncil/xcm-sdk';
 
 import {
   AssetConfig,
@@ -63,8 +63,6 @@ export class XcmApp extends PoolApp {
   private wallet: Wallet = null;
   private input: XData = null;
 
-  private shouldPrefill: boolean = true;
-
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
       if (TransferTab.TransferForm == this.tab) {
@@ -77,10 +75,13 @@ export class XcmApp extends PoolApp {
     });
   });
 
+  private shouldPrefill: boolean = true;
   private disconnectBalanceSubscription: Subscription = null;
 
-  @property({ type: String, reflect: true }) srcChain: string = null;
-  @property({ type: String, reflect: true }) destChain: string = null;
+  @property({ type: String }) srcChain: string = null;
+  @property({ type: String }) destChain: string = null;
+  @property({ type: String }) defaultNative: string = 'polkadot';
+  @property({ type: String }) defaultEvm: string = 'moonbeam';
   @property({ type: String }) blacklist: string = null;
 
   @state() tab: TransferTab = TransferTab.TransferForm;
@@ -456,12 +457,16 @@ export class XcmApp extends PoolApp {
       const evmAddress = convertToH160(account.address);
       const evmClient = this.wallet.getEvmClient(chain.key);
       const evmProvider = evmClient.getProvider();
+      const apiPool = SubstrateApis.getInstance();
+      const api = await apiPool.api(chain.ws);
       const call = transfer(max.toDecimal());
       try {
+        const extrinsic = api.tx(call.data);
+        const data = extrinsic.inner.toHex();
         const [gas, gasPrice] = await Promise.all([
           evmProvider.estimateGas({
             account: evmAddress as `0x${string}`,
-            data: call.data as `0x${string}`,
+            data: data as `0x${string}`,
             to: DISPATCH_ADDRESS as `0x${string}`,
           }),
           evmProvider.getGasPrice(),
@@ -612,15 +617,26 @@ export class XcmApp extends PoolApp {
    */
   protected onBalanceUpdate(): void {}
 
+  private onAccountChangeGuard(account: Account) {
+    const current = this.transfer.srcChain;
+    const isEvm = isEvmAccount(account.address);
+    const defaultSrc = isEvm ? this.defaultEvm : this.defaultNative;
+
+    if (this.isSupportedWallet(current)) {
+      this.changeSourceChain(current.key);
+    } else {
+      this.changeSourceChain(defaultSrc);
+    }
+  }
+
   protected override async onAccountChange(
     prev: Account,
     curr: Account,
   ): Promise<void> {
     super.onAccountChange(prev, curr);
     if (curr) {
+      this.onAccountChangeGuard(curr);
       this.prefillAddress();
-      this.syncBalances();
-      this.syncInput();
     } else {
       this.resetBalances();
     }
@@ -634,10 +650,9 @@ export class XcmApp extends PoolApp {
       changedProperties.has('destChain')
     ) {
       const srcChain = isEvmAccount(account?.address)
-        ? 'moonbeam'
-        : this.srcChain;
+        ? this.defaultEvm
+        : this.defaultNative;
 
-      this.srcChain = srcChain;
       this.transfer = {
         ...this.transfer,
         srcChain: chainsMap.get(srcChain),
