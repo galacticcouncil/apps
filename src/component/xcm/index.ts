@@ -639,6 +639,7 @@ export class XcmApp extends PoolApp {
     if (curr && this.wallet) {
       this.onAccountChangeGuard();
       this.prefillAddress();
+      this.validateAddress();
     } else {
       this.resetBalances();
     }
