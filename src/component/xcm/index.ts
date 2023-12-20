@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -307,7 +307,7 @@ export class XcmApp extends PoolApp {
     transaction: Transaction,
     transfer: TransferState,
   ) {
-    const { srcChain, srcChainFee, destChain } = this.transfer;
+    const { srcChain, srcChainFee, destChain, destChainFee } = this.transfer;
     const notification = {
       processing: this.notificationTemplate(
         transfer,
@@ -328,6 +328,8 @@ export class XcmApp extends PoolApp {
           srcChainFee: srcChainFee.toDecimal(),
           srcChainFeeSymbol: srcChainFee.originSymbol,
           dstChain: destChain.key,
+          dstChainFee: destChainFee.toDecimal(),
+          dstChainFeeSymbol: destChainFee.originSymbol,
         },
       } as TxInfo,
     };
@@ -634,7 +636,7 @@ export class XcmApp extends PoolApp {
     curr: Account,
   ): Promise<void> {
     super.onAccountChange(prev, curr);
-    if (curr) {
+    if (curr && this.wallet) {
       this.onAccountChangeGuard(curr);
       this.prefillAddress();
     } else {
@@ -644,7 +646,6 @@ export class XcmApp extends PoolApp {
 
   override async update(changedProperties: Map<string, unknown>) {
     const account = this.account.state;
-
     if (
       changedProperties.has('srcChain') &&
       changedProperties.has('destChain')
@@ -659,20 +660,19 @@ export class XcmApp extends PoolApp {
         destChain: chainsMap.get(this.destChain),
       };
     }
+    super.update(changedProperties);
+  }
 
-    const srcChain = changedProperties.get('srcChain');
+  updated(changed: PropertyValues<this>) {
+    const srcChain = changed.get('srcChain');
     if (srcChain) {
-      console.log(srcChain + ' => ' + this.srcChain);
       this.changeSourceChain(this.srcChain);
     }
 
-    const destChain = changedProperties.get('destChain');
+    const destChain = changed.get('destChain');
     if (destChain) {
-      console.log(destChain + ' => ' + this.destChain);
       this.changeDestinationChain(this.destChain);
     }
-
-    super.update(changedProperties);
   }
 
   override connectedCallback() {

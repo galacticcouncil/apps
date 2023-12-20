@@ -74,8 +74,6 @@ export abstract class PoolApp extends BaseApp {
     super.update(changedProperties);
   }
 
-  override async updated() {}
-
   override connectedCallback() {
     super.connectedCallback();
   }
