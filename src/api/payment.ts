@@ -6,12 +6,16 @@ import {
   bnum,
   SYSTEM_ASSET_ID,
   TradeRouter,
+  ZERO,
   Transaction,
 } from '@galacticcouncil/sdk';
+import { evmChains } from '@galacticcouncil/xcm-cfg';
+import { EvmClient } from '@galacticcouncil/xcm-sdk';
 
 import { Account } from '../db';
-import { isEvmAccount } from '../utils/account';
+import { convertToH160, isEvmAccount } from '../utils/account';
 
+const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';
 const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
 const EVM_PAYMENT_ASSET = 'WETH';
 const EVM_PAYMENT_ORIGIN = 2004;
@@ -67,6 +71,35 @@ export class PaymentApi {
       };
     }
     return await this._router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAsset.id);
+  }
+
+  async getEvmPaymentFee(txHex: string, account: Account): Promise<Amount> {
+    const extrinsic = this._api.tx(txHex);
+    const evmAddress = convertToH160(account.address);
+    const evmChain = evmChains['hydradx'];
+    const evmClient = new EvmClient(evmChain);
+    const evmProvider = evmClient.getProvider();
+    try {
+      const data = extrinsic.inner.toHex();
+      const [gas, gasPrice] = await Promise.all([
+        evmProvider.estimateGas({
+          account: evmAddress as `0x${string}`,
+          data: data as `0x${string}`,
+          to: DISPATCH_ADDRESS as `0x${string}`,
+        }),
+        evmProvider.getGasPrice(),
+      ]);
+      const price = gas * gasPrice;
+      return {
+        amount: bnum(price.toString()),
+        decimals: evmChain.nativeCurrency.decimals,
+      };
+    } catch (error) {
+      return {
+        amount: ZERO,
+        decimals: evmChain.nativeCurrency.decimals,
+      };
+    }
   }
 
   private getAddress(account: Account) {

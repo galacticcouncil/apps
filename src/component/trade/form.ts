@@ -608,6 +608,14 @@ export class TradeForm extends BaseElement {
       fee = TradeApi.getTwapTxFee(this.twap.tradeReps, amountNo).toString();
     }
 
+    if (fee === '0') {
+      return html`
+        <span class="label">${i18n.t('trade.txFee')}</span>
+        <span class="grow"></span>
+        <span class="value">Estimation not available</span>
+      `;
+    }
+
     return html`
       <span class="label">${i18n.t('trade.txFee')}</span>
       <span class="grow"></span>

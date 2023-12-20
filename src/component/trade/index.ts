@@ -61,6 +61,7 @@ import {
 } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
+import { isEvmAccount } from '../../utils/account';
 
 @customElement('gc-trade-app')
 export class TradeApp extends PoolApp {
@@ -731,8 +732,13 @@ export class TradeApp extends PoolApp {
     feeAssetId: string,
     feeNative: string,
   ): Promise<TransactionFee> {
+    const account = this.account.state;
     const feeAsset = this.assets.registry.get(feeAssetId);
-    const { amount } = await this.paymentApi.getPaymentFee(feeAsset, feeNative);
+
+    const { amount } = isEvmAccount(account.address)
+      ? await this.paymentApi.getEvmPaymentFee(this.tx.hex, account)
+      : await this.paymentApi.getPaymentFee(feeAsset, feeNative);
+
     return {
       asset: feeAsset,
       amount: amount,

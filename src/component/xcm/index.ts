@@ -80,8 +80,6 @@ export class XcmApp extends PoolApp {
 
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) destChain: string = null;
-  @property({ type: String }) defaultNative: string = 'polkadot';
-  @property({ type: String }) defaultEvm: string = 'moonbeam';
   @property({ type: String }) blacklist: string = null;
 
   @state() tab: TransferTab = TransferTab.TransferForm;
@@ -606,6 +604,11 @@ export class XcmApp extends PoolApp {
       configService: this.configService,
       evmChains: evmChains,
     });
+    this.transfer = {
+      ...this.transfer,
+      srcChain: chainsMap.get(this.srcChain),
+      destChain: chainsMap.get(this.destChain),
+    };
     this.prefillAddress();
     this.syncChains();
     this.syncBalances();
@@ -619,15 +622,12 @@ export class XcmApp extends PoolApp {
    */
   protected onBalanceUpdate(): void {}
 
-  private onAccountChangeGuard(account: Account) {
+  private onAccountChangeGuard() {
     const current = this.transfer.srcChain;
-    const isEvm = isEvmAccount(account.address);
-    const defaultSrc = isEvm ? this.defaultEvm : this.defaultNative;
-
     if (this.isSupportedWallet(current)) {
       this.changeSourceChain(current.key);
     } else {
-      this.changeSourceChain(defaultSrc);
+      this.changeSourceChain(this.srcChain);
     }
   }
 
@@ -637,7 +637,7 @@ export class XcmApp extends PoolApp {
   ): Promise<void> {
     super.onAccountChange(prev, curr);
     if (curr && this.wallet) {
-      this.onAccountChangeGuard(curr);
+      this.onAccountChangeGuard();
       this.prefillAddress();
     } else {
       this.resetBalances();
@@ -645,18 +645,13 @@ export class XcmApp extends PoolApp {
   }
 
   override async update(changedProperties: Map<string, unknown>) {
-    const account = this.account.state;
     if (
       changedProperties.has('srcChain') &&
       changedProperties.has('destChain')
     ) {
-      const srcChain = isEvmAccount(account?.address)
-        ? this.defaultEvm
-        : this.defaultNative;
-
       this.transfer = {
         ...this.transfer,
-        srcChain: chainsMap.get(srcChain),
+        srcChain: chainsMap.get(this.srcChain),
         destChain: chainsMap.get(this.destChain),
       };
     }
