@@ -42,6 +42,25 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
     `;
   }
 
+  niceTemplate() {
+    return html`
+      <gc-dca-app
+        chart
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
+        apiAddress="wss://rpc.nice.hydration.cloud"
+        pools=${[PoolType.Omni, PoolType.LBP, PoolType.Stable].join(',')}
+        stableCoinAssetId="10"
+        accountAddress="7KATdGbFsc58BDyfV9ZtxHEYPt5icvS5itHcJh3yWYmpwG8k"
+        accountProvider="external"
+        accountName=${this.account.state?.name}
+        indexerUrl="https://archive.nice.hydration.cloud/graphql"
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="10"
+      ></gc-dca-app>
+    `;
+  }
+
   bsxTemplate() {
     return html`
       <gc-dca-app
@@ -82,7 +101,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
 
   render() {
     if (this.theme.state == 'hdx') {
-      return this.hdxTemplate();
+      return this.niceTemplate();
     } else {
       return this.bsxTemplate();
     }

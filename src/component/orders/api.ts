@@ -48,13 +48,13 @@ export class DcaOrdersApi {
       let order: any;
       let period: number;
       let totalAmount: string;
-      if (event.call) {
+      if (event.call && event.call.args.schedule) {
         const schedule = event.call.args.schedule;
         order = schedule.order;
         period = schedule.period;
         totalAmount = schedule.totalAmount;
       } else {
-        // Fallback for batch orders triggered by protocol on initialize (TRSRY)
+        console.log("using fallback to load DCA schedule", id);
         const apiAt = await this._api.at(event.block.hash);
         const scheduleOpt = await apiAt.query.dca.schedules(id);
         const schedule = scheduleOpt.unwrap();
