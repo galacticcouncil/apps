@@ -199,6 +199,9 @@ export class XcmApp extends PoolApp {
     this.syncChains();
     this.syncBalances();
     this.syncInput();
+    // Prefill & validation
+    this.prefillAddress();
+    this.validateAddress();
   }
 
   private async changeDestinationChain(chain: string) {
@@ -604,11 +607,6 @@ export class XcmApp extends PoolApp {
       configService: this.configService,
       evmChains: evmChains,
     });
-    this.transfer = {
-      ...this.transfer,
-      srcChain: chainsMap.get(this.srcChain),
-      destChain: chainsMap.get(this.destChain),
-    };
     this.prefillAddress();
     this.syncChains();
     this.syncBalances();
@@ -638,8 +636,6 @@ export class XcmApp extends PoolApp {
     super.onAccountChange(prev, curr);
     if (curr && this.wallet) {
       this.onAccountChangeGuard();
-      this.prefillAddress();
-      this.validateAddress();
     } else {
       this.resetBalances();
     }
