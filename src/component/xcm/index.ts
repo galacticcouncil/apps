@@ -17,7 +17,6 @@ import {
   isEthAddress,
   isEvmAccount,
   isNativeAddress,
-  isValidAddress,
 } from '../../utils/account';
 import { getRenderString } from '../../utils/dom';
 
@@ -396,20 +395,30 @@ export class XcmApp extends PoolApp {
     };
   }
 
+  private isEvmAddressError(dest: AnyChain, address: string) {
+    return dest.isEvmParachain() && !isEthAddress(address);
+  }
+
+  private isSubstrateAddressError(dest: AnyChain, address: string) {
+    return (
+      dest.isParachain() && dest.key !== 'hydradx' && !isNativeAddress(address)
+    );
+  }
+
+  private isAddressError(address: string) {
+    return !isNativeAddress(address) && !isEthAddress(address);
+  }
+
   private validateAddress() {
     const { address, destChain } = this.transfer;
 
     if (address == null || address == '') {
       this.transfer.error['address'] = i18n.t('xcm.error.required');
-    } else if (destChain.isEvmParachain() && !isEthAddress(address)) {
+    } else if (this.isEvmAddressError(destChain, address)) {
       this.transfer.error['address'] = i18n.t('xcm.error.notEvmAddr');
-    } else if (
-      destChain.isParachain() &&
-      destChain.key !== 'hydradx' &&
-      !isNativeAddress(address)
-    ) {
+    } else if (this.isSubstrateAddressError(destChain, address)) {
       this.transfer.error['address'] = i18n.t('xcm.error.notNativeAddr');
-    } else if (!isValidAddress(address)) {
+    } else if (this.isAddressError(address)) {
       this.transfer.error['address'] = i18n.t('xcm.error.notValidAddr');
     } else {
       delete this.transfer.error['address'];

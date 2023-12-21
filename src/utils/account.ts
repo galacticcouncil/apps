@@ -1,9 +1,5 @@
 import { hexToU8a, isHex, u8aToHex } from '@polkadot/util';
-import {
-  decodeAddress,
-  encodeAddress,
-  validateAddress,
-} from '@polkadot/util-crypto';
+import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { HYDRADX_SS58_PREFIX } from '@galacticcouncil/sdk';
 
@@ -59,14 +55,6 @@ export function isSameAddress(address1: string, address2: string): boolean {
     const decodedAddress1 = decodeAddress(sub1)?.toString();
     const decodedAddress2 = decodeAddress(sub2)?.toString();
     return decodedAddress1 === decodedAddress2;
-  } catch {
-    return false;
-  }
-}
-
-export function isValidAddress(address: string): boolean {
-  try {
-    return validateAddress(address);
   } catch {
     return false;
   }
