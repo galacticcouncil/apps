@@ -648,6 +648,7 @@ export class XcmApp extends PoolApp {
         srcChain: chainsMap.get(this.srcChain),
         destChain: chainsMap.get(this.destChain),
       };
+      this.syncChains();
     }
     super.update(changedProperties);
   }
