@@ -19,7 +19,6 @@ export type TransferState = {
   min: AssetAmount;
   srcChain: AnyChain;
   srcChainFee: AssetAmount;
-  call: XCall;
   error: {};
 };
 
@@ -34,7 +33,6 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   min: null,
   srcChain: null,
   srcChainFee: null,
-  call: null,
   error: {},
 };
 

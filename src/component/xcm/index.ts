@@ -300,6 +300,7 @@ export class XcmApp extends PoolApp {
 
   processTx(
     account: Account,
+    data: XData,
     transaction: Transaction,
     transfer: TransferState,
   ) {
@@ -313,7 +314,12 @@ export class XcmApp extends PoolApp {
     };
 
     const { srcChain, srcChainFee, destChain, destChainFee } = this.transfer;
-    const srChainFeeBalance = this.xchain.balance.get(srcChainFee.key);
+
+    const srcChainFeeBalance =
+      srcChain.key === 'hydradx'
+        ? this.xchain.balance.get(srcChainFee.key)
+        : data.srcFeeBalance;
+
     const options = {
       bubbles: true,
       composed: true,
@@ -324,7 +330,7 @@ export class XcmApp extends PoolApp {
         meta: {
           srcChain: srcChain.key,
           srcChainFee: srcChainFee.toDecimal(),
-          srcChainFeeBalance: srChainFeeBalance.toDecimal(),
+          srcChainFeeBalance: srcChainFeeBalance.toDecimal(),
           srcChainFeeSymbol: srcChainFee.originSymbol,
           dstChain: destChain.key,
           dstChainFee: destChainFee.toDecimal(),
@@ -447,7 +453,7 @@ export class XcmApp extends PoolApp {
         return call;
       },
     } as Transaction;
-    this.processTx(account, transaction, this.transfer);
+    this.processTx(account, xData, transaction, this.transfer);
   }
 
   private async calculateSourceFee(data: XData) {

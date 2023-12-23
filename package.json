@@ -70,8 +70,8 @@
   "peerDependencies": {
     "@galacticcouncil/sdk": "1.1.1",
     "@galacticcouncil/ui": "^1.3.7",
-    "@galacticcouncil/xcm-cfg": "^1.0.3",
-    "@galacticcouncil/xcm-sdk": "^1.0.6",
+    "@galacticcouncil/xcm-cfg": "^1.0.5",
+    "@galacticcouncil/xcm-sdk": "^1.0.7",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
     "@vaadin/router": "^1.7.4",
