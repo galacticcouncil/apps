@@ -24,13 +24,12 @@ export class XcmForm extends LitElement {
   @property({ type: String }) address = null;
   @property({ type: String }) amount = null;
   @property({ type: Object }) asset: Asset = null;
-  @property({ type: String }) balance = null;
-  @property({ type: String }) effectiveBalance = null;
+  @property({ type: Object }) balance: AssetAmount = null;
+  @property({ type: Object }) max: AssetAmount = null;
   @property({ type: Object }) srcChain: AnyChain = null;
   @property({ type: Object }) srcChainFee: AssetAmount = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destChainFee: AssetAmount = null;
-  @property({ type: String }) destChainSs58Prefix = null;
   @property({ type: Object }) error = {};
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) warning = false;
@@ -204,10 +203,10 @@ export class XcmForm extends LitElement {
         </uigc-asset>
         <uigc-asset-balance
           slot="balance"
-          .balance=${this.balance}
+          .balance=${this.balance?.toDecimal()}
           .onMaxClick=${this.maxClickHandler(
-            this.balance,
-            this.effectiveBalance,
+            this.balance?.toDecimal(),
+            this.max?.toDecimal(),
           )}
         ></uigc-asset-balance>
       </uigc-asset-transfer>
@@ -251,7 +250,7 @@ export class XcmForm extends LitElement {
             <gc-account-id
               slot="id"
               .address=${this.address}
-              .ss58prefix=${this.destChainSs58Prefix}
+              .ss58prefix=${this.destChain.ss58Format}
             ></gc-account-id>
           `,
       )}
