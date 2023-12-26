@@ -1,8 +1,13 @@
 import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
-import { chainsMap, evmChains } from '@galacticcouncil/xcm-cfg';
-import { EvmClient, SubstrateApis, Wallet } from '@galacticcouncil/xcm-sdk';
+import { chainsMap } from '@galacticcouncil/xcm-cfg';
+import {
+  EvmClient,
+  SubstrateApis,
+  Wallet,
+  evmChains,
+} from '@galacticcouncil/xcm-sdk';
 
 import type { ApiPromise } from '@polkadot/api';
 import type { ISubmittableResult } from '@polkadot/types/types';
@@ -22,7 +27,6 @@ import { Notification, NotificationType } from '../notification/types';
 
 import { signAndSend, signAndSendEvm } from './signer';
 import { TxInfo, TxNotification } from './types';
-import { EvmWalletClient } from './client';
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
@@ -153,7 +157,7 @@ export class TransactionCenter extends LitElement {
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
     if (isEvmProvider) {
       const chain = evmChains['hydradx'];
-      this.signWithEvm(api, new EvmWalletClient(chain), txId, txInfo);
+      this.signWithEvm(api, new EvmClient(chain), txId, txInfo);
     } else {
       this.signWithSubstrate(api, txId, txInfo);
     }
@@ -168,7 +172,7 @@ export class TransactionCenter extends LitElement {
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
     if (isEvmProvider) {
       const chain = evmChains[srcChain];
-      this.signWithEvm(api, new EvmWalletClient(chain), txId, txInfo);
+      this.signWithEvm(api, new EvmClient(chain), txId, txInfo);
     } else {
       this.signWithSubstrate(api, txId, txInfo);
     }

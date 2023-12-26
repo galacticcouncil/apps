@@ -19,6 +19,7 @@ export type TransferState = {
   min: AssetAmount;
   srcChain: AnyChain;
   srcChainFee: AssetAmount;
+  srcChainFeeBalance: AssetAmount;
   error: {};
 };
 
@@ -33,6 +34,7 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   min: null,
   srcChain: null,
   srcChainFee: null,
+  srcChainFeeBalance: null,
   error: {},
 };
 
@@ -47,7 +49,7 @@ export type ChainState = {
 export const DEFAULT_CHAIN_STATE: ChainState = {
   balance: new Map([]),
   dest: [],
-  list: Array.from(chainsMap.values()),
+  list: [],
   tokens: [],
   selector: null,
 };

@@ -9,8 +9,7 @@ import {
   ZERO,
   Transaction,
 } from '@galacticcouncil/sdk';
-import { evmChains } from '@galacticcouncil/xcm-cfg';
-import { EvmClient } from '@galacticcouncil/xcm-sdk';
+import { EvmClient, evmChains } from '@galacticcouncil/xcm-sdk';
 
 import { Account } from '../db';
 import { convertToH160, isEvmAccount } from '../utils/account';

@@ -27,9 +27,15 @@ import {
   assetsMap,
   chainsMap,
   chainsConfigMap,
-  evmChains,
 } from '@galacticcouncil/xcm-cfg';
-import { SubstrateApis, Wallet, XCall, XData } from '@galacticcouncil/xcm-sdk';
+import {
+  SubstrateApis,
+  Wallet,
+  XCall,
+  XData,
+  isH160Address,
+  isSs58Address,
+} from '@galacticcouncil/xcm-sdk';
 
 import {
   AssetConfig,
@@ -55,7 +61,6 @@ import {
 } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { DISPATCH_ADDRESS } from '../transaction/signer';
-import { acalaEvmResolver } from './resolvers';
 
 @customElement('gc-xcm-app')
 export class XcmApp extends PoolApp {
@@ -250,7 +255,7 @@ export class XcmApp extends PoolApp {
 
     const { asset, balance, max, min } = this.transfer;
     // Skip validation if missing transfer data
-    if (!max || !min) {
+    if (!this.hasTransferData()) {
       return;
     }
 
@@ -445,7 +450,7 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const call = xData.transfer(amount);
+    const call = xData.buildCall(amount);
     const transaction = {
       hex: call.data,
       name: 'xcm',
@@ -464,7 +469,7 @@ export class XcmApp extends PoolApp {
       return data.srcFee;
     }
 
-    const { max, srcFee, transfer } = data;
+    const { max, srcFee, buildCall } = data;
     const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
     const feeAsset = this.assets.registry.get(feeAssetId);
     const feeAssetData = Array.from(srcChain.assetsData.values()).find(
@@ -477,7 +482,7 @@ export class XcmApp extends PoolApp {
       const evmAddress = convertToH160(account.address);
       const evmClient = this.wallet.getEvmClient(srcChain.key);
       const evmProvider = evmClient.getProvider();
-      const call = transfer(max.toDecimal());
+      const call = buildCall(max.toDecimal());
       try {
         const extrinsic = api.tx(call.data);
         const data = extrinsic.inner.toHex();
@@ -518,20 +523,22 @@ export class XcmApp extends PoolApp {
     const { srcChain } = this.transfer;
     const srcAddress = this.formatAddress(account.address, srcChain);
 
-    const observer = (val: AssetAmount) => {
-      const balances: Map<string, AssetAmount> = new Map(this.xchain.balance);
-      balances.set(val.key, val);
+    const observer = (balances: AssetAmount[]) => {
+      const updated: Map<string, AssetAmount> = new Map([]);
+      balances.forEach((balance: AssetAmount) => {
+        updated.set(balance.key, balance);
+      });
+
       const { asset } = this.transfer;
-      const balance = balances.get(asset.key);
-      this.xchain.balance = balances;
-      this.transfer.balance = balance;
+      this.xchain.balance = updated;
+      this.transfer.balance = updated.get(asset.key);
       this.requestUpdate();
     };
 
     this.disconnectBalanceSubscription = await this.wallet.subscribeBalance(
       srcAddress,
       srcChain,
-      observer,
+      observer.bind(this),
     );
   }
 
@@ -609,10 +616,6 @@ export class XcmApp extends PoolApp {
     });
     this.wallet = new Wallet({
       configService: this.configService,
-      evmChains: evmChains,
-      evmResolvers: {
-        acala: acalaEvmResolver,
-      },
     });
     this.changeChain();
   }
@@ -644,16 +647,36 @@ export class XcmApp extends PoolApp {
     }
   }
 
+  private initConfig() {
+    this.blacklist?.split(',').forEach((c) => {
+      chainsMap.delete(c);
+      chainsConfigMap.delete(c);
+    });
+  }
+
+  private initTransferState() {
+    this.transfer = {
+      ...this.transfer,
+      srcChain: chainsMap.get(this.srcChain),
+      destChain: chainsMap.get(this.destChain),
+    };
+  }
+
+  private initXChainState() {
+    this.xchain = {
+      ...this.xchain,
+      list: Array.from(chainsMap.values()),
+    };
+  }
+
   override async update(changedProperties: Map<string, unknown>) {
     if (
       changedProperties.has('srcChain') &&
       changedProperties.has('destChain')
     ) {
-      this.transfer = {
-        ...this.transfer,
-        srcChain: chainsMap.get(this.srcChain),
-        destChain: chainsMap.get(this.destChain),
-      };
+      this.initConfig();
+      this.initTransferState();
+      this.initXChainState();
       this.syncChains();
     }
     super.update(changedProperties);
