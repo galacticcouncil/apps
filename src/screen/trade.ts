@@ -7,7 +7,6 @@ import { DatabaseController } from '../db.ctrl';
 import { ThemeController } from '../theme.ctrl';
 
 import '../component/trade';
-import { PoolType } from '@galacticcouncil/sdk';
 
 @customElement('gc-trade-screen')
 export class TradeScreen extends LitElement implements BeforeEnterObserver {
@@ -44,7 +43,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
 
   bsxTemplateRococo() {
     return html`
-      <gc-trade-app 
+      <gc-trade-app
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://basilisk-rococo-rpc.play.hydration.cloud"
@@ -65,10 +64,6 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.hydradx.cloud"
-<<<<<<< HEAD
-=======
-        pools=${[PoolType.Omni, PoolType.LBP, PoolType.Stable, PoolType.XYK].join(',')}
->>>>>>> origin/master
         stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
