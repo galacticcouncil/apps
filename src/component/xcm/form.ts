@@ -265,6 +265,11 @@ export class XcmForm extends LitElement {
       warning: true,
       show: account && isValidAddr && !isAccountAddr,
     };
+    const ledgerClasses = {
+      warning: true,
+      show:
+        this.srcChain.key === 'polkadot' || this.srcChain.key === 'assethub',
+    };
     return html`
       <slot name="header"></slot>
       <div class="transfer">
@@ -295,12 +300,11 @@ export class XcmForm extends LitElement {
       </div>
       <div class=${classMap(warningClasses)}>
         <uigc-icon-warning></uigc-icon-warning>
-        <span>
-          ${i18n.t('xcm.warning', {
-            asset: this.asset,
-            chain: capitalize(this.destChain.name),
-          })}
-        </span>
+        <span> ${i18n.t('xcm.warning')} </span>
+      </div>
+      <div class=${classMap(ledgerClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <span> ${i18n.t('xcm.warning.ledger')} </span>
       </div>
       <div class="grow"></div>
       <uigc-button
