@@ -3,7 +3,7 @@ import type { ISubmittableResult } from '@polkadot/types/types';
 import { ApiPromise } from '@polkadot/api';
 import { getWalletBySource } from '@talismn/connect-wallets';
 
-import { convertToH160 } from '../../utils/account';
+import { convertToH160 } from '../../utils/evm';
 import { TxInfo } from './types';
 
 export const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';

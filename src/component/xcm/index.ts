@@ -10,15 +10,9 @@ import { headerStyles } from '../styles/header.css';
 import { basicLayoutStyles } from '../styles/layout/basic.css';
 
 import { Account } from '../../db';
-import {
-  convertAddressSS58,
-  convertFromH160,
-  convertToH160,
-  isEthAddress,
-  isEvmAccount,
-  isNativeAddress,
-} from '../../utils/account';
+import { convertAddressSS58, isValidAddress } from '../../utils/account';
 import { getRenderString } from '../../utils/dom';
+import { convertFromH160, convertToH160, isEvmAccount } from '../../utils/evm';
 
 import '@galacticcouncil/ui';
 import { Transaction } from '@galacticcouncil/sdk';
@@ -34,7 +28,6 @@ import {
   XCall,
   XData,
   isH160Address,
-  isSs58Address,
 } from '@galacticcouncil/xcm-sdk';
 
 import {
@@ -355,7 +348,7 @@ export class XcmApp extends PoolApp {
   }
 
   private formatDestAddress(address: string, chain: AnyChain): string {
-    if (chain.key === 'hydradx' && isEthAddress(address)) {
+    if (chain.key === 'hydradx' && isH160Address(address)) {
       return convertFromH160(address);
     }
     return address;
@@ -406,17 +399,17 @@ export class XcmApp extends PoolApp {
   }
 
   private isEvmAddressError(dest: AnyChain, address: string) {
-    return dest.isEvmParachain() && !isEthAddress(address);
+    return dest.isEvmParachain() && !isH160Address(address);
   }
 
   private isSubstrateAddressError(dest: AnyChain, address: string) {
     return (
-      dest.isParachain() && dest.key !== 'hydradx' && !isNativeAddress(address)
+      dest.isParachain() && dest.key !== 'hydradx' && !isValidAddress(address)
     );
   }
 
   private isAddressError(address: string) {
-    return !isNativeAddress(address) && !isEthAddress(address);
+    return !isValidAddress(address) && !isH160Address(address);
   }
 
   private validateAddress() {

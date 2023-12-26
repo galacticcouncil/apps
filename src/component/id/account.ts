@@ -3,11 +3,10 @@ import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import { generateAvatarURL } from '@cfx-kit/wallet-avatar';
+import { isH160Address } from '@galacticcouncil/xcm-sdk';
 import { u8aToHex } from '@polkadot/util';
 import { decodeAddress } from '@polkadot/util-crypto';
 import { toSvg } from 'jdenticon';
-
-import { isEthAddress } from '../../utils/account';
 
 @customElement('gc-account-id')
 export class AccountId extends LitElement {
@@ -23,8 +22,8 @@ export class AccountId extends LitElement {
   ];
 
   render() {
-    const isEthAddr = isEthAddress(this.address);
-    if (isEthAddr) {
+    const isH160Addr = isH160Address(this.address);
+    if (isH160Addr) {
       const avatarUrl = generateAvatarURL(this.address);
       return html`<img class="avatar" src="${avatarUrl}" />`;
     }

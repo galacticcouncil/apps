@@ -1,14 +1,11 @@
-import { hexToU8a, isHex, u8aToHex } from '@polkadot/util';
+import { HYDRADX_SS58_PREFIX } from '@galacticcouncil/sdk';
+import { isH160Address } from '@galacticcouncil/xcm-sdk';
+import { u8aToHex, hexToU8a, isHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
-import { HYDRADX_SS58_PREFIX } from '@galacticcouncil/sdk';
-
-import { Buffer } from 'buffer';
-
-const ETH_PREFIX = 'ETH\0';
+import { convertFromH160 } from './evm';
 
 export const EVM_PROVIDERS = ['metamask'];
-export const EVM_CHAINS = ['hydradx', 'moonbeam'];
 
 export function convertAddressSS58(
   address: string,
@@ -21,25 +18,6 @@ export function convertAddressSS58(
   }
 }
 
-export function convertFromH160(
-  evmAddress: string,
-  ss58prefix = HYDRADX_SS58_PREFIX,
-) {
-  const addressBytes = Buffer.from(evmAddress.slice(2), 'hex');
-  const prefixBytes = Buffer.from(ETH_PREFIX);
-  return encodeAddress(
-    new Uint8Array(Buffer.concat([prefixBytes, addressBytes, Buffer.alloc(8)])),
-    ss58prefix,
-  );
-}
-
-export function convertToH160(address: string) {
-  const decodedBytes = decodeAddress(address);
-  const prefixBytes = Buffer.from(ETH_PREFIX);
-  const addressBytes = decodedBytes.slice(prefixBytes.length, -8);
-  return '0x' + Buffer.from(addressBytes).toString('hex');
-}
-
 export function convertToHex(address: string): string {
   try {
     return u8aToHex(decodeAddress(address));
@@ -50,8 +28,8 @@ export function convertToHex(address: string): string {
 
 export function isSameAddress(address1: string, address2: string): boolean {
   try {
-    const sub1 = isEthAddress(address1) ? convertFromH160(address1) : address1;
-    const sub2 = isEthAddress(address2) ? convertFromH160(address2) : address2;
+    const sub1 = isH160Address(address1) ? convertFromH160(address1) : address1;
+    const sub2 = isH160Address(address2) ? convertFromH160(address2) : address2;
     const decodedAddress1 = decodeAddress(sub1)?.toString();
     const decodedAddress2 = decodeAddress(sub2)?.toString();
     return decodedAddress1 === decodedAddress2;
@@ -60,30 +38,11 @@ export function isSameAddress(address1: string, address2: string): boolean {
   }
 }
 
-export function isNativeAddress(address: string) {
+export function isValidAddress(address: string) {
   try {
     encodeAddress(isHex(address) ? hexToU8a(address) : decodeAddress(address));
     return true;
   } catch (error) {
-    return false;
-  }
-}
-
-export function isEthAddress(address: string) {
-  if (address) {
-    return address.length === 42 && address.startsWith('0x');
-  }
-  return false;
-}
-
-export function isEvmAccount(address: string) {
-  if (!address) return false;
-
-  try {
-    const prefixBytes = Buffer.from(ETH_PREFIX);
-    const pub = decodeAddress(address, true);
-    return Buffer.from(pub.subarray(0, prefixBytes.length)).equals(prefixBytes);
-  } catch {
     return false;
   }
 }

@@ -12,7 +12,7 @@ import {
 import { EvmClient, evmChains } from '@galacticcouncil/xcm-sdk';
 
 import { Account } from '../db';
-import { convertToH160, isEvmAccount } from '../utils/account';
+import { convertToH160, isEvmAccount } from '../utils/evm';
 
 const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';
 const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';

@@ -27,8 +27,9 @@ import {
 } from '../../utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from '../../utils/asset';
 import { calculateEffectiveBalance } from '../../utils/balance';
-import { updateQueryParams } from '../../utils/url';
 import { getRenderString } from '../../utils/dom';
+import { isEvmAccount } from '../../utils/evm';
+import { updateQueryParams } from '../../utils/url';
 
 import '@galacticcouncil/ui';
 import {
@@ -44,7 +45,6 @@ import {
   bnum,
 } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { Balance } from '@polkadot/types/interfaces';
 
 import './form';
 import './settings';
@@ -61,7 +61,6 @@ import {
 } from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
-import { isEvmAccount } from '../../utils/account';
 
 @customElement('gc-trade-app')
 export class TradeApp extends PoolApp {
