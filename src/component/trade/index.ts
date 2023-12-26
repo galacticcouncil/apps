@@ -111,7 +111,8 @@ export class TradeApp extends PoolApp {
   isTwapEnabled(): boolean {
     const { swaps } = this.trade;
     const pools: string[] = swaps.map((swap: any) => swap.pool);
-    const notSupportedRoute = pools.includes(PoolType.LBP);
+    const notSupportedRoute =
+      pools.includes(PoolType.LBP) || pools.includes(PoolType.XYK);
     return this.twap && !notSupportedRoute;
   }
 

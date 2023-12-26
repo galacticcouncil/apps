@@ -30,7 +30,12 @@ export class XcmScreen extends LitElement {
     return html`
       <gc-xcm-app
         srcChain="polkadot"
+<<<<<<< HEAD
         destChain="hydradx"
+=======
+        dstChain="hydradx"
+        chains="polkadot,hydradx,acala,statemint,interlay,zeitgeist,astar,centrifuge,bifrost,subsocial"
+>>>>>>> origin/master
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}

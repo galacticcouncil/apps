@@ -16,11 +16,11 @@ import { getTradeMaxAmountIn, getTradeMinAmountOut } from '../utils/slippage';
 
 import { HOUR_MS } from './time';
 
-export const TWAP_BLOCK_PERIOD = 5;
+export const TWAP_BLOCK_PERIOD = 6;
 export const TWAP_MAX_PRICE_IMPACT = -5;
-export const TWAP_RETRIES = 1;
+export const TWAP_RETRIES = 3;
 
-const TWAP_MAX_DURATION = 3 * HOUR_MS;
+const TWAP_MAX_DURATION = 6 * HOUR_MS;
 const TWAP_TX_MULTIPLIER = 3;
 
 export type TradeInfo = {
