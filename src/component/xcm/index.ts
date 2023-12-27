@@ -139,8 +139,13 @@ export class XcmApp extends PoolApp {
   }
 
   private isSupportedWallet(chain: AnyChain) {
-    const { address } = this.account.state;
-    if (isEvmAccount(address)) {
+    const account = this.account.state;
+
+    if (!account) {
+      return false;
+    }
+
+    if (isEvmAccount(account.address)) {
       return this.isEvmCompatible(chain);
     } else {
       return this.isNativeCompatible(chain);
@@ -506,6 +511,18 @@ export class XcmApp extends PoolApp {
     });
   }
 
+  private updateBalance(balances: AssetAmount[]) {
+    const { asset } = this.transfer;
+    const updated: Map<string, AssetAmount> = new Map([]);
+    balances.forEach((balance: AssetAmount) => {
+      updated.set(balance.key, balance);
+    });
+
+    this.xchain.balance = updated;
+    this.transfer.balance = updated.get(asset.key);
+    this.requestUpdate();
+  }
+
   private resetBalances() {
     this.transfer.balance = null;
     this.xchain.balance = new Map([]);
@@ -516,22 +533,11 @@ export class XcmApp extends PoolApp {
     const { srcChain } = this.transfer;
     const srcAddress = this.formatAddress(account.address, srcChain);
 
-    const observer = (balances: AssetAmount[]) => {
-      const updated: Map<string, AssetAmount> = new Map([]);
-      balances.forEach((balance: AssetAmount) => {
-        updated.set(balance.key, balance);
-      });
-
-      const { asset } = this.transfer;
-      this.xchain.balance = updated;
-      this.transfer.balance = updated.get(asset.key);
-      this.requestUpdate();
-    };
-
+    const observer = (balances: AssetAmount[]) => this.updateBalance(balances);
     this.disconnectBalanceSubscription = await this.wallet.subscribeBalance(
       srcAddress,
       srcChain,
-      observer.bind(this),
+      observer,
     );
   }
 
