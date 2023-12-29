@@ -82,6 +82,7 @@ export class XcmApp extends PoolApp {
   @state() tab: TransferTab = TransferTab.TransferForm;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
   @state() xchain: ChainState = DEFAULT_CHAIN_STATE;
+  @state() lastUpdate: Object = null;
 
   static styles = [
     baseStyles,
@@ -122,6 +123,15 @@ export class XcmApp extends PoolApp {
 
   disablePrefill() {
     this.shouldPrefill = false;
+  }
+
+  private newUpdate() {
+    this.lastUpdate = new Object();
+    return this.lastUpdate;
+  }
+
+  private isLastUpdate(update) {
+    return this.lastUpdate == update;
   }
 
   private isEvmCompatible(chain: AnyChain) {
@@ -165,12 +175,13 @@ export class XcmApp extends PoolApp {
   }
 
   private async changeChain() {
+    const update = this.newUpdate();
     this.disconnectSubscriptions();
     // Sync form
     this.syncChains();
     if (this.hasAccount()) {
       this.syncBalances();
-      this.syncInput();
+      this.syncInput(update);
     }
     // Prefill & validation
     this.prefillAddress();
@@ -221,6 +232,7 @@ export class XcmApp extends PoolApp {
   }
 
   private async changeAsset(asset: string) {
+    const update = this.newUpdate();
     const balance = this.xchain.balance.get(asset);
     this.transfer = {
       ...this.transfer,
@@ -230,7 +242,7 @@ export class XcmApp extends PoolApp {
       destChainFee: null,
     };
     if (this.hasAccount()) {
-      this.syncInput();
+      this.syncInput(update);
     }
   }
 
@@ -541,7 +553,7 @@ export class XcmApp extends PoolApp {
     );
   }
 
-  private async syncInput() {
+  private async syncInput(update: Object) {
     const account = this.account.state;
     const { asset, destChain, srcChain } = this.transfer;
     const srcAddr = this.formatAddress(account.address, srcChain);
@@ -558,15 +570,17 @@ export class XcmApp extends PoolApp {
     const { balance, destFee, max, min } = data;
 
     const srcFee = await this.calculateSourceFee(data);
-    this.transfer = {
-      ...this.transfer,
-      balance: balance,
-      max: max,
-      min: min,
-      srcChainFee: srcFee,
-      destChainFee: destFee,
-    };
-    this.validateAmount();
+    if (this.isLastUpdate(update)) {
+      this.transfer = {
+        ...this.transfer,
+        balance: balance,
+        max: max,
+        min: min,
+        srcChainFee: srcFee,
+        destChainFee: destFee,
+      };
+      this.validateAmount();
+    }
   }
 
   private syncChains() {
