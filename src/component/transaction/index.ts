@@ -169,6 +169,7 @@ export class TransactionCenter extends LitElement {
     const chain = chainsMap.get(srcChain);
     const apiPool = SubstrateApis.getInstance();
     const api = await apiPool.api(chain.ws);
+    console.log(`https://polkadot.js.org/apps/?rpc=${chain.ws}#/extrinsics/decode/${txInfo.transaction.hex}`);
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
     if (isEvmProvider) {
       const chain = evmChains[srcChain];

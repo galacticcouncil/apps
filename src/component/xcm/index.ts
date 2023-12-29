@@ -531,8 +531,13 @@ export class XcmApp extends PoolApp {
     });
 
     this.xchain.balance = updated;
-    this.transfer.balance = updated.get(asset.key);
-    this.requestUpdate();
+    const oldBalance = this.transfer.balance;
+    const newBalance = updated.get(asset.key);
+    const diff = newBalance.amount - oldBalance.amount;
+    const max = this.transfer.max.amount + diff;
+    this.transfer.max = new AssetAmount({...this.transfer.max, amount: max < 0 ? 0n : max});
+    this.transfer.balance = newBalance;
+    this.validateAmount();
   }
 
   private resetBalances() {
