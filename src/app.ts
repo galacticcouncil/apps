@@ -6,6 +6,7 @@ import './screen/trade';
 import './screen/dca';
 import './screen/bonds';
 import './screen/xcm';
+import './screen/extrinsic';
 
 const routes = [
   {
@@ -31,6 +32,10 @@ const routes = [
       {
         path: '/cross-chain',
         component: 'gc-xcm-screen',
+      },
+      {
+        path: '/extrinsic',
+        component: 'gc-extrinsic-screen',
       },
     ],
   },
