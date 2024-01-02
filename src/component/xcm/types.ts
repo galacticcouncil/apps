@@ -53,5 +53,5 @@ export const DEFAULT_CHAIN_STATE: ChainState = {
   list: [],
   tokens: [],
   selector: null,
-  connecting: false,
+  connecting: true,
 };

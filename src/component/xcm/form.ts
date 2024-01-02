@@ -12,7 +12,6 @@ import { formStyles } from '../styles/form.css';
 
 import { Account, accountCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
-import { capitalize } from '../../utils/text';
 import { isSameAddress } from '../../utils/account';
 
 import '../id/account';
@@ -117,6 +116,12 @@ export class XcmForm extends LitElement {
         .transfer {
           padding: 0 28px;
         }
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        margin-right: 10px;
       }
     `,
   ];
@@ -313,8 +318,27 @@ export class XcmForm extends LitElement {
         variant="primary"
         fullWidth
         @click=${this.onTransferClick}
-        >${this.transferButtonText()}</uigc-button
       >
+        ${when(
+          this.isChainConnected(),
+          () =>
+            html`
+              <span class="cta"
+                >${this.account.state
+                  ? i18n.t('xcm.transfer')
+                  : i18n.t('xcm.connect')}</span
+              >
+            `,
+          () =>
+            html`
+              <uigc-circular-progress
+                slot="icon"
+                class="spinner"
+              ></uigc-circular-progress>
+              <span class="cta"> ${i18n.t('xcm.connecting')}</span>
+            `,
+        )}
+      </uigc-button>
     `;
   }
 }
