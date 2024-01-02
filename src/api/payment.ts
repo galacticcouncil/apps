@@ -31,7 +31,8 @@ export class PaymentApi {
   }
 
   async getPaymentFeeAsset(account: Account): Promise<string> {
-    if (isEvmAccount(account.address)) {
+    const address = this.getAddress(account);
+    if (isEvmAccount(address)) {
       const assets = await this._router.getAllAssets();
       const paymentAsset = assets.find(
         (asset: Asset) =>
@@ -44,7 +45,7 @@ export class PaymentApi {
     try {
       const feeAsset =
         await this._api.query.multiTransactionPayment.accountCurrencyMap(
-          account.address,
+          address,
         );
       return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
     } catch {

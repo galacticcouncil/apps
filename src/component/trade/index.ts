@@ -735,7 +735,7 @@ export class TradeApp extends PoolApp {
     const account = this.account.state;
     const feeAsset = this.assets.registry.get(feeAssetId);
 
-    const { amount } = isEvmAccount(account.address)
+    const { amount } = isEvmAccount(account?.address)
       ? await this.paymentApi.getEvmPaymentFee(this.tx.hex, account)
       : await this.paymentApi.getPaymentFee(feeAsset, feeNative);
 
