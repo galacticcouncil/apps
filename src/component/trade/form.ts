@@ -556,11 +556,8 @@ export class TradeForm extends BaseElement {
     }
 
     if (this.tradeFeeRange) {
-      const max = this.tradeFeeRange[1];
-      const min = this.tradeFeeRange[0];
-      const fraction = (max - min) / 3;
-      const mediumLow = min + fraction;
-      const mediumHigh = max - fraction;
+      const [min, max] = this.tradeFeeRange;
+      const [, mediumLow, mediumHigh] = this.tradeFeeIntervals(min, max);
       const fee = Number(this.tradeFeePct);
       const indicatorClasses = {
         indicator: true,
@@ -583,6 +580,14 @@ export class TradeForm extends BaseElement {
         >${humanizeAmount(tradeFee)} ${assetSymbol}</span
       >
       <span class="value highlight"> (${tradeFeePct}%) </span> `;
+  }
+
+  tradeFeeIntervals(min: number, max: number, num = 3) {
+    const { log2 } = Math;
+    return Array.from(
+      { length: num + 1 },
+      (_, index) => 2 ** (log2(min) + (index / num) * (log2(max) - log2(min))),
+    );
   }
 
   infoTradeFeeTemplate(assetSymbol: string) {
