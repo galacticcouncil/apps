@@ -174,9 +174,22 @@ export class XcmApp extends PoolApp {
     this.dispatchEvent(new CustomEvent('gc:wallet:change', options));
   }
 
+  private async establishConnection() {
+    const { destChain, srcChain } = this.transfer;
+    this.xchain.connecting = true;
+    const apiPool = SubstrateApis.getInstance();
+    Promise.all([apiPool.api(srcChain.ws), apiPool.api(destChain.ws)]).then(
+      () => {
+        this.xchain.connecting = false;
+      },
+    );
+  }
+
   private async changeChain() {
     const update = this.newUpdate();
     this.disconnectSubscriptions();
+    this.establishConnection();
+
     // Sync form
     this.syncChains();
     if (this.hasAccount()) {
@@ -524,19 +537,22 @@ export class XcmApp extends PoolApp {
   }
 
   private updateBalance(balances: AssetAmount[]) {
-    const { asset } = this.transfer;
+    const { asset, balance, max } = this.transfer;
     const updated: Map<string, AssetAmount> = new Map([]);
     balances.forEach((balance: AssetAmount) => {
       updated.set(balance.key, balance);
     });
-
     this.xchain.balance = updated;
-    const oldBalance = this.transfer.balance;
+
+    const oldBalance = balance ? balance.amount : 0n;
     const newBalance = updated.get(asset.key);
-    const diff = newBalance.amount - oldBalance.amount;
-    const max = this.transfer.max.amount + diff;
-    this.transfer.max = new AssetAmount({...this.transfer.max, amount: max < 0 ? 0n : max});
+    const diff = newBalance.amount - oldBalance;
+    const newMax = max.amount + diff;
+
     this.transfer.balance = newBalance;
+    this.transfer.max = max.copyWith({
+      amount: newMax < 0 ? 0n : newMax,
+    });
     this.validateAmount();
   }
 
@@ -829,6 +845,7 @@ export class XcmApp extends PoolApp {
     };
     return html` <uigc-paper class=${classMap(classes)} id="default-tab">
       <gc-xcm-form
+        .connecting=${this.xchain.connecting}
         .disabled=${this.isFormDisabled()}
         .address=${this.transfer.address}
         .amount=${this.transfer.amount}

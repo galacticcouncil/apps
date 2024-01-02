@@ -32,7 +32,7 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) destChainFee: AssetAmount = null;
   @property({ type: Object }) error = {};
   @property({ type: Boolean }) disabled = false;
-  @property({ type: Boolean }) warning = false;
+  @property({ type: Boolean }) connecting = false;
 
   static styles = [
     baseStyles,
@@ -127,7 +127,7 @@ export class XcmForm extends LitElement {
   }
 
   private isChainConnected(): boolean {
-    return true;
+    return !this.connecting;
   }
 
   private isValidAddress(): boolean {
