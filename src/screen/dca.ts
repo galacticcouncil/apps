@@ -7,7 +7,7 @@ import { DatabaseController } from '../db.ctrl';
 
 import '../component/dca';
 import { PoolType } from '@galacticcouncil/sdk';
-import {ThemeController} from "../theme.ctrl";
+import { ThemeController } from '../theme.ctrl';
 
 @customElement('gc-dca-screen')
 export class DcaScreen extends LitElement implements BeforeEnterObserver {
@@ -50,8 +50,8 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         apiAddress="wss://rpc.nice.hydration.cloud"
         pools=${[PoolType.Omni, PoolType.LBP, PoolType.Stable].join(',')}
         stableCoinAssetId="10"
-        accountAddress="7KATdGbFsc58BDyfV9ZtxHEYPt5icvS5itHcJh3yWYmpwG8k"
-        accountProvider="external"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://archive.nice.hydration.cloud/graphql"
         grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
