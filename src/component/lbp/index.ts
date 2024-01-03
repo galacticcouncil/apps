@@ -16,6 +16,7 @@ import { TradeApp } from '../trade';
 import { TradeTab } from '../trade/types';
 import { LbpApi } from '../../api/lbp';
 import { convertToHex } from '../../utils/account';
+import { updateQueryParams } from '../../utils/url';
 
 @customElement('gc-lbp-app')
 export class LbpApp extends TradeApp {
@@ -58,6 +59,37 @@ export class LbpApp extends TradeApp {
     if (this.isTradeable()) {
       super.recalculateSpotPrice();
     }
+  }
+
+  protected updateQuery() {
+    const { assetIn, assetOut } = this.trade;
+    this.lbp.pools.forEach((pool) => {
+      const [accumulated, distributed] = pool.tokens;
+      if (assetIn.id === distributed.id || assetOut.id === distributed.id) {
+        this.lbpChartApi
+          .getPoolPair(accumulated.id, distributed.id)
+          .then((pair) => {
+            updateQueryParams({
+              assetIn: accumulated.id,
+              assetOut: distributed.id,
+            });
+
+            this.lbp = {
+              ...this.lbp,
+              id: pair.id,
+              accumulated: accumulated,
+              distributed: distributed,
+            };
+
+            const options = {
+              bubbles: true,
+              composed: true,
+              detail: { assetIn: accumulated.id, assetOut: distributed.id },
+            };
+            this.dispatchEvent(new CustomEvent('gc:query:update', options));
+          });
+      }
+    });
   }
 
   protected override async onInit(): Promise<void> {
