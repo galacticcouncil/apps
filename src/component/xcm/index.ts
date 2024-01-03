@@ -270,17 +270,18 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const { asset, balance, max, min } = this.transfer;
-    // Skip validation if missing transfer data
     if (!this.hasTransferData()) {
       return;
     }
 
+    const { asset, balance, max, min } = this.transfer;
     const amountBN = toBigInt(amount, balance.decimals);
     const maxBN = toBigInt(max.amount, max.decimals);
     const minBN = toBigInt(min.amount, max.decimals);
 
-    if (amountBN > maxBN) {
+    if (balance.amount == 0n) {
+      this.transfer.error['amount'] = i18n.t('xcm.error.balance');
+    } else if (amountBN > maxBN) {
       this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', {
         amount: max.toDecimal(),
         asset: asset.originSymbol,
