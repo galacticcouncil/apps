@@ -6,7 +6,6 @@ import { classMap } from 'lit/directives/class-map.js';
 import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import * as i18n from 'i18next';
-import Big from 'big.js';
 
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
@@ -161,7 +160,8 @@ export class XcmForm extends LitElement {
   }
 
   transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
-    if (!tradeFee) {
+    const account = this.account.state;
+    if (!tradeFee && account) {
       return html` <span class="label">${label}</span>
         <span class="grow"></span>
         <uigc-skeleton
@@ -189,15 +189,21 @@ export class XcmForm extends LitElement {
       )}`;
   }
 
-  transferButtonText(): string {
+  transferButtonTemplate() {
     if (!this.account.state) {
-      return i18n.t('xcm.connect');
+      return html` <span class="cta">${i18n.t('xcm.connect')}</span>`;
     }
 
     if (this.isChainConnected()) {
-      return i18n.t('xcm.transfer');
+      return html` <span class="cta">${i18n.t('xcm.transfer')}</span>`;
     } else {
-      return i18n.t('xcm.connecting');
+      return html`
+        <uigc-circular-progress
+          slot="icon"
+          class="spinner"
+        ></uigc-circular-progress>
+        <span class="cta"> ${i18n.t('xcm.connecting')}</span>
+      `;
     }
   }
 
@@ -330,25 +336,7 @@ export class XcmForm extends LitElement {
         fullWidth
         @click=${this.onTransferClick}
       >
-        ${when(
-          this.isChainConnected(),
-          () =>
-            html`
-              <span class="cta"
-                >${this.account.state
-                  ? i18n.t('xcm.transfer')
-                  : i18n.t('xcm.connect')}</span
-              >
-            `,
-          () =>
-            html`
-              <uigc-circular-progress
-                slot="icon"
-                class="spinner"
-              ></uigc-circular-progress>
-              <span class="cta"> ${i18n.t('xcm.connecting')}</span>
-            `,
-        )}
+        ${this.transferButtonTemplate()}
       </uigc-button>
     `;
   }

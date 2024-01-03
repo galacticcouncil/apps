@@ -110,8 +110,7 @@ export class XcmApp extends PoolApp {
   }
 
   hasTransferData() {
-    const { balance, max, min } = this.transfer;
-    return balance && max && min;
+    return !!this.transfer.xdata;
   }
 
   hasError(): boolean {
@@ -183,6 +182,7 @@ export class XcmApp extends PoolApp {
     Promise.all([apiPool.api(srcChain.ws), apiPool.api(destChain.ws)]).then(
       () => {
         this.xchain.connecting = false;
+        this.requestUpdate();
       },
     );
   }
@@ -210,17 +210,11 @@ export class XcmApp extends PoolApp {
       this.onChangeWallet(destChain);
       return;
     }
-
-    this.transfer = {
-      ...this.transfer,
-      srcChain: destChain,
-      srcChainFee: null,
-      destChain: srcChain,
-      destChainFee: null,
+    this.resetTransfer({
       balance: null,
-      max: null,
-      min: null,
-    };
+      destChain: srcChain,
+      srcChain: destChain,
+    });
     this.changeChain();
   }
 
@@ -231,45 +225,29 @@ export class XcmApp extends PoolApp {
       this.onChangeWallet(srcChain);
       return;
     }
-
-    this.transfer = {
-      ...this.transfer,
-      srcChain: srcChain,
-      srcChainFee: null,
+    this.resetTransfer({
       balance: null,
-      destChainFee: null,
-      max: null,
-      min: null,
-    };
+      srcChain: srcChain,
+    });
     this.changeChain();
   }
 
   private async changeDestinationChain(chain: string) {
     const destChain = chainsMap.get(chain);
-    this.transfer = {
-      ...this.transfer,
-      destChain: destChain,
-      destChainFee: null,
+    this.resetTransfer({
       balance: null,
-      max: null,
-      min: null,
-      srcChainFee: null,
-    };
+      destChain: destChain,
+    });
     this.changeChain();
   }
 
   private async changeAsset(asset: string) {
     const update = this.newUpdate();
     const balance = this.xchain.balance.get(asset);
-    this.transfer = {
-      ...this.transfer,
-      asset: assetsMap.get(asset),
+    this.resetTransfer({
       balance: balance,
-      srcChainFee: null,
-      destChainFee: null,
-      max: null,
-      min: null,
-    };
+      asset: assetsMap.get(asset),
+    });
     if (this.hasAccount()) {
       this.syncInput(update);
     }
@@ -588,6 +566,18 @@ export class XcmApp extends PoolApp {
     this.validateAmount();
   }
 
+  private resetTransfer(delta: Partial<TransferState>) {
+    this.transfer = {
+      ...this.transfer,
+      ...delta,
+      srcChainFee: null,
+      destChainFee: null,
+      max: null,
+      min: null,
+      xdata: null,
+    };
+  }
+
   private resetBalances() {
     this.transfer.balance = null;
     this.xchain.balance = new Map([]);
@@ -642,6 +632,7 @@ export class XcmApp extends PoolApp {
         min: min,
         srcChainFee: normSrcFee,
         destChainFee: destFee,
+        xdata: data,
       };
       this.validateAmount();
     }
@@ -878,7 +869,7 @@ export class XcmApp extends PoolApp {
   }
 
   private isFormDisabled() {
-    return this.isTransferEmpty() || this.hasError();
+    return this.isTransferEmpty() || this.hasError() || !this.hasTransferData();
   }
 
   xcmFormTab() {

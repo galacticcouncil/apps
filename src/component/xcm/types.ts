@@ -1,6 +1,5 @@
 import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
-import { chainsMap } from '@galacticcouncil/xcm-cfg';
-import { XCall, XData } from '@galacticcouncil/xcm-sdk';
+import { XData } from '@galacticcouncil/xcm-sdk';
 
 export enum TransferTab {
   TransferForm,
@@ -20,6 +19,7 @@ export type TransferState = {
   srcChain: AnyChain;
   srcChainFee: AssetAmount;
   error: {};
+  xdata: XData;
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
@@ -34,6 +34,7 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   srcChain: null,
   srcChainFee: null,
   error: {},
+  xdata: null,
 };
 
 export type ChainState = {
