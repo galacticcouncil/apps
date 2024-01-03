@@ -85,7 +85,6 @@ export class LbpChart extends BaseElement {
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
 
   @state() chartState: ChartState = ChartState.Loading;
-  @state() chartData: TradeData = null;
 
   static styles = [
     baseStyles,
@@ -191,7 +190,6 @@ export class LbpChart extends BaseElement {
         };
         this.storeRecord(datasets);
         this.syncChart(datasets);
-        this.chartData = datasets;
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -381,7 +379,8 @@ export class LbpChart extends BaseElement {
       return;
     }
 
-    const primaryDataset = this.chartData?.primary;
+    const dataset = this.getRecord();
+    const primaryDataset = dataset?.primary;
     if (this.tradeProgress || !primaryDataset) {
       return html`<uigc-skeleton
         progress
