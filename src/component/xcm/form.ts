@@ -6,6 +6,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import * as i18n from 'i18next';
+import Big from 'big.js';
 
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
@@ -160,6 +161,17 @@ export class XcmForm extends LitElement {
   }
 
   transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
+    if (!tradeFee) {
+      return html` <span class="label">${label}</span>
+        <span class="grow"></span>
+        <uigc-skeleton
+          progress
+          rectangle
+          width="80px"
+          height="12px"
+        ></uigc-skeleton>`;
+    }
+
     if (tradeFee === '0') {
       return html`
         <span class="label">${label}</span>
@@ -190,6 +202,8 @@ export class XcmForm extends LitElement {
   }
 
   formSelectAssetTemplate() {
+    const balance = this.balance?.toDecimal(this.balance.decimals);
+    const max = this.max?.toDecimal(this.max.decimals);
     return html`
       <uigc-asset-transfer
         id="asset"
@@ -208,11 +222,8 @@ export class XcmForm extends LitElement {
         </uigc-asset>
         <uigc-asset-balance
           slot="balance"
-          .balance=${this.balance?.toDecimal()}
-          .onMaxClick=${this.maxClickHandler(
-            this.balance?.toDecimal(),
-            this.max?.toDecimal(),
-          )}
+          .balance=${balance}
+          .onMaxClick=${this.maxClickHandler(balance, max)}
         ></uigc-asset-balance>
       </uigc-asset-transfer>
     `;
@@ -265,12 +276,12 @@ export class XcmForm extends LitElement {
   render() {
     const account = this.account.state;
     const isValidAddr = this.isValidAddress();
-    const isAccountAddr = isSameAddress(this.address, account?.address);
-    const warningClasses = {
+    const isSameAddr = isSameAddress(this.address, account?.address);
+    const cexWarnClasses = {
       warning: true,
-      show: account && isValidAddr && !isAccountAddr,
+      show: account && isValidAddr && !isSameAddr,
     };
-    const ledgerClasses = {
+    const ledgerWarnClasses = {
       warning: true,
       show:
         this.srcChain.key === 'polkadot' || this.srcChain.key === 'assethub',
@@ -303,11 +314,11 @@ export class XcmForm extends LitElement {
           )}
         </div>
       </div>
-      <div class=${classMap(warningClasses)}>
+      <div class=${classMap(cexWarnClasses)}>
         <uigc-icon-warning></uigc-icon-warning>
-        <span> ${i18n.t('xcm.warning')} </span>
+        <span> ${i18n.t('xcm.warning.cex')} </span>
       </div>
-      <div class=${classMap(ledgerClasses)}>
+      <div class=${classMap(ledgerWarnClasses)}>
         <uigc-icon-warning></uigc-icon-warning>
         <span> ${i18n.t('xcm.warning.ledger')} </span>
       </div>

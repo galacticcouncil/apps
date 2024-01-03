@@ -57,7 +57,7 @@
   "xcm.error.notValidAddr": "The address is incorrect. Please review it and try again.",
   "xcm.error.maxAmount": "The maximum transferable amount is {{amount}} {{asset}}.",
   "xcm.error.minAmount": "The minimum transferable amount is {{amount}} {{asset}}.",
-  "xcm.warning": "Transferring assets to CEX through XCM directly will result in loss of funds. Please send them to your address on the relevant network first.",
+  "xcm.warning.cex": "Transferring assets to CEX through XCM directly will result in loss of funds. Please send them to your address on the relevant network first.",
   "xcm.warning.ledger": "If using a Ledger hardware wallet, please transfer funds to a hot wallet before sending to HydraDX network.",
   "xcm.notify.sending": "Sending",
   "xcm.notify.sent": "Sent",

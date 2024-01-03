@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
+import Big from 'big.js';
 
 import { PoolApp } from '../base/PoolApp';
 import { baseStyles } from '../styles/base.css';
@@ -15,13 +16,14 @@ import { getRenderString } from '../../utils/dom';
 import { convertFromH160, convertToH160, isEvmAccount } from '../../utils/evm';
 
 import '@galacticcouncil/ui';
-import { Transaction } from '@galacticcouncil/sdk';
+import { Asset, SYSTEM_ASSET_ID, Transaction } from '@galacticcouncil/sdk';
 
 import {
   assetsMap,
   chainsMap,
   chainsConfigMap,
 } from '@galacticcouncil/xcm-cfg';
+
 import {
   SubstrateApis,
   Wallet,
@@ -36,7 +38,7 @@ import {
   ChainConfig,
 } from '@moonbeam-network/xcm-config';
 
-import { Asset, AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
+import { AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
 import { toBigInt } from '@moonbeam-network/xcm-utils';
 
 import './form';
@@ -212,8 +214,12 @@ export class XcmApp extends PoolApp {
     this.transfer = {
       ...this.transfer,
       srcChain: destChain,
+      srcChainFee: null,
       destChain: srcChain,
+      destChainFee: null,
       balance: null,
+      max: null,
+      min: null,
     };
     this.changeChain();
   }
@@ -229,7 +235,11 @@ export class XcmApp extends PoolApp {
     this.transfer = {
       ...this.transfer,
       srcChain: srcChain,
+      srcChainFee: null,
       balance: null,
+      destChainFee: null,
+      max: null,
+      min: null,
     };
     this.changeChain();
   }
@@ -239,7 +249,11 @@ export class XcmApp extends PoolApp {
     this.transfer = {
       ...this.transfer,
       destChain: destChain,
+      destChainFee: null,
       balance: null,
+      max: null,
+      min: null,
+      srcChainFee: null,
     };
     this.changeChain();
   }
@@ -253,6 +267,8 @@ export class XcmApp extends PoolApp {
       balance: balance,
       srcChainFee: null,
       destChainFee: null,
+      max: null,
+      min: null,
     };
     if (this.hasAccount()) {
       this.syncInput(update);
@@ -283,8 +299,8 @@ export class XcmApp extends PoolApp {
     }
 
     const amountBN = toBigInt(amount, balance.decimals);
-    const maxBN = toBigInt(max.toDecimal(), balance.decimals);
-    const minBN = toBigInt(min.toDecimal(), balance.decimals);
+    const maxBN = toBigInt(max.amount, max.decimals);
+    const minBN = toBigInt(min.amount, max.decimals);
 
     if (amountBN > maxBN) {
       this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', {
@@ -357,11 +373,13 @@ export class XcmApp extends PoolApp {
         notification: notification,
         meta: {
           srcChain: srcChain.key,
-          srcChainFee: srcChainFee.toDecimal(),
-          srcChainFeeBalance: srcChainFeeBalance.toDecimal(),
+          srcChainFee: srcChainFee.toDecimal(srcChainFee.decimals),
+          srcChainFeeBalance: srcChainFeeBalance.toDecimal(
+            srcChainFee.decimals,
+          ),
           srcChainFeeSymbol: srcChainFee.originSymbol,
           dstChain: destChain.key,
-          dstChainFee: destChainFee.toDecimal(),
+          dstChainFee: destChainFee.toDecimal(destChainFee.decimals),
           dstChainFeeSymbol: destChainFee.originSymbol,
         },
       } as TxInfo,
@@ -484,28 +502,40 @@ export class XcmApp extends PoolApp {
     this.processTx(account, xData, transaction, this.transfer);
   }
 
-  private async calculateSourceFee(data: XData) {
-    const account = this.account.state;
-
-    const { srcChain } = this.transfer;
-    if (srcChain.key !== 'hydradx') {
-      return data.srcFee;
+  private async calculateSourceMax(
+    data: XData,
+    feeAsset: Asset,
+    fee: AssetAmount,
+  ) {
+    const { balance, max } = data;
+    if (feeAsset.id === SYSTEM_ASSET_ID) {
+      return max;
     }
 
-    const { max, srcFee, buildCall } = data;
-    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
-    const feeAsset = this.assets.registry.get(feeAssetId);
-    const feeAssetData = Array.from(srcChain.assetsData.values()).find(
-      (a) => a.id.toString() === feeAssetId,
-    );
+    const result = balance
+      .toBig()
+      .minus(balance.isSame(fee) ? fee.toBig() : Big(0));
+    return balance.copyWith({
+      amount: result.lt(0) ? 0n : BigInt(result.toFixed()),
+    });
+  }
 
+  private async calculateSourceFee(data: XData, feeAsset: Asset) {
+    const account = this.account.state;
+    const { srcChain } = this.transfer;
+    const { max, srcFee, buildCall } = data;
+    const feeAssetData = Array.from(srcChain.assetsData.values()).find((a) => {
+      return a.metadataId
+        ? a.metadataId.toString() === feeAsset.id
+        : a.id.toString() === feeAsset.id;
+    });
     if (isEvmAccount(account.address)) {
       const apiPool = SubstrateApis.getInstance();
       const api = await apiPool.api(srcChain.ws);
       const evmAddress = convertToH160(account.address);
       const evmClient = this.wallet.getEvmClient(srcChain.key);
       const evmProvider = evmClient.getProvider();
-      const call = buildCall(max.toDecimal());
+      const call = buildCall(max.toDecimal(max.decimals));
       try {
         const extrinsic = api.tx(call.data);
         const data = extrinsic.inner.toHex();
@@ -542,17 +572,19 @@ export class XcmApp extends PoolApp {
     balances.forEach((balance: AssetAmount) => {
       updated.set(balance.key, balance);
     });
+
+    const newBalance = updated.get(asset.key);
+    this.transfer.balance = newBalance;
     this.xchain.balance = updated;
 
-    const oldBalance = balance ? balance.amount : 0n;
-    const newBalance = updated.get(asset.key);
-    const diff = newBalance.amount - oldBalance;
-    const newMax = max.amount + diff;
+    if (this.hasTransferData()) {
+      const diff = newBalance.amount - balance.amount;
+      const newMax = max.amount + diff;
+      this.transfer.max = max.copyWith({
+        amount: newMax < 0 ? 0n : newMax,
+      });
+    }
 
-    this.transfer.balance = newBalance;
-    this.transfer.max = max.copyWith({
-      amount: newMax < 0 ? 0n : newMax,
-    });
     this.validateAmount();
   }
 
@@ -588,16 +620,27 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const { balance, destFee, max, min } = data;
+    const { balance, srcFee, destFee, max, min } = data;
 
-    const srcFee = await this.calculateSourceFee(data);
+    let normSrcFee: AssetAmount;
+    let normMax: AssetAmount;
+    if (srcChain.key == 'hydradx') {
+      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+      const feeAsset = this.assets.registry.get(feeAssetId);
+      normSrcFee = await this.calculateSourceFee(data, feeAsset);
+      normMax = await this.calculateSourceMax(data, feeAsset, normSrcFee);
+    } else {
+      normSrcFee = srcFee;
+      normMax = max;
+    }
+
     if (this.isLastUpdate(update)) {
       this.transfer = {
         ...this.transfer,
         balance: balance,
-        max: max,
+        max: normMax,
         min: min,
-        srcChainFee: srcFee,
+        srcChainFee: normSrcFee,
         destChainFee: destFee,
       };
       this.validateAmount();
@@ -618,7 +661,7 @@ export class XcmApp extends PoolApp {
       ? destChain
       : destChainsList.values().next().value;
 
-    const supportedAssets: Asset[] = srcChainAssetCfg
+    const supportedAssets = srcChainAssetCfg
       .filter((a) => a.destination === validDestChain)
       .map((a) => a.asset);
 
