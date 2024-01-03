@@ -6,7 +6,6 @@ import { Account, accountCursor } from '../db';
 import { DatabaseController } from '../db.ctrl';
 
 import '../component/bonds';
-import { PoolType } from '@galacticcouncil/sdk';
 
 @customElement('gc-bonds-screen')
 export class BondsScreen extends LitElement implements BeforeEnterObserver {
@@ -28,7 +27,7 @@ export class BondsScreen extends LitElement implements BeforeEnterObserver {
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.hydradx.cloud"
-        stableCoinAssetId="2"
+        stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
@@ -43,12 +42,12 @@ export class BondsScreen extends LitElement implements BeforeEnterObserver {
         chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://hydradx-rococo-rpc.play.hydration.cloud"
-        stableCoinAssetId="2"
+        apiAddress="wss://rpc.nice.hydration.cloud"
+        stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        squidUrl="https://squid.subsquid.io/hydradx-rococo-data-squid/v/v1/graphql"
+        squidUrl="https://data-squid.nice.hydration.cloud/graphql"
       ></gc-bonds-app>
     `;
   }
