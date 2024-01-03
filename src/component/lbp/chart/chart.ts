@@ -334,7 +334,14 @@ export class LbpChart extends BaseElement {
   }
 
   override update(changedProperties: Map<string, unknown>) {
-    if (this.chart && changedProperties.has('spotPrice')) {
+    if (this.chart && changedProperties.has('usdPrice')) {
+      this.loadData();
+    }
+    if (
+      this.chart &&
+      changedProperties.has('assetIn') &&
+      changedProperties.has('assetOut')
+    ) {
       this.loadData();
     }
     super.update(changedProperties);

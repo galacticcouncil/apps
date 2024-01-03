@@ -15,6 +15,7 @@ import '../selector/asset';
 import { TradeApp } from '../trade';
 import { TradeTab } from '../trade/types';
 import { LbpApi } from '../../api/lbp';
+import { convertToHex } from '../../utils/account';
 
 @customElement('gc-lbp-app')
 export class LbpApp extends TradeApp {
@@ -53,6 +54,12 @@ export class LbpApp extends TradeApp {
     );
   }
 
+  protected async recalculateSpotPrice() {
+    if (this.isTradeable()) {
+      super.recalculateSpotPrice();
+    }
+  }
+
   protected override async onInit(): Promise<void> {
     super.onInit();
 
@@ -87,12 +94,22 @@ export class LbpApp extends TradeApp {
     this.syncBalances();
   }
 
+  protected isTradeable() {
+    const { assetOut } = this.trade;
+    return this.assets.tradeable.map((a) => a.id).includes(assetOut?.id);
+  }
+
+  protected isActive() {
+    const { id, pools } = this.lbp;
+    return pools.map((a) => convertToHex(a.address)).includes(id);
+  }
+
   protected isFormLoaded() {
     return super.isFormLoaded() && this.ready;
   }
 
   protected isFormReadOnly() {
-    if (this.lbp.pools.length > 0) {
+    if (this.isActive()) {
       return false;
     }
     return true;
