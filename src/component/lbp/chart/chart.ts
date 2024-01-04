@@ -139,13 +139,16 @@ export class LbpChart extends BaseElement {
       return;
     }
 
-    if (this.hasRecord()) {
+    /* if (this.hasRecord()) {
       const cachedData = this.getRecord();
       this.syncChart(cachedData);
       return;
+    } */
+
+    if (!this.hasRecord()) {
+      this.chartState = ChartState.Loading;
     }
 
-    this.chartState = ChartState.Loading;
     const pool = await this.chartApi.getPoolData(this.poolId);
     const [fromBlock, toBlock] = await Promise.all([
       this.chartApi.getFirstBlock(this.poolId, pool.startBlockNumber),
