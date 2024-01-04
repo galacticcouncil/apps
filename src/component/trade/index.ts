@@ -387,7 +387,7 @@ export class TradeApp extends PoolApp {
 
   private recalculateTrade() {
     if (!this.isSwapSelected() || this.isSwapEmpty() || this.isPoolError()) {
-      return;
+      this.recalculateSpotPrice();
     } else if (this.trade.assetIn.symbol == this.asset.active) {
       this.recalculateBestSell();
     } else if (this.trade.assetOut.symbol == this.asset.active) {
