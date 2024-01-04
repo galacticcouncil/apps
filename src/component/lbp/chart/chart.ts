@@ -209,7 +209,8 @@ export class LbpChart extends BaseElement {
     });
 
     const max = priceBucket.max();
-    const min = priceBucket.min();
+    const min =
+      predictionBucket.length > 0 ? predictionBucket.min() : priceBucket.min();
     const mid = (max - min) / 2 + min;
     this.chartPriceSeries.applyOptions({
       baseValue: { type: 'price', price: min },
