@@ -99,8 +99,7 @@ export class SelectAsset extends LitElement {
     const selected = this[this.selector?.id];
     const inPrimary = assets.find((asset) => asset.id === selected?.id);
     if (inPrimary) {
-      const pastCampaignsExcluded = assets.filter((a) => a.type !== 'Bond');
-      return this.filterAssets(query, pastCampaignsExcluded);
+      return this.filterAssets(query, assets);
     }
     return this.filterAssets(query, this.assetsAlt);
   }
