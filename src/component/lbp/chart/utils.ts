@@ -1,7 +1,7 @@
 import { Asset, LbpMath, ONE, bnum, scale } from '@galacticcouncil/sdk';
 import { HistoricalPrice, LbpPoolData } from './query';
 
-const KEEP_RECORD = 50;
+const KEEP_RECORD = 500;
 const MAX_FINAL_WEIGHT = scale(bnum(100), 6);
 
 export const getPoolMaturity = (pool: LbpPoolData, price: HistoricalPrice) => {
