@@ -31,6 +31,7 @@ export type TradeInfo = {
 
 export type TradeTwap = {
   trade: Trade;
+  tradeWorst: Trade;
   tradeReps: number;
   tradeTime: number;
   tradeError: TradeTwapError;
@@ -143,14 +144,13 @@ export class TradeApi {
 
     const amountOutTotal = Number(bestSellHuman.amountOut) * tradesNo;
 
-    const minAmountOut = getTradeMinAmountOut(
-      bestSell,
-      tradeSettingsCursor.deref().slippage,
+    const worstSell = await this._router.getBestSell(
+      assetIn.id,
+      assetOut.id,
+      amountIn,
     );
-    const minAmountOutTotal = multipleAmounts(
-      tradesNo.toString(),
-      minAmountOut,
-    );
+    const minAmountOutTotal = Number(worstSell.toHuman().amountIn);
+    const minAmountOut = minAmountOutTotal / tradesNo;
 
     const isSingleTrade = tradesNo == 1;
     const isLessThanMinimalAmount = amountInPerTrade < amountMin;
@@ -165,6 +165,7 @@ export class TradeApi {
 
     return {
       trade: bestSell,
+      tradeWorst: worstSell,
       tradeReps: tradesNo,
       tradeTime: tradeTime,
       tradeError: tradeError,
@@ -177,7 +178,7 @@ export class TradeApi {
           assetIn: assetIn.id,
           assetOut: assetOut.id,
           amountIn: bestSell.amountIn.toString(),
-          minAmountOut: minAmountOut.amount.toFixed(),
+          minAmountOut: minAmountOut.toFixed(),
           route: bestSellRoute,
         },
       } as unknown as PalletDcaOrder,
@@ -207,12 +208,13 @@ export class TradeApi {
 
     const amountInTotal = Number(bestBuyHuman.amountIn) * tradesNo + twapTxFees;
 
-    const maxAmountIn = getTradeMaxAmountIn(
-      bestBuy,
-      tradeSettingsCursor.deref().slippage,
+    const worstBuy = await this._router.getBestBuy(
+      assetIn.id,
+      assetOut.id,
+      amountOut,
     );
-    const maxAmountInTotal =
-      multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
+    const maxAmountInTotal = Number(worstBuy.toHuman().amountIn);
+    const maxAmountIn = maxAmountInTotal / tradesNo;
 
     const isSingleTrade = tradesNo == 1;
     const isLessThanMinimalAmount = maxAmountInTotal < amountMin;
@@ -227,6 +229,7 @@ export class TradeApi {
 
     return {
       trade: bestBuy,
+      tradeWorst: worstBuy,
       tradeReps: tradesNo,
       tradeTime: tradeTime,
       tradeError: tradeError,
@@ -239,7 +242,7 @@ export class TradeApi {
           assetIn: assetIn.id,
           assetOut: assetOut.id,
           amountOut: bestBuy.amountOut.toString(),
-          maxAmountIn: maxAmountIn.amount.toFixed(),
+          maxAmountIn: maxAmountIn.toFixed(),
           route: bestBuyRoute,
         },
       } as unknown as PalletDcaOrder,

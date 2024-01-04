@@ -509,7 +509,7 @@ export class TradeForm extends BaseElement {
   infoPriceImpactTemplate() {
     let priceImpact: string = this.priceImpactPct;
     if (this.twapEnabled) {
-      priceImpact = this.twap.trade.toHuman().priceImpactPct;
+      priceImpact = this.twap.tradeWorst.toHuman().priceImpactPct;
     }
 
     const priceImpactClasses = {
