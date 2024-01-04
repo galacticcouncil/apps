@@ -44,7 +44,7 @@ export class AssetId extends LitElement {
   }
 
   render() {
-    const { id, name, icon, symbol, meta } = this.asset || {};
+    const { id, name, icon, symbol, meta, type } = this.asset || {};
     if (meta) {
       const icons = Object.entries(meta);
       return html`
@@ -60,11 +60,16 @@ export class AssetId extends LitElement {
       `;
     }
 
+    const altDesc =
+      type === 'Bond' && !this.showDesc
+        ? name.replace('HDX Bond', '').trim()
+        : null;
+
     return html`
       <uigc-asset
         ?icon=${!this.showSymbol}
         symbol=${symbol}
-        desc=${this.showDesc ? name : null}
+        desc=${this.showDesc ? name : altDesc}
       >
         ${this.iconTemplate(id, icon)}
       </uigc-asset>
