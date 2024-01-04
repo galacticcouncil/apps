@@ -97,8 +97,7 @@ export class SelectAsset extends LitElement {
     const secondarySet = new Set(secondaryArr);
     const assets = this.assets.filter((a) => !secondarySet.has(a.id));
     const selected = this[this.selector?.id];
-    const inPrimary = assets.find((asset) => asset.symbol === selected?.symbol);
-
+    const inPrimary = assets.find((asset) => asset.id === selected?.id);
     if (inPrimary) {
       return this.filterAssets(query, assets);
     }
