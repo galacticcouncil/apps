@@ -851,7 +851,7 @@ export class TradeForm extends BaseElement {
         <div class="divider"></div>
         <uigc-asset-switch
           class="switch-button"
-          ?disabled=${!this.switchAllowed}
+          ?disabled=${!this.switchAllowed || this.readonly}
           @asset-switch-clicked=${() => {
             this.twapEnabled = false;
           }}

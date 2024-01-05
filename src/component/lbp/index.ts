@@ -131,7 +131,7 @@ export class LbpApp extends TradeApp {
     return this.assets.tradeable.map((a) => a.id).includes(assetOut?.id);
   }
 
-  protected isActive() {
+  protected isActiveCampaign() {
     const { id, pools } = this.lbp;
     return pools.map((a) => convertToHex(a.address)).includes(id);
   }
@@ -141,7 +141,7 @@ export class LbpApp extends TradeApp {
   }
 
   protected isFormReadOnly() {
-    if (this.isActive()) {
+    if (this.isActiveCampaign()) {
       return false;
     }
     return true;
@@ -155,13 +155,13 @@ export class LbpApp extends TradeApp {
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-select-asset
-        .assets=${this.assets.tradeable}
-        .assetsAlt=${this.lbp.assets}
-        .pairs=${this.assets.pairs}
-        .balances=${this.assets.balance}
-        .usdPrice=${this.assets.usdPrice}
         .assetIn=${this.trade.assetIn}
         .assetOut=${this.trade.assetOut}
+        .assets=${this.assets.tradeable}
+        .assetsAlt=${this.lbp.assets}
+        .balances=${this.assets.balance}
+        .pairs=${this.assets.pairs}
+        .usdPrice=${this.assets.usdPrice}
         .switchAllowed=${this.isSwitchEnabled()}
         .selector=${this.asset.selector}
         @asset-clicked=${this.assetClickedListener}
@@ -190,11 +190,12 @@ export class LbpApp extends TradeApp {
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-lbp-chart
-        .squidUrl=${this.squidUrl}
-        .tradeProgress=${this.trade.inProgress}
-        .poolId=${this.lbp.id}
         .assetIn=${this.lbp.accumulated}
         .assetOut=${this.lbp.distributed}
+        .poolId=${this.lbp.id}
+        .squidUrl=${this.squidUrl}
+        .spotPrice=${this.trade.spotPrice}
+        .tradeProgress=${this.trade.inProgress}
         .usdPrice=${this.assets.usdPrice}
       >
         <div class="header section" slot="header">

@@ -435,7 +435,7 @@ export class TradeApp extends PoolApp {
   private switch() {
     if (!this.isSwapSelected()) {
       this.switchAssets(this.trade.amountOut, this.trade.amountIn, false);
-    } else if (!this.isSwitchEnabled()) {
+    } else if (!this.isSwitchEnabled() || this.isFormReadOnly()) {
       return;
     } else if (this.isSwapEmpty()) {
       this.switchAssets(this.trade.amountOut, this.trade.amountIn, true);

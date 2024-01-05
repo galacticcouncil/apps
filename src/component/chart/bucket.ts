@@ -82,6 +82,10 @@ export class Bucket {
     return this.data.push(value);
   }
 
+  public unshift(value: SingleValueData): number {
+    return this.data.unshift(value);
+  }
+
   public values(): number[] {
     return this.data.map((svd: SingleValueData) => svd.value);
   }

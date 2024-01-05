@@ -7,6 +7,7 @@ import {
   IChartApi,
   ISeriesApi,
   SingleValueData,
+  UTCTimestamp,
 } from 'lightweight-charts';
 
 import { baseStyles } from '../../styles/base.css';
@@ -77,11 +78,12 @@ export class LbpChart extends BaseElement {
   private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
 
-  @property({ type: String }) squidUrl = null;
-  @property({ type: Boolean }) tradeProgress: Boolean = false;
-  @property({ type: String }) poolId: string = null;
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
+  @property({ type: String }) poolId: string = null;
+  @property({ type: String }) spotPrice = null;
+  @property({ type: String }) squidUrl = null;
+  @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
 
   @state() chartState: ChartState = ChartState.Loading;
@@ -119,12 +121,12 @@ export class LbpChart extends BaseElement {
     return [PoolType.LBP, this.assetIn.id, this.assetOut.id].join(':');
   }
 
-  private getRecord() {
+  private getRecord(): TradeData {
     const cache = tradeDataCursor.deref();
     return cache.get(this.getDataKey());
   }
 
-  private hasRecord() {
+  private hasRecord(): boolean {
     const cache = tradeDataCursor.deref();
     return cache.has(this.getDataKey());
   }
@@ -139,12 +141,7 @@ export class LbpChart extends BaseElement {
       return;
     }
 
-    /* if (this.hasRecord()) {
-      const cachedData = this.getRecord();
-      this.syncChart(cachedData);
-      return;
-    } */
-
+    // TODO: Rework caching
     if (!this.hasRecord()) {
       this.chartState = ChartState.Loading;
     }
@@ -201,8 +198,23 @@ export class LbpChart extends BaseElement {
   }
 
   private syncChart(data: TradeData) {
+    const lastPrice = this.getLastPrice();
     const priceBucket = new Bucket(data.primary);
     const predictionBucket = new Bucket(data.secondary);
+
+    /* 
+    let predictionBucket: Bucket;
+    if (data.secondary.length > 0) {
+      priceBucket.push(lastPrice);
+      const predictionData = data.secondary.filter(
+        (dp) => dp.time >= lastPrice.time,
+      );
+      predictionBucket = new Bucket(predictionData);
+      predictionBucket.unshift(lastPrice);
+    } else {
+      predictionBucket = new Bucket(data.secondary);
+    } 
+    */
 
     this.chartPriceSeries.setData(priceBucket.data);
     this.chartPredictionSeries.setData(predictionBucket.data);
@@ -249,6 +261,26 @@ export class LbpChart extends BaseElement {
     this.syncPriceTag('maxTag', maxYCoord, max);
     this.syncPriceTag('minTag', minYCoord, min);
     this.syncPriceTag('midTag', midYCoord, avg);
+  }
+
+  private isActivePool() {
+    const { secondary } = this.getRecord();
+    return secondary.length > 0;
+  }
+
+  private getLastPrice(): SingleValueData {
+    return {
+      time: this._dayjs().unix() as UTCTimestamp,
+      value: Number(this.getSpotPrice()),
+    } as SingleValueData;
+  }
+
+  private getSpotPrice() {
+    if (this.isActivePool()) {
+      return this.spotPrice;
+    }
+    const { primary } = this.getRecord();
+    return primary[primary.length - 1].value;
   }
 
   override async firstUpdated() {
@@ -319,7 +351,7 @@ export class LbpChart extends BaseElement {
   }
 
   private async subscribe() {
-    const api = chainCursor.deref().api;
+    const { api } = this.chain.state;
     this.disconnectSubscribeNewHeads = await api.rpc.chain.subscribeNewHeads(
       async (lastHeader) => {
         this.loadData();
@@ -383,9 +415,7 @@ export class LbpChart extends BaseElement {
       return;
     }
 
-    const dataset = this.getRecord();
-    const primaryDataset = dataset?.primary;
-    if (this.tradeProgress || !primaryDataset) {
+    if (this.tradeProgress || !this.getRecord()) {
       return html`<uigc-skeleton
         progress
         rectangle
@@ -393,7 +423,7 @@ export class LbpChart extends BaseElement {
         height="18px"
       ></uigc-skeleton>`;
     } else {
-      const spotPrice = primaryDataset[primaryDataset.length - 1].value;
+      const spotPrice = this.getSpotPrice();
       const spotPriceUsd = this.calculateDollarPrice(spotPrice.toString());
       const usdClasses = {
         usd: true,
