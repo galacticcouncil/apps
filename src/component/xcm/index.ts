@@ -203,7 +203,7 @@ export class XcmApp extends PoolApp {
     this.validateAddress();
   }
 
-  private async switchChains() {
+  private async onChainSwitchClick() {
     const { destChain, srcChain } = this.transfer;
     const supportedWallet: boolean = this.isSupportedWallet(destChain);
     if (!supportedWallet) {
@@ -455,7 +455,7 @@ export class XcmApp extends PoolApp {
     }
   }
 
-  async swap() {
+  async onTransferClick() {
     const account = this.account.state;
     const { address, asset, amount, srcChain, destChain } = this.transfer;
 
@@ -779,7 +779,7 @@ export class XcmApp extends PoolApp {
     super.disconnectedCallback();
   }
 
-  protected chainClickedListener({ detail: { item } }) {
+  protected onChainClick({ detail: { item } }) {
     this.isDestChainSelection()
       ? this.changeDestinationChain(item)
       : this.changeSourceChain(item);
@@ -800,7 +800,7 @@ export class XcmApp extends PoolApp {
         .srcChain=${this.transfer.srcChain}
         .destChain=${this.transfer.destChain}
         .selector=${this.xchain.selector}
-        @list-item-clicked=${this.chainClickedListener}
+        @list-item-click=${this.onChainClick}
       >
         <div class="header section" slot="header">
           <uigc-icon-button
@@ -820,7 +820,7 @@ export class XcmApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  protected assetClickedListener({ detail: { symbol } }) {
+  protected onAssetClick({ detail: { symbol } }) {
     this.changeAsset(symbol);
     this.changeTab(TransferTab.TransferForm);
   }
@@ -835,7 +835,7 @@ export class XcmApp extends PoolApp {
         .assets=${this.xchain.tokens}
         .balances=${this.xchain.balance}
         .asset=${this.transfer.asset}
-        @asset-clicked=${this.assetClickedListener}
+        @asset-click=${this.onAssetClick}
       >
         <div class="header section" slot="header">
           <uigc-icon-button
@@ -853,18 +853,18 @@ export class XcmApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  protected assetInputChangedListener({ detail: { value } }) {
+  protected onAssetInputChange({ detail: { value } }) {
     this.updateAmount(value);
     this.validateAmount();
   }
 
-  protected addressInputChangedListener({ detail: { address } }) {
+  protected onAddressInputChange({ detail: { address } }) {
     this.disablePrefill();
     this.updateAddress(address);
     this.validateAddress();
   }
 
-  protected chainSelectorClickedListener({ detail: { chain } }) {
+  protected onChainSelectorClick({ detail: { chain } }) {
     this.xchain.selector = chain;
     this.changeTab(TransferTab.SelectChain);
   }
@@ -892,12 +892,12 @@ export class XcmApp extends PoolApp {
         .destChainFee=${this.transfer.destChainFee}
         .max=${this.transfer.max}
         .error=${this.transfer.error}
-        @asset-input-changed=${this.assetInputChangedListener}
-        @address-input-changed=${this.addressInputChangedListener}
-        @asset-switch-clicked=${this.switchChains}
-        @asset-selector-clicked=${() => this.changeTab(TransferTab.SelectToken)}
-        @chain-selector-clicked=${this.chainSelectorClickedListener}
-        @transfer-clicked=${() => this.swap()}
+        @asset-input-change=${this.onAssetInputChange}
+        @address-input-change=${this.onAddressInputChange}
+        @asset-switch-click=${this.onChainSwitchClick}
+        @asset-selector-click=${() => this.changeTab(TransferTab.SelectToken)}
+        @chain-selector-click=${this.onChainSelectorClick}
+        @transfer-click=${() => this.onTransferClick()}
       >
         <div class="header" slot="header">
           <uigc-typography gradient variant="title"

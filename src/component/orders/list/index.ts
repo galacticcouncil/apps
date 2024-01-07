@@ -81,7 +81,7 @@ export class DcaOrdersList extends DcaBaseDatagrid {
         composed: true,
         detail: { id: row.original.id },
       };
-      this.dispatchEvent(new CustomEvent('order-clicked', options));
+      this.dispatchEvent(new CustomEvent('order-click', options));
     };
   }
 

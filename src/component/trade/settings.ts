@@ -167,15 +167,7 @@ export class TradeSettings extends LitElement {
       bubbles: true,
       composed: true,
     };
-    this.dispatchEvent(new CustomEvent('slippage-changed', options));
-  }
-
-  onBackClick(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('back-clicked', options));
+    this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
   override update(changedProperties: Map<string, unknown>) {
@@ -219,12 +211,12 @@ export class TradeSettings extends LitElement {
       </div>
       <uigc-toggle-button-group
         value=${this.slippage}
-        @toggle-button-clicked=${(e: CustomEvent) => {
+        @toggle-button-click=${(e: CustomEvent) => {
           this.slippage = e.detail.value;
           this.customSlippage = null;
           this._slippageHandler();
         }}
-        @input-changed=${(e: CustomEvent) => {
+        @input-change=${(e: CustomEvent) => {
           this.slippage = e.detail.value;
           this.customSlippage = e.detail.value;
           this._slippageHandler();

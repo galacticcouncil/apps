@@ -141,47 +141,39 @@ export class DcaForm extends BaseElement {
     this.advanced = !this.advanced;
   }
 
-  onSettingsClick(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('settings-clicked', options));
-  }
-
   onScheduleClick(e: any) {
     const options = {
       bubbles: true,
       composed: true,
     };
-    this.dispatchEvent(new CustomEvent('schedule-clicked', options));
+    this.dispatchEvent(new CustomEvent('schedule-click', options));
   }
 
-  onMaxPriceChanged(e: any) {
+  onMaxPriceChange(e: any) {
     const options = {
       bubbles: true,
       composed: true,
       detail: { id: 'maxPrice', asset: e.detail.asset, value: e.detail.value },
     };
-    this.dispatchEvent(new CustomEvent('asset-input-changed', options));
+    this.dispatchEvent(new CustomEvent('asset-input-change', options));
   }
 
-  onIntervalChanged(e: any) {
+  onIntervalChange(e: any) {
     const options = {
       bubbles: true,
       composed: true,
       detail: { value: e.detail.value },
     };
-    this.dispatchEvent(new CustomEvent('interval-changed', options));
+    this.dispatchEvent(new CustomEvent('interval-change', options));
   }
 
-  onIntervalBlockChanged(e: any) {
+  onIntervalBlockChange(e: any) {
     const options = {
       bubbles: true,
       composed: true,
       detail: { value: e.detail.value },
     };
-    this.dispatchEvent(new CustomEvent('interval-block-changed', options));
+    this.dispatchEvent(new CustomEvent('interval-block-change', options));
   }
 
   infoSummaryTemplate() {
@@ -352,8 +344,8 @@ export class DcaForm extends BaseElement {
       <span>Every</span>
       <uigc-toggle-button-group
         .value=${this.intervalBlock ? null : this.interval}
-        @toggle-button-clicked=${(e: CustomEvent) => {
-          this.onIntervalChanged(e);
+        @toggle-button-click=${(e: CustomEvent) => {
+          this.onIntervalChange(e);
         }}
       >
         ${INTERVAL.map(
@@ -409,7 +401,7 @@ export class DcaForm extends BaseElement {
         field
         .amount=${this.maxPrice}
         .asset=${this.assetOut?.symbol}
-        @asset-input-changed=${(e: CustomEvent) => this.onMaxPriceChanged(e)}
+        @asset-input-change=${(e: CustomEvent) => this.onMaxPriceChange(e)}
       >
         <span class="adornment" slot="inputAdornment"
           >Max <span class="highlight">Buy</span> Price</span
@@ -447,7 +439,7 @@ export class DcaForm extends BaseElement {
         .placeholder=${0}
         .value=${this.intervalBlock}
         .desc=${this.getEstTime()}
-        @input-changed=${(e: CustomEvent) => this.onIntervalBlockChanged(e)}
+        @input-change=${(e: CustomEvent) => this.onIntervalBlockChange(e)}
       >
         <span class="adornment" slot="inputAdornment"
           >${i18n.t('dca.settings.interval')}</span

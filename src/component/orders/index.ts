@@ -371,7 +371,7 @@ export class TradeOrders extends BaseApp {
   }
 
   tabTemplate(id: string, label: string) {
-    const onTabChangeListener = ({ target }: CustomEvent) => {
+    const onTabChange = ({ target }: CustomEvent) => {
       this.orders.filter = target['value'];
       this.requestUpdate();
     };
@@ -382,7 +382,7 @@ export class TradeOrders extends BaseApp {
         .value=${id}
         .id=${id}
         .checked=${this.orders.filter === id}
-        @change=${onTabChangeListener}
+        @change=${onTabChange}
       />
       <label for="${id}">${label}</label>`;
   }
@@ -395,7 +395,7 @@ export class TradeOrders extends BaseApp {
     </div>`;
   }
 
-  protected orderClickedListener({ detail: { id } }) {
+  protected onOrderClick({ detail: { id } }) {
     this.toggleOrder(id);
     this.syncOrder(id);
   }
@@ -406,7 +406,7 @@ export class TradeOrders extends BaseApp {
     return html` <gc-dca-grid
       class="orders"
       .defaultData=${filteredData}
-      @order-clicked=${this.orderClickedListener}
+      @order-click=${this.onOrderClick}
     >
       <slot slot="header" name="header"></slot>
       ${this.tabsTemplate()} ${this.emptyTemplate()}
@@ -419,7 +419,7 @@ export class TradeOrders extends BaseApp {
     return html` <gc-dca-list
       class="orders"
       .defaultData=${filteredData}
-      @order-clicked=${this.orderClickedListener}
+      @order-click=${this.onOrderClick}
     >
       <slot slot="header" name="header"></slot>
       ${this.tabsTemplate()} ${this.emptyTemplate()}

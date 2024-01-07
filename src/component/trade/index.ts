@@ -884,7 +884,7 @@ export class TradeApp extends PoolApp {
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:new', options));
   }
 
-  private async swap() {
+  private async onSwapClick() {
     const account = this.account.state;
     if (account && this.tx) {
       this.processTx(account, this.tx, this.trade);
@@ -966,7 +966,7 @@ export class TradeApp extends PoolApp {
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
   }
 
-  private async dca() {
+  private async onTwapClick() {
     const account = this.account.state;
     const { slippage } = this.settings.state;
 
@@ -1093,7 +1093,7 @@ export class TradeApp extends PoolApp {
       active: this.tab == TradeTab.TradeSettings,
     };
     return html` <uigc-paper class=${classMap(classes)}>
-      <gc-trade-settings @slippage-changed=${() => this.recalculateTrade()}>
+      <gc-trade-settings @slippage-change=${() => this.recalculateTrade()}>
         <div class="header section" slot="header">
           <uigc-icon-button
             class="back"
@@ -1110,7 +1110,7 @@ export class TradeApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  protected assetClickedListener(e: CustomEvent) {
+  protected onAssetClick(e: CustomEvent) {
     const { id, asset } = this.asset.selector;
     id == 'assetIn' && this.changeAssetIn(asset, e.detail);
     id == 'assetOut' && this.changeAssetOut(asset, e.detail);
@@ -1136,7 +1136,7 @@ export class TradeApp extends PoolApp {
         .assetOut=${this.trade.assetOut}
         .switchAllowed=${this.isSwitchEnabled()}
         .selector=${this.asset.selector}
-        @asset-clicked=${this.assetClickedListener}
+        @asset-click=${this.onAssetClick}
       >
         <div class="header section" slot="header">
           <uigc-icon-button
@@ -1154,25 +1154,25 @@ export class TradeApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  protected assetInputChangedListener({ detail: { id, asset, value } }) {
+  protected onAssetInputChange({ detail: { id, asset, value } }) {
     this.asset.active = asset;
     id == 'assetIn' && this.updateAmountIn(value);
     id == 'assetOut' && this.updateAmountOut(value);
     this.validateEnoughBalance();
   }
 
-  protected assetMaxClickedListener({ detail: { id, asset } }) {
+  protected onAssetMaxClick({ detail: { id, asset } }) {
     this.asset.active = asset.symbol;
     id == 'assetIn' && this.updateMaxAmountIn(asset);
     id == 'assetOut' && this.updateMaxAmountOut(asset);
   }
 
-  protected assetSelectorClickedListener({ detail }: CustomEvent) {
+  protected onAssetSelectorClick({ detail }: CustomEvent) {
     this.asset.selector = detail;
     this.changeTab(TradeTab.SelectAsset);
   }
 
-  protected assetSwitchClickedListener({ detail }: CustomEvent) {
+  protected onAssetSwitchClick({ detail }: CustomEvent) {
     this.switch();
     this.validatePool();
     this.updateQuery();
@@ -1231,12 +1231,12 @@ export class TradeApp extends PoolApp {
         .transactionFee=${this.trade.transactionFee}
         .error=${this.trade.error}
         .swaps=${this.trade.swaps}
-        @asset-input-changed=${this.assetInputChangedListener}
-        @asset-max-clicked=${this.assetMaxClickedListener}
-        @asset-selector-clicked=${this.assetSelectorClickedListener}
-        @asset-switch-clicked=${this.assetSwitchClickedListener}
-        @swap-clicked=${() => this.swap()}
-        @twap-clicked=${() => this.dca()}
+        @asset-input-change=${this.onAssetInputChange}
+        @asset-max-click=${this.onAssetMaxClick}
+        @asset-selector-click=${this.onAssetSelectorClick}
+        @asset-switch-click=${this.onAssetSwitchClick}
+        @swap-click=${() => this.onSwapClick()}
+        @twap-click=${() => this.onTwapClick()}
       >
         <div class="header" slot="header">
           <uigc-typography variant="title" gradient

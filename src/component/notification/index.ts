@@ -160,8 +160,8 @@ export class NotificationCenter extends BaseElement {
   render() {
     return html`
       <div
-        @closeable-closed=${(e: CustomEvent) => this.closeToast(e.detail.id)}
-        @toast-closed=${(e: CustomEvent) => this.closeToast(e.detail.id)}
+        @closeable-close=${(e: CustomEvent) => this.closeToast(e.detail.id)}
+        @toast-close=${(e: CustomEvent) => this.closeToast(e.detail.id)}
       >
         ${this.toasts}
       </div>

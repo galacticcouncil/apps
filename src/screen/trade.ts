@@ -87,7 +87,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        indexerUrl="https://hydradx-rococo-explorer.play.hydration.cloud/graphql"
+        indexerUrl="https://archive.nice.hydration.cloud/graphql"
         grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
         grafanaDsn="11"
       ></gc-trade-app>

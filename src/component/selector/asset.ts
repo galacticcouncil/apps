@@ -179,7 +179,7 @@ export class SelectAsset extends LitElement {
       <uigc-search-bar
         class="search"
         placeholder="Search by name"
-        @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
+        @search-change=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
       ${when(
         this.assets.length > 0,

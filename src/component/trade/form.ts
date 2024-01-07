@@ -432,14 +432,6 @@ export class TradeForm extends BaseElement {
     }
   }
 
-  onSettingsClick(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('settings-clicked', options));
-  }
-
   onCtaClick(e: any) {
     const options = {
       bubbles: true,
@@ -447,18 +439,10 @@ export class TradeForm extends BaseElement {
     };
 
     if (this.twapEnabled) {
-      this.dispatchEvent(new CustomEvent('twap-clicked', options));
+      this.dispatchEvent(new CustomEvent('twap-click', options));
     } else {
-      this.dispatchEvent(new CustomEvent('swap-clicked', options));
+      this.dispatchEvent(new CustomEvent('swap-click', options));
     }
-  }
-
-  onSetupClick(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('setup-clicked', options));
   }
 
   maxClickHandler(id: string, asset: Asset) {
@@ -468,7 +452,7 @@ export class TradeForm extends BaseElement {
         composed: true,
         detail: { id: id, asset: asset },
       };
-      this.dispatchEvent(new CustomEvent('asset-max-clicked', options));
+      this.dispatchEvent(new CustomEvent('asset-max-click', options));
     };
   }
 
@@ -742,7 +726,7 @@ export class TradeForm extends BaseElement {
         .formatter=${humanizeAmount}
         .onMaxClick=${this.maxClickHandler(id, asset)}
         ?disabled=${this.readonly}
-        @asset-max-clicked=${() => {
+        @asset-max-click=${() => {
           this.twapEnabled = false;
         }}
       ></uigc-asset-balance>
@@ -799,7 +783,7 @@ export class TradeForm extends BaseElement {
       .asset=${this.assetIn?.symbol}
       .amount=${amountIn}
       .amountUsd=${amountUsdHuman}
-      @asset-input-changed=${() => {
+      @asset-input-change=${() => {
         this.twapEnabled = false;
       }}
     >
@@ -828,7 +812,7 @@ export class TradeForm extends BaseElement {
       .asset=${this.assetOut?.symbol}
       .amount=${amountOut}
       .amountUsd=${amountUsdHuman}
-      @asset-input-changed=${() => {
+      @asset-input-change=${() => {
         this.twapEnabled = false;
       }}
     >
@@ -852,7 +836,7 @@ export class TradeForm extends BaseElement {
         <uigc-asset-switch
           class="switch-button"
           ?disabled=${!this.switchAllowed || this.readonly}
-          @asset-switch-clicked=${() => {
+          @asset-switch-click=${() => {
             this.twapEnabled = false;
           }}
         >

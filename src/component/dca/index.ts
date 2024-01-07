@@ -335,7 +335,7 @@ export class DcaApp extends PoolApp {
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
   }
 
-  private async schedule() {
+  private async onSchedule() {
     const account = this.account.state;
     const { api, router } = this.chain.state;
     if (account) {
@@ -457,7 +457,7 @@ export class DcaApp extends PoolApp {
       active: this.tab == DcaTab.DcaSettings,
     };
     return html` <uigc-paper class=${classMap(classes)}>
-      <gc-dca-settings @slippage-changed=${() => {}}>
+      <gc-dca-settings @slippage-change=${() => {}}>
         <div class="header section" slot="header">
           <uigc-icon-button
             class="back"
@@ -474,7 +474,7 @@ export class DcaApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  protected assetClickedListener(e: CustomEvent) {
+  protected onAssetClick(e: CustomEvent) {
     const { id, asset } = this.asset.selector;
     id == 'assetIn' && this.changeAssetIn(asset, e.detail);
     id == 'assetOut' && this.changeAssetOut(asset, e.detail);
@@ -500,7 +500,7 @@ export class DcaApp extends PoolApp {
         .assetOut=${this.dca.assetOut}
         .switchAllowed=${false}
         .selector=${this.asset.selector}
-        @asset-clicked=${this.assetClickedListener}
+        @asset-click=${this.onAssetClick}
       >
         <div class="header section" slot="header">
           <uigc-icon-button
@@ -518,7 +518,7 @@ export class DcaApp extends PoolApp {
     </uigc-paper>`;
   }
 
-  protected assetInputChangedListener({ detail: { id, asset, value } }) {
+  protected onAssetInputChange({ detail: { id, asset, value } }) {
     id == 'assetIn' && this.updateAmountIn(value);
     id == 'assetInBudget' && this.updateAmountInBudget(value);
     id == 'maxPrice' && this.updateMaxPrice(value);
@@ -528,12 +528,12 @@ export class DcaApp extends PoolApp {
     this.validateEnoughBalance();
   }
 
-  protected assetSelectorClickedListener({ detail }: CustomEvent) {
+  protected onAssetSelectorClick({ detail }: CustomEvent) {
     this.asset.selector = detail;
     this.changeTab(DcaTab.SelectAsset);
   }
 
-  protected selectorClickedListener({ detail: { item } }) {
+  protected onSelectorClick({ detail: { item } }) {
     if (!item || item === '') {
       return;
     }
@@ -541,14 +541,14 @@ export class DcaApp extends PoolApp {
     this.changeTab(DcaTab.SelectAsset);
   }
 
-  protected intervalChangedListener({ detail }: CustomEvent) {
+  protected onIntervalChange({ detail }: CustomEvent) {
     this.dca.interval = detail.value;
     this.dca.intervalBlock = null;
     this.updateEstimated();
     this.validateBlockPeriod();
   }
 
-  protected intervalBlockChangedListener({ detail }: CustomEvent) {
+  protected onIntervalBlockChange({ detail }: CustomEvent) {
     this.dca.intervalBlock = detail.value;
     this.updateEstimated();
     this.validateBlockPeriod();
@@ -586,12 +586,12 @@ export class DcaApp extends PoolApp {
         .tradeFeePct=${this.dca.tradeFeePct}
         .est=${this.dca.est}
         .error=${this.dca.error}
-        @asset-input-changed=${this.assetInputChangedListener}
-        @asset-selector-clicked=${this.assetSelectorClickedListener}
-        @selector-clicked=${this.selectorClickedListener}
-        @interval-changed=${this.intervalChangedListener}
-        @interval-block-changed=${this.intervalBlockChangedListener}
-        @schedule-clicked=${() => this.schedule()}
+        @asset-input-change=${this.onAssetInputChange}
+        @asset-selector-click=${this.onAssetSelectorClick}
+        @selector-click=${this.onSelectorClick}
+        @interval-change=${this.onIntervalChange}
+        @interval-block-change=${this.onIntervalBlockChange}
+        @schedule-click=${() => this.onSchedule()}
       >
         <div class="header" slot="header">
           <uigc-typography variant="title" gradient

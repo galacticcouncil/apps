@@ -164,7 +164,7 @@ export class LbpApp extends TradeApp {
         .usdPrice=${this.assets.usdPrice}
         .switchAllowed=${this.isSwitchEnabled()}
         .selector=${this.asset.selector}
-        @asset-clicked=${this.assetClickedListener}
+        @asset-click=${this.onAssetClick}
       >
         <div class="header section" slot="header">
           <uigc-icon-button

@@ -144,7 +144,7 @@ export class XcmForm extends LitElement {
       bubbles: true,
       composed: true,
     };
-    this.dispatchEvent(new CustomEvent('transfer-clicked', options));
+    this.dispatchEvent(new CustomEvent('transfer-click', options));
   }
 
   maxClickHandler(balance: string, effectiveBalance: string) {
@@ -155,7 +155,7 @@ export class XcmForm extends LitElement {
         composed: true,
         detail: { value: amount },
       };
-      this.dispatchEvent(new CustomEvent('asset-input-changed', options));
+      this.dispatchEvent(new CustomEvent('asset-input-change', options));
     };
   }
 

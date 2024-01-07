@@ -64,7 +64,7 @@ export class SelectChain extends LitElement {
       <uigc-search-bar
         class="search"
         placeholder="Search by name"
-        @search-changed=${(e: CustomEvent) => this.updateSearch(e.detail)}
+        @search-change=${(e: CustomEvent) => this.updateSearch(e.detail)}
       ></uigc-search-bar>
       ${when(
         this.chains.length > 0,

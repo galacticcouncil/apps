@@ -23,6 +23,25 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
     this.assetOut = queryParams.get('assetOut');
   }
 
+  bsxTemplate() {
+    return html`
+      <gc-dca-app
+        chart
+        assetIn=${this.assetIn}
+        assetOut=${this.assetOut}
+        apiAddress="wss://chopsticks.rpc.hydration.cloud"
+        pools=${[PoolType.XYK].join(',')}
+        stableCoinAssetId="14"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
+        indexerUrl="https://basilisk-explorer.play.hydration.cloud/graphql"
+        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaDsn="5"
+      ></gc-dca-app>
+    `;
+  }
+
   hdxTemplate() {
     return html`
       <gc-dca-app
@@ -41,40 +60,20 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
     `;
   }
 
-  niceTemplate() {
+  hdxTemplateNice() {
     return html`
       <gc-dca-app
         chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.nice.hydration.cloud"
-        pools=${[PoolType.Omni, PoolType.LBP, PoolType.Stable].join(',')}
         stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://archive.nice.hydration.cloud/graphql"
         grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
-        grafanaDsn="10"
-      ></gc-dca-app>
-    `;
-  }
-
-  bsxTemplate() {
-    return html`
-      <gc-dca-app
-        chart
-        assetIn=${this.assetIn}
-        assetOut=${this.assetOut}
-        apiAddress="wss://chopsticks.rpc.hydration.cloud"
-        pools=${[PoolType.XYK].join(',')}
-        stableCoinAssetId="14"
-        accountAddress=${this.account.state?.address}
-        accountProvider=${this.account.state?.provider}
-        accountName=${this.account.state?.name}
-        indexerUrl="https://basilisk-explorer.play.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
-        grafanaDsn="5"
+        grafanaDsn="11"
       ></gc-dca-app>
     `;
   }
@@ -99,7 +98,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
 
   render() {
     if (this.theme.state == 'hdx') {
-      return this.niceTemplate();
+      return this.hdxTemplate();
     } else {
       return this.bsxTemplate();
     }
