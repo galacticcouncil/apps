@@ -20,6 +20,8 @@ import '../id/account';
 export class XcmForm extends LitElement {
   private account = new DatabaseController<Account>(this, accountCursor);
 
+  @property({ type: Boolean }) disabled = false;
+  @property({ type: Boolean }) inProgress = false;
   @property({ type: String }) address = null;
   @property({ type: String }) amount = null;
   @property({ type: Object }) asset: Asset = null;
@@ -30,8 +32,6 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destChainFee: AssetAmount = null;
   @property({ type: Object }) error = {};
-  @property({ type: Boolean }) disabled = false;
-  @property({ type: Boolean }) connecting = false;
 
   static styles = [
     baseStyles,
@@ -132,7 +132,7 @@ export class XcmForm extends LitElement {
   }
 
   private isChainConnected(): boolean {
-    return !this.connecting;
+    return !this.inProgress;
   }
 
   private isValidAddress(): boolean {
@@ -160,8 +160,7 @@ export class XcmForm extends LitElement {
   }
 
   transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
-    const account = this.account.state;
-    if (!tradeFee && account) {
+    if (this.inProgress) {
       return html` <span class="label">${label}</span>
         <span class="grow"></span>
         <uigc-skeleton

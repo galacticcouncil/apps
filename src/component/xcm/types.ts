@@ -8,6 +8,7 @@ export enum TransferTab {
 }
 
 export type TransferState = {
+  inProgress: boolean;
   address: string;
   amount: string;
   asset: Asset;
@@ -23,6 +24,7 @@ export type TransferState = {
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
+  inProgress: false,
   address: null,
   amount: null,
   asset: null,
@@ -43,7 +45,6 @@ export type ChainState = {
   list: AnyChain[];
   tokens: Asset[];
   selector: string;
-  connecting: boolean;
 };
 
 export const DEFAULT_CHAIN_STATE: ChainState = {
@@ -52,5 +53,4 @@ export const DEFAULT_CHAIN_STATE: ChainState = {
   list: [],
   tokens: [],
   selector: null,
-  connecting: true,
 };

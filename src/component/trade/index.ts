@@ -973,10 +973,7 @@ export class TradeApp extends PoolApp {
     if (account) {
       const { assetIn } = this.trade;
       const { twap } = this.tradeTwap;
-      const totalBudget: BigNumber = toBn(
-        twap.budget.toString(),
-        assetIn.decimals,
-      );
+      const totalBudget = toBn(twap.budget.toString(), assetIn.decimals);
 
       const { api } = this.chain.state;
       const tx: SubmittableExtrinsic = api.tx.dca.schedule(
