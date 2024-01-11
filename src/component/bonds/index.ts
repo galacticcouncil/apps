@@ -8,7 +8,6 @@ export class BondsApp extends LbpApp {
 
   constructor() {
     super();
-    this.shouldUpdateQuery = false;
     this.headerTitle = 'Trade Bonds';
   }
 

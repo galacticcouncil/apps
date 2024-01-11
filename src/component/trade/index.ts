@@ -35,7 +35,6 @@ import '@galacticcouncil/ui';
 import {
   Asset,
   Amount,
-  BigNumber,
   PoolType,
   scale,
   ONE,
@@ -71,7 +70,7 @@ export class TradeApp extends PoolApp {
 
   protected tx: Transaction = null;
   protected tradeApi: TradeApi = null;
-  protected shouldUpdateQuery: boolean = true;
+
   protected headerTitle: string = i18n.t('trade.title');
 
   @property({ type: Boolean }) chart: Boolean = false;
@@ -1003,12 +1002,10 @@ export class TradeApp extends PoolApp {
   protected updateQuery() {
     const assetIn = this.trade.assetIn?.id;
     const assetOut = this.trade.assetOut?.id;
-    if (this.shouldUpdateQuery) {
-      updateQueryParams({
-        assetIn: assetIn,
-        assetOut: assetOut,
-      });
-    }
+    updateQueryParams({
+      assetIn: assetIn,
+      assetOut: assetOut,
+    });
     const options = {
       bubbles: true,
       composed: true,
