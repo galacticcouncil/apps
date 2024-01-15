@@ -1,6 +1,7 @@
 export { TradeApp } from './component/trade';
 export { BondsApp } from './component/bonds';
 export { DcaApp } from './component/dca';
+export { DcaYApp } from './component/dcaY';
 export { XcmApp } from './component/xcm';
 export { NotificationCenter } from './component/notification';
 export { TransactionCenter } from './component/transaction';
