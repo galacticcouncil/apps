@@ -1,7 +1,7 @@
 import { html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { classMap, ClassInfo } from 'lit/directives/class-map.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
@@ -13,12 +13,12 @@ import { Account, accountCursor, DcaConfig, dcaSettingsCursor } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { humanizeAmount } from '../../utils/amount';
 
-import { INTERVAL_DCA, IntervalDca } from './types';
+import { INTERVAL_DCA, APY, IntervalDca } from './types';
 
 import { Asset } from '@galacticcouncil/sdk';
 
-@customElement('gc-dca-form')
-export class DcaForm extends BaseElement {
+@customElement('gc-dca-y-form')
+export class DcaYForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
   private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
 
@@ -28,20 +28,15 @@ export class DcaForm extends BaseElement {
   @property({ type: Boolean }) loaded = false;
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
-  @property({ type: String }) interval: IntervalDca = '1h';
-  @property({ type: Number }) intervalBlock: number = null;
+  @property({ type: String }) interval: IntervalDca = 'month';
   @property({ type: String }) amountIn = null;
-  @property({ type: String }) amountInUsd = null;
-  @property({ type: String }) amountInBudget = null;
+  @property({ type: String }) amountInYield = null;
+  @property({ type: String }) amountInFrom = null;
   @property({ type: String }) balanceIn = null;
-  @property({ type: String }) maxPrice = null;
-  @property({ type: String }) slippagePct = '5';
-  @property({ type: String }) tradeFee = '0';
-  @property({ type: String }) tradeFeePct = '0';
+  @property({ type: Number }) rate = null;
+  @property({ type: Number }) tradesNo = null;
   @property({ type: String }) est = null;
   @property({ attribute: false }) error = {};
-
-  @state() advanced: boolean = false;
 
   static styles = [
     baseStyles,
@@ -65,6 +60,7 @@ export class DcaForm extends BaseElement {
       .interval {
         display: flex;
         flex-direction: row;
+        white-space: nowrap;
         align-items: center;
       }
 
@@ -74,16 +70,20 @@ export class DcaForm extends BaseElement {
         }
       }
 
-      .interval span {
+      .interval div.section {
         color: var(--hex-white);
         font-style: normal;
         font-weight: 600;
         font-size: 16px;
         line-height: 100%;
+        margin-right: 14px;
+      }
+
+      .interval uigc-toggle-button {
+        white-space: nowrap;
       }
 
       .interval uigc-toggle-button-group {
-        margin-left: 24px;
         width: 100%;
       }
 
@@ -111,6 +111,12 @@ export class DcaForm extends BaseElement {
         display: none;
       }
 
+      .apy {
+        margin-top: -10px;
+        margin-bottom: -10px;
+        padding: unset;
+      }
+
       uigc-asset {
         padding: 5px;
       }
@@ -118,28 +124,24 @@ export class DcaForm extends BaseElement {
   ];
 
   private getEstDate(): string {
-    if (!this.amountIn || !this.amountInBudget) {
+    if (!this.est) {
       return null;
     }
 
-    const aIn = Number(this.amountIn);
-    const aInbudget = Number(this.amountInBudget);
-    const reps = Math.floor(aInbudget / aIn);
     return this._dayjs()
-      .add(reps * this.est, 'millisecond')
+      .add(this.est, 'millisecond')
       .format('DD-MM-YYYY HH:mm');
   }
 
-  private getEstTime(): string {
-    if (this.intervalBlock && this.est) {
-      return this._humanizer.humanize(this.est, { round: true, largest: 2 });
+  private getEstFreq(): string {
+    if (this.est && this.tradesNo) {
+      return this._humanizer.humanize(this.est / this.tradesNo, {
+        round: true,
+        largest: 2,
+      });
     } else {
       return null;
     }
-  }
-
-  private toggleAdvanced() {
-    this.advanced = !this.advanced;
   }
 
   onScheduleClick(e: any) {
@@ -168,37 +170,24 @@ export class DcaForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('interval-change', options));
   }
 
-  onIntervalBlockChange(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-      detail: { value: e.detail.value },
-    };
-    this.dispatchEvent(new CustomEvent('interval-block-change', options));
+  infoApyTemplate() {
+    return html` <span class="label">${i18n.t('yDca.form.apy')}</span>
+      <span class="grow"></span>
+      ${when(
+        this.inProgress,
+        () =>
+          html`<uigc-skeleton
+            progress
+            rectangle
+            width="80px"
+            height="12px"
+          ></uigc-skeleton>`,
+        () => html` <span class="value highlight">${`${APY}%` || '-'}</span> `,
+      )}`;
   }
 
-  infoSummaryTemplate() {
-    const int = this.intervalBlock
-      ? this.getEstTime()
-      : this.interval.toLowerCase();
-    return html` <span class="label">${i18n.t('dca.summary')}</span>
-      <span>
-        <span class="value">Spend</span>
-        <span class="value highlight"
-          >${this.amountIn} ${this.assetIn?.symbol}</span
-        >
-        <span class="value"
-          >every ~${int} to buy ${this.assetOut?.symbol} with a total budget
-          of</span
-        >
-        <span class="value highlight"
-          >${this.amountInBudget} ${this.assetIn?.symbol}</span
-        >
-      </span>`;
-  }
-
-  infoSlippageTemplate() {
-    return html` <span class="label">${i18n.t('dca.slippage')}</span>
+  infoEstYieldTemplate() {
+    return html` <span class="label">${i18n.t('yDca.form.yield')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -210,7 +199,65 @@ export class DcaForm extends BaseElement {
             height="12px"
           ></uigc-skeleton>`,
         () =>
-          html`<span class="value">${this.settings.state.slippage}%</span> `,
+          html`<span class="value highlight"
+            >${`${humanizeAmount(this.amountInYield * this.rate)} DOT/${
+              this.interval
+            }` || '-'}</span
+          > `,
+      )}`;
+  }
+
+  infoSummaryTemplate() {
+    const frequency = this.getEstFreq();
+    const int = this.interval.toLowerCase();
+    return html` <span class="label">${i18n.t('dca.summary')}</span>
+      <span>
+        <span class="value">Spend</span>
+        <span class="value highlight"
+          >${humanizeAmount(this.amountIn)} ${this.assetIn?.symbol}</span
+        >
+        <span class="value"
+          >every ~${frequency} to buy ${this.assetOut?.symbol} with a total
+          budget of</span
+        >
+        <span class="value highlight"
+          >${humanizeAmount(this.amountInYield)} ${this.assetIn?.symbol}</span
+        >
+        <span class="value">over the period of ${int}.</span>
+      </span>`;
+  }
+
+  /*   infoSummaryTemplate() {
+    const int = this.interval.toLowerCase();
+    return html` <span class="label">${i18n.t('dca.summary')}</span>
+      <span>
+        <span class="value">I want to exchange total</span>
+        <span class="value highlight"
+          >${humanizeAmount(this.amountInYield)} ${this.assetIn?.symbol}</span
+        >
+        <span class="value">during</span>
+        <span class="value">${int}</span>
+        <span class="value">with single trade of</span>
+        <span class="value highlight"
+          >${humanizeAmount(this.amountIn)} ${this.assetIn?.symbol}</span
+        >
+      </span>`;
+  } */
+
+  infoSlippageTemplate() {
+    const { slippage } = this.settings.state;
+    return html` <span class="label">${i18n.t('dca.slippage')}</span>
+      <span class="grow"></span>
+      ${when(
+        this.inProgress,
+        () =>
+          html`<uigc-skeleton
+            progress
+            rectangle
+            width="80px"
+            height="12px"
+          ></uigc-skeleton>`,
+        () => html`<span class="value">${slippage}%</span> `,
       )}`;
   }
 
@@ -228,44 +275,6 @@ export class DcaForm extends BaseElement {
             height="12px"
           ></uigc-skeleton>`,
         () => html`<span class="value">${estDate || '-'}</span> `,
-      )}`;
-  }
-
-  infoTransactionCostTemplate(assetSymbol: string) {
-    return html` <span class="label">${i18n.t('dca.transactionCost')}</span>
-      <span class="grow"></span>
-      ${when(
-        this.inProgress,
-        () =>
-          html`<uigc-skeleton
-            progress
-            rectangle
-            width="80px"
-            height="12px"
-          ></uigc-skeleton>`,
-        () =>
-          html`<span class="value"
-            >${humanizeAmount(this.tradeFee)} ${assetSymbol}</span
-          >`,
-      )}`;
-  }
-
-  infoTradeFeeTemplate(assetSymbol: string) {
-    return html` <span class="label">${i18n.t('dca.tradeFee')}</span>
-      <span class="grow"></span>
-      ${when(
-        this.inProgress,
-        () =>
-          html`<uigc-skeleton
-            progress
-            rectangle
-            width="80px"
-            height="12px"
-          ></uigc-skeleton>`,
-        () =>
-          html`<span class="value"
-            >${humanizeAmount(this.tradeFee)} ${assetSymbol}</span
-          > `,
       )}`;
   }
 
@@ -320,31 +329,11 @@ export class DcaForm extends BaseElement {
     `;
   }
 
-  formAssetInTemplate() {
-    const error = this.error['minAmountTooLow'];
-    return html` <uigc-asset-transfer
-      id="assetIn"
-      title="Swap"
-      ?readonly=${!this.loaded}
-      .readonly=${!this.loaded}
-      ?selectable=${this.loaded}
-      .selectable=${this.loaded}
-      ?error=${error}
-      .error=${error}
-      dense
-      .asset=${this.assetIn?.symbol}
-      .amount=${this.amountIn}
-      .amountUsd=${this.amountInUsd}
-    >
-      ${this.formAssetTemplate(this.assetIn, 'asset')}
-    </uigc-asset-transfer>`;
-  }
-
   formIntervalTemplate() {
     return html` <div class="interval">
-      <span>Every</span>
+      <div class="section">Duration of</div>
       <uigc-toggle-button-group
-        .value=${this.intervalBlock ? null : this.interval}
+        .value=${this.interval}
         @toggle-button-click=${(e: CustomEvent) => {
           this.onIntervalChange(e);
         }}
@@ -361,9 +350,30 @@ export class DcaForm extends BaseElement {
     </div>`;
   }
 
+  formYieldFromTemplate() {
+    const error =
+      this.error['balanceTooLow'] || this.error['minInvestmentTooLow'];
+    return html` <uigc-asset-transfer
+      id="assetIn"
+      title=${i18n.t('yDca.form.from')}
+      ?readonly=${!this.loaded}
+      .readonly=${!this.loaded}
+      ?selectable=${false}
+      .selectable=${false}
+      ?error=${error}
+      .error=${error}
+      asset=${this.assetIn?.symbol}
+      unit=${this.assetIn?.symbol}
+      amount=${this.amountInFrom}
+    >
+      ${this.formAssetTemplate(this.assetIn, 'asset')}
+      ${this.formAssetBalanceTemplate(this.balanceIn)}
+    </uigc-asset-transfer>`;
+  }
+
   formAssetOutTemplate() {
     return html` <uigc-selector
-      title="For"
+      title=${i18n.t('yDca.form.get')}
       ?readonly=${!this.loaded}
       .readonly=${!this.loaded}
       .item=${this.assetOut?.symbol}
@@ -372,105 +382,25 @@ export class DcaForm extends BaseElement {
     </uigc-selector>`;
   }
 
-  formMaxBudgetTemplate() {
-    const error =
-      this.error['balanceTooLow'] ||
-      this.error['budgetTooLow'] ||
-      this.error['minBudgetTooLow'];
-    return html` <uigc-asset-transfer
-      id="assetInBudget"
-      title=${i18n.t('dca.settings.budget')}
-      ?readonly=${!this.loaded}
-      .readonly=${!this.loaded}
-      ?error=${error}
-      .error=${error}
-      dense
-      asset=${this.assetIn?.symbol}
-      unit=${this.assetIn?.symbol}
-      amount=${this.amountInBudget}
-      .selectable=${false}
-    >
-      ${this.formAssetTemplate(this.assetIn, 'asset')}
-      ${this.formAssetBalanceTemplate(this.balanceIn)}
-    </uigc-asset-transfer>`;
-  }
-
-  formMaxBuyPriceTemplate(classInfo: ClassInfo) {
-    return html`
-      <uigc-asset-input
-        class=${classMap(classInfo)}
-        field
-        .amount=${this.maxPrice}
-        .asset=${this.assetOut?.symbol}
-        @asset-input-change=${(e: CustomEvent) => this.onMaxPriceChange(e)}
-      >
-        <span class="adornment" slot="inputAdornment"
-          >Max <span class="highlight">Buy</span> Price</span
-        >
-      </uigc-asset-input>
-    `;
-  }
-
-  formAdvancedSwitch() {
-    return html`
-      <div class="form-switch">
-        <div>
-          <span class="title">Advanced settings</span>
-          <span class="desc"
-            >Customize your trades to an even greater extent.</span
-          >
-        </div>
-        <uigc-switch
-          .checked=${this.advanced}
-          size="small"
-          @click=${() => this.toggleAdvanced()}
-        ></uigc-switch>
-      </div>
-    `;
-  }
-
-  formBlockPeriodTemplate(classInfo: ClassInfo) {
-    return html`
-      <uigc-textfield
-        class=${classMap(classInfo)}
-        field
-        number
-        ?error=${this.error['blockPeriodInvalid']}
-        .error=${this.error['blockPeriodInvalid']}
-        .placeholder=${0}
-        .value=${this.intervalBlock}
-        .desc=${this.getEstTime()}
-        @input-change=${(e: CustomEvent) => this.onIntervalBlockChange(e)}
-      >
-        <span class="adornment" slot="inputAdornment"
-          >${i18n.t('dca.settings.interval')}</span
-        >
-      </uigc-textfield>
-    `;
-  }
-
   render() {
     const isValid =
-      this.amountIn &&
-      this.amountInBudget &&
+      this.amountInYield &&
+      this.amountInFrom &&
       Object.keys(this.error).length == 0;
     const infoClasses = {
       info: true,
       show: isValid,
     };
-    const advancedClasses = {
-      hidden: this.advanced == false,
-    };
     return html`
       <slot name="header"></slot>
       <div class="invest">
-        ${this.formAssetInTemplate()} ${this.formIntervalTemplate()}
-        ${this.formAssetOutTemplate()} ${this.formMaxBudgetTemplate()}
-        ${this.formAdvancedSwitch()}
-        ${this.formBlockPeriodTemplate(advancedClasses)}
+        ${this.formYieldFromTemplate()} ${this.formAssetOutTemplate()}
+        ${this.formIntervalTemplate()}
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row summary show">${this.infoSummaryTemplate()}</div>
+        <div class="row">${this.infoApyTemplate()}</div>
+        <div class="row">${this.infoEstYieldTemplate()}</div>
         <div class="row">${this.infoEstEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
       </div>

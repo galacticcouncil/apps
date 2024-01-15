@@ -15,6 +15,10 @@ export const tradeLayoutStyles = css`
     grid-row-gap: 20px;
   }
 
+  .main {
+    grid-area: main;
+  }
+
   uigc-paper.main {
     display: none;
     grid-area: main;
@@ -79,7 +83,7 @@ export const tradeLayoutStyles = css`
 
   @media (min-width: 1024px) {
     :host([chart]) {
-      max-width: 1170px;
+      max-width: 1300px;
     }
 
     :host([chart]) > .layout-root {
@@ -89,6 +93,7 @@ export const tradeLayoutStyles = css`
         'chart main'
         'summary main';
       grid-template-columns: 1fr minmax(414px, 480px);
+      grid-template-rows: 456px 1fr;
       grid-column-gap: 20px;
     }
 

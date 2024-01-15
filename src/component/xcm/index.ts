@@ -3,7 +3,6 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
-import Big from 'big.js';
 import { debounce } from 'ts-debounce';
 
 import { PoolApp } from '../base/PoolApp';
@@ -18,12 +17,7 @@ import { getRenderString } from '../../utils/dom';
 import { convertFromH160, convertToH160, isEvmAccount } from '../../utils/evm';
 
 import '@galacticcouncil/ui';
-import {
-  Asset,
-  BigNumber,
-  SYSTEM_ASSET_ID,
-  Transaction,
-} from '@galacticcouncil/sdk';
+import { Asset, BigNumber, Transaction } from '@galacticcouncil/sdk';
 
 import {
   assetsMap,

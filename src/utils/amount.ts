@@ -6,8 +6,13 @@ export function formatAmount(amount: BigNumber, decimals: number): string {
   return amount.shiftedBy(-1 * decimals).toString();
 }
 
-export function humanizeAmount(amount: string): string {
+export function humanizeAmount(amount: string | number): string {
   const amountNo = Number(amount);
+
+  if (!Number.isFinite(amountNo)) {
+    return null;
+  }
+
   if (Number.isInteger(amountNo)) {
     const formattedNo = new Intl.NumberFormat('en-US').format(amountNo);
     return formattedNo.replaceAll(',', ' ');

@@ -194,8 +194,12 @@ export const formStyles = css`
     color: var(--hex-white);
   }
 
-  .info .value + .highlight {
+  .info .value.highlight {
     color: var(--uigc-app-font-color__primary);
+  }
+
+  .info .value.hint {
+    color: #66697c;
   }
 
   .highlight {

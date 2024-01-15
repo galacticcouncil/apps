@@ -1,5 +1,5 @@
 import { Asset } from '@galacticcouncil/sdk';
-import { Interval } from '../../api/time';
+import { HOUR_MS } from '../../utils/time';
 
 export enum DcaTab {
   TradeChart,
@@ -16,7 +16,7 @@ export type DcaState = {
   amountInBudget: string;
   amountInUsd: string;
   balanceIn: string;
-  interval: Interval;
+  interval: IntervalDca;
   intervalBlock: number;
   maxPrice: string;
   spotPrice: string;
@@ -42,3 +42,16 @@ export const DEFAULT_DCA_STATE: DcaState = {
   est: null,
   error: {},
 };
+
+export const INTERVAL_DCA = ['1h', '2h', '4h', '8h', '12h', '24h'] as const;
+
+export const INTERVAL_DCA_MS: Record<IntervalDca, number> = {
+  '1h': HOUR_MS,
+  '2h': HOUR_MS * 2,
+  '4h': HOUR_MS * 4,
+  '8h': HOUR_MS * 8,
+  '12h': HOUR_MS * 12,
+  '24h': HOUR_MS * 24,
+};
+
+export type IntervalDca = (typeof INTERVAL_DCA)[number];

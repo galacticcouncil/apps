@@ -90,5 +90,11 @@
   "dca.error.budgetTooLow": "The minimum budget must be bigger than swap.",
   "dca.error.minBudgetTooLow": "The minimum budget is {{amount}} {{asset}}.",
   "dca.error.minAmountTooLow": "The minimum swap amount is {{amount}} {{asset}}.",
-  "dca.error.blockPeriodInvalid": "The minimum interval is 1 block."
+  "dca.error.blockPeriodInvalid": "The minimum interval is 1 block.",
+  "yDca.title": "DCA Yield Trade",
+  "yDca.form.from": "Use Yield from",
+  "yDca.form.get": "Get",
+  "yDca.form.apy": "Average APY",
+  "yDca.form.yield": "Estimated Yield",
+  "yDca.error.minInvestmentTooLow": "The minimum is {{amount}} {{asset}}."
 }

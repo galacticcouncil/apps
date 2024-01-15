@@ -11,13 +11,9 @@ import { headerStyles } from '../styles/header.css';
 import { tradeLayoutStyles } from '../styles/layout/trade.css';
 
 import { Account, dcaSettingsCursor } from '../../db';
-import {
-  formatAmount,
-  humanizeAmount,
-  toBn,
-  MIN_NATIVE_AMOUNT,
-} from '../../utils/amount';
+import { formatAmount, humanizeAmount, toBn } from '../../utils/amount';
 import { getRenderString } from '../../utils/dom';
+import { DAY_MS } from '../../utils/time';
 
 import '@galacticcouncil/ui';
 import {
@@ -25,26 +21,38 @@ import {
   buildRoute,
   Amount,
   Asset,
-  BigNumber,
   scale,
   Transaction,
   ONE,
   SYSTEM_ASSET_ID,
 } from '@galacticcouncil/sdk';
+import { chainsMap } from '@galacticcouncil/xcm-cfg';
+import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
+
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './form';
 import './settings';
+import './stepper';
 import '../orders';
 import '../chart';
 import '../selector/asset';
 
-import { DcaTab, DcaState, DEFAULT_DCA_STATE, INTERVAL_DCA_MS } from './types';
+import {
+  DcaTab,
+  DcaState,
+  APY,
+  APY_DENOMINATOR,
+  DEFAULT_DCA_STATE,
+  INTERVAL_DCA_MS,
+  MIN_TRADE_SIZE,
+  MAX_TRADE_SIZE,
+} from './types';
 import { TxInfo, TxNotificationMssg } from '../transaction/types';
 import { AssetSelector } from '../selector/types';
 
-@customElement('gc-dca-app')
-export class DcaApp extends PoolApp {
+@customElement('gc-dca-y-app')
+export class DcaYApp extends PoolApp {
   @property({ type: Boolean }) chart: Boolean = false;
 
   @state() tab: DcaTab = DcaTab.DcaForm;
@@ -65,6 +73,12 @@ export class DcaApp extends PoolApp {
       .orders uigc-typography {
         font-size: 15px;
       }
+
+      .stepper {
+        margin-top: 20px;
+        display: block;
+        grid-area: main;
+      }
     `,
   ];
 
@@ -77,8 +91,8 @@ export class DcaApp extends PoolApp {
   }
 
   isSwapEmpty(): boolean {
-    const { amountIn, amountInBudget } = this.dca;
-    return this.isEmptyAmount(amountIn) || this.isEmptyAmount(amountInBudget);
+    const { amountInFrom } = this.dca;
+    return this.isEmptyAmount(amountInFrom);
   }
 
   hasError(): boolean {
@@ -162,28 +176,65 @@ export class DcaApp extends PoolApp {
     this.updateEstimated();
   }
 
-  updateAmountInBudget(amount: string) {
+  updateAmountInFrom(amount: string) {
     this.dca = {
       ...this.dca,
-      amountInBudget: amount,
+      amountInFrom: amount,
     };
+    this.updateYield();
+    this.updateTradeSize();
     this.updateEstimated();
   }
 
-  updateMaxPrice(amount: string) {
+  private updateYield() {
+    const { amountInFrom, interval } = this.dca;
+
+    const apyDenominator = APY_DENOMINATOR[interval];
+    const apyMultiplier = 1 + APY / 100;
+
+    const investment = Number(amountInFrom);
+    const futureValue = investment * apyMultiplier;
+    const gain = futureValue - investment;
+    const amountInYield = gain / apyDenominator;
+
     this.dca = {
       ...this.dca,
-      maxPrice: amount,
+      amountInYield: amountInYield.toFixed(4),
     };
+    this.requestUpdate();
+  }
+
+  private async updateTradeSize() {
+    const { amountInYield, interval } = this.dca;
+
+    const intervalMs = INTERVAL_DCA_MS[interval];
+    const budget = Number(amountInYield);
+
+    let noOfTrades = Math.round(intervalMs / DAY_MS) || 1;
+    let tradeSize = budget / noOfTrades;
+
+    if (tradeSize < MIN_TRADE_SIZE) {
+      noOfTrades = Math.floor(budget / MIN_TRADE_SIZE);
+      tradeSize = budget / noOfTrades;
+    }
+
+    if (tradeSize > MAX_TRADE_SIZE) {
+      noOfTrades = Math.round(budget / MAX_TRADE_SIZE);
+      tradeSize = budget / noOfTrades;
+    }
+
+    this.dca = {
+      ...this.dca,
+      amountIn: tradeSize.toFixed(4),
+      tradesNo: noOfTrades,
+    };
+    this.requestUpdate();
   }
 
   private async updateEstimated() {
-    const { interval, intervalBlock } = this.dca;
+    const { interval } = this.dca;
 
     let periodMsec = INTERVAL_DCA_MS[interval];
-    if (intervalBlock) {
-      periodMsec = intervalBlock * this.blockTime;
-    }
     this.dca.est = periodMsec;
     this.requestUpdate();
   }
@@ -203,15 +254,17 @@ export class DcaApp extends PoolApp {
 
   validateEnoughBalance() {
     const assetIn = this.dca.assetIn?.id;
-    const ammountIn = this.dca.amountInBudget;
+    const amountIn = this.dca.amountInFrom;
 
-    if (this.isEmptyAmount(ammountIn) || !this.hasAccount()) {
+    return;
+
+    if (this.isEmptyAmount(amountIn) || !this.hasAccount()) {
       delete this.dca.error['balanceTooLow'];
       return;
     }
 
     const balanceIn = this.assets.balance.get(assetIn);
-    const amount = scale(bnum(ammountIn), balanceIn.decimals);
+    const amount = scale(bnum(amountIn), balanceIn.decimals);
     if (amount.gt(balanceIn.amount)) {
       this.dca.error['balanceTooLow'] = i18n.t('trade.error.balance');
     } else {
@@ -220,85 +273,39 @@ export class DcaApp extends PoolApp {
     this.requestUpdate();
   }
 
-  async validateMinAmount() {
-    if (this.isSwapEmpty()) {
-      delete this.dca.error['minAmountTooLow'];
-      return;
-    }
-
-    const { amountIn, assetIn } = this.dca;
-    const minAmount = this.calculateAssetPrice(assetIn, MIN_NATIVE_AMOUNT);
-    const amount = new BigNumber(amountIn);
-    if (minAmount.isGreaterThan(amount)) {
-      this.dca.error['minAmountTooLow'] = i18n.t('dca.error.minAmountTooLow', {
-        amount: humanizeAmount(minAmount.toString()),
-        asset: assetIn.symbol,
-      });
-    } else {
-      delete this.dca.error['minAmountTooLow'];
-    }
-  }
-
-  async validateMinBudget() {
+  async validateMinInvestment() {
     const { api } = this.chain.state;
     if (this.isSwapEmpty()) {
-      delete this.dca.error['minBudgetTooLow'];
+      delete this.dca.error['minInvestmentTooLow'];
       return;
     }
 
-    const { amountInBudget, assetIn } = this.dca;
+    const { amountInFrom, assetIn, interval } = this.dca;
 
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
     const minBudget = this.calculateAssetPrice(assetIn, minBudgetNative);
-    const budget = new BigNumber(amountInBudget);
-    if (minBudget.isGreaterThan(budget)) {
-      this.dca.error['minBudgetTooLow'] = i18n.t('dca.error.minBudgetTooLow', {
-        amount: humanizeAmount(minBudget.toString()),
-        asset: assetIn.symbol,
-      });
-    } else {
-      delete this.dca.error['minBudgetTooLow'];
-    }
-  }
 
-  validateBudget() {
-    if (this.isSwapEmpty()) {
-      delete this.dca.error['budgetTooLow'];
-      return;
-    }
+    const apyDenominator = APY_DENOMINATOR[interval];
+    const apyMultiplier = 1 + APY / 100;
 
-    const { amountIn, amountInBudget } = this.dca;
+    const minGain = apyDenominator * minBudget.toNumber();
+    const minInvestment = minGain / (apyMultiplier - 1);
 
-    const amountInBN = bnum(amountIn);
-    const amountInBudgetBN = bnum(amountInBudget);
-
-    if (amountInBN.isGreaterThan(amountInBudgetBN)) {
-      this.dca.error['budgetTooLow'] = i18n.t('dca.error.budgetTooLow');
-    } else {
-      delete this.dca.error['budgetTooLow'];
-    }
-  }
-
-  validateBlockPeriod() {
-    const blockPeriod = this.dca.intervalBlock;
-    if (!blockPeriod) {
-      delete this.dca.error['blockPeriodInvalid'];
-      return;
-    }
-
-    if (blockPeriod < 1) {
-      this.dca.error['blockPeriodInvalid'] = i18n.t(
-        'dca.error.blockPeriodInvalid',
+    if (minInvestment > Number(amountInFrom)) {
+      this.dca.error['minInvestmentTooLow'] = i18n.t(
+        'yDca.error.minInvestmentTooLow',
+        {
+          amount: humanizeAmount(minInvestment),
+          asset: assetIn.symbol,
+        },
       );
     } else {
-      delete this.dca.error['blockPeriodInvalid'];
+      delete this.dca.error['minInvestmentTooLow'];
     }
   }
 
   notificationTemplate(dca: DcaState, status: string): TxNotificationMssg {
-    const int = this.dca.intervalBlock
-      ? this._humanizer.humanize(this.dca.est, { round: true, largest: 2 })
-      : this.dca.interval.toLowerCase();
+    const int = this.dca.interval.toLowerCase();
     const template = html`
       <span>${'Spend'}</span>
       <span class="highlight">${dca.amountIn}</span>
@@ -306,7 +313,7 @@ export class DcaApp extends PoolApp {
       <span
         >${`every ~${int} to buy ${dca.assetOut.symbol} with a total budget of`}</span
       >
-      <span class="highlight">${dca.amountInBudget}</span>
+      <span class="highlight">${dca.amountInYield}</span>
       <span class="highlight">${dca.assetIn.symbol}</span>
       <span>${status}</span>
     `;
@@ -338,11 +345,10 @@ export class DcaApp extends PoolApp {
     const account = this.account.state;
     const { api, router } = this.chain.state;
     if (account) {
-      const { assetIn, assetOut, amountInBudget, interval, intervalBlock } =
-        this.dca;
+      const { assetIn, assetOut, amountInYield, interval } = this.dca;
 
       const amountInBn = toBn(this.dca.amountIn, assetIn.decimals);
-      const amountInBudgetBn = toBn(amountInBudget, assetIn.decimals);
+      const amountInYieldBN = toBn(amountInYield, assetIn.decimals);
 
       const periodMsec = INTERVAL_DCA_MS[interval];
       const periodBlock = this.timeApi.toBlockPeriod(
@@ -358,8 +364,8 @@ export class DcaApp extends PoolApp {
       const tx: SubmittableExtrinsic = api.tx.dca.schedule(
         {
           owner: account.address,
-          period: intervalBlock ? intervalBlock : periodBlock,
-          totalAmount: amountInBudgetBn.toFixed(),
+          period: periodBlock,
+          totalAmount: amountInYieldBN.toFixed(),
           slippage: Number(slippage) * 10000,
           order: {
             Sell: {
@@ -393,27 +399,34 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  private updateAsset(asset: string, assetKey: string) {
-    if (asset) {
-      this.dca[assetKey] = this.assets.registry.get(asset);
-    } else {
-      this.dca[assetKey] = null;
-    }
+  protected async syncRate() {
+    const bifrost = chainsMap.get('bifrost');
+    const apiPool = SubstrateApis.getInstance();
+    const bifrostApi = await apiPool.api(bifrost.ws);
+    const [totalIssuance, staked] = await Promise.all([
+      bifrostApi.query.tokens.totalIssuance({
+        vToken2: '0',
+      }),
+      bifrostApi.query.vtokenMinting.tokenPool({ Token2: '0' }),
+    ]);
+    const stakedDots = staked.toString();
+    const vDotTotalIssuance = totalIssuance.toString();
+    const rate = Number(stakedDots) / Number(vDotTotalIssuance);
+    this.dca = {
+      ...this.dca,
+      rate: rate,
+    };
   }
 
   protected initAssets() {
-    if (!this.assetIn && !this.assetOut) {
-      this.dca.assetIn = this.assets.registry.get(this.stableCoinAssetId);
-      this.dca.assetOut = this.assets.registry.get(SYSTEM_ASSET_ID);
-    } else {
-      this.updateAsset(this.assetIn, 'assetIn');
-      this.updateAsset(this.assetOut, 'assetOut');
-    }
+    this.dca.assetIn = this.assets.tradeable.find((a) => a.symbol === 'vDOT');
+    this.dca.assetOut = this.assets.registry.get(SYSTEM_ASSET_ID);
   }
 
   protected onInit(): void {
     this.initAssets();
     this.recalculateSpotPrice();
+    this.syncRate();
     this.syncBalance();
   }
 
@@ -456,7 +469,7 @@ export class DcaApp extends PoolApp {
       active: this.tab == DcaTab.DcaSettings,
     };
     return html` <uigc-paper class=${classMap(classes)}>
-      <gc-dca-settings @slippage-change=${() => {}}>
+      <gc-dca-y-settings @slippage-change=${() => {}}>
         <div class="header section" slot="header">
           <uigc-icon-button
             class="back"
@@ -469,7 +482,7 @@ export class DcaApp extends PoolApp {
           >
           <span></span>
         </div>
-      </gc-dca-settings>
+      </gc-dca-y-settings>
     </uigc-paper>`;
   }
 
@@ -478,8 +491,7 @@ export class DcaApp extends PoolApp {
     id == 'assetIn' && this.changeAssetIn(asset, e.detail);
     id == 'assetOut' && this.changeAssetOut(asset, e.detail);
     this.syncBalance();
-    this.validateMinBudget();
-    this.validateMinAmount();
+    this.validateMinInvestment();
     this.changeTab(DcaTab.DcaForm);
   }
 
@@ -491,7 +503,9 @@ export class DcaApp extends PoolApp {
     };
     return html` <uigc-paper class=${classMap(classes)}>
       <gc-select-asset
-        .assets=${this.assets.tradeable.filter((a) => a.type !== 'Bond')}
+        .assets=${this.assets.tradeable.filter(
+          (a) => a.type !== 'Bond' && !['vDOT', 'DOT'].includes(a.symbol),
+        )}
         .pairs=${this.assets.pairs}
         .balances=${this.assets.balance}
         .usdPrice=${this.assets.usdPrice}
@@ -518,13 +532,9 @@ export class DcaApp extends PoolApp {
   }
 
   protected onAssetInputChange({ detail: { id, asset, value } }) {
-    id == 'assetIn' && this.updateAmountIn(value);
-    id == 'assetInBudget' && this.updateAmountInBudget(value);
-    id == 'maxPrice' && this.updateMaxPrice(value);
-    this.validateBudget();
-    this.validateMinBudget();
-    this.validateMinAmount();
+    id == 'assetIn' && this.updateAmountInFrom(value);
     this.validateEnoughBalance();
+    this.validateMinInvestment();
   }
 
   protected onAssetSelectorClick({ detail }: CustomEvent) {
@@ -542,15 +552,10 @@ export class DcaApp extends PoolApp {
 
   protected onIntervalChange({ detail }: CustomEvent) {
     this.dca.interval = detail.value;
-    this.dca.intervalBlock = null;
     this.updateEstimated();
-    this.validateBlockPeriod();
-  }
-
-  protected onIntervalBlockChange({ detail }: CustomEvent) {
-    this.dca.intervalBlock = detail.value;
-    this.updateEstimated();
-    this.validateBlockPeriod();
+    this.updateYield();
+    this.updateTradeSize();
+    this.validateMinInvestment();
   }
 
   protected isFormDisabled() {
@@ -564,55 +569,71 @@ export class DcaApp extends PoolApp {
   dcaFormTab() {
     const classes = {
       tab: true,
-      main: true,
+      //main: true,
       active: this.tab == DcaTab.DcaForm,
+      paper: true,
     };
-    return html` <uigc-paper class=${classMap(classes)} id="default-tab">
-      <gc-dca-form
-        .assets=${this.assets.registry}
-        .disabled=${this.isFormDisabled()}
-        .loaded=${this.isFormLoaded()}
-        .assetIn=${this.dca.assetIn}
-        .assetOut=${this.dca.assetOut}
-        .amountIn=${this.dca.amountIn}
-        .amountInUsd=${this.dca.amountInUsd}
-        .amountInBudget=${this.dca.amountInBudget}
-        .balanceIn=${this.dca.balanceIn}
-        .maxPrice=${this.dca.maxPrice}
-        .interval=${this.dca.interval}
-        .intervalBlock=${this.dca.intervalBlock}
-        .tradeFee=${this.dca.tradeFee}
-        .tradeFeePct=${this.dca.tradeFeePct}
-        .est=${this.dca.est}
-        .error=${this.dca.error}
-        @asset-input-change=${this.onAssetInputChange}
-        @asset-selector-click=${this.onAssetSelectorClick}
-        @selector-click=${this.onSelectorClick}
-        @interval-change=${this.onIntervalChange}
-        @interval-block-change=${this.onIntervalBlockChange}
-        @schedule-click=${() => this.onSchedule()}
-      >
-        <div class="header" slot="header">
-          <uigc-typography variant="title" gradient
-            >${i18n.t('dca.title')}</uigc-typography
+    return html`
+      <div class="main">
+        <uigc-paper class=${classMap(classes)} id="default-tab">
+          <gc-dca-y-form
+            .assets=${this.assets.registry}
+            .disabled=${this.isFormDisabled()}
+            .loaded=${this.isFormLoaded()}
+            .assetIn=${this.dca.assetIn}
+            .assetOut=${this.dca.assetOut}
+            .amountIn=${this.dca.amountIn}
+            .amountInYield=${this.dca.amountInYield}
+            .amountInFrom=${this.dca.amountInFrom}
+            .balanceIn=${this.dca.balanceIn}
+            .interval=${this.dca.interval}
+            .rate=${this.dca.rate}
+            .tradesNo=${this.dca.tradesNo}
+            .est=${this.dca.est}
+            .error=${this.dca.error}
+            @asset-input-change=${this.onAssetInputChange}
+            @asset-selector-click=${this.onAssetSelectorClick}
+            @selector-click=${this.onSelectorClick}
+            @interval-change=${this.onIntervalChange}
+            @schedule-click=${() => this.onSchedule()}
           >
-          <span class="grow"></span>
-          <uigc-icon-button
-            basic
-            class="chart-btn"
-            @click=${() => this.changeTab(DcaTab.TradeChart)}
-          >
-            <uigc-icon-chart></uigc-icon-chart>
-          </uigc-icon-button>
-          <uigc-icon-button
-            basic
-            @click=${() => this.changeTab(DcaTab.DcaSettings)}
-          >
-            <uigc-icon-settings></uigc-icon-settings>
-          </uigc-icon-button>
-        </div>
-      </gc-dca-form>
-    </uigc-paper>`;
+            <div class="header" slot="header">
+              <uigc-typography variant="title" gradient
+                >${i18n.t('yDca.title')}</uigc-typography
+              >
+              <span class="grow"></span>
+              <uigc-icon-button
+                basic
+                class="chart-btn"
+                @click=${() => this.changeTab(DcaTab.TradeChart)}
+              >
+                <uigc-icon-chart></uigc-icon-chart>
+              </uigc-icon-button>
+              <uigc-icon-button
+                basic
+                @click=${() => this.changeTab(DcaTab.DcaSettings)}
+              >
+                <uigc-icon-settings></uigc-icon-settings>
+              </uigc-icon-button>
+            </div>
+          </gc-dca-y-form>
+        </uigc-paper>
+
+        <gc-dca-y-stepper class=" stepper"></gc-dca-y-stepper>
+      </div>
+    `;
+  }
+
+  dcaStepper() {
+    const classes = {
+      stepper: true,
+      main: true,
+    };
+    return html`
+      <uigc-paper class=${classMap(classes)}>
+        <gc-dca-y-stepper></gc-dca-y-stepper>
+      </uigc-paper>
+    `;
   }
 
   dcaOrdersSummary() {

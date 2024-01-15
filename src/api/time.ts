@@ -1,27 +1,7 @@
 import { BigNumber } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
 
-export const SECOND_MS = 1000;
-export const MINUTE_MS = SECOND_MS * 60;
-export const HOUR_MS = MINUTE_MS * 60;
-export const DAY_MS = HOUR_MS * 24;
-export const WEEK_MS = DAY_MS * 7;
-export const MONTH_MS = DAY_MS * 30;
-
-export const INTERVAL = ['1h', '2h', '4h', '8h', '12h', '24h'] as const;
-
-export const INTERVAL_MS: Record<Interval, number> = {
-  '1h': HOUR_MS,
-  '2h': HOUR_MS * 2,
-  '4h': HOUR_MS * 4,
-  '8h': HOUR_MS * 8,
-  '12h': HOUR_MS * 12,
-  '24h': HOUR_MS * 24,
-};
-
-export type Interval = (typeof INTERVAL)[number];
-
-export const blockTimeRelaychain = 6000; // 6s
+import { BLOCK_TIME_RELAY_CHAIN } from '../utils/time';
 
 export class TimeApi {
   private _api: ApiPromise;
@@ -85,7 +65,7 @@ export class TimeApi {
   ): number {
     const blockDiff = Math.abs(blockHeight - knownBlock.height);
     const msSinceKnownBlock = new BigNumber(blockDiff)
-      .multipliedBy(blockTimeRelaychain)
+      .multipliedBy(BLOCK_TIME_RELAY_CHAIN)
       .toNumber();
     const ms = new Date(
       blockHeight > knownBlock.height
