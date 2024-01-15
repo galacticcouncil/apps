@@ -54,7 +54,7 @@ export class DcaOrdersApi {
         period = schedule.period;
         totalAmount = schedule.totalAmount;
       } else {
-        console.log("using fallback to load DCA schedule", id);
+        //console.log("using fallback to load DCA schedule", id);
         const apiAt = await this._api.at(event.block.hash);
         const scheduleOpt = await apiAt.query.dca.schedules(id);
         const schedule = scheduleOpt.unwrap();

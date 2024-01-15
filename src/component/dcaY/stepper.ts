@@ -12,7 +12,7 @@ export class DcaYStepper extends LitElement {
     headerStyles,
     css`
       :host {
-        display: block;
+        display: none;
         margin-top: 20px;
       }
 
@@ -96,10 +96,7 @@ export class DcaYStepper extends LitElement {
 
       .step {
         display: flex;
-        height: 58px;
-        align-items: flex-start;
         gap: 16px;
-        align-self: stretch;
       }
 
       .step > .pic {

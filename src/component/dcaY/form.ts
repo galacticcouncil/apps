@@ -227,23 +227,6 @@ export class DcaYForm extends BaseElement {
       </span>`;
   }
 
-  /*   infoSummaryTemplate() {
-    const int = this.interval.toLowerCase();
-    return html` <span class="label">${i18n.t('dca.summary')}</span>
-      <span>
-        <span class="value">I want to exchange total</span>
-        <span class="value highlight"
-          >${humanizeAmount(this.amountInYield)} ${this.assetIn?.symbol}</span
-        >
-        <span class="value">during</span>
-        <span class="value">${int}</span>
-        <span class="value">with single trade of</span>
-        <span class="value highlight"
-          >${humanizeAmount(this.amountIn)} ${this.assetIn?.symbol}</span
-        >
-      </span>`;
-  } */
-
   infoSlippageTemplate() {
     const { slippage } = this.settings.state;
     return html` <span class="label">${i18n.t('dca.slippage')}</span>

@@ -74,10 +74,8 @@ export class DcaYApp extends PoolApp {
         font-size: 15px;
       }
 
-      .stepper {
-        margin-top: 20px;
+      gc-dca-y-stepper.active {
         display: block;
-        grid-area: main;
       }
     `,
   ];
@@ -256,8 +254,6 @@ export class DcaYApp extends PoolApp {
     const assetIn = this.dca.assetIn?.id;
     const amountIn = this.dca.amountInFrom;
 
-    return;
-
     if (this.isEmptyAmount(amountIn) || !this.hasAccount()) {
       delete this.dca.error['balanceTooLow'];
       return;
@@ -345,15 +341,14 @@ export class DcaYApp extends PoolApp {
     const account = this.account.state;
     const { api, router } = this.chain.state;
     if (account) {
-      const { assetIn, assetOut, amountInYield, interval } = this.dca;
+      const { assetIn, assetOut, amountInYield, est, tradesNo } = this.dca;
 
       const amountInBn = toBn(this.dca.amountIn, assetIn.decimals);
       const amountInYieldBN = toBn(amountInYield, assetIn.decimals);
 
-      const periodMsec = INTERVAL_DCA_MS[interval];
       const periodBlock = this.timeApi.toBlockPeriod(
         this.blockTime,
-        periodMsec,
+        Math.floor(est / tradesNo),
       );
       const slippage = dcaSettingsCursor.deref().slippage;
       const sell = await router.getBestSell(
@@ -569,9 +564,11 @@ export class DcaYApp extends PoolApp {
   dcaFormTab() {
     const classes = {
       tab: true,
-      //main: true,
+      main: true,
       active: this.tab == DcaTab.DcaForm,
-      paper: true,
+    };
+    const stepClasses = {
+      active: this.tab == DcaTab.DcaForm,
     };
     return html`
       <div class="main">
@@ -618,8 +615,7 @@ export class DcaYApp extends PoolApp {
             </div>
           </gc-dca-y-form>
         </uigc-paper>
-
-        <gc-dca-y-stepper class=" stepper"></gc-dca-y-stepper>
+        <gc-dca-y-stepper class=${classMap(stepClasses)}></gc-dca-y-stepper>
       </div>
     `;
   }
