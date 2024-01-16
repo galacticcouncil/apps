@@ -324,7 +324,8 @@ export class DcaYApp extends PoolApp {
   }
 
   private processTx(account: Account, transaction: Transaction) {
-    const { amountIn, assetIn, assetOut, amountInYield } = this.dca;
+    const { amountIn, amountInYield, amountInFrom, assetIn, assetOut } =
+      this.dca;
 
     const notification = {
       processing: this.notificationTemplate(this.dca, 'submitted'),
@@ -341,6 +342,7 @@ export class DcaYApp extends PoolApp {
         meta: {
           amountIn: amountIn,
           amountInYield: amountInYield,
+          amountInFrom: amountInFrom,
           assetIn: assetIn.symbol,
           assetOut: assetOut.symbol,
         },
