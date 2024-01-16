@@ -31,7 +31,7 @@ export const DEFAULT_DCA_STATE: DcaState = {
   amountInYield: null,
   amountInFrom: null,
   balanceIn: null,
-  interval: 'month',
+  interval: '1 month',
   rate: null,
   spotPrice: null,
   tradesNo: null,
@@ -39,12 +39,18 @@ export const DEFAULT_DCA_STATE: DcaState = {
   error: {},
 };
 
-export const INTERVAL_DCA = ['week', 'month', '6 months', 'year'] as const;
+export const INTERVAL_DCA = [
+  '1 week',
+  '1 month',
+  '6 months',
+  '1 year',
+] as const;
+
 export const INTERVAL_DCA_MS: Record<IntervalDca, number> = {
-  week: WEEK_MS,
-  month: MONTH_MS,
+  '1 week': WEEK_MS,
+  '1 month': MONTH_MS,
   '6 months': MONTH_MS * 6,
-  year: DAY_MS * 365,
+  '1 year': DAY_MS * 365,
 };
 
 export type IntervalDca = (typeof INTERVAL_DCA)[number];
@@ -52,10 +58,10 @@ export type IntervalDca = (typeof INTERVAL_DCA)[number];
 export const APY: number = 15;
 
 export const APY_DENOMINATOR: Record<IntervalDca, number> = {
-  week: 52,
-  month: 12,
+  '1 week': 52,
+  '1 month': 12,
   '6 months': 2,
-  year: 1,
+  '1 year': 1,
 };
 
 export const MIN_TRADE_SIZE = 0.33;

@@ -28,7 +28,7 @@ export class DcaYForm extends BaseElement {
   @property({ type: Boolean }) loaded = false;
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
-  @property({ type: String }) interval: IntervalDca = 'month';
+  @property({ type: String }) interval: IntervalDca = '1 month';
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInYield = null;
   @property({ type: String }) amountInFrom = null;
