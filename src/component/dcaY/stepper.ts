@@ -4,13 +4,11 @@ import { when } from 'lit/directives/when.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { headerStyles } from '../styles/header.css';
 
 @customElement('gc-dca-y-stepper')
 export class DcaYStepper extends LitElement {
   static styles = [
     baseStyles,
-    headerStyles,
     css`
       :host {
         display: none;
@@ -52,6 +50,17 @@ export class DcaYStepper extends LitElement {
         display: flex;
         align-items: flex-start;
         gap: 8px;
+        padding: 14px 14px;
+        position: relative;
+        display: flex;
+        box-sizing: border-box;
+      }
+
+      @media (min-width: 768px) {
+        .header {
+          padding: 22px 28px;
+          min-height: 84px;
+        }
       }
 
       .header .title {
@@ -86,7 +95,7 @@ export class DcaYStepper extends LitElement {
       }
 
       .steps {
-        padding: 0 14px;
+        padding: 14px 14px;
       }
 
       @media (min-width: 768px) {
