@@ -301,7 +301,7 @@ export class DcaYApp extends PoolApp {
   }
 
   notificationTemplate(dca: DcaState, status: string): TxNotificationMssg {
-    const { est, tradesNo } = this.dca;
+    const { est, tradesNo } = dca;
     const freq = this._humanizer.humanize(est / tradesNo, {
       round: true,
       largest: 2,
@@ -324,6 +324,8 @@ export class DcaYApp extends PoolApp {
   }
 
   private processTx(account: Account, transaction: Transaction) {
+    const { amountIn, assetIn, assetOut, amountInYield } = this.dca;
+
     const notification = {
       processing: this.notificationTemplate(this.dca, 'submitted'),
       success: this.notificationTemplate(this.dca, 'scheduled'),
@@ -336,6 +338,12 @@ export class DcaYApp extends PoolApp {
         account: account,
         transaction: transaction,
         notification: notification,
+        meta: {
+          amountIn: amountIn,
+          amountInYield: amountInYield,
+          assetIn: assetIn.symbol,
+          assetOut: assetOut.symbol,
+        },
       } as TxInfo,
     };
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
