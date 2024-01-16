@@ -591,7 +591,7 @@ export class XcmApp extends PoolApp {
         new BigNumber(srcChainFee.amount.toString()),
         srcChainFee.originSymbol,
         new BigNumber(feeAsset.existentialDeposit),
-      );
+      ).decimalPlaces(0, 1);
       srcChainMax = balance.copyWith({
         amount: BigInt(eb.toFixed()),
       });
