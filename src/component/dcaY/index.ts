@@ -340,9 +340,9 @@ export class DcaYApp extends PoolApp {
         transaction: transaction,
         notification: notification,
         meta: {
-          amountIn: amountIn,
-          amountInYield: amountInYield,
-          amountInFrom: amountInFrom,
+          amountIn: humanizeAmount(amountIn),
+          amountInYield: humanizeAmount(amountInYield),
+          amountInFrom: humanizeAmount(amountInFrom),
           assetIn: assetIn.symbol,
           assetOut: assetOut.symbol,
         },
