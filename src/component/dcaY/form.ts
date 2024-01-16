@@ -317,7 +317,7 @@ export class DcaYForm extends BaseElement {
 
   formIntervalTemplate() {
     return html` <div class="interval">
-      <div class="section">Duration of</div>
+      <div class="section">${i18n.t('yDca.form.duration')}</div>
       <uigc-toggle-button-group
         .value=${this.interval}
         @toggle-button-click=${(e: CustomEvent) => {

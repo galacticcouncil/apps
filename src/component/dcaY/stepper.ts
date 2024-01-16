@@ -1,6 +1,7 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
+import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
 import { headerStyles } from '../styles/header.css';
@@ -204,26 +205,26 @@ export class DcaYStepper extends LitElement {
           <uigc-asset-id symbol=${'vDOT'}></uigc-asset-id>
           <div class="title">
             <uigc-typography variant="section"
-              >How to get vDOT?</uigc-typography
+              >${i18n.t('yDca.howto.title')}</uigc-typography
             >
-            <span class="sub">Then DCA Your DOT yield in one click.</span>
+            <span class="sub">${i18n.t('yDca.howto.descr')}</span>
           </div>
         </div>
         <div class="steps">
           ${this.stepTemplate(
             1,
-            'Cross-chain your DOT to Bitfrost',
-            'Use XCM UI to send your DOT to Bifrost.',
+            i18n.t('yDca.howto.step1.title'),
+            i18n.t('yDca.howto.step1.descr'),
             html` <a
               target="_blank"
               href="/cross-chain?srcChain=hydradx&destChain=bifrost&asset=dot"
-              >Open XCM ${this.icoTemplate()}
+              >CROSS-CHAIN UI ${this.icoTemplate()}
             </a>`,
           )}
           ${this.stepTemplate(
             2,
-            'Stake DOT to get vDOT',
-            'Stake your DOT for vDOT through',
+            i18n.t('yDca.howto.step2.title'),
+            i18n.t('yDca.howto.step2.descr'),
             html` <a
               target="”_blank”"
               href="https://bifrost.app/vstaking/vDOT?r=hydradx"
@@ -232,18 +233,18 @@ export class DcaYStepper extends LitElement {
           )}
           ${this.stepTemplate(
             3,
-            'Send vDOT back to HydraDX',
-            'Use XCM UI to send your vDOT to HydraDX.',
+            i18n.t('yDca.howto.step3.title'),
+            i18n.t('yDca.howto.step3.descr'),
             html` <a
               target="_blank"
               href="/cross-chain?srcChain=bifrost&destChain=hydradx&asset=vdot"
-              >Open XCM ${this.icoTemplate()}</a
+              >CROSS-CHAIN UI ${this.icoTemplate()}</a
             >`,
           )}
           ${this.stepTemplate(
             4,
-            'Schedule your DCA',
-            'Now DCA your yield with the UI above and enjoy the profits!',
+            i18n.t('yDca.howto.step4.title'),
+            i18n.t('yDca.howto.step4.descr'),
             null,
           )}
         </div>
