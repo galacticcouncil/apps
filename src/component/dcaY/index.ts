@@ -301,13 +301,17 @@ export class DcaYApp extends PoolApp {
   }
 
   notificationTemplate(dca: DcaState, status: string): TxNotificationMssg {
-    const int = this.dca.interval.toLowerCase();
+    const { est, tradesNo } = this.dca;
+    const freq = this._humanizer.humanize(est / tradesNo, {
+      round: true,
+      largest: 2,
+    });
     const template = html`
       <span>${'Spend'}</span>
       <span class="highlight">${dca.amountIn}</span>
       <span class="highlight">${dca.assetIn.symbol}</span>
       <span
-        >${`every ~${int} to buy ${dca.assetOut.symbol} with a total budget of`}</span
+        >${`every ~${freq} to buy ${dca.assetOut.symbol} with a total budget of`}</span
       >
       <span class="highlight">${dca.amountInYield}</span>
       <span class="highlight">${dca.assetIn.symbol}</span>
