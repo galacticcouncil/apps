@@ -18,6 +18,7 @@ export class DcaYStepper extends LitElement {
 
       .stepper {
         background: var(--uigc-app-background-color);
+        font-family: var(--uigc-app-font);
         overflow: hidden;
         position: relative;
       }
@@ -67,7 +68,6 @@ export class DcaYStepper extends LitElement {
 
       .header .sub {
         color: #fff;
-        font-family: 'Chakra Petch';
         font-size: 13px;
         font-style: normal;
         font-weight: 500;
@@ -99,14 +99,14 @@ export class DcaYStepper extends LitElement {
         gap: 16px;
       }
 
-      .step > .pic {
+      .step .graphic {
         display: flex;
         flex-direction: column;
         align-items: center;
         align-self: stretch;
       }
 
-      .step .ball {
+      .step .icon {
         display: flex;
         width: 24px;
         height: 24px;
@@ -121,7 +121,7 @@ export class DcaYStepper extends LitElement {
           rgba(6, 9, 23, 0.39) 100%
         );
         color: #fff;
-        font-family: 'FontOver';
+        font-family: var(--uigc-app-font-secondary);
         font-size: 10px;
         font-style: normal;
         font-weight: 500;
@@ -133,32 +133,29 @@ export class DcaYStepper extends LitElement {
         background: rgba(47, 211, 247, 0.35);
       }
 
-      .step .text {
+      .step .content {
         display: flex;
         flex-direction: column;
       }
 
-      .step .title {
+      .step .label {
         color: #fff;
-        font-family: 'ChakraPetch';
         font-size: 14px;
         font-style: normal;
         font-weight: 600;
         line-height: 100%;
       }
 
-      .step .desc {
+      .step .body {
         color: #999ba7;
-        font-family: 'ChakraPetch';
         font-size: 13px;
         font-style: normal;
         font-weight: 500;
         line-height: 120%;
       }
 
-      .step .desc > a {
+      .step .body > a {
         color: #85d1ff;
-        font-family: 'ChakraPetch';
         font-size: 13px;
         font-style: normal;
         font-weight: 500;
@@ -171,15 +168,32 @@ export class DcaYStepper extends LitElement {
   stepTemplate(no: number, title: string, desc: string, link: TemplateResult) {
     return html`
       <div class="step">
-        <div class="pic">
-          <span class="ball">${no}</span>
+        <div class="graphic">
+          <span class="icon">${no}</span>
           <span class="line"></span>
         </div>
-        <div class="text">
-          <span class="title">${title}</span>
-          <span class="desc">${desc} ${when(link, () => link)} </span>
+        <div class="content">
+          <span class="label">${title}</span>
+          <span class="body">${desc} ${when(link, () => link)} </span>
         </div>
       </div>
+    `;
+  }
+
+  icoTemplate() {
+    return html`
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="14"
+        viewBox="0 0 15 14"
+        fill="none"
+      >
+        <path
+          d="M13.1641 8.75V1.75H6.16406V3.5H9.66406V5.25H7.91406V7H6.16406V8.75H4.41406V10.5H2.66406V12.25H4.41406V10.5H6.16406V8.75H7.91406V7H9.66406V5.25H11.4141V8.75H13.1641Z"
+          fill="#85D1FF"
+        />
+      </svg>
     `;
   }
 
@@ -200,7 +214,11 @@ export class DcaYStepper extends LitElement {
             1,
             'Cross-chain your DOT to Bitfrost',
             'Use XCM UI to send your DOT to Bifrost.',
-            html` <a target="_blank" href="/cross-chain">Open XCM</a>`,
+            html` <a
+              target="_blank"
+              href="/cross-chain?srcChain=hydradx&destChain=bifrost&asset=dot"
+              >Open XCM ${this.icoTemplate()}
+            </a>`,
           )}
           ${this.stepTemplate(
             2,
@@ -209,14 +227,18 @@ export class DcaYStepper extends LitElement {
             html` <a
               target="”_blank”"
               href="https://bifrost.app/vstaking/vDOT?r=hydradx"
-              >Bifrost Staking UI</a
+              >Bifrost Staking UI ${this.icoTemplate()}</a
             >`,
           )}
           ${this.stepTemplate(
             3,
             'Send vDOT back to HydraDX',
-            'Use Hydra XCM to send your vDOT to HydraDX',
-            null,
+            'Use XCM UI to send your vDOT to HydraDX.',
+            html` <a
+              target="_blank"
+              href="/cross-chain?srcChain=bifrost&destChain=hydradx&asset=vdot"
+              >Open XCM ${this.icoTemplate()}</a
+            >`,
           )}
           ${this.stepTemplate(
             4,

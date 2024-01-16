@@ -79,6 +79,7 @@ export class XcmApp extends PoolApp {
 
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) destChain: string = null;
+  @property({ type: String }) asset: string = null;
   @property({ type: String }) blacklist: string = null;
 
   @state() tab: TransferTab = TransferTab.TransferForm;
@@ -722,6 +723,7 @@ export class XcmApp extends PoolApp {
       ...this.transfer,
       srcChain: chainsMap.get(this.srcChain),
       destChain: chainsMap.get(this.destChain),
+      asset: assetsMap.get(this.asset),
     };
   }
 

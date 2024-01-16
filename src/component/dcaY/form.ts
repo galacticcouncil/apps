@@ -217,13 +217,16 @@ export class DcaYForm extends BaseElement {
           >${humanizeAmount(this.amountIn)} ${this.assetIn?.symbol}</span
         >
         <span class="value"
-          >every ~${frequency} to buy ${this.assetOut?.symbol} with a total
-          budget of</span
+          >every ~${frequency} to buy ${this.assetOut?.symbol}</span
+        >
+
+        <span class="value"
+          >over ${int} using expected underlying yield of</span
         >
         <span class="value highlight"
-          >${humanizeAmount(this.amountInYield)} ${this.assetIn?.symbol}</span
-        >
-        <span class="value">over the period of ${int}.</span>
+          >${humanizeAmount(this.amountInYield * this.rate)} DOT /
+          ${humanizeAmount(this.amountInYield)} ${this.assetIn?.symbol}
+        </span>
       </span>`;
   }
 
