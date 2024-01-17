@@ -59,9 +59,9 @@ export class DcaYForm extends BaseElement {
 
       .interval {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         white-space: nowrap;
-        align-items: center;
+        align-items: flex-start;
       }
 
       @media (max-width: 480px) {
@@ -73,14 +73,32 @@ export class DcaYForm extends BaseElement {
       .interval div.section {
         color: var(--hex-white);
         font-style: normal;
-        font-weight: 600;
-        font-size: 16px;
+        font-weight: 500;
+        font-size: 14px;
         line-height: 100%;
-        margin-right: 14px;
+        margin-bottom: 10px;
+      }
+
+      uigc-toggle-button {
+        white-space: nowrap;
       }
 
       .interval uigc-toggle-button {
-        white-space: nowrap;
+        display: flex;
+      }
+
+      .interval uigc-toggle-button.sm {
+        display: none;
+      }
+
+      @media (max-width: 480px) {
+        .interval uigc-toggle-button.sm {
+          display: flex;
+        }
+
+        .interval uigc-toggle-button {
+          display: none;
+        }
       }
 
       .interval uigc-toggle-button-group {
@@ -315,6 +333,10 @@ export class DcaYForm extends BaseElement {
     `;
   }
 
+  private humanizeSmInterval(value: string) {
+    return value.substring(0, 3).toUpperCase().replace(' ', '');
+  }
+
   formIntervalTemplate() {
     return html` <div class="interval">
       <div class="section">${i18n.t('yDca.form.duration')}</div>
@@ -329,6 +351,9 @@ export class DcaYForm extends BaseElement {
             html`
               <uigc-toggle-button tab value=${s}
                 >${s.toUpperCase()}</uigc-toggle-button
+              >
+              <uigc-toggle-button class="sm" tab value=${s}
+                >${this.humanizeSmInterval(s)}</uigc-toggle-button
               >
             `,
         )}

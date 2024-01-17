@@ -64,8 +64,8 @@ export class DcaForm extends BaseElement {
 
       .interval {
         display: flex;
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
       }
 
       @media (max-width: 480px) {
@@ -77,13 +77,13 @@ export class DcaForm extends BaseElement {
       .interval span {
         color: var(--hex-white);
         font-style: normal;
-        font-weight: 600;
-        font-size: 16px;
+        font-weight: 500;
+        font-size: 14px;
         line-height: 100%;
+        margin-bottom: 10px;
       }
 
       .interval uigc-toggle-button-group {
-        margin-left: 24px;
         width: 100%;
       }
 
