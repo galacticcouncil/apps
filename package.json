@@ -72,7 +72,7 @@
     "viem": "^1.19.1"
   },
   "peerDependencies": {
-    "@galacticcouncil/sdk": "1.1.4",
+    "@galacticcouncil/sdk": "^1.1.5",
     "@galacticcouncil/ui": "^2.0.2",
     "@galacticcouncil/xcm-cfg": "^1.2.2",
     "@galacticcouncil/xcm-sdk": "^2.0.0",
