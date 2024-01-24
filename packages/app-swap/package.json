@@ -1,0 +1,36 @@
+{
+  "name": "@galacticcouncil/app-swap",
+  "version": "1.0.0",
+  "description": "HydraDX & Basilisk swap dapp",
+  "author": "GalacticCouncil",
+  "repository": {
+    "directory": "packages/app-swap",
+    "type": "git",
+    "url": "git+https://github.com/galacticcouncil/apps.git"
+  },
+  "keywords": [
+    "hydradx",
+    "basilisk",
+    "swap"
+  ],
+  "bugs": {
+    "url": "https://github.com/galacticcouncil/apps/issues"
+  },
+  "files": [
+    "build"
+  ],
+  "type": "module",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "node ./esbuild.config.mjs",
+    "build:watch": "node ./esbuild.dev.mjs",
+    "postbuild": "tsc --emitDeclarationOnly --outDir build/types",
+    "clean": "rimraf build",
+    "link": "npm ln"
+  },
+  "dependencies": {
+    "@galacticcouncil/ui": "^2.0.2"
+  },
+  "peerDependencies": {}
+}
