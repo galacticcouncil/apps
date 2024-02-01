@@ -967,7 +967,7 @@ export class TradeApp extends PoolApp {
 
   private async onTwapClick() {
     const account = this.account.state;
-    const { slippage } = this.settings.state;
+    const { slippageTwap } = this.settings.state;
 
     if (account) {
       const { assetIn } = this.trade;
@@ -981,7 +981,7 @@ export class TradeApp extends PoolApp {
           period: TWAP_BLOCK_PERIOD,
           maxRetries: TWAP_RETRIES,
           totalAmount: totalBudget.toFixed(),
-          slippage: Number(slippage) * 10000,
+          slippage: Number(slippageTwap) * 10000,
           order: twap.order,
         },
         null,
