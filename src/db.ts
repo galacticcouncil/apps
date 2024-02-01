@@ -13,10 +13,11 @@ export const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
 export const DEFAULT_TRADE_CONFIG: TradeConfig = {
   slippage: '1',
+  slippageTwap: '3',
 };
 
 export const DEFAULT_DCA_CONFIG: DcaConfig = {
-  slippage: '1.5',
+  slippage: '3',
 };
 
 export type TradeData = {
@@ -26,6 +27,7 @@ export type TradeData = {
 
 export interface TradeConfig {
   slippage: string;
+  slippageTwap: string;
 }
 
 export interface DcaConfig {
@@ -90,7 +92,7 @@ const storedTradeSettings = getObj<TradeConfig>(TRADE_SETTINGS_KEY);
 // Initialize state from storage
 accountCursor.reset(storedAccount);
 dcaSettingsCursor.reset(storedDcaSettings || DEFAULT_DCA_CONFIG);
-tradeSettingsCursor.reset(storedTradeSettings || DEFAULT_TRADE_CONFIG);
+tradeSettingsCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...storedTradeSettings });
 
 /**
  * Create watchdog to update storage on state change

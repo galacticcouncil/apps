@@ -17,7 +17,7 @@ import { HOUR_MS } from '../utils/time';
 
 export const TWAP_BLOCK_PERIOD = 6;
 export const TWAP_MAX_PRICE_IMPACT = -5;
-export const TWAP_RETRIES = 3;
+export const TWAP_RETRIES = 5;
 
 const TWAP_MAX_DURATION = 6 * HOUR_MS;
 const TWAP_TX_MULTIPLIER = 3;
@@ -47,6 +47,7 @@ export enum TradeTwapError {
   OrderTooSmall = 'OrderTooSmall',
   OrderTooBig = 'OrderTooBig',
   OrderImpactTooBig = 'OrderImpactTooBig',
+  OrderSlippageTooLow = 'OrderSlippageTooLow',
 }
 
 export class TradeApi {
@@ -126,6 +127,7 @@ export class TradeApi {
     amountMin: number,
     txFee: number,
     priceDifference: number,
+    priceImpact: number,
     blockTime: number,
   ): Promise<TradeTwap> {
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
@@ -144,7 +146,7 @@ export class TradeApi {
 
     const minAmountOut = getTradeMinAmountOut(
       bestSell,
-      tradeSettingsCursor.deref().slippage,
+      tradeSettingsCursor.deref().slippageTwap,
     );
     const minAmountOutTotal = multipleAmounts(
       tradesNo.toString(),
@@ -155,11 +157,17 @@ export class TradeApi {
     const isLessThanMinimalAmount = amountInPerTrade < amountMin;
     const isOrderImpactTooBig = bestSell.priceImpactPct < TWAP_MAX_PRICE_IMPACT;
 
+    const minSlippage = Math.abs(priceImpact);
+    const isSlippageTooLow =
+      Number(tradeSettingsCursor.deref().slippageTwap) < minSlippage;
+
     let tradeError: TradeTwapError = null;
     if (isLessThanMinimalAmount || isSingleTrade) {
       tradeError = TradeTwapError.OrderTooSmall;
     } else if (isOrderImpactTooBig) {
       tradeError = TradeTwapError.OrderImpactTooBig;
+    } else if (isSlippageTooLow) {
+      tradeError = TradeTwapError.OrderSlippageTooLow;
     }
 
     return {
@@ -190,6 +198,7 @@ export class TradeApi {
     amountMin: number,
     txFee: number,
     priceDifference: number,
+    priceImpact: number,
     blockTime: number,
   ): Promise<TradeTwap> {
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
@@ -208,7 +217,7 @@ export class TradeApi {
 
     const maxAmountIn = getTradeMaxAmountIn(
       bestBuy,
-      tradeSettingsCursor.deref().slippage,
+      tradeSettingsCursor.deref().slippageTwap,
     );
     const maxAmountInTotal =
       multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
@@ -216,12 +225,17 @@ export class TradeApi {
     const isSingleTrade = tradesNo == 1;
     const isLessThanMinimalAmount = maxAmountInTotal < amountMin;
     const isOrderTooBig = priceDifference == 100;
+    const minSlippage = Math.abs(priceImpact);
+    const isSlippageTooLow =
+      Number(tradeSettingsCursor.deref().slippageTwap) < minSlippage;
 
     let tradeError: TradeTwapError = null;
     if (isLessThanMinimalAmount || isSingleTrade) {
       tradeError = TradeTwapError.OrderTooSmall;
     } else if (isOrderTooBig) {
       tradeError = TradeTwapError.OrderTooBig;
+    } else if (isSlippageTooLow) {
+      tradeError = TradeTwapError.OrderSlippageTooLow;
     }
 
     return {

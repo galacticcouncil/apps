@@ -8,7 +8,7 @@ import { dcaSettingsCursor, DEFAULT_DCA_CONFIG } from '../../db';
 import { debounce } from 'ts-debounce';
 import IMask from 'imask';
 
-const SLIPPAGE_OPTS = ['0.5', '1', '1.5', '3'];
+const SLIPPAGE_OPTS = ['1', '1.5', '3', '5'];
 
 @customElement('gc-dca-settings')
 export class DcaSettings extends LitElement {

@@ -359,6 +359,7 @@ export class DcaApp extends PoolApp {
         {
           owner: account.address,
           period: intervalBlock ? intervalBlock : periodBlock,
+          maxRetries: 7,
           totalAmount: amountInBudgetBn.toFixed(),
           slippage: Number(slippage) * 10000,
           order: {

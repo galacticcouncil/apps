@@ -138,6 +138,14 @@ export class TradeSettings extends LitElement {
         line-height: 14px;
         color: #ffffff;
       }
+
+      .endAdornment {
+        white-space: nowrap;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 14px;
+        color: #ffffff;
+      }
     `,
   ];
 
@@ -162,6 +170,18 @@ export class TradeSettings extends LitElement {
       ? this._slippageMask.unmaskedValue
       : this.slippage;
     this.onChange(value, 'slippage');
+
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('slippage-change', options));
+  }
+
+  onSlippageTwapChange({ detail: { value } }) {
+    if (value !== '') {
+      tradeSettingsCursor.resetIn(['slippageTwap'], value);
+    }
 
     const options = {
       bubbles: true,
@@ -205,10 +225,6 @@ export class TradeSettings extends LitElement {
 
   formSlippageTemplate() {
     return html` <div class="settings">
-      <div class="row">
-        <span class="label">${i18n.t('trade.settings.autoSlippage')}</span>
-        <uigc-switch size="small" disabled></uigc-switch>
-      </div>
       <uigc-toggle-button-group
         value=${this.slippage}
         @toggle-button-click=${(e: CustomEvent) => {
@@ -239,12 +255,34 @@ export class TradeSettings extends LitElement {
     </div>`;
   }
 
+  formTwapSlippageTemplate() {
+    const { slippageTwap } = this.settings.state;
+    return html`
+      <div class="settings">
+        <uigc-textfield
+          field
+          number
+          .min=${0}
+          .max=${100}
+          .placeholder=${slippageTwap}
+          .value=${slippageTwap}
+          @input-change=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
+        >
+          <span class="adornment" slot="inputAdornment">Slippage</span>
+          <span class="endAdornment" slot="endAdornment">%</span>
+        </uigc-textfield>
+      </div>
+    `;
+  }
+
   render() {
     return html`
       <slot name="header"></slot>
       <div class="content">
         <div class="section">${i18n.t('trade.settings.slippage')}</div>
         ${this.formSlippageTemplate()}
+        <div class="section">${i18n.t('trade.settings.splitTrade')}</div>
+        ${this.formTwapSlippageTemplate()}
       </div>
     `;
   }
