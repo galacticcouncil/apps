@@ -1,20 +1,18 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
 import {
   tradeSettingsCursor,
-  DEFAULT_TRADE_CONFIG,
   TradeConfig,
+  DEFAULT_TRADE_CONFIG,
 } from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
-import { debounce } from 'ts-debounce';
-import IMask from 'imask';
-
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
+const SLIPPAGE_TWAP_OPTS = ['0.5', '1', '3', '5'];
 
 @customElement('gc-trade-settings')
 export class TradeSettings extends LitElement {
@@ -22,31 +20,6 @@ export class TradeSettings extends LitElement {
     this,
     tradeSettingsCursor,
   );
-  private _slippageHandler = null;
-  private _slippageMask = null;
-
-  @state() slippage: String = null;
-  @state() customSlippage: String = null;
-
-  constructor() {
-    super();
-    this.init();
-    this.initSlippage();
-    this._slippageHandler = debounce(this.onSlippageChange, 300);
-  }
-
-  private init() {
-    const { slippage } = this.settings.state;
-    this.slippage = slippage;
-  }
-
-  private initSlippage() {
-    const slippageOpts = new Set(SLIPPAGE_OPTS);
-    const slippage = this.slippage as string;
-    if (!slippageOpts.has(slippage)) {
-      this.customSlippage = slippage;
-    }
-  }
 
   static styles = [
     baseStyles,
@@ -165,12 +138,8 @@ export class TradeSettings extends LitElement {
     }
   }
 
-  onSlippageChange() {
-    const value = this.customSlippage
-      ? this._slippageMask.unmaskedValue
-      : this.slippage;
+  onSlippageChange({ detail: { value } }) {
     this.onChange(value, 'slippage');
-
     const options = {
       bubbles: true,
       composed: true,
@@ -179,10 +148,7 @@ export class TradeSettings extends LitElement {
   }
 
   onSlippageTwapChange({ detail: { value } }) {
-    if (value !== '') {
-      tradeSettingsCursor.resetIn(['slippageTwap'], value);
-    }
-
+    this.onChange(value, 'slippageTwap');
     const options = {
       bubbles: true,
       composed: true,
@@ -190,99 +156,60 @@ export class TradeSettings extends LitElement {
     this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
-  override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('customSlippage') && this._slippageMask) {
-      if (this.customSlippage) {
-        this._slippageMask.unmaskedValue = this.customSlippage;
-      } else {
-        this._slippageMask.unmaskedValue = '';
-      }
-    }
-    super.update(changedProperties);
-  }
-
-  override async firstUpdated() {
-    const slippageInput = this.shadowRoot.getElementById('slippage');
-    this._slippageMask = IMask(slippageInput, {
-      mask: Number,
-      scale: 1,
-      signed: false,
-      padFractionalZeros: false,
-      normalizeZeros: true,
-      radix: '.',
-      mapToRadix: ['.'],
-      min: 0,
-      max: 100,
-    });
-  }
-
-  override disconnectedCallback() {
-    super.disconnectedCallback();
-    if (this._slippageMask) {
-      this._slippageMask.destroy();
-    }
-  }
-
   formSlippageTemplate() {
+    const { slippage } = this.settings.state;
+    const slippageOpts = new Set(SLIPPAGE_OPTS);
+    const custom = slippageOpts.has(slippage) ? null : slippage;
+
     return html` <div class="settings">
       <uigc-toggle-button-group
-        value=${this.slippage}
-        @toggle-button-click=${(e: CustomEvent) => {
-          this.slippage = e.detail.value;
-          this.customSlippage = null;
-          this._slippageHandler();
-        }}
-        @input-change=${(e: CustomEvent) => {
-          this.slippage = e.detail.value;
-          this.customSlippage = e.detail.value;
-          this._slippageHandler();
-        }}
+        value=${slippage}
+        @toggle-button-click=${(e: CustomEvent) => this.onSlippageChange(e)}
+        @input-change=${(e: CustomEvent) => this.onSlippageChange(e)}
       >
         ${SLIPPAGE_OPTS.map(
           (s: string) =>
             html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `,
         )}
-        <uigc-input
-          id="slippage"
-          class="slippage-input"
-          type="text"
-          value=${this.customSlippage}
-          placeholder="${i18n.t('trade.settings.custom')}"
-        ></uigc-input>
+        <uigc-textfield field number .min=${0} .max=${100} .value=${custom}>
+          <span class="endAdornment" slot="endAdornment">%</span>
+        </uigc-textfield>
       </uigc-toggle-button-group>
       <div class="desc">${i18n.t('trade.settings.slippageInfo1')}</div>
       <div class="desc">${i18n.t('trade.settings.slippageInfo2')}</div>
     </div>`;
   }
 
-  formTwapSlippageTemplate() {
+  formSlippageTwapTemplate() {
     const { slippageTwap } = this.settings.state;
-    return html`
-      <div class="settings">
-        <uigc-textfield
-          field
-          number
-          .min=${0}
-          .max=${100}
-          .placeholder=${slippageTwap}
-          .value=${slippageTwap}
-          @input-change=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
-        >
-          <span class="adornment" slot="inputAdornment">Slippage</span>
+    const slippageOpts = new Set(SLIPPAGE_TWAP_OPTS);
+    const custom = slippageOpts.has(slippageTwap) ? null : slippageTwap;
+
+    return html` <div class="settings">
+      <uigc-toggle-button-group
+        value=${slippageTwap}
+        @toggle-button-click=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
+        @input-change=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
+      >
+        ${SLIPPAGE_TWAP_OPTS.map(
+          (s: string) =>
+            html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `,
+        )}
+        <uigc-textfield field number .min=${0} .max=${100} .value=${custom}>
           <span class="endAdornment" slot="endAdornment">%</span>
         </uigc-textfield>
-      </div>
-    `;
+      </uigc-toggle-button-group>
+    </div>`;
   }
 
   render() {
     return html`
       <slot name="header"></slot>
       <div class="content">
-        <div class="section">${i18n.t('trade.settings.slippage')}</div>
+        <div class="section">${i18n.t('trade.settings.single')}</div>
         ${this.formSlippageTemplate()}
-        <div class="section">${i18n.t('trade.settings.splitTrade')}</div>
-        ${this.formTwapSlippageTemplate()}
+        <div class="section">${i18n.t('trade.settings.twap')}</div>
+        ${this.formSlippageTwapTemplate()}
       </div>
     `;
   }
