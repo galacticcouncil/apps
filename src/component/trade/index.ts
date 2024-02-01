@@ -16,7 +16,6 @@ import {
   TradeInfo,
   TradeTwap,
   TWAP_BLOCK_PERIOD,
-  TWAP_RETRIES,
   TradeApi,
 } from '../../api/trade';
 import {
@@ -967,7 +966,7 @@ export class TradeApp extends PoolApp {
 
   private async onTwapClick() {
     const account = this.account.state;
-    const { slippageTwap } = this.settings.state;
+    const { slippageTwap, maxRetries } = this.settings.state;
 
     if (account) {
       const { assetIn } = this.trade;
@@ -979,7 +978,7 @@ export class TradeApp extends PoolApp {
         {
           owner: account.address,
           period: TWAP_BLOCK_PERIOD,
-          maxRetries: TWAP_RETRIES,
+          maxRetries,
           totalAmount: totalBudget.toFixed(),
           slippage: Number(slippageTwap) * 10000,
           order: twap.order,

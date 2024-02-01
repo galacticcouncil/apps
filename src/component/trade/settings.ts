@@ -106,7 +106,7 @@ export class TradeSettings extends LitElement {
 
       .adornment {
         white-space: nowrap;
-        font-weight: 500;
+        font-weight: 600;
         font-size: 14px;
         line-height: 14px;
         color: #ffffff;
@@ -156,6 +156,19 @@ export class TradeSettings extends LitElement {
     this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
+  onMaxRetriesChange({ detail: { value } }) {
+    if (value !== '') {
+      tradeSettingsCursor.resetIn(['maxRetries'], value);
+    }
+
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+
+    this.dispatchEvent(new CustomEvent('slippage-change', options));
+  }
+
   formSlippageTemplate() {
     const { slippage } = this.settings.state;
     const slippageOpts = new Set(SLIPPAGE_OPTS);
@@ -182,7 +195,7 @@ export class TradeSettings extends LitElement {
   }
 
   formSlippageTwapTemplate() {
-    const { slippageTwap } = this.settings.state;
+    const { slippageTwap, maxRetries } = this.settings.state;
     const slippageOpts = new Set(SLIPPAGE_TWAP_OPTS);
     const custom = slippageOpts.has(slippageTwap) ? null : slippageTwap;
 
@@ -201,6 +214,19 @@ export class TradeSettings extends LitElement {
           <span class="endAdornment" slot="endAdornment">%</span>
         </uigc-textfield>
       </uigc-toggle-button-group>
+      <uigc-textfield
+        field
+        number
+        .min=${0}
+        .max=${10}
+        .placeholder=${0}
+        .value=${maxRetries}
+        @input-change=${(e: CustomEvent) => this.onMaxRetriesChange(e)}
+      >
+        <span class="adornment" slot="inputAdornment"
+          >${i18n.t('trade.settings.maxRetries.label')}</span
+        >
+      </uigc-textfield>
     </div>`;
   }
 

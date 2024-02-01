@@ -17,7 +17,6 @@ import { HOUR_MS } from '../utils/time';
 
 export const TWAP_BLOCK_PERIOD = 6;
 export const TWAP_MAX_PRICE_IMPACT = -5;
-export const TWAP_RETRIES = 5;
 
 const TWAP_MAX_DURATION = 6 * HOUR_MS;
 const TWAP_TX_MULTIPLIER = 3;
@@ -264,8 +263,9 @@ export class TradeApi {
   }
 
   static getTwapTxFee(tradesNo: number, txFee: number): number {
+    const maxRetries = tradeSettingsCursor.deref().maxRetries;
     const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
-    const twapTxFeeWithRetries = twapTxFee * (TWAP_RETRIES + 1);
+    const twapTxFeeWithRetries = twapTxFee * (maxRetries + 1);
     return twapTxFeeWithRetries * tradesNo;
   }
 }
