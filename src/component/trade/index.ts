@@ -181,14 +181,7 @@ export class TradeApp extends PoolApp {
   }
 
   private async calculateSellTwap(spotPrice: string) {
-    const {
-      transactionFee,
-      assetIn,
-      assetOut,
-      amountIn,
-      priceImpactPct,
-      swaps,
-    } = this.trade;
+    const { transactionFee, assetIn, assetOut, amountIn, swaps } = this.trade;
     if (this.isTwapEnabled()) {
       const txFee = this.calculateAssetPrice(
         assetIn,
@@ -207,7 +200,6 @@ export class TradeApp extends PoolApp {
         minAmount.toNumber(),
         txFee.toNumber(),
         priceDifference.toNumber(),
-        Number(priceImpactPct),
         this.blockTime,
       );
       const amountInUsd = this.calculateDollarPrice(
@@ -311,7 +303,6 @@ export class TradeApp extends PoolApp {
         minAmount.toNumber(),
         txFee.toNumber(),
         priceDifference,
-        priceImpact,
         this.blockTime,
       );
       const amountInUsd = this.calculateDollarPrice(

@@ -10,7 +10,12 @@ import { BaseElement } from '../base/BaseElement';
 import { baseStyles } from '../styles/base.css';
 import { formStyles } from '../styles/form.css';
 
-import { Account, accountCursor } from '../../db';
+import {
+  Account,
+  TradeConfig,
+  accountCursor,
+  tradeSettingsCursor,
+} from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 import { TradeApi, TradeTwap, TradeTwapError } from '../../api/trade';
 import { formatAmount, humanizeAmount } from '../../utils/amount';
@@ -28,6 +33,10 @@ import { TransactionFee } from './types';
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, accountCursor);
+  private settings = new DatabaseController<TradeConfig>(
+    this,
+    tradeSettingsCursor,
+  );
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
@@ -1017,20 +1026,41 @@ export class TradeForm extends BaseElement {
     `;
   }
 
-  linkTemplate() {
+  formTwapSlippageWarning() {
+    const { slippageTwap } = this.settings.state;
+    const priceImpact = Math.abs(Number(this.priceImpactPct));
+    const slippageWarnClasses = {
+      warning: true,
+      show:
+        this.twapEnabled &&
+        priceImpact < 5 &&
+        Number(slippageTwap) < priceImpact,
+    };
     return html`
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="15"
-        height="14"
-        viewBox="0 0 15 14"
-        fill="none"
-      >
-        <path
-          d="M13.1016 8.75V1.75H6.10156V3.5H9.60156V5.25H7.85156V7H6.10156V8.75H4.35156V10.5H2.60156V12.25H4.35156V10.5H6.10156V8.75H7.85156V7H9.60156V5.25H11.3516V8.75H13.1016Z"
-          fill="#FBCD9C"
-        />
-      </svg>
+      <div class=${classMap(slippageWarnClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <div>
+          <span> ${i18n.t('twap.warn.changeSlippage')} </span>
+          <a @click=${this.onSlippageClick} class="link">Adjust slippage</a>
+        </div>
+      </div>
+    `;
+  }
+
+  formTwapDcaWarning() {
+    const priceImpact = Math.abs(Number(this.priceImpactPct));
+    const dcaWarnClasses = {
+      warning: true,
+      show: this.twapEnabled && priceImpact > 5,
+    };
+    return html`
+      <div class=${classMap(dcaWarnClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <div>
+          <span> ${i18n.t('twap.warn.useDca')} </span>
+          <a href="/trade/dca" class="link">Go to DCA</a>
+        </div>
+      </div>
     `;
   }
 
@@ -1057,17 +1087,6 @@ export class TradeForm extends BaseElement {
       show:
         this.swaps.length > 0 && !this.twapEnabled && this.hasGeneralError(),
     };
-    const slippageWarnClasses = {
-      warning: true,
-      show:
-        this.twap &&
-        this.twap.tradeError &&
-        this.twap.tradeError === TradeTwapError.OrderSlippageTooLow,
-    };
-    const dcaWarnClasses = {
-      warning: true,
-      show: Math.abs(Number(this.priceImpactPct)) > 5,
-    };
     return html`
       <slot name="header"></slot>
       <div class="transfer">
@@ -1078,22 +1097,7 @@ export class TradeForm extends BaseElement {
         ${this.formTradeOptionLabel()} ${this.formTradeOption(assetSymbol)}
         ${this.formTwapOption(assetSymbol)}
       </div>
-      <div class=${classMap(slippageWarnClasses)}>
-        <uigc-icon-warning></uigc-icon-warning>
-        <div>
-          <span> ${i18n.t('twap.warn.changeSlippage')} </span>
-          <a @click=${this.onSlippageClick} class="link"
-            >Adjust slippage ${this.linkTemplate()}</a
-          >
-        </div>
-      </div>
-      <div class=${classMap(dcaWarnClasses)}>
-        <uigc-icon-warning></uigc-icon-warning>
-        <div>
-          <span> ${i18n.t('twap.warn.useDca')} </span>
-          <a href="/trade/dca" class="link">Go to DCA ${this.linkTemplate()}</a>
-        </div>
-      </div>
+      ${this.formTwapSlippageWarning()} ${this.formTwapDcaWarning()}
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>
