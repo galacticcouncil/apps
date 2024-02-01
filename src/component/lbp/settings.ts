@@ -4,16 +4,20 @@ import { customElement } from 'lit/decorators.js';
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { DcaConfig, dcaSettingsCursor, DEFAULT_DCA_CONFIG } from '../../db';
+import {
+  tradeSettingsCursor,
+  TradeConfig,
+  DEFAULT_TRADE_CONFIG,
+} from '../../db';
 import { DatabaseController } from '../../db.ctrl';
 
-const SLIPPAGE_OPTS = ['1', '1.5', '3', '5'];
+const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
-@customElement('gc-dca-settings')
-export class DcaSettings extends LitElement {
-  protected settings = new DatabaseController<DcaConfig>(
+@customElement('gc-lbp-settings')
+export class TradeSettings extends LitElement {
+  protected settings = new DatabaseController<TradeConfig>(
     this,
-    dcaSettingsCursor,
+    tradeSettingsCursor,
   );
 
   static styles = [
@@ -23,6 +27,10 @@ export class DcaSettings extends LitElement {
         display: flex;
         flex-direction: column;
         height: 100%;
+      }
+
+      .content {
+        overflow-y: auto;
       }
 
       .section {
@@ -36,6 +44,8 @@ export class DcaSettings extends LitElement {
         box-sizing: border-box;
         align-items: center;
         display: flex;
+        top: 0px;
+        position: sticky;
       }
 
       @media (min-width: 768px) {
@@ -93,6 +103,14 @@ export class DcaSettings extends LitElement {
         justify-content: space-between;
       }
 
+      .adornment {
+        white-space: nowrap;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 14px;
+        color: #ffffff;
+      }
+
       .endAdornment {
         white-space: nowrap;
         font-weight: 500;
@@ -111,11 +129,11 @@ export class DcaSettings extends LitElement {
     }
 
     if (value) {
-      dcaSettingsCursor.resetIn([propName], value);
+      tradeSettingsCursor.resetIn([propName], value);
     } else {
-      const defaultValue = DEFAULT_DCA_CONFIG[propName];
+      const defaultValue = DEFAULT_TRADE_CONFIG[propName];
       this[propName] = defaultValue;
-      dcaSettingsCursor.resetIn([propName], defaultValue);
+      tradeSettingsCursor.resetIn([propName], defaultValue);
     }
   }
 
@@ -147,15 +165,18 @@ export class DcaSettings extends LitElement {
           <span class="endAdornment" slot="endAdornment">%</span>
         </uigc-textfield>
       </uigc-toggle-button-group>
-      <div class="desc">${i18n.t('dca.settings.slippageInfo1')}</div>
+      <div class="desc">${i18n.t('trade.settings.slippageInfo1')}</div>
+      <div class="desc">${i18n.t('trade.settings.slippageInfo2')}</div>
     </div>`;
   }
 
   render() {
     return html`
       <slot name="header"></slot>
-      <div class="section">${i18n.t('dca.settings.slippage')}</div>
-      ${this.formSlippageTemplate()}
+      <div class="content">
+        <div class="section">${i18n.t('trade.settings.slippage')}</div>
+        ${this.formSlippageTemplate()}
+      </div>
     `;
   }
 }

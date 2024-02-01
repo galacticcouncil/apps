@@ -7,9 +7,8 @@ import * as i18n from 'i18next';
 
 import './chart';
 import { LbpChartApi } from './chart/api';
-
+import './settings';
 import '../trade/form';
-import '../trade/settings';
 import '../selector/asset';
 
 import { TradeApp } from '../trade';
@@ -211,6 +210,30 @@ export class LbpApp extends TradeApp {
           <span></span>
         </div>
       </gc-lbp-chart>
+    </uigc-paper>`;
+  }
+
+  tradeSettingsTab() {
+    const classes = {
+      tab: true,
+      main: true,
+      active: this.tab == TradeTab.TradeSettings,
+    };
+    return html` <uigc-paper class=${classMap(classes)}>
+      <gc-lbp-settings @slippage-change=${() => this.recalculateTrade()}>
+        <div class="header section" slot="header">
+          <uigc-icon-button
+            class="back"
+            @click=${() => this.changeTab(TradeTab.TradeForm)}
+          >
+            <uigc-icon-back></uigc-icon-back>
+          </uigc-icon-button>
+          <uigc-typography variant="section"
+            >${i18n.t('trade.settings.title')}</uigc-typography
+          >
+          <span></span>
+        </div>
+      </gc-lbp-settings>
     </uigc-paper>`;
   }
 

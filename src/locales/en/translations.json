@@ -28,6 +28,7 @@
   "trade.settings.title": "Trade settings",
   "trade.settings.single": "Single Trade",
   "trade.settings.twap": "Split Trade",
+  "trade.settings.slippage": "Slippage protection",
   "trade.settings.slippageInfo1": "Here you can control the maximum allowed deviation between your desired price and the actual execution price.",
   "trade.settings.slippageInfo2": "Such deviation can be caused by protocol fees, price impact (trade size vs liquidity), or price changes due to trading activity.",
   "trade.error.balance": "Your trade is bigger than your balance.",
