@@ -8,14 +8,13 @@ import { TLRUCache } from '@thi.ng/cache';
 import { SingleValueData } from 'lightweight-charts';
 
 import { getObj, setObj } from './storage';
-import { TWAP_RETRIES } from './api/trade';
 
 export const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
 export const DEFAULT_TRADE_CONFIG: TradeConfig = {
   slippage: '1',
   slippageTwap: '3',
-  maxRetries: TWAP_RETRIES,
+  maxRetries: 5,
 };
 
 export const DEFAULT_DCA_CONFIG: DcaConfig = {

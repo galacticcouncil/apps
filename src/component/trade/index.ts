@@ -16,7 +16,6 @@ import {
   TradeInfo,
   TradeTwap,
   TWAP_BLOCK_PERIOD,
-  TWAP_RETRIES,
   TradeApi,
 } from '../../api/trade';
 import {
