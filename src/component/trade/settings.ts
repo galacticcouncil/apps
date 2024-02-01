@@ -177,6 +177,7 @@ export class TradeSettings extends LitElement {
     return html` <div class="settings">
       <uigc-toggle-button-group
         value=${slippage}
+        label=${'Slippage'}
         @toggle-button-click=${(e: CustomEvent) => this.onSlippageChange(e)}
         @input-change=${(e: CustomEvent) => this.onSlippageChange(e)}
       >
@@ -201,6 +202,7 @@ export class TradeSettings extends LitElement {
     return html` <div class="settings">
       <uigc-toggle-button-group
         value=${slippageTwap}
+        label=${'Slippage'}
         @toggle-button-click=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
         @input-change=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
       >
