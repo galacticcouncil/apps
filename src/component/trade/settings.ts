@@ -157,19 +157,15 @@ export class TradeSettings extends LitElement {
   }
 
   onMaxRetriesChange({ detail: { value } }) {
-    if (value !== '') {
-      tradeSettingsCursor.resetIn(['maxRetries'], value);
-    }
-
+    this.onChange(value, 'maxRetries');
     const options = {
       bubbles: true,
       composed: true,
     };
-
     this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
-  formSlippageTemplate() {
+  formTradeTemplate() {
     const { slippage } = this.settings.state;
     const slippageOpts = new Set(SLIPPAGE_OPTS);
     const custom = slippageOpts.has(slippage) ? null : slippage;
@@ -194,7 +190,7 @@ export class TradeSettings extends LitElement {
     </div>`;
   }
 
-  formSlippageTwapTemplate() {
+  formTwapTemplate() {
     const { slippageTwap, maxRetries } = this.settings.state;
     const slippageOpts = new Set(SLIPPAGE_TWAP_OPTS);
     const custom = slippageOpts.has(slippageTwap) ? null : slippageTwap;
@@ -235,9 +231,9 @@ export class TradeSettings extends LitElement {
       <slot name="header"></slot>
       <div class="content">
         <div class="section">${i18n.t('trade.settings.single')}</div>
-        ${this.formSlippageTemplate()}
+        ${this.formTradeTemplate()}
         <div class="section">${i18n.t('trade.settings.twap')}</div>
-        ${this.formSlippageTwapTemplate()}
+        ${this.formTwapTemplate()}
       </div>
     `;
   }

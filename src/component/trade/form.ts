@@ -611,7 +611,9 @@ export class TradeForm extends BaseElement {
 
     if (this.twapEnabled && fee) {
       const amountNo = Number(fee);
-      fee = TradeApi.getTwapTxFee(this.twap.tradeReps, amountNo).toString();
+      const { tradeReps } = this.twap;
+      const { maxRetries } = this.settings.state;
+      fee = TradeApi.getTwapTxFee(tradeReps, amountNo, maxRetries).toString();
     }
 
     if (fee === '0') {

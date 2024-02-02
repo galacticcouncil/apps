@@ -127,9 +127,10 @@ export class TradeApi {
     priceDifference: number,
     blockTime: number,
   ): Promise<TradeTwap> {
+    const { slippageTwap, maxRetries } = tradeSettingsCursor.deref();
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
-    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
+    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee, maxRetries);
     const amountInPerTrade = (amountIn - twapTxFees) / tradesNo;
     const bestSell = await this._router.getBestSell(
       assetIn.id,
@@ -141,10 +142,7 @@ export class TradeApi {
 
     const amountOutTotal = Number(bestSellHuman.amountOut) * tradesNo;
 
-    const minAmountOut = getTradeMinAmountOut(
-      bestSell,
-      tradeSettingsCursor.deref().slippageTwap,
-    );
+    const minAmountOut = getTradeMinAmountOut(bestSell, slippageTwap);
     const minAmountOutTotal = multipleAmounts(
       tradesNo.toString(),
       minAmountOut,
@@ -191,9 +189,10 @@ export class TradeApi {
     priceDifference: number,
     blockTime: number,
   ): Promise<TradeTwap> {
+    const { slippageTwap, maxRetries } = tradeSettingsCursor.deref();
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
-    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
+    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee, maxRetries);
     const amountOutPerTrade = amountOut / tradesNo;
     const bestBuy = await this._router.getBestBuy(
       assetIn.id,
@@ -205,10 +204,7 @@ export class TradeApi {
 
     const amountInTotal = Number(bestBuyHuman.amountIn) * tradesNo + twapTxFees;
 
-    const maxAmountIn = getTradeMaxAmountIn(
-      bestBuy,
-      tradeSettingsCursor.deref().slippageTwap,
-    );
+    const maxAmountIn = getTradeMaxAmountIn(bestBuy, slippageTwap);
     const maxAmountInTotal =
       multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
 
@@ -262,8 +258,11 @@ export class TradeApi {
     return tradesNo * TWAP_BLOCK_PERIOD * blockTime;
   }
 
-  static getTwapTxFee(tradesNo: number, txFee: number): number {
-    const maxRetries = tradeSettingsCursor.deref().maxRetries;
+  static getTwapTxFee(
+    tradesNo: number,
+    txFee: number,
+    maxRetries: number,
+  ): number {
     const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
     const twapTxFeeWithRetries = twapTxFee * (maxRetries + 1);
     return twapTxFeeWithRetries * tradesNo;
