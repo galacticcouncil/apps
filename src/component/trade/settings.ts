@@ -129,6 +129,7 @@ export class TradeSettings extends LitElement {
       return;
     }
 
+    console.log(value);
     if (value) {
       tradeSettingsCursor.resetIn([propName], value);
     } else {
@@ -157,7 +158,9 @@ export class TradeSettings extends LitElement {
   }
 
   onMaxRetriesChange({ detail: { value } }) {
-    this.onChange(value, 'maxRetries');
+    if (value !== '') {
+      this.onChange(value, 'maxRetries');
+    }
     const options = {
       bubbles: true,
       composed: true,
@@ -215,7 +218,7 @@ export class TradeSettings extends LitElement {
         number
         .min=${0}
         .max=${10}
-        .placeholder=${0}
+        .placeholder=${maxRetries}
         .value=${maxRetries}
         @input-change=${(e: CustomEvent) => this.onMaxRetriesChange(e)}
       >
