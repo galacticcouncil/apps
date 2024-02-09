@@ -853,8 +853,8 @@ export class TradeForm extends BaseElement {
     };
 
     const spotPrice = this.isPriceReversed
-      ? this.spotPrice
-      : ONE.div(this.spotPrice);
+      ? ONE.div(this.spotPrice)
+      : this.spotPrice;
     const inputSymbol = this.isPriceReversed
       ? this.assetIn?.symbol
       : this.assetOut?.symbol;
