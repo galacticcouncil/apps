@@ -23,6 +23,7 @@ import { formatAmount, humanizeAmount } from '../../utils/amount';
 import {
   Amount,
   Asset,
+  ONE,
   TradeType,
   bnum,
   calculateDiffToRef,
@@ -68,6 +69,7 @@ export class TradeForm extends BaseElement {
   @property({ attribute: false }) swaps: [] = [];
 
   @state() twapEnabled: boolean = false;
+  @state() isPriceReversed: boolean = false;
 
   static styles = [
     baseStyles,
@@ -849,6 +851,17 @@ export class TradeForm extends BaseElement {
       'spot-price': true,
       show: this.spotPrice || this.inProgress,
     };
+
+    const spotPrice = this.isPriceReversed
+      ? this.spotPrice
+      : ONE.div(this.spotPrice);
+    const inputSymbol = this.isPriceReversed
+      ? this.assetIn?.symbol
+      : this.assetOut?.symbol;
+    const outputSymbol = this.isPriceReversed
+      ? this.assetOut?.symbol
+      : this.assetIn?.symbol;
+
     return html`
       <div class="switch">
         <div class="divider"></div>
@@ -857,15 +870,19 @@ export class TradeForm extends BaseElement {
           ?disabled=${!this.switchAllowed || this.readonly}
           @asset-switch-click=${() => {
             this.twapEnabled = false;
+            this.isPriceReversed = false;
           }}
         >
         </uigc-asset-switch>
         <uigc-asset-price
           class=${classMap(spotPriceClasses)}
-          .inputAsset=${this.assetOut?.symbol}
-          .outputAsset=${this.assetIn?.symbol}
-          .outputBalance=${this.spotPrice}
+          .inputAsset=${inputSymbol}
+          .outputAsset=${outputSymbol}
+          .outputBalance=${spotPrice}
           .loading=${this.inProgress}
+          @click=${() => {
+            this.isPriceReversed = !this.isPriceReversed;
+          }}
         >
         </uigc-asset-price>
       </div>
