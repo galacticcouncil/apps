@@ -4,7 +4,7 @@ import { createProxyServer } from './esbuild.proxy.mjs';
 const plugins = [];
 
 const options = {
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/app.ts'],
   bundle: true,
   format: 'esm',
   platform: 'browser',
@@ -12,12 +12,15 @@ const options = {
   preserveSymlinks: true,
   treeShaking: true,
   sourcemap: true,
-  outdir: 'out/',
+  outdir: 'public/',
   logLevel: 'info',
 };
 
 const ctx = await esbuild.context({ ...options, plugins });
 await ctx.rebuild();
 await ctx.watch();
-const localServer = await ctx.serve({ servedir: './', host: '127.0.0.1' });
+const localServer = await ctx.serve({
+  servedir: './public',
+  host: '127.0.0.1',
+});
 createProxyServer(localServer);

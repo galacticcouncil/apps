@@ -1,0 +1,63 @@
+import { LitElement, html } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
+
+import {
+  Account,
+  DatabaseController,
+  accountCursor,
+} from '@galacticcouncil/apps';
+
+import { ThemeController } from 'theme.ctrl';
+
+@customElement('gc-xcm-screen')
+export class XcmScreen extends LitElement implements BeforeEnterObserver {
+  private theme = new ThemeController(this);
+  private account = new DatabaseController<Account>(this, accountCursor);
+
+  @state() srcChain: string = null;
+  @state() destChain: string = null;
+  @state() asset: string = null;
+
+  async onBeforeEnter(location: RouterLocation) {
+    const queryParams = new URLSearchParams(location.search);
+    this.srcChain = queryParams.get('srcChain');
+    this.destChain = queryParams.get('destChain');
+    this.asset = queryParams.get('asset');
+  }
+
+  bsxTemplate() {
+    return html`
+      <gc-xcm
+        srcChain="kusama"
+        destChain="basilisk"
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
+        apiAddress="wss://rpc.basilisk.cloud"
+        stableCoinAssetId="14"></gc-xcm>
+    `;
+  }
+
+  hdxTemplate() {
+    return html`
+      <gc-xcm
+        srcChain=${this.srcChain || 'polkadot'}
+        destChain=${this.destChain || 'hydradx'}
+        asset=${this.asset}
+        accountAddress=${this.account.state?.address}
+        accountProvider=${this.account.state?.provider}
+        accountName=${this.account.state?.name}
+        apiAddress="wss://rpc.hydradx.cloud"
+        stableCoinAssetId="10"></gc-xcm>
+    `;
+  }
+
+  render() {
+    if (this.theme.state == 'hdx') {
+      return this.hdxTemplate();
+    } else {
+      return this.bsxTemplate();
+    }
+  }
+}

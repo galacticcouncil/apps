@@ -1,0 +1,52 @@
+{
+  "header.form": "Trade assets",
+  "header.settings": "Trade settings",
+  "header.chart": "Trade chart",
+  "header.select": "Select asset",
+  "header.orders": "Your orders",
+
+  "form.cta.connect": "Connect wallet",
+  "form.cta.swap": "Swap",
+  "form.cta.twap": "Place trades",
+
+  "form.assetIn.label": "Pay with",
+  "form.assetOut.label": "You get",
+
+  "form.opts": "Trade options",
+
+  "form.swap.title": "Single trade",
+  "form.swap.info": "Instant execution",
+  "form.swap.desc": "Trade instantly using the omnipool.",
+
+  "form.twap.title": "Split trade",
+  "form.twap.info": "Executed in the next {{timeframe}}",
+  "form.twap.desc": "Achieve lower slippage by splitting your trade in smaller chunks.",
+
+  "form.summary.priceImpact": "Price impact:",
+  "form.summary.transactionFee": "Transaction cost:",
+  "form.summary.tradeFee": "Trade fee:",
+  "form.summary.bestRoute": "Best route",
+  "form.summary.minReceived": "Minimum received:",
+  "form.summary.maxSent": "MAximum sent:",
+
+  "error.insufficientBalance": "Your trade is bigger than your balance.",
+  "error.insufficientTradingAmount": "Your order size is lower than the minimum for trading.",
+  "error.maxOutRatioExceeded": "Your order size exceeds the trading limit, please split your trade.",
+  "error.maxInRatioExceeded": "Your order size exceeds the trading limit, please split your trade.",
+  "error.tradeNotAllowed": "Trade is not allowed.",
+  "error.invalidPair": "Selected pool pair is not valid.",
+  "error.minOrderSize": "Your order size is too small for price optimization.",
+  "error.maxOrderSize": "Your order size is too big for price optimization. Use OTC or DCA instead.",
+
+  "settings.section.swap": "Single Trade",
+  "settings.section.twap": "Split Trade",
+  "settings.slippage": "Slippage",
+  "settings.slippageInfo1": "Here you can control the maximum allowed deviation between your desired price and the actual execution price.",
+  "settings.slippageInfo2": "Such deviation can be caused by protocol fees, price impact (trade size vs liquidity), or price changes due to trading activity.",
+  "settings.maxRetries": "Max retries",
+
+  "orders.all": "All",
+  "orders.open": "Open orders",
+  "orders.history": "Order history",
+  "orders.noActivity": "No recent activity"
+}

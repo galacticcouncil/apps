@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<html theme="hdx">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Galactic Apps</title>
+    <meta name="description" content="Galactic Apps" />
+    <base href="/" />
+
+    <style>
+      :root {
+        --toolbar-height: 65px;
+        --footer-height: 60px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar:horizontal {
+        width: 0px;
+        height: 0px;
+      }
+
+      ::-webkit-scrollbar-thumb:vertical {
+        background: #676c80;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgb(28, 32, 56);
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      html {
+        background: var(--uigc-app-background);
+      }
+
+      html[theme='hdx'] {
+        height: 474px;
+        background-repeat: no-repeat;
+        background-color: var(--uigc-app-background-color);
+      }
+
+      body {
+        margin: 0;
+      }
+
+      header {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        z-index: 5;
+        height: var(--toolbar-height);
+        width: 100%;
+        backdrop-filter: blur(16px);
+        background: rgba(0, 0, 0, 0.2);
+        -webkit-box-align: center;
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      html[theme='bsx'] header {
+        background: rgba(28, 26, 31, 0.2);
+      }
+
+      html[theme='hdx'] header {
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      nav a {
+        text-decoration: none;
+      }
+
+      nav a span {
+        font-family: var(--uigc-app-font);
+        font-size: 16px;
+        line-height: 18px;
+        margin-right: 32px;
+      }
+
+      html nav a span:hover {
+        color: rgb(255, 255, 255);
+      }
+
+      html[theme='bsx'] nav span {
+        font-family: var(--uigc-app-font);
+        font-weight: 600;
+        color: rgb(158, 169, 177);
+      }
+
+      html[theme='hdx'] nav span {
+        font-family: var(--uigc-app-font);
+        text-transform: uppercase;
+        color: rgb(189, 204, 212);
+      }
+
+      main {
+        width: 100%;
+        margin-top: var(--toolbar-height);
+        min-height: calc(100vh - var(--toolbar-height));
+      }
+
+      @media (min-width: 768px) {
+        main > div#app {
+          padding: 44px 0px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        main > div#app {
+          height: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <header>
+      <nav>
+        <a href="/trade"><span>Trade</span></a>
+        <a href="/dca"><span>Dca</span></a>
+        <a href="/yield"><span>Dca Yield</span></a>
+        <a href="/bonds?assetIn=5&assetOut=1000010"><span>Bonds</span></a>
+        <a href="/cross-chain"><span>Cross-chain</span></a>
+      </nav>
+    </header>
+    <main>
+      <div id="app"></div>
+    </main>
+    <footer></footer>
+    <script>
+      new EventSource('/esbuild').addEventListener('change', () =>
+        location.reload(),
+      );
+    </script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

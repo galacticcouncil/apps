@@ -9,11 +9,11 @@ export function createProxyServer(localServer, proxyPort = 3000) {
   http.createServer(listenerFn).listen(proxyPort);
   console.log(
     '\x1b[1m\x1b[92m',
-    '> Proxy: \x1b[4mhttp://' +
+    '> Open this 🦙  \x1b[4mhttp://' +
       localServer.host +
       ':' +
       proxyPort +
-      '/\x1b[0m\n'
+      '/\x1b[0m\n',
   );
 }
 

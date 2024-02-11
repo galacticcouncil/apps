@@ -1,0 +1,47 @@
+{
+  "name": "@galacticcouncil/apps-web",
+  "version": "1.0.0",
+  "description": "Galactic Apps SPA",
+  "author": "GalacticCouncil",
+  "repository": {
+    "directory": "packages/apps-web",
+    "type": "git",
+    "url": "git+https://github.com/galacticcouncil/apps.git"
+  },
+  "keywords": [
+    "hydradx",
+    "basilisk",
+    "web"
+  ],
+  "bugs": {
+    "url": "https://github.com/galacticcouncil/apps/issues"
+  },
+  "files": [
+    "build"
+  ],
+  "type": "module",
+  "main": "out/app.js",
+  "scripts": {
+    "build": "node ./esbuild.config.mjs",
+    "build:watch": "node ./esbuild.dev.mjs",
+    "clean": "rimraf build",
+    "dev": "npm run start",
+    "link": "npm ln",
+    "postbuild": "tsc --emitDeclarationOnly --outDir build/types",
+    "start": "node ../../esbuild.server.mjs"
+  },
+  "devDependencies": {
+    "@craftamap/esbuild-plugin-html": "^0.4.0",
+    "node-html-parser": "^5.4.2-0"
+  },
+  "dependencies": {
+    "@vaadin/router": "^1.7.4",
+    "@galacticcouncil/apps": "^2.4.4",
+    "@galacticcouncil/ui": "^2.0.3",
+    "@galacticcouncil/xcm-cfg": "^1.3.0",
+    "@galacticcouncil/xcm-sdk": "^2.1.0",
+    "@polkadot/api": "^10.9.1",
+    "@polkadot/extension-inject": "^0.44.6",
+    "graphql-request": "^6.1.0"
+  }
+}

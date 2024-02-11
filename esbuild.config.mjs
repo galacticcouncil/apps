@@ -29,12 +29,3 @@ export const esmConfig = {
   target: ['esnext'],
   logLevel: 'info',
 };
-
-export const cjsConfig = {
-  ...common,
-  outfile: 'build/index.cjs',
-  format: 'cjs',
-  platform: 'node',
-  target: ['node18'],
-  logLevel: 'info',
-};

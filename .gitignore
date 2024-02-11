@@ -1,10 +1,17 @@
-/out/
-/resources/public/js/**
-/target/
-\#*\#
-.\#*
-.settings
-.idea
-*.iml
+# modules
 node_modules/
-dist/
+
+# build folders
+packages/*/build
+
+# compile folders
+examples/*/out
+
+# turbo files
+.turbo
+
+# mac
+.DS_Store
+
+# IntelliJ Idea
+.idea

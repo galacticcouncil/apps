@@ -1,0 +1,43 @@
+{
+  "header.form": "Yield DCA",
+  "header.settings": "DCA settings",
+  "header.chart": "Trade chart",
+  "header.select": "Select asset",
+  "header.orders": "Your orders",
+
+  "form.cta.connect": "Connect wallet",
+  "form.cta.schedule": "Schedule DCA trades",
+
+  "form.assetIn.label": "Use yield from",
+  "form.assetOut.label": "Get",
+  "form.duration.label": "Over the period of",
+
+  "form.summary": "Summary",
+  "form.summary.avgApy": "Average APY",
+  "form.summary.estYield": "Estimated yield",
+  "form.summary.estSchedule": "Schedule end (est.)",
+  "form.summary.slippage": "Slippage protection",
+
+  "error.insufficientBalance": "Your trade is bigger than your balance.",
+  "error.minInvestmentTooLow": "The minimum is {{amount}} {{asset}}.",
+
+  "settings.slippage": "Slippage protection",
+  "settings.slippageInfo1": "Tolerated price deviation from the last known price. Trade will be rescheduled if the price changes more than the specified percentage since previous block or 10 block average.",
+  "settings.maxRetries": "Max retries",
+
+  "stepper.title": "How it works",
+  "stepper.desc": "Diversify your yield from staked DOT",
+  "stepper.step1.title": "Send your DOT to Bifrost",
+  "stepper.step1.desc": "You can use our",
+  "stepper.step2.title": "Stake DOT to get vDOT",
+  "stepper.step2.desc": "You can mint vDOT using the",
+  "stepper.step3.title": "Send vDOT to HydraDX",
+  "stepper.step3.desc": "You can use our",
+  "stepper.step4.title": "Schedule your Yield DCA",
+  "stepper.step4.desc": "Select the asset you want to accumulate, and the overall duration. By placing the order you schedule at least one trade per 24h which swaps the staking yield (appreciation of vDOT) into the asset of your choice.",
+
+  "orders.all": "All",
+  "orders.open": "Open orders",
+  "orders.history": "Order history",
+  "orders.noActivity": "No recent activity"
+}

@@ -1,0 +1,50 @@
+{
+  "name": "@galacticcouncil/ui",
+  "version": "2.0.3",
+  "description": "Galactic UI Kit",
+  "author": "GalacticCouncil",
+  "repository": {
+    "directory": "packages/ui",
+    "type": "git",
+    "url": "git+https://github.com/galacticcouncil/apps.git"
+  },
+  "keywords": [
+    "hydradx",
+    "basilisk",
+    "ui",
+    "component",
+    "lit",
+    "webcomponent"
+  ],
+  "bugs": {
+    "url": "https://github.com/galacticcouncil/apps/issues"
+  },
+  "files": [
+    "build"
+  ],
+  "type": "module",
+  "module": "./build/index.mjs",
+  "types": "./build/types/index.d.ts",
+  "scripts": {
+    "build": "node ./esbuild.config.mjs",
+    "build:watch": "node ./esbuild.dev.mjs",
+    "cem": "npx custom-elements-manifest analyze --litelement --exclude 'public/app.js' --outdir public",
+    "cem:watch": "npx custom-elements-manifest analyze --watch --litelement --exclude 'public/app.js' --outdir public",
+    "clean": "rimraf build",
+    "dev": "npm run cem:watch & npm run start",
+    "link": "npm ln",
+    "postbuild": "tsc --emitDeclarationOnly --outDir build/types",
+    "start": "node ../../esbuild.server.mjs"
+  },
+  "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.6.6",
+    "api-viewer-element": "^1.0.0-pre.8"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.5.1",
+    "@lit/reactive-element": "^1.0.0",
+    "imask": "^6.4.3",
+    "lit": "^2.5.0",
+    "ts-debounce": "^4.0.0"
+  }
+}

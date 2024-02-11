@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "es2021",
     "module": "esnext",
@@ -12,11 +13,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noImplicitAny": false,
-    "outDir": "./out",
-    "rootDir": "./src",
     "importHelpers": false,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": []
+  "exclude": ["node_modules", "dist", "build"]
 }

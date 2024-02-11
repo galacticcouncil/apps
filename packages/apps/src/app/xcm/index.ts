@@ -1,0 +1,1 @@
+export { XcmApp } from './App';

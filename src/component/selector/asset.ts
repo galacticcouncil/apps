@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
@@ -31,7 +31,8 @@ export class SelectAsset extends LitElement {
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: Boolean }) switchAllowed = true;
-  @property({ type: String }) query = '';
+
+  @state() query = '';
 
   static styles = [baseStyles, selectorStyles];
 
