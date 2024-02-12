@@ -1,7 +1,7 @@
 import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
-import { classMap, ClassInfo } from 'lit/directives/class-map.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
@@ -16,6 +16,7 @@ import { humanizeAmount } from '../../utils/amount';
 import { INTERVAL_DCA, IntervalDca } from './types';
 
 import { Asset } from '@galacticcouncil/sdk';
+import { MINUTE_MS } from '../../utils/time';
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
@@ -28,19 +29,20 @@ export class DcaForm extends BaseElement {
   @property({ type: Boolean }) loaded = false;
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
-  @property({ type: String }) interval: IntervalDca = '1h';
-  @property({ type: Number }) intervalBlock: number = null;
+  @property({ type: String }) interval: IntervalDca = 'hour';
+  @property({ type: Number }) intervalMultiplier: number = 1;
+  @property({ type: Number }) frequency: number = null;
+  @property({ type: Number }) frequencyManual: number = null;
   @property({ type: String }) amountIn = null;
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountInBudget = null;
   @property({ type: String }) balanceIn = null;
-  @property({ type: String }) maxPrice = null;
   @property({ type: String }) slippagePct = '5';
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
+  @property({ type: String }) tradesNo = null;
   @property({ type: String }) est = null;
   @property({ attribute: false }) error = {};
-
   @state() advanced: boolean = false;
 
   static styles = [
@@ -62,10 +64,15 @@ export class DcaForm extends BaseElement {
         box-sizing: border-box;
       }
 
+      .advanced {
+        display: flex;
+        flex-direction: column;
+        row-gap: 3px;
+      }
+
       .interval {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
       }
 
       @media (max-width: 480px) {
@@ -74,16 +81,28 @@ export class DcaForm extends BaseElement {
         }
       }
 
-      .interval span {
+      .interval div.section {
         color: var(--hex-white);
         font-style: normal;
-        font-weight: 500;
+        font-weight: 400;
         font-size: 14px;
         line-height: 100%;
-        margin-bottom: 10px;
+        margin: 12px 0;
       }
 
-      .interval uigc-toggle-button-group {
+      .interval div.selection {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+      }
+
+      .interval div.selection > uigc-input {
+        max-width: 130px;
+        height: 46px;
+        margin-right: 12px;
+      }
+
+      .interval div.selection > uigc-toggle-button-group {
         width: 100%;
       }
 
@@ -118,24 +137,35 @@ export class DcaForm extends BaseElement {
   ];
 
   private getEstDate(): string {
-    if (!this.amountIn || !this.amountInBudget) {
-      return null;
+    const freq = this.frequencyManual || this.frequency;
+    if (freq) {
+      const est = Number(freq) * this.tradesNo * MINUTE_MS;
+      return this._dayjs().add(est, 'millisecond').format('DD-MM-YYYY HH:mm');
     }
-
-    const aIn = Number(this.amountIn);
-    const aInbudget = Number(this.amountInBudget);
-    const reps = Math.floor(aInbudget / aIn);
-    return this._dayjs()
-      .add(reps * this.est, 'millisecond')
-      .format('DD-MM-YYYY HH:mm');
+    return null;
   }
 
   private getEstTime(): string {
-    if (this.intervalBlock && this.est) {
-      return this._humanizer.humanize(this.est, { round: true, largest: 2 });
-    } else {
-      return null;
+    const freq = this.frequencyManual || this.frequency;
+    if (freq) {
+      const est = Number(freq) * this.tradesNo * MINUTE_MS;
+      return this._humanizer.humanize(est, {
+        round: true,
+        largest: 2,
+      });
     }
+    return null;
+  }
+
+  private getEstFreq(): string {
+    const freq = this.frequencyManual || this.frequency;
+    if (freq) {
+      return this._humanizer.humanize(Number(freq) * MINUTE_MS, {
+        round: true,
+        largest: 2,
+      });
+    }
+    return null;
   }
 
   private toggleAdvanced() {
@@ -150,15 +180,6 @@ export class DcaForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('schedule-click', options));
   }
 
-  onMaxPriceChange(e: any) {
-    const options = {
-      bubbles: true,
-      composed: true,
-      detail: { id: 'maxPrice', asset: e.detail.asset, value: e.detail.value },
-    };
-    this.dispatchEvent(new CustomEvent('asset-input-change', options));
-  }
-
   onIntervalChange(e: any) {
     const options = {
       bubbles: true,
@@ -168,32 +189,44 @@ export class DcaForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('interval-change', options));
   }
 
-  onIntervalBlockChange(e: any) {
+  onIntervalMultiplierChange(e: any) {
     const options = {
       bubbles: true,
       composed: true,
       detail: { value: e.detail.value },
     };
-    this.dispatchEvent(new CustomEvent('interval-block-change', options));
+    this.dispatchEvent(new CustomEvent('interval-mul-change', options));
+  }
+
+  onFrequencyChange(e: any) {
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: { value: e.detail.value },
+    };
+    this.dispatchEvent(new CustomEvent('frequency-change', options));
   }
 
   infoSummaryTemplate() {
-    const int = this.intervalBlock
-      ? this.getEstTime()
-      : this.interval.toLowerCase();
+    const frequency = this.getEstFreq();
+    const time = this.getEstTime();
+
     return html` <span class="label">${i18n.t('dca.summary')}</span>
       <span>
-        <span class="value">Spend</span>
+        <span class="value">Swap a total of</span>
         <span class="value highlight"
-          >${this.amountIn} ${this.assetIn?.symbol}</span
+          >${humanizeAmount(this.amountInBudget)} ${this.assetIn?.symbol}</span
         >
-        <span class="value"
-          >every ~${int} to buy ${this.assetOut?.symbol} with a total budget
-          of</span
-        >
+        <span class="value">for</span>
+        <span class="value highlight">${this.assetOut?.symbol}</span>
+        <span class="value">over</span>
+        <span class="value highlight">${time}</span>
+        <span class="value">with</span>
         <span class="value highlight"
-          >${this.amountInBudget} ${this.assetIn?.symbol}</span
+          >${humanizeAmount(this.amountIn)} ${this.assetIn?.symbol}</span
         >
+        <span class="value">trades every</span>
+        <span class="value highlight">${frequency}</span>
       </span>`;
   }
 
@@ -320,95 +353,69 @@ export class DcaForm extends BaseElement {
     `;
   }
 
-  formAssetInTemplate() {
-    const error = this.error['minAmountTooLow'];
+  formIntervalTemplate() {
+    return html` <div class="interval">
+      <div class="section">Over the period of</div>
+      <div class="selection">
+        <uigc-input
+          fit
+          id="slippage"
+          class="slippage-input"
+          type="number"
+          value=${this.intervalMultiplier}
+          min=${1}
+          placeholder="${i18n.t('dca.settings.custom')}"
+          @input-change=${(e: CustomEvent) =>
+            this.onIntervalMultiplierChange(e)}
+        ></uigc-input>
+        <uigc-toggle-button-group
+          .value=${this.interval}
+          @toggle-button-click=${(e: CustomEvent) => {
+            this.onIntervalChange(e);
+          }}
+        >
+          ${INTERVAL_DCA.map(
+            (s: string) =>
+              html`
+                <uigc-toggle-button tab value=${s}
+                  >${s.toUpperCase()}</uigc-toggle-button
+                >
+              `,
+          )}
+        </uigc-toggle-button-group>
+      </div>
+    </div>`;
+  }
+
+  formMaxBudgetTemplate() {
+    const error = this.error['balanceTooLow'] || this.error['minBudgetTooLow'];
     return html` <uigc-asset-transfer
       id="assetIn"
-      title="Swap"
+      title=${i18n.t('dca.form.budget')}
       ?readonly=${!this.loaded}
       .readonly=${!this.loaded}
       ?selectable=${this.loaded}
       .selectable=${this.loaded}
       ?error=${error}
       .error=${error}
-      dense
-      .asset=${this.assetIn?.symbol}
-      .amount=${this.amountIn}
-      .amountUsd=${this.amountInUsd}
-    >
-      ${this.formAssetTemplate(this.assetIn, 'asset')}
-    </uigc-asset-transfer>`;
-  }
-
-  formIntervalTemplate() {
-    return html` <div class="interval">
-      <span>Every</span>
-      <uigc-toggle-button-group
-        .value=${this.intervalBlock ? null : this.interval}
-        @toggle-button-click=${(e: CustomEvent) => {
-          this.onIntervalChange(e);
-        }}
-      >
-        ${INTERVAL_DCA.map(
-          (s: string) =>
-            html`
-              <uigc-toggle-button tab value=${s}
-                >${s.toUpperCase()}</uigc-toggle-button
-              >
-            `,
-        )}
-      </uigc-toggle-button-group>
-    </div>`;
-  }
-
-  formAssetOutTemplate() {
-    return html` <uigc-selector
-      title="For"
-      ?readonly=${!this.loaded}
-      .readonly=${!this.loaded}
-      .item=${this.assetOut?.symbol}
-    >
-      ${this.formAssetTemplate(this.assetOut)}
-    </uigc-selector>`;
-  }
-
-  formMaxBudgetTemplate() {
-    const error =
-      this.error['balanceTooLow'] ||
-      this.error['budgetTooLow'] ||
-      this.error['minBudgetTooLow'];
-    return html` <uigc-asset-transfer
-      id="assetInBudget"
-      title=${i18n.t('dca.settings.budget')}
-      ?readonly=${!this.loaded}
-      .readonly=${!this.loaded}
-      ?error=${error}
-      .error=${error}
-      dense
       asset=${this.assetIn?.symbol}
       unit=${this.assetIn?.symbol}
       amount=${this.amountInBudget}
-      .selectable=${false}
     >
       ${this.formAssetTemplate(this.assetIn, 'asset')}
       ${this.formAssetBalanceTemplate(this.balanceIn)}
     </uigc-asset-transfer>`;
   }
 
-  formMaxBuyPriceTemplate(classInfo: ClassInfo) {
-    return html`
-      <uigc-asset-input
-        class=${classMap(classInfo)}
-        field
-        .amount=${this.maxPrice}
-        .asset=${this.assetOut?.symbol}
-        @asset-input-change=${(e: CustomEvent) => this.onMaxPriceChange(e)}
-      >
-        <span class="adornment" slot="inputAdornment"
-          >Max <span class="highlight">Buy</span> Price</span
-        >
-      </uigc-asset-input>
-    `;
+  formAssetOutTemplate() {
+    return html` <uigc-selector
+      title=${i18n.t('dca.form.get')}
+      ?readonly=${!this.loaded}
+      .readonly=${!this.loaded}
+      .item=${this.assetOut?.symbol}
+    >
+      ${this.formAssetTemplate(this.assetOut)}
+    </uigc-selector>`;
   }
 
   formAdvancedSwitch() {
@@ -429,21 +436,21 @@ export class DcaForm extends BaseElement {
     `;
   }
 
-  formBlockPeriodTemplate(classInfo: ClassInfo) {
+  formFrequencyTemplate() {
+    const error = this.error['frequencyOutOfRange'];
     return html`
       <uigc-textfield
-        class=${classMap(classInfo)}
         field
         number
-        ?error=${this.error['blockPeriodInvalid']}
-        .error=${this.error['blockPeriodInvalid']}
-        .placeholder=${0}
-        .value=${this.intervalBlock}
-        .desc=${this.getEstTime()}
-        @input-change=${(e: CustomEvent) => this.onIntervalBlockChange(e)}
+        ?error=${error}
+        .error=${error}
+        .min=${1}
+        .placeholder=${this.frequency}
+        .value=${this.frequencyManual}
+        @input-change=${(e: CustomEvent) => this.onFrequencyChange(e)}
       >
         <span class="adornment" slot="inputAdornment"
-          >${i18n.t('dca.settings.interval')}</span
+          >${i18n.t('dca.form.interval')}</span
         >
       </uigc-textfield>
     `;
@@ -460,14 +467,16 @@ export class DcaForm extends BaseElement {
     };
     const advancedClasses = {
       hidden: this.advanced == false,
+      advanced: true,
     };
     return html`
       <slot name="header"></slot>
       <div class="invest">
-        ${this.formAssetInTemplate()} ${this.formIntervalTemplate()}
-        ${this.formAssetOutTemplate()} ${this.formMaxBudgetTemplate()}
-        ${this.formAdvancedSwitch()}
-        ${this.formBlockPeriodTemplate(advancedClasses)}
+        ${this.formMaxBudgetTemplate()} ${this.formAssetOutTemplate()}
+        ${this.formIntervalTemplate()} ${this.formAdvancedSwitch()}
+        <div class=${classMap(advancedClasses)}>
+          ${this.formFrequencyTemplate()}
+        </div>
       </div>
       <div class=${classMap(infoClasses)}>
         <div class="row summary show">${this.infoSummaryTemplate()}</div>

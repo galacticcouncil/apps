@@ -19,6 +19,7 @@ export const DEFAULT_TRADE_CONFIG: TradeConfig = {
 
 export const DEFAULT_DCA_CONFIG: DcaConfig = {
   slippage: '3',
+  maxRetries: 7,
 };
 
 export type TradeData = {
@@ -34,6 +35,7 @@ export interface TradeConfig {
 
 export interface DcaConfig {
   slippage: string;
+  maxRetries: number;
 }
 
 export enum Ecosystem {
@@ -93,7 +95,7 @@ const storedTradeSettings = getObj<TradeConfig>(TRADE_SETTINGS_KEY);
 
 // Initialize state from storage
 accountCursor.reset(storedAccount);
-dcaSettingsCursor.reset(storedDcaSettings || DEFAULT_DCA_CONFIG);
+dcaSettingsCursor.reset({ ...DEFAULT_DCA_CONFIG, ...storedDcaSettings });
 tradeSettingsCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...storedTradeSettings });
 
 /**
