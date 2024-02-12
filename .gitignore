@@ -4,8 +4,9 @@ node_modules/
 # build folders
 packages/*/build
 
-# compile folders
-examples/*/out
+# public folders (js)
+packages/*/public/**/*.js
+packages/*/public/**/*.js.map
 
 # turbo files
 .turbo

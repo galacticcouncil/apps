@@ -26,7 +26,7 @@
   "module": "./build/index.mjs",
   "types": "./build/types/index.d.ts",
   "scripts": {
-    "build": "node ./esbuild.config.mjs",
+    "build": "node ./esbuild.dist.mjs",
     "build:watch": "node ./esbuild.dev.mjs",
     "clean": "rimraf build",
     "dev": "npm run start",

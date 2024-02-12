@@ -26,15 +26,14 @@
   "module": "./build/index.mjs",
   "types": "./build/types/index.d.ts",
   "scripts": {
-    "build": "node ./esbuild.config.mjs",
+    "build": "node ./esbuild.dist.mjs",
     "build:watch": "node ./esbuild.dev.mjs",
     "cem": "npx custom-elements-manifest analyze --litelement --exclude 'public/app.js' --outdir public",
     "cem:watch": "npx custom-elements-manifest analyze --watch --litelement --exclude 'public/app.js' --outdir public",
     "clean": "rimraf build",
-    "dev": "npm run cem:watch & npm run start",
+    "dev": "npm run cem:watch & node ../../esbuild.dev.mjs",
     "link": "npm ln",
-    "postbuild": "tsc --emitDeclarationOnly --outDir build/types",
-    "start": "node ../../esbuild.server.mjs"
+    "postbuild": "tsc --emitDeclarationOnly --outDir build/types"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.6.6",
