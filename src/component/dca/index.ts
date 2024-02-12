@@ -570,13 +570,11 @@ export class DcaApp extends PoolApp {
   protected onIntervalChange({ detail }: CustomEvent) {
     this.dca.interval = detail.value;
     this.updateTradeSize();
-    //this.updateEstimated();
   }
 
   protected onIntervalMultiplierChange({ detail }: CustomEvent) {
     this.dca.intervalMultiplier = detail.value;
     this.updateTradeSize();
-    //this.updateEstimated();
   }
 
   protected onFrequencyChange({ detail: { value } }: CustomEvent) {
@@ -707,7 +705,6 @@ export class DcaApp extends PoolApp {
   }
 
   render() {
-    console.log(this.dca);
     return html`
       <div class="layout-root">
         ${this.tradeChartTab()} ${this.dcaFormTab()} ${this.dcaSettingsTab()}
