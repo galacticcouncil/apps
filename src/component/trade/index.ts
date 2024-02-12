@@ -16,7 +16,6 @@ import {
   TradeInfo,
   TradeTwap,
   TWAP_BLOCK_PERIOD,
-  TWAP_RETRIES,
   TradeApi,
 } from '../../api/trade';
 import {
@@ -384,7 +383,7 @@ export class TradeApp extends PoolApp {
     );
   }
 
-  private recalculateTrade() {
+  protected recalculateTrade() {
     if (!this.isSwapSelected() || this.isSwapEmpty() || this.isPoolError()) {
       this.recalculateSpotPrice();
     } else if (this.trade.assetIn.symbol == this.asset.active) {
@@ -967,7 +966,7 @@ export class TradeApp extends PoolApp {
 
   private async onTwapClick() {
     const account = this.account.state;
-    const { slippage } = this.settings.state;
+    const { slippageTwap, maxRetries } = this.settings.state;
 
     if (account) {
       const { assetIn } = this.trade;
@@ -979,9 +978,9 @@ export class TradeApp extends PoolApp {
         {
           owner: account.address,
           period: TWAP_BLOCK_PERIOD,
-          maxRetries: TWAP_RETRIES,
+          maxRetries,
           totalAmount: totalBudget.toFixed(),
-          slippage: Number(slippage) * 10000,
+          slippage: Number(slippageTwap) * 10000,
           order: twap.order,
         },
         null,
@@ -1231,6 +1230,7 @@ export class TradeApp extends PoolApp {
         @asset-switch-click=${this.onAssetSwitchClick}
         @swap-click=${() => this.onSwapClick()}
         @twap-click=${() => this.onTwapClick()}
+        @slippage-click=${() => this.changeTab(TradeTab.TradeSettings)}
       >
         <div class="header" slot="header">
           <uigc-typography variant="title" gradient

@@ -1,5 +1,9 @@
 {
   "name": "@galacticcouncil/apps",
+<<<<<<< HEAD
+=======
+  "version": "2.4.5",
+>>>>>>> origin/master
   "private": false,
   "bugs": {
     "url": "https://github.com/galacticcouncil/apps/issues"
@@ -24,5 +28,34 @@
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
     "typescript": "^5.0.4"
+<<<<<<< HEAD
+=======
+  },
+  "dependencies": {
+    "@cfx-kit/wallet-avatar": "0.0.5",
+    "@talismn/connect-wallets": "^1.2.1",
+    "@tanstack/table-core": "^8.5.17",
+    "@thi.ng/atom": "^5.1.3",
+    "@thi.ng/cache": "^2.1.35",
+    "buffer": "^6.0.3",
+    "dayjs": "^1.11.7",
+    "humanize-duration-ts": "^2.1.1",
+    "i18next": "^22.4.8",
+    "lightweight-charts": "^4.0.1",
+    "short-uuid": "^4.2.0",
+    "ts-debounce": "^4.0.0",
+    "viem": "^1.19.1"
+  },
+  "peerDependencies": {
+    "@galacticcouncil/sdk": "^1.1.8",
+    "@galacticcouncil/ui": "^2.0.3",
+    "@galacticcouncil/xcm-cfg": "^1.4.1",
+    "@galacticcouncil/xcm-sdk": "^2.1.0",
+    "@polkadot/api": "^10.9.1",
+    "@polkadot/extension-inject": "^0.44.6",
+    "@vaadin/router": "^1.7.4",
+    "graphql-request": "^6.1.0",
+    "jdenticon": "^3.2.0"
+>>>>>>> origin/master
   }
 }

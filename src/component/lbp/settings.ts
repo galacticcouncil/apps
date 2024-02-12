@@ -12,9 +12,8 @@ import {
 import { DatabaseController } from '../../db.ctrl';
 
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
-const SLIPPAGE_TWAP_OPTS = ['0.5', '1', '3', '5'];
 
-@customElement('gc-trade-settings')
+@customElement('gc-lbp-settings')
 export class TradeSettings extends LitElement {
   protected settings = new DatabaseController<TradeConfig>(
     this,
@@ -106,7 +105,7 @@ export class TradeSettings extends LitElement {
 
       .adornment {
         white-space: nowrap;
-        font-weight: 600;
+        font-weight: 500;
         font-size: 14px;
         line-height: 14px;
         color: #ffffff;
@@ -129,7 +128,6 @@ export class TradeSettings extends LitElement {
       return;
     }
 
-    console.log(value);
     if (value) {
       tradeSettingsCursor.resetIn([propName], value);
     } else {
@@ -148,27 +146,7 @@ export class TradeSettings extends LitElement {
     this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
-  onSlippageTwapChange({ detail: { value } }) {
-    this.onChange(value, 'slippageTwap');
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('slippage-change', options));
-  }
-
-  onMaxRetriesChange({ detail: { value } }) {
-    if (value !== '') {
-      this.onChange(value, 'maxRetries');
-    }
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('slippage-change', options));
-  }
-
-  formTradeTemplate() {
+  formSlippageTemplate() {
     const { slippage } = this.settings.state;
     const slippageOpts = new Set(SLIPPAGE_OPTS);
     const custom = slippageOpts.has(slippage) ? null : slippage;
@@ -176,7 +154,6 @@ export class TradeSettings extends LitElement {
     return html` <div class="settings">
       <uigc-toggle-button-group
         value=${slippage}
-        label=${'Slippage'}
         @toggle-button-click=${(e: CustomEvent) => this.onSlippageChange(e)}
         @input-change=${(e: CustomEvent) => this.onSlippageChange(e)}
       >
@@ -193,50 +170,12 @@ export class TradeSettings extends LitElement {
     </div>`;
   }
 
-  formTwapTemplate() {
-    const { slippageTwap, maxRetries } = this.settings.state;
-    const slippageOpts = new Set(SLIPPAGE_TWAP_OPTS);
-    const custom = slippageOpts.has(slippageTwap) ? null : slippageTwap;
-
-    return html` <div class="settings">
-      <uigc-toggle-button-group
-        value=${slippageTwap}
-        label=${'Slippage'}
-        @toggle-button-click=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
-        @input-change=${(e: CustomEvent) => this.onSlippageTwapChange(e)}
-      >
-        ${SLIPPAGE_TWAP_OPTS.map(
-          (s: string) =>
-            html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `,
-        )}
-        <uigc-textfield field number .min=${0} .max=${100} .value=${custom}>
-          <span class="endAdornment" slot="endAdornment">%</span>
-        </uigc-textfield>
-      </uigc-toggle-button-group>
-      <uigc-textfield
-        field
-        number
-        .min=${0}
-        .max=${10}
-        .placeholder=${maxRetries}
-        .value=${maxRetries}
-        @input-change=${(e: CustomEvent) => this.onMaxRetriesChange(e)}
-      >
-        <span class="adornment" slot="inputAdornment"
-          >${i18n.t('trade.settings.maxRetries.label')}</span
-        >
-      </uigc-textfield>
-    </div>`;
-  }
-
   render() {
     return html`
       <slot name="header"></slot>
       <div class="content">
-        <div class="section">${i18n.t('trade.settings.single')}</div>
-        ${this.formTradeTemplate()}
-        <div class="section">${i18n.t('trade.settings.twap')}</div>
-        ${this.formTwapTemplate()}
+        <div class="section">${i18n.t('trade.settings.slippage')}</div>
+        ${this.formSlippageTemplate()}
       </div>
     `;
   }

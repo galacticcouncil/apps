@@ -1,6 +1,6 @@
 import { Amount, BigNumber, bnum, scale } from '@galacticcouncil/sdk';
 
-export const MIN_NATIVE_AMOUNT = '500000000000000';
+export const MIN_NATIVE_AMOUNT = '1000000000000000';
 
 export function formatAmount(amount: BigNumber, decimals: number): string {
   return amount.shiftedBy(-1 * decimals).toString();

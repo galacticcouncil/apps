@@ -13,20 +13,22 @@ export function buildPriceQuery(
 ) {
   return `
     WITH nor_trades AS (
-      SELECT 
+      SELECT
         timestamp,
         block.height AS block,
-        args->>'who' AS who,
-        name AS operation,
+        event.args->>'who' AS who,
+        event.name AS operation,
         token_metadata_in.symbol AS asset_in,
         token_metadata_out.symbol AS asset_out,
-        (args->>'amountIn')::numeric / (10 ^ token_metadata_in.decimals) AS amount_in,
-        (args->>'amountOut')::numeric / (10 ^ token_metadata_out.decimals) AS amount_out
-      FROM event 
+        (event.args->>'amountIn')::numeric / (10 ^ token_metadata_in.decimals) AS amount_in,
+        (event.args->>'amountOut')::numeric / (10 ^ token_metadata_out.decimals) AS amount_out
+      FROM event
       INNER JOIN block ON block_id = block.id
-      INNER JOIN token_metadata AS token_metadata_in ON (args->>'assetIn')::integer = token_metadata_in.id
-      INNER JOIN token_metadata AS token_metadata_out ON (args->>'assetOut')::integer = token_metadata_out.id
-      WHERE name IN ('Omnipool.BuyExecuted', 'Omnipool.SellExecuted', 'Router.RouteExecuted')
+      INNER JOIN call ON call_id = call.id
+      INNER JOIN token_metadata AS token_metadata_in ON (event.args->>'assetIn')::integer = token_metadata_in.id
+      INNER JOIN token_metadata AS token_metadata_out ON (event.args->>'assetOut')::integer = token_metadata_out.id
+      WHERE call.name != 'Router.buy'
+        AND event.name IN ('Omnipool.BuyExecuted', 'Omnipool.SellExecuted', 'Router.RouteExecuted')
         AND timestamp BETWEEN '${INIT_DATE}' AND '${endOfDay}'
     ),
     pair_price AS (

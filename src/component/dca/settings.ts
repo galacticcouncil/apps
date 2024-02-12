@@ -1,37 +1,20 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
 import { baseStyles } from '../styles/base.css';
-import { dcaSettingsCursor, DEFAULT_DCA_CONFIG } from '../../db';
-import { debounce } from 'ts-debounce';
-import IMask from 'imask';
+import { DcaConfig, dcaSettingsCursor, DEFAULT_DCA_CONFIG } from '../../db';
+import { DatabaseController } from '../../db.ctrl';
 
-const SLIPPAGE_OPTS = ['0.5', '1', '1.5', '3'];
+const SLIPPAGE_OPTS = ['1', '1.5', '3', '5'];
 
 @customElement('gc-dca-settings')
 export class DcaSettings extends LitElement {
-  private _slippageHandler = null;
-  private _slippageMask = null;
-
-  @state() slippage: String = null;
-  @state() customSlippage: String = null;
-
-  constructor() {
-    super();
-    this.initSlippage();
-    this._slippageHandler = debounce(this.onSlippageChange, 300);
-  }
-
-  private initSlippage() {
-    const slippageOpts = new Set(SLIPPAGE_OPTS);
-    const slippage = dcaSettingsCursor.deref().slippage;
-    this.slippage = slippage;
-    if (!slippageOpts.has(slippage)) {
-      this.customSlippage = slippage;
-    }
-  }
+  protected settings = new DatabaseController<DcaConfig>(
+    this,
+    dcaSettingsCursor,
+  );
 
   static styles = [
     baseStyles,
@@ -109,36 +92,43 @@ export class DcaSettings extends LitElement {
         box-sizing: border-box;
         justify-content: space-between;
       }
+
+      .adornment {
+        white-space: nowrap;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 14px;
+        color: #ffffff;
+      }
+
+      .endAdornment {
+        white-space: nowrap;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 14px;
+        color: #ffffff;
+      }
     `,
   ];
 
-  changeSlippage(changeDetails: any) {
-    this.slippage = changeDetails.value;
-    this.customSlippage = null;
-  }
-
-  changeSlippageCustom(changeDetails: any) {
-    this.slippage = changeDetails.value;
-    this.customSlippage = changeDetails.value;
-  }
-
-  onSlippageChange() {
-    const value = this.customSlippage
-      ? this._slippageMask.unmaskedValue
-      : this.slippage;
-    const currentValue = dcaSettingsCursor.deref();
+  private onChange(value: any, propName: any) {
+    const settings = this.settings.state;
+    const currentValue = settings[propName];
     if (currentValue == value) {
       return;
     }
 
     if (value) {
-      dcaSettingsCursor.resetIn(['slippage'], value);
+      dcaSettingsCursor.resetIn([propName], value);
     } else {
-      const defaultSlippage = DEFAULT_DCA_CONFIG.slippage;
-      this.slippage = defaultSlippage;
-      dcaSettingsCursor.resetIn(['slippage'], defaultSlippage);
+      const defaultValue = DEFAULT_DCA_CONFIG[propName];
+      this[propName] = defaultValue;
+      dcaSettingsCursor.resetIn([propName], defaultValue);
     }
+  }
 
+  onSlippageChange({ detail: { value } }) {
+    this.onChange(value, 'slippage');
     const options = {
       bubbles: true,
       composed: true,
@@ -146,69 +136,60 @@ export class DcaSettings extends LitElement {
     this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
-  override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('customSlippage') && this._slippageMask) {
-      if (this.customSlippage) {
-        this._slippageMask.unmaskedValue = this.customSlippage;
-      } else {
-        this._slippageMask.unmaskedValue = '';
-      }
+  onMaxRetriesChange({ detail: { value } }) {
+    if (value !== '') {
+      this.onChange(value, 'maxRetries');
     }
-    super.update(changedProperties);
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
-  override async firstUpdated() {
-    const slippageInput = this.shadowRoot.getElementById('slippage');
-    this._slippageMask = IMask(slippageInput, {
-      mask: Number,
-      scale: 1,
-      signed: false,
-      padFractionalZeros: false,
-      normalizeZeros: true,
-      radix: '.',
-      mapToRadix: ['.'],
-      min: 0,
-      max: 100,
-    });
-  }
+  formSlippageTemplate() {
+    const { slippage, maxRetries } = this.settings.state;
+    const slippageOpts = new Set(SLIPPAGE_OPTS);
+    const custom = slippageOpts.has(slippage) ? null : slippage;
 
-  override disconnectedCallback() {
-    super.disconnectedCallback();
-    if (this._slippageMask) {
-      this._slippageMask.destroy();
-    }
+    return html` <div class="settings">
+      <uigc-toggle-button-group
+        value=${slippage}
+        label=${'Slippage'}
+        @toggle-button-click=${(e: CustomEvent) => this.onSlippageChange(e)}
+        @input-change=${(e: CustomEvent) => this.onSlippageChange(e)}
+      >
+        ${SLIPPAGE_OPTS.map(
+          (s: string) =>
+            html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `,
+        )}
+        <uigc-textfield field number .min=${0} .max=${100} .value=${custom}>
+          <span class="endAdornment" slot="endAdornment">%</span>
+        </uigc-textfield>
+      </uigc-toggle-button-group>
+      <div class="desc">${i18n.t('dca.settings.slippageInfo1')}</div>
+      <uigc-textfield
+        field
+        number
+        .min=${0}
+        .max=${10}
+        .placeholder=${maxRetries}
+        .value=${maxRetries}
+        @input-change=${(e: CustomEvent) => this.onMaxRetriesChange(e)}
+      >
+        <span class="adornment" slot="inputAdornment"
+          >${i18n.t('trade.settings.maxRetries.label')}</span
+        >
+      </uigc-textfield>
+    </div>`;
   }
 
   render() {
     return html`
       <slot name="header"></slot>
-      <div class="section">${i18n.t('dca.settings.slippage')}</div>
-      <div class="settings">
-        <uigc-toggle-button-group
-          value=${this.slippage}
-          @toggle-button-click=${(e: CustomEvent) => {
-            this.changeSlippage(e.detail);
-            this._slippageHandler();
-          }}
-          @input-change=${(e: CustomEvent) => {
-            this.changeSlippageCustom(e.detail);
-            this._slippageHandler();
-          }}
-        >
-          ${SLIPPAGE_OPTS.map(
-            (s: string) =>
-              html` <uigc-toggle-button value=${s}>${s}%</uigc-toggle-button> `,
-          )}
-          <uigc-input
-            id="slippage"
-            class="slippage-input"
-            type="text"
-            value=${this.customSlippage}
-            placeholder="${i18n.t('dca.settings.custom')}"
-          ></uigc-input>
-        </uigc-toggle-button-group>
-        <div class="desc">${i18n.t('dca.settings.slippageInfo1')}</div>
-      </div>
+      <!--       <div class="section">${i18n.t('dca.settings.slippage')}</div>
+ -->
+      ${this.formSlippageTemplate()}
     `;
   }
 }
