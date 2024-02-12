@@ -41,7 +41,6 @@ export class DcaForm extends BaseElement {
   @property({ type: String }) tradeFee = '0';
   @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) tradesNo = null;
-  @property({ type: String }) est = null;
   @property({ attribute: false }) error = {};
   @state() advanced: boolean = false;
 
