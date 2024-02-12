@@ -3,7 +3,7 @@ import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
-import { DcaConfig, dcaSettingsCursor, DEFAULT_DCA_CONFIG } from 'db';
+import { DcaConfig, DcaConfigCursor, DEFAULT_DCA_CONFIG } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { baseStyles } from 'styles/base.css';
 
@@ -11,10 +11,7 @@ const SLIPPAGE_OPTS = ['1', '1.5', '3', '5'];
 
 @customElement('gc-dca-settings')
 export class DcaSettings extends LitElement {
-  protected settings = new DatabaseController<DcaConfig>(
-    this,
-    dcaSettingsCursor,
-  );
+  protected settings = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
 
   static styles = [
     baseStyles,
@@ -111,11 +108,11 @@ export class DcaSettings extends LitElement {
     }
 
     if (value) {
-      dcaSettingsCursor.resetIn([propName], value);
+      DcaConfigCursor.resetIn([propName], value);
     } else {
       const defaultValue = DEFAULT_DCA_CONFIG[propName];
       this[propName] = defaultValue;
-      dcaSettingsCursor.resetIn([propName], defaultValue);
+      DcaConfigCursor.resetIn([propName], defaultValue);
     }
   }
 

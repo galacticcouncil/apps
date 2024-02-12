@@ -5,7 +5,7 @@ import * as i18n from 'i18next';
 
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
-import { Account, Chain, chainCursor } from 'db';
+import { Account, Chain, ChainCursor } from 'db';
 import { DatabaseController } from 'db.ctrl';
 
 import '@galacticcouncil/ui';
@@ -19,7 +19,7 @@ import { OrdersApi } from './api';
 
 @customElement('gc-trade-orders')
 export class TradeOrders extends BaseApp {
-  private chain = new DatabaseController<Chain>(this, chainCursor);
+  private chain = new DatabaseController<Chain>(this, ChainCursor);
   private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
 

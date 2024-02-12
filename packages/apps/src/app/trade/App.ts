@@ -14,7 +14,7 @@ import {
   TradeApi,
 } from 'api/trade';
 import { PoolApp } from 'app/PoolApp';
-import { Account, TradeConfig, tradeSettingsCursor } from 'db';
+import { Account, TradeConfig, TradeConfigCursor } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
@@ -67,7 +67,7 @@ import {
 export class TradeApp extends PoolApp {
   protected settings = new DatabaseController<TradeConfig>(
     this,
-    tradeSettingsCursor,
+    TradeConfigCursor,
   );
 
   protected tx: Transaction = null;

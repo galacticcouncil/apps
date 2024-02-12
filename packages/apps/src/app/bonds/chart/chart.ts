@@ -11,7 +11,7 @@ import {
 } from 'lightweight-charts';
 
 import { TimeApi } from 'api/time';
-import { Chain, TradeData, chainCursor, tradeDataCursor } from 'db';
+import { Chain, ChainCursor, TradeData, TradeDataCursor } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { BaseElement } from 'element/BaseElement';
 import { baseStyles } from 'styles/base.css';
@@ -43,7 +43,7 @@ const CHART_PADDING_RATIO = 0.8;
 
 @customElement('gc-bonds-chart')
 export class BondsChart extends BaseElement {
-  protected chain = new DatabaseController<Chain>(this, chainCursor);
+  protected chain = new DatabaseController<Chain>(this, ChainCursor);
 
   protected chartApi: ChartApi = null;
   protected timeApi: TimeApi = null;
@@ -119,17 +119,17 @@ export class BondsChart extends BaseElement {
   }
 
   private getRecord(): TradeData {
-    const cache = tradeDataCursor.deref();
+    const cache = TradeDataCursor.deref();
     return cache.get(this.getDataKey());
   }
 
   private hasRecord(): boolean {
-    const cache = tradeDataCursor.deref();
+    const cache = TradeDataCursor.deref();
     return cache.has(this.getDataKey());
   }
 
   private storeRecord(data: TradeData) {
-    const cache = tradeDataCursor.deref();
+    const cache = TradeDataCursor.deref();
     cache.set(this.getDataKey(), data);
   }
 
@@ -482,7 +482,7 @@ export class BondsChart extends BaseElement {
       chart: true,
       loading:
         this.chartState != ChartState.Loaded ||
-        tradeDataCursor.deref().length == 0,
+        TradeDataCursor.deref().length == 0,
     };
     return html`
       <slot name="header"></slot>

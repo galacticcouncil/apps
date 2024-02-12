@@ -2,7 +2,7 @@ import { html, css } from 'lit';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { Account, Chain, accountCursor, chainCursor } from 'db';
+import { Account, AccountCursor, Chain, ChainCursor } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { Datagrid } from 'element/datagrid';
 import { TxInfo, TxMessage } from 'signer/types';
@@ -18,8 +18,8 @@ import { Order } from './types';
 import 'element/id/asset';
 
 export abstract class OrdersDatagrid extends Datagrid<Order> {
-  protected chain = new DatabaseController<Chain>(this, chainCursor);
-  protected account = new DatabaseController<Account>(this, accountCursor);
+  protected chain = new DatabaseController<Chain>(this, ChainCursor);
+  protected account = new DatabaseController<Account>(this, AccountCursor);
 
   static styles = [
     Datagrid.styles,

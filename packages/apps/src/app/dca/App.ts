@@ -7,7 +7,7 @@ import i18n from 'i18next';
 import enLocales from './translation.en.json';
 
 import { PoolApp } from 'app/PoolApp';
-import { Account, dcaSettingsCursor } from 'db';
+import { Account, DcaConfigCursor } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
@@ -361,7 +361,7 @@ export class DcaApp extends PoolApp {
         this.blockTime,
         periodMsec,
       );
-      const slippage = dcaSettingsCursor.deref().slippage;
+      const slippage = DcaConfigCursor.deref().slippage;
       const sell = await router.getBestSell(
         assetIn.id,
         assetOut.id,

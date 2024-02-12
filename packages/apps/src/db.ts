@@ -9,7 +9,7 @@ import { SingleValueData } from 'lightweight-charts';
 
 import { getObj, setObj } from './storage';
 
-export const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
+const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
 export const DEFAULT_TRADE_CONFIG: TradeConfig = {
   slippage: '1',
@@ -55,46 +55,54 @@ export interface Account {
   provider: string;
 }
 
-export interface State {
+interface State {
   account: Account;
   chain: Chain;
-  tradeSettings: TradeConfig;
-  tradeData: TLRUCache<string, TradeData>;
-  dcaSettings: DcaConfig;
+  dca: {
+    config: DcaConfig;
+  };
+  trade: {
+    config: TradeConfig;
+    data: TLRUCache<string, TradeData>;
+  };
   wallet: Wallet;
 }
 
 const db = defAtom<State>({
   account: null,
   chain: null,
-  dcaSettings: null,
-  tradeData: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
-  tradeSettings: null,
+  dca: {
+    config: null,
+  },
+  trade: {
+    config: null,
+    data: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
+  },
   wallet: null,
 });
 
 // Cursors (Direct & Immutable access to a nested value)
-export const accountCursor = defCursor(db, ['account']);
-export const chainCursor = defCursor(db, ['chain']);
-export const dcaSettingsCursor = defCursor(db, ['dcaSettings']);
-export const tradeSettingsCursor = defCursor(db, ['tradeSettings']);
-export const tradeDataCursor = defCursor(db, ['tradeData']);
-export const walletCursor = defCursor(db, ['wallet']);
+export const AccountCursor = defCursor(db, ['account']);
+export const ChainCursor = defCursor(db, ['chain']);
+export const DcaConfigCursor = defCursor(db, ['dca', 'config']);
+export const TradeConfigCursor = defCursor(db, ['trade', 'config']);
+export const TradeDataCursor = defCursor(db, ['trade', 'data']);
+export const WalletCursor = defCursor(db, ['wallet']);
 
 // Storage keys
 const ACCOUNT_KEY = 'trade.account';
-const TRADE_SETTINGS_KEY = 'trade.settings';
-const DCA_SETTINGS_KEY = 'dca.settings';
+const TRADE_CONFIG_KEY = 'trade.settings';
+const DCA_CONFIG_KEY = 'dca.settings';
 
-// Load storage values
-const storedAccount = getObj<Account>(ACCOUNT_KEY);
-const storedDcaSettings = getObj<DcaConfig>(DCA_SETTINGS_KEY);
-const storedTradeSettings = getObj<TradeConfig>(TRADE_SETTINGS_KEY);
+// Load current config
+const currentAccount = getObj<Account>(ACCOUNT_KEY);
+const currentTradeConfig = getObj<TradeConfig>(TRADE_CONFIG_KEY);
+const currentDcaConfig = getObj<DcaConfig>(DCA_CONFIG_KEY);
 
-// Initialize state from storage
-accountCursor.reset(storedAccount);
-dcaSettingsCursor.reset(storedDcaSettings || DEFAULT_DCA_CONFIG);
-tradeSettingsCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...storedTradeSettings });
+// Initialize state from current config
+AccountCursor.reset(currentAccount);
+TradeConfigCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...currentTradeConfig });
+DcaConfigCursor.reset({ ...DEFAULT_DCA_CONFIG, ...currentDcaConfig });
 
 /**
  * Create watchdog to update storage on state change
@@ -110,7 +118,7 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
   });
 }
 
-// Update storage on state change
-addWatch(accountCursor, ACCOUNT_KEY, 'account-update');
-addWatch(dcaSettingsCursor, DCA_SETTINGS_KEY, 'dca-settings-update');
-addWatch(tradeSettingsCursor, TRADE_SETTINGS_KEY, 'trade-settings-update');
+// Register watchdogs
+addWatch(AccountCursor, ACCOUNT_KEY, 'account-update');
+addWatch(TradeConfigCursor, TRADE_CONFIG_KEY, 'trade-settings-update');
+addWatch(DcaConfigCursor, DCA_CONFIG_KEY, 'dca-settings-update');

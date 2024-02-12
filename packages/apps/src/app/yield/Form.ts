@@ -5,7 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { Account, accountCursor, DcaConfig, dcaSettingsCursor } from 'db';
+import { Account, AccountCursor, DcaConfig, DcaConfigCursor } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { BaseElement } from 'element/BaseElement';
 import { baseStyles } from 'styles/base.css';
@@ -18,8 +18,8 @@ import { Asset } from '@galacticcouncil/sdk';
 
 @customElement('gc-yield-form')
 export class YieldForm extends BaseElement {
-  private account = new DatabaseController<Account>(this, accountCursor);
-  private settings = new DatabaseController<DcaConfig>(this, dcaSettingsCursor);
+  private account = new DatabaseController<Account>(this, AccountCursor);
+  private settings = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ type: Boolean }) inProgress = false;

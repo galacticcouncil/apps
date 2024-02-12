@@ -3,7 +3,7 @@ import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
-import { tradeSettingsCursor, TradeConfig, DEFAULT_TRADE_CONFIG } from 'db';
+import { TradeConfig, TradeConfigCursor, DEFAULT_TRADE_CONFIG } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { baseStyles } from 'styles/base.css';
 
@@ -14,7 +14,7 @@ const SLIPPAGE_TWAP_OPTS = ['0.5', '1', '3', '5'];
 export class TradeSettings extends LitElement {
   protected settings = new DatabaseController<TradeConfig>(
     this,
-    tradeSettingsCursor,
+    TradeConfigCursor,
   );
 
   static styles = [
@@ -126,11 +126,11 @@ export class TradeSettings extends LitElement {
     }
 
     if (value) {
-      tradeSettingsCursor.resetIn([propName], value);
+      TradeConfigCursor.resetIn([propName], value);
     } else {
       const defaultValue = DEFAULT_TRADE_CONFIG[propName];
       this[propName] = defaultValue;
-      tradeSettingsCursor.resetIn([propName], defaultValue);
+      TradeConfigCursor.resetIn([propName], defaultValue);
     }
   }
 

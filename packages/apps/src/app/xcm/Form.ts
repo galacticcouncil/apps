@@ -7,7 +7,7 @@ import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import * as i18n from 'i18next';
 
-import { Account, accountCursor } from 'db';
+import { Account, AccountCursor } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
@@ -17,7 +17,7 @@ import 'element/id/account';
 
 @customElement('gc-xcm-form')
 export class XcmForm extends LitElement {
-  private account = new DatabaseController<Account>(this, accountCursor);
+  private account = new DatabaseController<Account>(this, AccountCursor);
 
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) inProgress = false;

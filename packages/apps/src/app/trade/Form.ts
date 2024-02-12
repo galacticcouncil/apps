@@ -8,7 +8,7 @@ import * as i18n from 'i18next';
 
 import { TradeApi, TradeTwap, TradeTwapError } from 'api/trade';
 import { BaseElement } from 'element/BaseElement';
-import { Account, accountCursor } from 'db';
+import { Account, AccountCursor } from 'db';
 import { DatabaseController } from 'db.ctrl';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
@@ -26,7 +26,7 @@ import { TransactionFee } from './types';
 
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
-  private account = new DatabaseController<Account>(this, accountCursor);
+  private account = new DatabaseController<Account>(this, AccountCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
