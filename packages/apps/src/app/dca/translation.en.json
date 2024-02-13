@@ -8,25 +8,22 @@
   "form.cta.connect": "Connect wallet",
   "form.cta.schedule": "Schedule DCA trades",
 
-  "form.assetIn.label": "Pay with",
-  "form.assetOut.label": "You get",
-  "form.budget.label": "Your budget",
+  "form.assetIn.label": "For total budget",
+  "form.assetOut.label": "Get",
 
   "form.advanced": "Advanced settings",
   "form.advanced.desc": "Customize your trades to an even greater extent.",
-  "form.advanced.interval": "Interval (blocks)",
+  "form.advanced.interval": "Interval (minutes)",
 
   "form.summary": "Summary",
   "form.summary.estSchedule": "Schedule end (est.)",
   "form.summary.slippage": "Slippage protection",
 
   "error.insufficientBalance": "Your trade is bigger than your balance.",
-  "error.budgetTooLow": "The minimum budget must be bigger than swap.",
   "error.minBudgetTooLow": "The minimum budget is {{amount}} {{asset}}.",
-  "error.minAmountTooLow": "The minimum swap amount is {{amount}} {{asset}}.",
-  "error.blockPeriodInvalid": "The minimum interval is 1 block.",
+  "error.frequencyOutOfRange": "The valid frequency is between {{min}} and {{max}} minutes.",
 
-  "settings.slippage": "Slippage protection",
+  "settings.slippage": "Slippage",
   "settings.slippageInfo1": "Tolerated price deviation from the last known price. Trade will be rescheduled if the price changes more than the specified percentage since previous block or 10 block average.",
   "settings.maxRetries": "Max retries",
 

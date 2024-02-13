@@ -6,16 +6,14 @@ import { classMap } from 'lit/directives/class-map.js';
 import i18n from 'i18next';
 import enLocales from './translation.en.json';
 
-import {
-  TradeInfo,
-  TradeTwap,
-  TWAP_BLOCK_PERIOD,
-  TWAP_RETRIES,
-  TradeApi,
-} from 'api/trade';
+import { TradeInfo, TradeTwap, TWAP_BLOCK_PERIOD, TradeApi } from 'api/trade';
 import { PoolApp } from 'app/PoolApp';
-import { Account, TradeConfig, TradeConfigCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import {
+  Account,
+  DatabaseController,
+  TradeConfig,
+  TradeConfigCursor,
+} from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
@@ -977,7 +975,7 @@ export class TradeApp extends PoolApp {
 
   private async onTwapClick() {
     const account = this.account.state;
-    const { slippage } = this.settings.state;
+    const { slippage, maxRetries } = this.settings.state;
 
     if (account) {
       const { assetIn } = this.trade;
@@ -989,7 +987,7 @@ export class TradeApp extends PoolApp {
         {
           owner: account.address,
           period: TWAP_BLOCK_PERIOD,
-          maxRetries: TWAP_RETRIES,
+          maxRetries,
           totalAmount: totalBudget.toFixed(),
           slippage: Number(slippage) * 10000,
           order: twap.order,

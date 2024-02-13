@@ -1,7 +1,7 @@
 import { CachingPoolService, TradeRouter } from '@galacticcouncil/sdk';
 import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
 import { ApiPromise } from '@polkadot/api';
-import { Ecosystem, chainCursor } from './db';
+import { Ecosystem, ChainCursor } from './db';
 
 async function info(api: ApiPromise): Promise<void> {
   const [systemChain, systemChainType, systemName, systemVersion] =
@@ -26,7 +26,7 @@ function initApi(
   // Get pools and cache the result
   router.getPools().then(() => {
     console.log('Router ready ✅');
-    chainCursor.reset({
+    ChainCursor.reset({
       api: api,
       ecosystem: ecosystem,
       poolService: poolService,

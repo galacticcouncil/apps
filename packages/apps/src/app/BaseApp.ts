@@ -2,12 +2,11 @@ import { property } from 'lit/decorators.js';
 
 import short from 'short-uuid';
 
-import { Account, Ecosystem, accountCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import { Account, AccountCursor, DatabaseController, Ecosystem } from 'db';
 import { BaseElement } from 'element/BaseElement';
 
 export abstract class BaseApp extends BaseElement {
-  protected account = new DatabaseController<Account>(this, accountCursor);
+  protected account = new DatabaseController<Account>(this, AccountCursor);
 
   private watchId: string;
 
@@ -40,13 +39,13 @@ export abstract class BaseApp extends BaseElement {
 
   private updateAccount() {
     if (this.accountAddress && this.accountProvider) {
-      accountCursor.reset({
+      AccountCursor.reset({
         address: this.accountAddress,
         provider: this.accountProvider,
         name: this.accountName,
       } as Account);
     } else {
-      accountCursor.reset(null);
+      AccountCursor.reset(null);
     }
   }
 
@@ -62,7 +61,7 @@ export abstract class BaseApp extends BaseElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    accountCursor.addWatch(this.watchId, (_id, prev, curr) => {
+    AccountCursor.addWatch(this.watchId, (_id, prev, curr) => {
       if (prev?.address !== curr?.address) {
         this.onAccountChange(prev, curr);
       }
@@ -70,7 +69,7 @@ export abstract class BaseApp extends BaseElement {
   }
 
   override disconnectedCallback() {
-    accountCursor.removeWatch(this.watchId);
+    AccountCursor.removeWatch(this.watchId);
     super.disconnectedCallback();
   }
 }

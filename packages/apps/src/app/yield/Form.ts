@@ -5,8 +5,13 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { Account, AccountCursor, DcaConfig, DcaConfigCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import {
+  Account,
+  AccountCursor,
+  DatabaseController,
+  DcaConfig,
+  DcaConfigCursor,
+} from 'db';
 import { BaseElement } from 'element/BaseElement';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';

@@ -4,9 +4,9 @@ import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
 import {
   Account,
+  AccountCursor,
   DatabaseController,
   Ecosystem,
-  accountCursor,
 } from '@galacticcouncil/apps';
 
 import { ThemeController } from 'theme.ctrl';
@@ -14,7 +14,7 @@ import { ThemeController } from 'theme.ctrl';
 @customElement('gc-trade-screen')
 export class TradeScreen extends LitElement implements BeforeEnterObserver {
   private theme = new ThemeController(this);
-  private account = new DatabaseController<Account>(this, accountCursor);
+  private account = new DatabaseController<Account>(this, AccountCursor);
 
   @state() assetIn: string = null;
   @state() assetOut: string = null;

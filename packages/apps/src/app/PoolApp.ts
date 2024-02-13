@@ -5,8 +5,7 @@ import { PaymentApi } from 'api/payment';
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
 import { createApi } from 'chain';
-import { Account, Chain, chainCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 import { multipleAmounts } from 'utils/amount';
 
 import {
@@ -21,7 +20,7 @@ import {
 import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
 
 export abstract class PoolApp extends BaseApp {
-  protected chain = new DatabaseController<Chain>(this, chainCursor);
+  protected chain = new DatabaseController<Chain>(this, ChainCursor);
 
   protected disconnectSubscribeNewHeads: () => void = null;
   protected disconnectSubscribeBalance: VoidFn[] = [];

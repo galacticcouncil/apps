@@ -2,8 +2,13 @@ import { html, css } from 'lit';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { Account, AccountCursor, Chain, ChainCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import {
+  Account,
+  AccountCursor,
+  Chain,
+  ChainCursor,
+  DatabaseController,
+} from 'db';
 import { Datagrid } from 'element/datagrid';
 import { TxInfo, TxMessage } from 'signer/types';
 import { formatAmount, humanizeAmount } from 'utils/amount';

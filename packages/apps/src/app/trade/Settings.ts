@@ -3,8 +3,12 @@ import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
-import { TradeConfig, TradeConfigCursor, DEFAULT_TRADE_CONFIG } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import {
+  DatabaseController,
+  TradeConfig,
+  TradeConfigCursor,
+  DEFAULT_TRADE_CONFIG,
+} from 'db';
 import { baseStyles } from 'styles/base.css';
 
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];

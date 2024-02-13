@@ -8,5 +8,4 @@ export { XcmApp } from './app/xcm';
 export { useApi } from './chain';
 
 /* Database */
-export { accountCursor, Account, Ecosystem } from './db';
-export { DatabaseController } from './db.ctrl';
+export * from './db';

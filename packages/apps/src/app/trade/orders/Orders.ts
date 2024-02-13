@@ -5,8 +5,7 @@ import * as i18n from 'i18next';
 
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
-import { Account, Chain, ChainCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 
 import '@galacticcouncil/ui';
 import { Asset, BigNumber, bnum } from '@galacticcouncil/sdk';

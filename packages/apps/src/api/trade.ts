@@ -10,14 +10,13 @@ import {
 } from '@galacticcouncil/sdk';
 import type { PalletDcaOrder } from '@polkadot/types/lookup';
 
-import { tradeSettingsCursor } from 'db';
+import { TradeConfigCursor } from 'db';
 import { formatAmount, multipleAmounts } from 'utils/amount';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
 import { HOUR_MS } from 'utils/time';
 
 export const TWAP_BLOCK_PERIOD = 6;
 export const TWAP_MAX_PRICE_IMPACT = -5;
-export const TWAP_RETRIES = 3;
 
 const TWAP_MAX_DURATION = 6 * HOUR_MS;
 const TWAP_TX_MULTIPLIER = 3;
@@ -128,9 +127,10 @@ export class TradeApi {
     priceDifference: number,
     blockTime: number,
   ): Promise<TradeTwap> {
+    const { slippageTwap, maxRetries } = TradeConfigCursor.deref();
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
-    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
+    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee, maxRetries);
     const amountInPerTrade = (amountIn - twapTxFees) / tradesNo;
     const bestSell = await this._router.getBestSell(
       assetIn.id,
@@ -142,10 +142,7 @@ export class TradeApi {
 
     const amountOutTotal = Number(bestSellHuman.amountOut) * tradesNo;
 
-    const minAmountOut = getTradeMinAmountOut(
-      bestSell,
-      tradeSettingsCursor.deref().slippage,
-    );
+    const minAmountOut = getTradeMinAmountOut(bestSell, slippageTwap);
     const minAmountOutTotal = multipleAmounts(
       tradesNo.toString(),
       minAmountOut,
@@ -192,9 +189,10 @@ export class TradeApi {
     priceDifference: number,
     blockTime: number,
   ): Promise<TradeTwap> {
+    const { slippageTwap, maxRetries } = TradeConfigCursor.deref();
     const tradesNo = this.getOptimizedTradesNo(priceDifference, blockTime);
     const tradeTime = this.getTwapExecutionTime(tradesNo, blockTime);
-    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee);
+    const twapTxFees = TradeApi.getTwapTxFee(tradesNo, txFee, maxRetries);
     const amountOutPerTrade = amountOut / tradesNo;
     const bestBuy = await this._router.getBestBuy(
       assetIn.id,
@@ -206,10 +204,7 @@ export class TradeApi {
 
     const amountInTotal = Number(bestBuyHuman.amountIn) * tradesNo + twapTxFees;
 
-    const maxAmountIn = getTradeMaxAmountIn(
-      bestBuy,
-      tradeSettingsCursor.deref().slippage,
-    );
+    const maxAmountIn = getTradeMaxAmountIn(bestBuy, slippageTwap);
     const maxAmountInTotal =
       multipleAmounts(tradesNo.toString(), maxAmountIn) + twapTxFees;
 
@@ -263,9 +258,13 @@ export class TradeApi {
     return tradesNo * TWAP_BLOCK_PERIOD * blockTime;
   }
 
-  static getTwapTxFee(tradesNo: number, txFee: number): number {
+  static getTwapTxFee(
+    tradesNo: number,
+    txFee: number,
+    maxRetries: number,
+  ): number {
     const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
-    const twapTxFeeWithRetries = twapTxFee * (TWAP_RETRIES + 1);
+    const twapTxFeeWithRetries = twapTxFee * (maxRetries + 1);
     return twapTxFeeWithRetries * tradesNo;
   }
 }

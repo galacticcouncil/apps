@@ -4,7 +4,7 @@ import { ApiPromise } from '@polkadot/api';
 
 import { Asset, BigNumber, ZERO, bnum } from '@galacticcouncil/sdk';
 
-import { Account, chainCursor } from 'db';
+import { Account, ChainCursor } from 'db';
 import { convertToHex } from 'utils/account';
 
 import {
@@ -162,7 +162,7 @@ export class OrdersApi {
   }
 
   private decodeError(error: any): RegistryError {
-    const api = chainCursor.deref().api;
+    const { api } = ChainCursor.deref();
     const errorU8a = hexToU8a(error.value.error);
     const indexBN = new BN(error.value.index);
     return api.registry.findMetaError({ error: errorU8a, index: indexBN });

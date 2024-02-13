@@ -30,7 +30,7 @@
     "build:watch": "node ./esbuild.dev.mjs",
     "cem": "npx custom-elements-manifest analyze --litelement --exclude 'public/app.js' --outdir public",
     "cem:watch": "npx custom-elements-manifest analyze --watch --litelement --exclude 'public/app.js' --outdir public",
-    "clean": "rimraf build",
+    "clean": "rimraf build && rimraf public/app*",
     "dev": "npm run cem:watch & node ../../esbuild.dev.mjs",
     "link": "npm ln",
     "postbuild": "tsc --emitDeclarationOnly --outDir build/types"

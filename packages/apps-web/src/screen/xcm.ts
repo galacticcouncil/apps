@@ -4,8 +4,8 @@ import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
 import {
   Account,
+  AccountCursor,
   DatabaseController,
-  accountCursor,
 } from '@galacticcouncil/apps';
 
 import { ThemeController } from 'theme.ctrl';
@@ -13,7 +13,7 @@ import { ThemeController } from 'theme.ctrl';
 @customElement('gc-xcm-screen')
 export class XcmScreen extends LitElement implements BeforeEnterObserver {
   private theme = new ThemeController(this);
-  private account = new DatabaseController<Account>(this, accountCursor);
+  private account = new DatabaseController<Account>(this, AccountCursor);
 
   @state() srcChain: string = null;
   @state() destChain: string = null;

@@ -4,9 +4,7 @@ import {
   WhitespaceData,
 } from 'lightweight-charts';
 
-export const MINUTE_MS = 1 * 60;
-export const HOUR_MS = MINUTE_MS * 60;
-export const DAY_MS = HOUR_MS * 24;
+import { HOUR_MS } from 'utils/time';
 
 export class Bucket {
   private _data: SingleValueData[];

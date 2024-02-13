@@ -1,13 +1,12 @@
-import { IPoolService, TradeRouter } from '@galacticcouncil/sdk';
 import { Wallet } from '@galacticcouncil/xcm-sdk';
-import { ApiPromise } from '@polkadot/api';
+
 import { Cursor } from '@thi.ng/atom';
 import { defAtom } from '@thi.ng/atom/atom';
 import { defCursor } from '@thi.ng/atom/cursor';
 import { TLRUCache } from '@thi.ng/cache';
-import { SingleValueData } from 'lightweight-charts';
 
 import { getObj, setObj } from './storage';
+import { Account, Chain, DcaConfig, TradeConfig, TradeData } from './types';
 
 const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
@@ -19,41 +18,8 @@ export const DEFAULT_TRADE_CONFIG: TradeConfig = {
 
 export const DEFAULT_DCA_CONFIG: DcaConfig = {
   slippage: '3',
+  maxRetries: 5,
 };
-
-export type TradeData = {
-  primary: SingleValueData[];
-  secondary: SingleValueData[];
-};
-
-export interface TradeConfig {
-  slippage: string;
-  slippageTwap: string;
-  maxRetries: number;
-}
-
-export interface DcaConfig {
-  slippage: string;
-}
-
-export enum Ecosystem {
-  Kusama = 'kusama',
-  Polkadot = 'polkadot',
-  Testnet = 'testnet',
-}
-
-export interface Chain {
-  api: ApiPromise;
-  ecosystem: Ecosystem;
-  poolService: IPoolService;
-  router: TradeRouter;
-}
-
-export interface Account {
-  name: string;
-  address: string;
-  provider: string;
-}
 
 interface State {
   account: Account;

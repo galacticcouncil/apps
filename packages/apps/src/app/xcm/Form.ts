@@ -7,8 +7,7 @@ import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
 import * as i18n from 'i18next';
 
-import { Account, AccountCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import { Account, AccountCursor, DatabaseController } from 'db';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
 import { isSameAddress } from 'utils/account';

@@ -8,8 +8,13 @@ import * as i18n from 'i18next';
 
 import { TradeApi, TradeTwap, TradeTwapError } from 'api/trade';
 import { BaseElement } from 'element/BaseElement';
-import { Account, AccountCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import {
+  Account,
+  AccountCursor,
+  DatabaseController,
+  TradeConfig,
+  TradeConfigCursor,
+} from 'db';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
 import { formatAmount, humanizeAmount } from 'utils/amount';
@@ -27,6 +32,10 @@ import { TransactionFee } from './types';
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, AccountCursor);
+  private settings = new DatabaseController<TradeConfig>(
+    this,
+    TradeConfigCursor,
+  );
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
@@ -605,7 +614,9 @@ export class TradeForm extends BaseElement {
 
     if (this.twapEnabled && fee) {
       const amountNo = Number(fee);
-      fee = TradeApi.getTwapTxFee(this.twap.tradeReps, amountNo).toString();
+      const { tradeReps } = this.twap;
+      const { maxRetries } = this.settings.state;
+      fee = TradeApi.getTwapTxFee(tradeReps, amountNo, maxRetries).toString();
     }
 
     if (fee === '0') {

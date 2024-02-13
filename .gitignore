@@ -7,7 +7,6 @@ packages/*/build
 # public folders (js)
 packages/*/public/**/*.js
 packages/*/public/**/*.js.map
-packages/*/public/**/custom-elements.json
 
 # turbo files
 .turbo

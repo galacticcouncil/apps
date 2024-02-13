@@ -4,8 +4,8 @@ import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
 import {
   Account,
+  AccountCursor,
   DatabaseController,
-  accountCursor,
 } from '@galacticcouncil/apps';
 import { PoolType } from '@galacticcouncil/sdk';
 
@@ -14,7 +14,7 @@ import { ThemeController } from 'theme.ctrl';
 @customElement('gc-dca-screen')
 export class DcaScreen extends LitElement implements BeforeEnterObserver {
   private theme = new ThemeController(this);
-  private account = new DatabaseController<Account>(this, accountCursor);
+  private account = new DatabaseController<Account>(this, AccountCursor);
 
   @state() assetIn: string = null;
   @state() assetOut: string = null;

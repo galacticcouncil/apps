@@ -17,8 +17,7 @@ import type { DispatchError } from '@polkadot/types/interfaces';
 import * as i18n from 'i18next';
 import short from 'short-uuid';
 
-import { Chain, chainCursor, walletCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import { Chain, ChainCursor, DatabaseController, WalletCursor } from 'db';
 import { EVM_PROVIDERS } from 'utils/account';
 import { txRecord } from 'utils/event';
 
@@ -32,8 +31,8 @@ import {
 
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
-  protected chain = new DatabaseController<Chain>(this, chainCursor);
-  protected wallet = new DatabaseController<Wallet>(this, walletCursor);
+  protected chain = new DatabaseController<Chain>(this, ChainCursor);
+  protected wallet = new DatabaseController<Wallet>(this, WalletCursor);
 
   private txBroadcasted: Set<string> = new Set([]);
 

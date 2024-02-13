@@ -4,13 +4,13 @@ import { BeforeEnterObserver, RouterLocation } from '@vaadin/router';
 
 import {
   Account,
+  AccountCursor,
   DatabaseController,
-  accountCursor,
 } from '@galacticcouncil/apps';
 
 @customElement('gc-yield-screen')
 export class YieldScreen extends LitElement implements BeforeEnterObserver {
-  private account = new DatabaseController<Account>(this, accountCursor);
+  private account = new DatabaseController<Account>(this, AccountCursor);
 
   @state() assetIn: string = null;
   @state() assetOut: string = null;

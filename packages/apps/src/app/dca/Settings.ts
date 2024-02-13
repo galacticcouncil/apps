@@ -3,8 +3,12 @@ import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
-import { DcaConfig, DcaConfigCursor, DEFAULT_DCA_CONFIG } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import {
+  DatabaseController,
+  DcaConfig,
+  DcaConfigCursor,
+  DEFAULT_DCA_CONFIG,
+} from 'db';
 import { baseStyles } from 'styles/base.css';
 
 const SLIPPAGE_OPTS = ['1', '1.5', '3', '5'];
@@ -90,6 +94,14 @@ export class DcaSettings extends LitElement {
         justify-content: space-between;
       }
 
+      .adornment {
+        white-space: nowrap;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 14px;
+        color: #ffffff;
+      }
+
       .endAdornment {
         white-space: nowrap;
         font-weight: 500;
@@ -125,8 +137,19 @@ export class DcaSettings extends LitElement {
     this.dispatchEvent(new CustomEvent('slippage-change', options));
   }
 
+  onMaxRetriesChange({ detail: { value } }) {
+    if (value !== '') {
+      this.onChange(value, 'maxRetries');
+    }
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('slippage-change', options));
+  }
+
   formSlippageTemplate() {
-    const { slippage } = this.settings.state;
+    const { slippage, maxRetries } = this.settings.state;
     const slippageOpts = new Set(SLIPPAGE_OPTS);
     const custom = slippageOpts.has(slippage) ? null : slippage;
 
@@ -134,6 +157,7 @@ export class DcaSettings extends LitElement {
       <div class="settings">
         <uigc-toggle-button-group
           value=${slippage}
+          label=${i18n.t('settings.slippage')}
           @toggle-button-click=${(e: CustomEvent) => this.onSlippageChange(e)}
           @input-change=${(e: CustomEvent) => this.onSlippageChange(e)}>
           ${SLIPPAGE_OPTS.map(
@@ -147,6 +171,18 @@ export class DcaSettings extends LitElement {
           </uigc-textfield>
         </uigc-toggle-button-group>
         <div class="desc">${i18n.t('settings.slippageInfo1')}</div>
+        <uigc-textfield
+          field
+          number
+          .min=${0}
+          .max=${10}
+          .placeholder=${maxRetries}
+          .value=${maxRetries}
+          @input-change=${(e: CustomEvent) => this.onMaxRetriesChange(e)}>
+          <span class="adornment" slot="inputAdornment">
+            ${i18n.t('settings.maxRetries')}
+          </span>
+        </uigc-textfield>
       </div>
     `;
   }
@@ -154,7 +190,6 @@ export class DcaSettings extends LitElement {
   render() {
     return html`
       <slot name="header"></slot>
-      <div class="section">${i18n.t('settings.slippage')}</div>
       ${this.formSlippageTemplate()}
     `;
   }

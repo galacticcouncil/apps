@@ -11,8 +11,13 @@ import {
 } from 'lightweight-charts';
 
 import { BaseElement } from 'element/BaseElement';
-import { Chain, ChainCursor, TradeData, TradeDataCursor } from 'db';
-import { DatabaseController } from 'db.ctrl';
+import {
+  Chain,
+  ChainCursor,
+  DatabaseController,
+  TradeData,
+  TradeDataCursor,
+} from 'db';
 import { baseStyles } from 'styles/base.css';
 import { humanizeAmount, multipleAmounts } from 'utils/amount';
 
