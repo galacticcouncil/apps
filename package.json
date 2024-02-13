@@ -31,6 +31,7 @@
     "patch-package": "^7.0.0",
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "tsc-alias": "^1.8.8"
   }
 }

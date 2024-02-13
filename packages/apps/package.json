@@ -30,7 +30,7 @@
     "build:watch": "node ./esbuild.dev.mjs",
     "clean": "rimraf build",
     "link": "npm ln",
-    "postbuild": "tsc --emitDeclarationOnly --outDir build/types"
+    "postbuild": "tsc --emitDeclarationOnly && tsc-alias"
   },
   "dependencies": {
     "@cfx-kit/wallet-avatar": "0.0.5",
