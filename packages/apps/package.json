@@ -1,10 +1,10 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "2.4.4",
+  "version": "3.0.0",
   "description": "Galactic Apps",
   "author": "GalacticCouncil",
   "repository": {
-    "directory": "packages/ui",
+    "directory": "packages/apps",
     "type": "git",
     "url": "git+https://github.com/galacticcouncil/apps.git"
   },
@@ -50,7 +50,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/sdk": "^1.1.7",
-    "@galacticcouncil/ui": "^2.0.3",
+    "@galacticcouncil/ui": "^3.0.0",
     "@galacticcouncil/xcm-cfg": "^1.3.0",
     "@galacticcouncil/xcm-sdk": "^2.1.0",
     "@polkadot/api": "^10.9.1",
