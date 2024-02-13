@@ -1171,7 +1171,8 @@ export class TradeApp extends PoolApp {
           @asset-selector-click=${this.onAssetSelectorClick}
           @asset-switch-click=${this.onAssetSwitchClick}
           @swap-click=${() => this.onSwapClick()}
-          @twap-click=${() => this.onTwapClick()}>
+          @twap-click=${() => this.onTwapClick()}
+          @slippage-click=${() => this.changeTab(TradeTab.TradeSettings)}>
           <div class="header" slot="header">
             <uigc-typography variant="title" gradient>
               ${i18n.t('header.form')}

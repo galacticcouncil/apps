@@ -35,8 +35,9 @@
   "error.maxInRatioExceeded": "Your order size exceeds the trading limit, please split your trade.",
   "error.tradeNotAllowed": "Trade is not allowed.",
   "error.invalidPair": "Selected pool pair is not valid.",
-  "error.minOrderSize": "Your order size is too small for price optimization.",
-  "error.maxOrderSize": "Your order size is too big for price optimization. Use OTC or DCA instead.",
+
+  "warn.changeSlippage": "Split trade likely to fail due to slippage - please adjust your slippage settings or reduce trade size.",
+  "warn.useDca": "Your trade may be too large for efficient Split Trade execution - please try our DCA page or increase slippage to ensure successful execution.",
 
   "settings.section.swap": "Single Trade",
   "settings.section.twap": "Split Trade",

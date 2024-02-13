@@ -22,6 +22,7 @@ import { formatAmount, humanizeAmount } from 'utils/amount';
 import {
   Amount,
   Asset,
+  ONE,
   TradeType,
   bnum,
   calculateDiffToRef,
@@ -67,6 +68,7 @@ export class TradeForm extends BaseElement {
   @property({ attribute: false }) swaps: [] = [];
 
   @state() twapEnabled: boolean = false;
+  @state() isPriceReversed: boolean = false;
 
   static styles = [
     baseStyles,
@@ -451,6 +453,14 @@ export class TradeForm extends BaseElement {
     } else {
       this.dispatchEvent(new CustomEvent('swap-click', options));
     }
+  }
+
+  onSlippageClick(e: any) {
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('slippage-click', options));
   }
 
   maxClickHandler(id: string, asset: Asset) {
@@ -854,6 +864,17 @@ export class TradeForm extends BaseElement {
       'spot-price': true,
       show: this.spotPrice || this.inProgress,
     };
+
+    const spotPrice = this.isPriceReversed
+      ? ONE.div(this.spotPrice)
+      : this.spotPrice;
+    const inputSymbol = this.isPriceReversed
+      ? this.assetIn?.symbol
+      : this.assetOut?.symbol;
+    const outputSymbol = this.isPriceReversed
+      ? this.assetOut?.symbol
+      : this.assetIn?.symbol;
+
     return html`
       <div class="switch">
         <div class="divider"></div>
@@ -862,13 +883,17 @@ export class TradeForm extends BaseElement {
           ?disabled=${!this.switchAllowed || this.readonly}
           @asset-switch-click=${() => {
             this.twapEnabled = false;
+            this.isPriceReversed = false;
           }}></uigc-asset-switch>
         <uigc-asset-price
           class=${classMap(spotPriceClasses)}
-          .inputAsset=${this.assetOut?.symbol}
-          .outputAsset=${this.assetIn?.symbol}
-          .outputBalance=${this.spotPrice}
-          .loading=${this.inProgress}></uigc-asset-price>
+          .inputAsset=${inputSymbol}
+          .outputAsset=${outputSymbol}
+          .outputBalance=${spotPrice}
+          .loading=${this.inProgress}
+          @click=${() => {
+            this.isPriceReversed = !this.isPriceReversed;
+          }}></uigc-asset-price>
       </div>
     `;
   }
@@ -1025,6 +1050,44 @@ export class TradeForm extends BaseElement {
     `;
   }
 
+  formTwapSlippageWarning() {
+    const { slippageTwap } = this.settings.state;
+    const priceImpact = Math.abs(Number(this.priceImpactPct));
+    const slippageWarnClasses = {
+      warning: true,
+      show:
+        this.twapEnabled &&
+        priceImpact < 5 &&
+        Number(slippageTwap) < priceImpact,
+    };
+    return html`
+      <div class=${classMap(slippageWarnClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <div>
+          <span>${i18n.t('warn.changeSlippage')}</span>
+          <a @click=${this.onSlippageClick} class="link">Adjust slippage</a>
+        </div>
+      </div>
+    `;
+  }
+
+  formTwapDcaWarning() {
+    const priceImpact = Math.abs(Number(this.priceImpactPct));
+    const dcaWarnClasses = {
+      warning: true,
+      show: this.twapEnabled && priceImpact > 5,
+    };
+    return html`
+      <div class=${classMap(dcaWarnClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <div>
+          <span>${i18n.t('warn.useDca')}</span>
+          <a href="/trade/dca" class="link">Go to DCA</a>
+        </div>
+      </div>
+    `;
+  }
+
   render() {
     const assetSymbol =
       this.tradeType == TradeType.Sell
@@ -1058,6 +1121,7 @@ export class TradeForm extends BaseElement {
         ${this.formTradeOptionLabel()} ${this.formSwapOption(assetSymbol)}
         ${this.formTwapOption(assetSymbol)}
       </div>
+      ${this.formTwapSlippageWarning()} ${this.formTwapDcaWarning()}
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>

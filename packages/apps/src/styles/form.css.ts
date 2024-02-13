@@ -209,13 +209,41 @@ export const formStyles = css`
   .warning,
   .error {
     display: none;
+    gap: 10px;
     flex-direction: row;
-    align-items: center;
     line-height: 16px;
     margin: 5px 14px 0;
     padding: 0 14px;
     background: var(--uigc-app-bg-error);
     border-radius: var(--uigc-app-border-radius-2);
+  }
+
+  .error {
+    align-items: center;
+  }
+
+  .warning {
+    background: rgba(245, 168, 85, 0.3);
+  }
+
+  .warning div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .warning a.link {
+    color: var(--warning-orange-200, #fbcd9c);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 120%;
+    text-decoration-line: underline;
+    cursor: pointer;
+    margin-top: 5px;
+  }
+
+  .warning a.link svg {
+    margin-bottom: -2px;
   }
 
   @media (min-width: 768px) {
@@ -238,11 +266,6 @@ export const formStyles = css`
     font-weight: 500;
     font-size: 12px;
     line-height: 16px;
-  }
-
-  .warning uigc-icon-warning,
-  .error uigc-icon-error {
-    margin-right: 8px;
   }
 
   .confirm {

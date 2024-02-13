@@ -16,7 +16,6 @@ const indexTemplate = fs.readFileSync(
 const indexDOM = parse(indexTemplate);
 indexDOM.getElementsByTagName('script').forEach((script) => {
   if (!script.hasAttribute('id')) {
-    // Remove only scripts without id
     script.remove();
   }
 });
@@ -36,7 +35,7 @@ esbuild.build({
   ...common,
   entryPoints: ['src/app.ts'],
   entryNames: 'bundle-[hash]',
-  outdir: 'public/',
+  outdir: 'dist/',
   plugins: [
     htmlPlugin({
       files: [

@@ -1,7 +1,7 @@
 {
   "name": "@galacticcouncil/apps-web",
   "private": true,
-  "description": "Galactic Apps SPA",
+  "description": "Galactic Web (Routing)",
   "author": "GalacticCouncil",
   "repository": {
     "directory": "packages/apps-web",
@@ -18,8 +18,11 @@
   },
   "type": "module",
   "scripts": {
-    "clean": "rimraf public/app*",
-    "dev": "node ../../esbuild.dev.mjs"
+    "clean": "rimraf public/app* && rimraf dist",
+    "dev": "node ./esbuild.dev.mjs",
+    "dist": "node ./esbuild.dist.mjs",
+    "predist": "rimraf dist",
+    "postdist": "cp -R ./public/assets ./dist/assets/ && cp ./dist/index.html ./dist/404.html"
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",

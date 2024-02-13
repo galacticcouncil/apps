@@ -17,19 +17,19 @@ const routes = [
         component: 'gc-trade-screen',
       },
       {
-        path: '/trade',
+        path: '/trade/swap',
         component: 'gc-trade-screen',
       },
       {
-        path: '/dca',
+        path: '/trade/dca',
         component: 'gc-dca-screen',
       },
       {
-        path: '/yield',
+        path: '/trade/yield-dca',
         component: 'gc-yield-screen',
       },
       {
-        path: '/bonds',
+        path: '/trade/bonds',
         component: 'gc-bonds-screen',
       },
       {
