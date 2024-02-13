@@ -43,7 +43,8 @@
     "humanize-duration-ts": "^2.1.1",
     "i18next": "^22.4.8",
     "lightweight-charts": "^4.0.1",
-    "short-uuid": "^4.2.0"
+    "short-uuid": "^4.2.0",
+    "viem": "^1.19.1"
   },
   "devDependencies": {
     "@galacticcouncil/api-augment": "^0.0.5"
