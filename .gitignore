@@ -5,11 +5,11 @@ node_modules/
 packages/*/build
 
 # dist folders
-packages/*/dist
+pages/*/dist
 
 # public folders (js)
-packages/*/public/**/*.js
-packages/*/public/**/*.js.map
+pages/*/public/**/*.js
+pages/*/public/**/*.js.map
 
 # turbo files
 .turbo
