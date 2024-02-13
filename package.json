@@ -17,6 +17,7 @@
     "build": "turbo run build",
     "build:watch": "turbo run build:watch",
     "clean": "turbo run clean",
+    "dist": "turbo run dist",
     "link": "turbo run link",
     "changeset": "changeset",
     "changeset:version": "changeset version && npm i --package-lock-only",

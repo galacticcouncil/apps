@@ -11,6 +11,9 @@
     "clean": {
       "cache": false
     },
+    "dist": {
+      "cache": false
+    },
     "link": {
       "cache": false
     },
