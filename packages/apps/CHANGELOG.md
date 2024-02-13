@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.0.2
+
+### Patch Changes
+
+- Added view deps
+
 ## 3.0.1
 
 ### Patch Changes
