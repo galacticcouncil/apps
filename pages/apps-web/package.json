@@ -18,7 +18,7 @@
   },
   "type": "module",
   "scripts": {
-    "clean": "rimraf public/app* && rimraf dist",
+    "clean": "rimraf public/**/*.js && rimraf public/**/*.map && rimraf dist",
     "dev": "node ./esbuild.dev.mjs",
     "dist": "node ./esbuild.dist.mjs",
     "predist": "rimraf dist",

@@ -20,7 +20,7 @@
   "type": "module",
   "scripts": {
     "cem": "npx custom-elements-manifest analyze --config ./cem.config.mjs",
-    "clean": "rimraf public/app*",
+    "clean": "rimraf public/**/*.js && rimraf public/**/*.map",
     "dev": "npm run cem & node ./esbuild.dev.mjs"
   },
   "devDependencies": {
