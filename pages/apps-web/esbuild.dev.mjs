@@ -4,7 +4,7 @@ import { createProxyServer } from '../../esbuild.proxy.mjs';
 const plugins = [];
 
 const options = {
-  entryPoints: ['src/app.ts'],
+  entryPoints: ['src/index.ts'],
   bundle: true,
   format: 'esm',
   platform: 'browser',

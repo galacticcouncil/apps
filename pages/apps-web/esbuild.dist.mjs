@@ -33,14 +33,14 @@ const common = {
 
 esbuild.build({
   ...common,
-  entryPoints: ['src/app.ts'],
+  entryPoints: ['src/index.ts'],
   entryNames: 'bundle-[hash]',
   outdir: 'dist/',
   plugins: [
     htmlPlugin({
       files: [
         {
-          entryPoints: ['src/app.ts'],
+          entryPoints: ['src/index.ts'],
           filename: 'index.html',
           scriptLoading: 'module',
           htmlTemplate: indexDOM.toString(),
