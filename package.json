@@ -20,7 +20,7 @@
     "link": "turbo run link",
     "changeset": "changeset",
     "changeset:version": "changeset version && npm i --package-lock-only",
-    "changeset:publish": "npm run build && pnpm publish --dry-run"
+    "changeset:publish": "npm run build && changeset publish"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.8",
