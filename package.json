@@ -10,7 +10,8 @@
   },
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "pages/*"
   ],
   "scripts": {
     "build": "turbo run build",
@@ -19,7 +20,7 @@
     "link": "turbo run link",
     "changeset": "changeset",
     "changeset:version": "changeset version && npm i --package-lock-only",
-    "changeset:publish": "npm run build && changeset publish"
+    "changeset:publish": "npm run build && pnpm publish --dry-run"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.8",

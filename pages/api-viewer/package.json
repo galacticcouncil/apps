@@ -1,0 +1,33 @@
+{
+  "name": "@galacticcouncil/api-viewer",
+  "private": true,
+  "description": "Galactic UI API Viewer",
+  "author": "GalacticCouncil",
+  "repository": {
+    "directory": "pages/api-viewer",
+    "type": "git",
+    "url": "git+https://github.com/galacticcouncil/apps.git"
+  },
+  "keywords": [
+    "hydradx",
+    "basilisk",
+    "api",
+    "api-viewer"
+  ],
+  "bugs": {
+    "url": "https://github.com/galacticcouncil/apps/issues"
+  },
+  "type": "module",
+  "scripts": {
+    "cem": "npx custom-elements-manifest analyze --config ./cem.config.mjs",
+    "clean": "rimraf public/app*",
+    "dev": "npm run cem & node ./esbuild.dev.mjs"
+  },
+  "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.6.6",
+    "api-viewer-element": "^1.0.0-pre.8"
+  },
+  "dependencies": {
+    "@galacticcouncil/ui": "^2.0.3"
+  }
+}

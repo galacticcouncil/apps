@@ -4,7 +4,7 @@
   "description": "Galactic Web (Routing)",
   "author": "GalacticCouncil",
   "repository": {
-    "directory": "packages/apps-web",
+    "directory": "pages/apps-web",
     "type": "git",
     "url": "git+https://github.com/galacticcouncil/apps.git"
   },
