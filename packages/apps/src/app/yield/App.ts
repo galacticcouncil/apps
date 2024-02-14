@@ -4,7 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
-import enLocales from './translation.en.json';
+import { translation } from './locales';
 
 import { PoolApp } from 'app/PoolApp';
 import { Account, DcaConfigCursor } from 'db';
@@ -70,7 +70,7 @@ export class YieldApp extends PoolApp {
       debug: false,
       resources: {
         en: {
-          translation: enLocales,
+          translation: translation.en,
         },
       },
     });

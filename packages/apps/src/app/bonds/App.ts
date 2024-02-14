@@ -4,9 +4,9 @@ import { classMap } from 'lit/directives/class-map.js';
 import { Asset, PoolToken, PoolBase, PoolType } from '@galacticcouncil/sdk';
 
 import * as i18n from 'i18next';
-import enLocales from './translation.en.json';
+import { translation } from './locales';
 
-import { TradeApp, enLocales as enLocalesDefault } from 'app/trade';
+import { TradeApp } from 'app/trade';
 import { TradeTab } from 'app/trade/types';
 
 import { convertToHex } from 'utils/account';
@@ -37,7 +37,7 @@ export class BondsApp extends TradeApp {
       debug: false,
       resources: {
         en: {
-          translation: { ...enLocalesDefault, ...enLocales },
+          translation: translation.en,
         },
       },
     });

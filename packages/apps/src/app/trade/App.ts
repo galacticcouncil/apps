@@ -4,7 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import i18n from 'i18next';
-import enLocales from './translation.en.json';
+import { translation } from './locales';
 
 import { TradeInfo, TradeTwap, TWAP_BLOCK_PERIOD, TradeApi } from 'api/trade';
 import { PoolApp } from 'app/PoolApp';
@@ -89,7 +89,7 @@ export class TradeApp extends PoolApp {
       debug: false,
       resources: {
         en: {
-          translation: enLocales,
+          translation: translation.en,
         },
       },
     });

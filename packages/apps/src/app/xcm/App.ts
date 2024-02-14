@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
-import enLocales from './translation.en.json';
+import { translation } from './locales';
 
 import { debounce } from 'ts-debounce';
 import { Subscription } from 'rxjs';
@@ -94,7 +94,7 @@ export class XcmApp extends PoolApp {
       debug: false,
       resources: {
         en: {
-          translation: enLocales,
+          translation: translation.en,
         },
       },
     });
