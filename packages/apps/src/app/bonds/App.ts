@@ -15,6 +15,8 @@ import { updateQueryParams } from 'utils/url';
 import { BondsApi } from './api';
 import { ChartApi } from './chart';
 
+import './Settings';
+
 @customElement('gc-bonds')
 export class BondsApp extends TradeApp {
   protected bondsApi: BondsApi = null;
@@ -215,11 +217,36 @@ export class BondsApp extends TradeApp {
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
-              ${i18n.t('chart.title')}
+              ${i18n.t('header.chart')}
             </uigc-typography>
             <span></span>
           </div>
         </gc-bonds-chart>
+      </uigc-paper>
+    `;
+  }
+
+  tradeSettingsTab() {
+    const classes = {
+      tab: true,
+      main: true,
+      active: this.tab == TradeTab.TradeSettings,
+    };
+    return html`
+      <uigc-paper class=${classMap(classes)}>
+        <gc-bonds-settings @slippage-change=${() => this.recalculateTrade()}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TradeTab.TradeForm)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.settings')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-bonds-settings>
       </uigc-paper>
     `;
   }
