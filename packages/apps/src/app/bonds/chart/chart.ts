@@ -82,7 +82,7 @@ export class BondsChart extends Chart {
       this.assetOut,
       fromBlock,
       toBlock,
-      ({ dataset, lastBlock }) => {
+      (assetIn, assetOut, { dataset, lastBlock }) => {
         let prediction = [];
         if (pool.endBlockNumber > relayBlockHeight) {
           prediction = this.chartApi.getPoolPredictionPrices(
@@ -99,8 +99,11 @@ export class BondsChart extends Chart {
           primary: primaryDataset,
           secondary: secondaryDataset,
         };
-        this.storeRecord(datasets);
-        this.syncChart(datasets);
+        const key = this.buildDataKey(assetIn, assetOut);
+        this.storeRecord(assetIn, assetOut, datasets);
+        if (this.getDataKey() === key) {
+          this.syncChart(datasets);
+        }
         this.chartState = ChartState.Loaded;
       },
       (_err) => {

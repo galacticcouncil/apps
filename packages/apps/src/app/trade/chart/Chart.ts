@@ -58,18 +58,23 @@ export class TradeChart extends Chart {
     if (this.hasRecord()) {
       const cachedData = this.getRecord();
       this.syncChart(cachedData);
+      this.chartState = ChartState.Loaded;
       return;
     }
 
     const endOfDay = this._dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
     this.chartState = ChartState.Loading;
     this.chartApi.getTradeData(
-      this.assetIn.symbol,
-      this.assetOut.symbol,
+      this.assetIn,
+      this.assetOut,
       endOfDay,
-      (data: TradeData) => {
-        this.storeRecord(data);
-        this.syncChart(data);
+      (assetIn, assetOut, data: TradeData) => {
+        const key = this.buildDataKey(assetIn, assetOut);
+        this.storeRecord(assetIn, assetOut, data);
+        if (this.getDataKey() === key) {
+          this.syncChart(data);
+        }
+        this.chartState = ChartState.Loaded;
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -121,9 +126,7 @@ export class TradeChart extends Chart {
     this.chartPriceSeries.applyOptions({
       baseValue: { type: 'price', price: min },
     });
-
     this.syncPriceScale(max, min, mid);
-    this.chartState = ChartState.Loaded;
   }
 
   onPriceSelection(price: string): string {
@@ -172,7 +175,7 @@ export class TradeChart extends Chart {
   }
 
   getDatasetPrefix(): string {
-    return '';
+    return null;
   }
 
   private async init() {

@@ -1,7 +1,9 @@
 import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
 
-import { buildPriceQuery } from './query';
+import { Asset } from '@galacticcouncil/sdk';
 import { TradeData } from 'db';
+
+import { buildPriceQuery } from './query';
 
 export class TradeChartApi {
   private _grafanaUrl: string;
@@ -13,10 +15,10 @@ export class TradeChartApi {
   }
 
   getTradeData(
-    assetIn: string,
-    assetOut: string,
+    assetIn: Asset,
+    assetOut: Asset,
     endOfDay: string,
-    onSuccess: (price: TradeData) => void,
+    onSuccess: (assetIn: Asset, assetOut: Asset, price: TradeData) => void,
     onError: (error: any) => void,
   ) {
     fetch(this._grafanaUrl, {
@@ -29,7 +31,7 @@ export class TradeChartApi {
         queries: [
           {
             refId: 'price',
-            rawSql: buildPriceQuery(assetIn, assetOut, endOfDay),
+            rawSql: buildPriceQuery(assetIn.symbol, assetOut.symbol, endOfDay),
             format: 'table',
             datasourceId: Number(this._grafanaDsn),
           },
@@ -40,7 +42,10 @@ export class TradeChartApi {
       .then((data) => {
         const rawPrice = data.results.price.frames[0].data.values;
         const formattedPrice = this.formatData(rawPrice);
-        onSuccess({ primary: formattedPrice, secondary: [] });
+        onSuccess(assetIn, assetOut, {
+          primary: formattedPrice,
+          secondary: [],
+        });
       })
       .catch(function (res) {
         console.error(res.message);

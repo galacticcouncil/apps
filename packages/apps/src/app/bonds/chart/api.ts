@@ -68,7 +68,11 @@ export class BondsChartApi {
     assetOut: Asset,
     fromBlock: HistoricalPrice,
     toBlock: HistoricalPrice,
-    onSuccess: (balance: HistoricalBalance) => void,
+    onSuccess: (
+      assetIn: Asset,
+      assetOut: Asset,
+      balance: HistoricalBalance,
+    ) => void,
     onError: (error: any) => void,
   ) {
     const maturity = getPoolMaturity(pool, toBlock);
@@ -90,7 +94,7 @@ export class BondsChartApi {
           dataset: datapoints.reverse(),
           lastBlock: lastBlock,
         } as HistoricalBalance;
-        onSuccess(historicalBalance);
+        onSuccess(assetIn, assetOut, historicalBalance);
       },
     );
   }

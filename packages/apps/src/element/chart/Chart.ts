@@ -2,7 +2,13 @@ import { html, css, TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { createChart, IChartApi, ISeriesApi } from 'lightweight-charts';
+import {
+  createChart,
+  IChartApi,
+  ISeriesApi,
+  SingleValueData,
+} from 'lightweight-charts';
+import { TLRUCache } from '@thi.ng/cache';
 
 import { BaseElement } from 'element/BaseElement';
 import { TradeData, TradeDataCursor } from 'db';
@@ -28,7 +34,7 @@ import './components/states/Error';
 import './components/states/Empty';
 import './components/states/Loading';
 
-import { Asset } from '@galacticcouncil/sdk';
+import { Asset, ONE } from '@galacticcouncil/sdk';
 
 const CHART_HEIGHT = 325;
 const CHART_TIME_SCALE_HEIGHT = 26;
@@ -93,13 +99,17 @@ export abstract class Chart extends BaseElement {
     return this.assetIn != null && this.assetOut != null;
   }
 
-  protected getDataKey() {
-    return [this.getDatasetPrefix(), this.assetIn.id, this.assetOut.id].join(
-      ':',
-    );
+  protected buildDataKey(assetIn: Asset, assetOut: Asset) {
+    return [this.getDatasetPrefix(), assetIn.id, assetOut.id]
+      .filter(Boolean)
+      .join(':');
   }
 
-  protected getRecord(): TradeData {
+  protected getDataKey() {
+    return this.buildDataKey(this.assetIn, this.assetOut);
+  }
+
+  protected getRecord() {
     const cache = TradeDataCursor.deref();
     return cache.get(this.getDataKey());
   }
@@ -109,9 +119,27 @@ export abstract class Chart extends BaseElement {
     return cache.has(this.getDataKey());
   }
 
-  protected storeRecord(data: TradeData) {
+  private reverseDataset(data: SingleValueData[]): SingleValueData[] {
+    return data.map((d: SingleValueData) => {
+      return {
+        time: d.time,
+        value: ONE.div(d.value).toNumber(),
+      } as SingleValueData;
+    });
+  }
+
+  protected storeRecord(assetIn: Asset, assetOut: Asset, data: TradeData) {
     const cache = TradeDataCursor.deref();
-    cache.set(this.getDataKey(), data);
+    const key = this.buildDataKey(assetIn, assetOut);
+    cache.set(key, data);
+
+    const keySwitch = this.buildDataKey(assetOut, assetIn);
+    const primarySwitch = this.reverseDataset(data.primary);
+    const secondarySwitch = this.reverseDataset(data.secondary);
+    cache.set(keySwitch, {
+      primary: primarySwitch,
+      secondary: secondarySwitch,
+    });
   }
 
   protected syncPriceLine(id: string, yCoord: number) {
