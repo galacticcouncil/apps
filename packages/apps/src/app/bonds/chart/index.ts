@@ -1,2 +1,2 @@
-export { BondsChart } from './chart';
-export { ChartApi } from './api';
+export { BondsChart } from './Chart';
+export { BondsChartApi } from './api';

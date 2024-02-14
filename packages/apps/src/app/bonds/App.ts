@@ -13,14 +13,14 @@ import { convertToHex } from 'utils/account';
 import { updateQueryParams } from 'utils/url';
 
 import { BondsApi } from './api';
-import { ChartApi } from './chart';
+import { BondsChartApi } from './chart';
 
 import './Settings';
 
 @customElement('gc-bonds')
 export class BondsApp extends TradeApp {
   protected bondsApi: BondsApi = null;
-  protected chartApi: ChartApi = null;
+  protected chartApi: BondsChartApi = null;
   protected ready: boolean = false;
 
   @state() lbpSwap = null;
@@ -110,7 +110,7 @@ export class BondsApp extends TradeApp {
     const { api, router } = this.chain.state;
 
     this.bondsApi = new BondsApi(api, router);
-    this.chartApi = new ChartApi(api, this.squidUrl);
+    this.chartApi = new BondsChartApi(api, this.squidUrl);
 
     const [pools, pair] = await Promise.all([
       await this.bondsApi.getPools(),

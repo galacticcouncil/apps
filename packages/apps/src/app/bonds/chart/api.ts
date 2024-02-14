@@ -21,7 +21,7 @@ import {
 } from './utils';
 import { HistoricalBalance } from './types';
 
-export class ChartApi {
+export class BondsChartApi {
   private _api: ApiPromise;
   private _squidUrl: string;
 

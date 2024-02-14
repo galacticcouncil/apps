@@ -1,107 +1,39 @@
-import { html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { html, TemplateResult } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import {
-  createChart,
-  IChartApi,
-  ISeriesApi,
-  SingleValueData,
-  UTCTimestamp,
-} from 'lightweight-charts';
+import { ISeriesApi, SingleValueData } from 'lightweight-charts';
 
 import { TimeApi } from 'api/time';
-import {
-  Chain,
-  ChainCursor,
-  DatabaseController,
-  TradeData,
-  TradeDataCursor,
-} from 'db';
-import { BaseElement } from 'element/BaseElement';
-import { baseStyles } from 'styles/base.css';
+import { Chain, ChainCursor, DatabaseController, TradeData } from 'db';
 import { humanizeAmount, multipleAmounts } from 'utils/amount';
 
-import { Bucket } from 'app/trade/chart';
-import { chartStyles } from 'app/trade/chart/chart.css';
-import { DEFAULT_DATASET } from 'app/trade/chart/data';
-import {
-  crosshair,
-  grid,
-  layoutOptions,
-  leftPriceScale,
-  rightPriceScale,
-  timeScale,
-} from 'app/trade/chart/opts';
-import { subscribeCrosshair } from 'app/trade/chart/plugins';
-import { calculateWidth } from 'app/trade/chart/utils';
-import { ChartState } from 'app/trade/chart/types';
-import 'app/trade/chart/components/states';
+import { Amount, PoolType } from '@galacticcouncil/sdk';
 
-import { Amount, Asset, PoolType } from '@galacticcouncil/sdk';
+import { Chart, Bucket } from 'element/chart';
+import { DEFAULT_DATASET } from 'element/chart/data';
+import { ChartState } from 'element/chart/types';
 
-import { ChartApi } from './api';
-
-const CHART_HEIGHT = 325;
-const CHART_TIME_SCALE_HEIGHT = 26;
-const CHART_PADDING_RATIO = 0.8;
+import { BondsChartApi } from './api';
 
 @customElement('gc-bonds-chart')
-export class BondsChart extends BaseElement {
+export class BondsChart extends Chart {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
 
-  protected chartApi: ChartApi = null;
+  protected chartApi: BondsChartApi = null;
   protected timeApi: TimeApi = null;
-  protected chart: IChartApi = null;
 
-  private chartContainer: HTMLElement = null;
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
   private chartPredictionSeries: ISeriesApi<'Baseline'> = null;
-  private ro = new ResizeObserver((entries) => {
-    entries.forEach((entry) => {
-      const iWidth = window.innerWidth;
 
-      if (entry.contentRect.width <= 0) {
-        return;
-      }
-
-      if (iWidth > 1023) {
-        this.chart.resize(entry.contentRect.width, CHART_HEIGHT);
-      } else if (iWidth < 768) {
-        const chartWidth = calculateWidth(entry);
-        this.chart.resize(chartWidth - 2 * 14, entry.contentRect.height - 180);
-      } else {
-        const chartWidth = calculateWidth(entry);
-        this.chart.resize(chartWidth - 2 * 28, entry.contentRect.height - 180);
-      }
-      this.loadData();
-    });
-  });
   private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
 
-  @property({ type: Object }) assetIn: Asset = null;
-  @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) poolId: string = null;
   @property({ type: String }) spotPrice = null;
   @property({ type: String }) squidUrl = null;
   @property({ type: Boolean }) tradeProgress: Boolean = false;
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
-
-  @state() chartState: ChartState = ChartState.Loading;
-
-  static styles = [
-    baseStyles,
-    chartStyles,
-    css`
-      :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        position: relative;
-      }
-    `,
-  ];
 
   private calculateDollarPrice(price: string) {
     if (this.usdPrice.size == 0) {
@@ -115,30 +47,7 @@ export class BondsChart extends BaseElement {
     return multipleAmounts(price, usdPrice).toString();
   }
 
-  private hasPoolPair(): boolean {
-    return this.assetIn != null && this.assetOut != null;
-  }
-
-  private getDataKey() {
-    return [PoolType.LBP, this.assetIn.id, this.assetOut.id].join(':');
-  }
-
-  private getRecord(): TradeData {
-    const cache = TradeDataCursor.deref();
-    return cache.get(this.getDataKey());
-  }
-
-  private hasRecord(): boolean {
-    const cache = TradeDataCursor.deref();
-    return cache.has(this.getDataKey());
-  }
-
-  private storeRecord(data: TradeData) {
-    const cache = TradeDataCursor.deref();
-    cache.set(this.getDataKey(), data);
-  }
-
-  private async loadData() {
+  protected async loadData() {
     if (!this.hasPoolPair()) {
       return;
     }
@@ -192,6 +101,7 @@ export class BondsChart extends BaseElement {
         };
         this.storeRecord(datasets);
         this.syncChart(datasets);
+        this.chartState = ChartState.Loaded;
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -199,25 +109,9 @@ export class BondsChart extends BaseElement {
     );
   }
 
-  private syncChart(data: TradeData) {
-    const lastPrice = this.getLastPrice();
+  protected syncChart(data: TradeData) {
     const priceBucket = new Bucket(data.primary);
     const predictionBucket = new Bucket(data.secondary);
-
-    /* 
-    let predictionBucket: Bucket;
-    if (data.secondary.length > 0) {
-      priceBucket.push(lastPrice);
-      const predictionData = data.secondary.filter(
-        (dp) => dp.time >= lastPrice.time,
-      );
-      predictionBucket = new Bucket(predictionData);
-      predictionBucket.unshift(lastPrice);
-    } else {
-      predictionBucket = new Bucket(data.secondary);
-    } 
-    */
-
     this.chartPriceSeries.setData(priceBucket.data);
     this.chartPredictionSeries.setData(predictionBucket.data);
     this.chart.timeScale().setVisibleLogicalRange({
@@ -232,72 +126,14 @@ export class BondsChart extends BaseElement {
     this.chartPriceSeries.applyOptions({
       baseValue: { type: 'price', price: min },
     });
-
     this.syncPriceScale(max, min, mid);
-    this.chartState = ChartState.Loaded;
   }
 
-  private syncPriceLine(id: string, yCoord: number) {
-    const lineEl = this.shadowRoot.getElementById(id);
-    lineEl.setAttribute('style', 'top: ' + yCoord + 'px;');
+  onPriceSelection(price: string): string {
+    return this.calculateDollarPrice(price);
   }
 
-  private syncPriceTag(id: string, yCoord: number, value: number) {
-    const tagEl = this.shadowRoot.getElementById(id);
-    tagEl.setAttribute('style', 'top: ' + (yCoord - 9) + 'px;');
-    tagEl.innerHTML = humanizeAmount(value.toString());
-  }
-
-  private syncPriceScale(max: number, min: number, avg: number) {
-    const backdropEl = this.shadowRoot.getElementById('backdrop');
-    const canvasHeight = backdropEl.offsetHeight - CHART_TIME_SCALE_HEIGHT;
-
-    const maxYCoord = canvasHeight - canvasHeight * CHART_PADDING_RATIO - 1;
-    const minYCoord = canvasHeight * CHART_PADDING_RATIO - 1;
-    const midYCoord = (maxYCoord - minYCoord) / 2 + minYCoord;
-
-    this.syncPriceLine('maxLine', maxYCoord);
-    this.syncPriceLine('minLine', minYCoord);
-    this.syncPriceLine('midLine', midYCoord);
-
-    this.syncPriceTag('maxTag', maxYCoord, max);
-    this.syncPriceTag('minTag', minYCoord, min);
-    this.syncPriceTag('midTag', midYCoord, avg);
-  }
-
-  private isActivePool() {
-    const { secondary } = this.getRecord();
-    return secondary.length > 0;
-  }
-
-  private getLastPrice(): SingleValueData {
-    return {
-      time: this._dayjs().unix() as UTCTimestamp,
-      value: Number(this.getSpotPrice()),
-    } as SingleValueData;
-  }
-
-  private getSpotPrice() {
-    if (this.isActivePool()) {
-      return this.spotPrice;
-    }
-    const { primary } = this.getRecord();
-    return primary[primary.length - 1].value;
-  }
-
-  override async firstUpdated() {
-    this.chartContainer = this.shadowRoot.getElementById('chart');
-    this.chart = createChart(this.chartContainer, {
-      layout: layoutOptions,
-      rightPriceScale: rightPriceScale,
-      leftPriceScale: leftPriceScale,
-      timeScale: timeScale(this._dayjs),
-      grid: grid,
-      crosshair: crosshair,
-      handleScale: false,
-      handleScroll: false,
-    });
-
+  initSeries(): void {
     this.chartPriceSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
       topLineColor: '#85D1FF',
@@ -310,12 +146,12 @@ export class BondsChart extends BaseElement {
       crosshairMarkerBorderColor: '#000',
       crosshairMarkerBackgroundColor: '#fff',
     });
+
     const min = new Bucket(DEFAULT_DATASET).min();
     this.chartPriceSeries.setData(DEFAULT_DATASET);
     this.chartPriceSeries.applyOptions({
       baseValue: { type: 'price', price: min },
     });
-    this.chart.timeScale().fitContent();
 
     this.chartPredictionSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
@@ -330,25 +166,19 @@ export class BondsChart extends BaseElement {
       crosshairMarkerBorderColor: '#000',
       crosshairMarkerBackgroundColor: '#fff',
     });
+  }
 
-    const selected = this.shadowRoot.getElementById('selected');
-    const actual = this.shadowRoot.getElementById('actual');
-    const floating = this.shadowRoot.getElementById('floating');
+  getSeries(): ISeriesApi<any>[] {
+    return [this.chartPriceSeries, this.chartPredictionSeries];
+  }
 
-    subscribeCrosshair(
-      this.chart,
-      this.chartContainer,
-      [this.chartPriceSeries, this.chartPredictionSeries],
-      selected,
-      actual,
-      floating,
-      (price) => this.calculateDollarPrice(price),
-    );
+  getDatasetPrefix(): string {
+    return PoolType.LBP;
   }
 
   private async init() {
     const { api } = this.chain.state;
-    this.chartApi = new ChartApi(api, this.squidUrl);
+    this.chartApi = new BondsChartApi(api, this.squidUrl);
     this.timeApi = new TimeApi(api);
   }
 
@@ -385,11 +215,9 @@ export class BondsChart extends BaseElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.ro.observe(this);
   }
 
   override disconnectedCallback() {
-    this.ro.unobserve(this);
     this.disconnectSubscribeNewHeads?.();
     super.disconnectedCallback();
   }
@@ -411,6 +239,19 @@ export class BondsChart extends BaseElement {
           height="24px"></uigc-skeleton>
       `;
     }
+  }
+
+  private isActivePool() {
+    const { secondary } = this.getRecord();
+    return secondary.length > 0;
+  }
+
+  private getSpotPrice() {
+    if (this.isActivePool()) {
+      return this.spotPrice;
+    }
+    const { primary } = this.getRecord();
+    return primary[primary.length - 1].value;
   }
 
   priceTemplate() {
@@ -445,64 +286,9 @@ export class BondsChart extends BaseElement {
     }
   }
 
-  priceScaleTemplate(priceTagId: string, priceLineId: string) {
-    const priceLineClasses = {
-      'price-line': true,
-    };
-    const priceTagClasses = {
-      'price-tag': true,
-      show: this.chartState == ChartState.Loaded,
-    };
+  rangeTemplate(): TemplateResult {
     return html`
-      <span id="${priceTagId}" class=${classMap(priceTagClasses)}></span>
-      <span id="${priceLineId}" class=${classMap(priceLineClasses)}></span>
-    `;
-  }
-
-  backdropTemplate() {
-    const chartErrorClasses = {
-      show: this.chartState == ChartState.Error,
-    };
-    const chartEmptyClasses = {
-      show: this.chartState == ChartState.Empty,
-    };
-    const chartLoadingClasses = {
-      show: this.chartState == ChartState.Loading && this.hasPoolPair(),
-    };
-    return html`
-      <div id="backdrop" class="backdrop">
-        ${this.priceScaleTemplate('maxTag', 'maxLine')}
-        ${this.priceScaleTemplate('midTag', 'midLine')}
-        ${this.priceScaleTemplate('minTag', 'minLine')}
-        <gc-chart-empty class=${classMap(chartEmptyClasses)}></gc-chart-empty>
-        <gc-chart-error class=${classMap(chartErrorClasses)}></gc-chart-error>
-        <uigc-busy-indicator
-          class=${classMap(chartLoadingClasses)}></uigc-busy-indicator>
-      </div>
-    `;
-  }
-
-  render() {
-    const chartClasses = {
-      chart: true,
-      loading:
-        this.chartState != ChartState.Loaded ||
-        TradeDataCursor.deref().length == 0,
-    };
-    return html`
-      <slot name="header"></slot>
-      <div class="summary">
-        <div>${this.pairTemplate()}</div>
-        <div></div>
-        <div id="selected" class="tooltip skeleton"></div>
-        <div id="actual" class="tooltip skeleton">${this.priceTemplate()}</div>
-      </div>
-      <div class=${classMap(chartClasses)}>
-        <div id="chart">
-          <div id="floating" class="tooltip-floating"></div>
-          ${this.backdropTemplate()}
-        </div>
-      </div>
+      <span></span>
     `;
   }
 }

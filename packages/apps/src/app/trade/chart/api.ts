@@ -3,7 +3,7 @@ import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
 import { buildPriceQuery } from './query';
 import { TradeData } from 'db';
 
-export class ChartApi {
+export class TradeChartApi {
   private _grafanaUrl: string;
   private _grafanaDsn: number;
 
