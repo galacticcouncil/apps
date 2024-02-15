@@ -1,5 +1,15 @@
 # @galacticcouncil/apps
 
+## 3.1.0
+
+### Minor Changes
+
+- Chart re-moduling & perf upgrade
+- Rework locales
+- Elements cleanup
+- Fix signers
+- Fix bonds settings
+
 ## 3.0.2
 
 ### Patch Changes
