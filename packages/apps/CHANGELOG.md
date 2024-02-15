@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.1.2
+
+### Patch Changes
+
+- Cleanup summary & notification messages
+
 ## 3.1.1
 
 ### Patch Changes
