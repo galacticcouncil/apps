@@ -20,7 +20,7 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { positionsStyles } from './datagrid.css';
 import { Order } from './types';
 
-import 'element/id/asset';
+import 'element/id/AssetIdenticon';
 
 export abstract class OrdersDatagrid extends Datagrid<Order> {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
@@ -121,13 +121,13 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
   private assetTemplate(asset: Asset, assets: Map<string, Asset>) {
     const chain = this.chain.state;
     return html`
-      <gc-asset-id
+      <gc-asset-identicon
         slot="asset"
         size="small"
         .showSymbol=${false}
         .asset=${asset}
         .assets=${assets}
-        .ecosystem=${chain.ecosystem}></gc-asset-id>
+        .ecosystem=${chain.ecosystem}></gc-asset-identicon>
     `;
   }
 

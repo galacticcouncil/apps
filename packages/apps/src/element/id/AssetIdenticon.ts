@@ -7,8 +7,8 @@ import { Asset } from '@galacticcouncil/sdk';
 import { Ecosystem } from 'db';
 import { getChainKey } from 'utils/chain';
 
-@customElement('gc-asset-id')
-export class AssetId extends LitElement {
+@customElement('gc-asset-identicon')
+export class AssetIdenticon extends LitElement {
   @property({ type: Boolean }) showDesc: boolean = false;
   @property({ type: Boolean }) showSymbol: boolean = true;
   @property({ attribute: false }) asset: Asset = null;

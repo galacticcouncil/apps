@@ -13,7 +13,7 @@ import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 
 import { AssetSelector } from './types';
 
-import '../id/asset';
+import 'element/id/AssetIdenticon';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
@@ -190,11 +190,11 @@ export class SelectAsset extends LitElement {
                   .unit=${icons.length === 1 ? asset.symbol : null}
                   .balance=${humanizeAmount(balance)}
                   .balanceUsd=${humanizeAmount(balanceUsd)}>
-                  <gc-asset-id
+                  <gc-asset-identicon
                     slot="asset"
                     .showDesc=${true}
                     .asset=${asset}
-                    .assets=${this.getAssets()}></gc-asset-id>
+                    .assets=${this.getAssets()}></gc-asset-identicon>
                 </uigc-asset-list-item>
               `;
             })}

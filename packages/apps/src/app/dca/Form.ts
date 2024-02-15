@@ -284,10 +284,10 @@ export class DcaForm extends BaseElement {
   formAssetTemplate(asset: Asset, slot?: string) {
     if (this.loaded) {
       return html`
-        <gc-asset-id
+        <gc-asset-identicon
           slot=${slot}
           .asset=${asset}
-          .assets=${this.assets}></gc-asset-id>
+          .assets=${this.assets}></gc-asset-identicon>
       `;
     }
     return this.formAssetLoadingTemplate(slot);

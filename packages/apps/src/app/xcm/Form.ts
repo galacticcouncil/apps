@@ -12,7 +12,7 @@ import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
 import { isSameAddress } from 'utils/account';
 
-import 'element/id/account';
+import 'element/id/AccountIdenticon';
 
 @customElement('gc-xcm-form')
 export class XcmForm extends LitElement {
@@ -276,10 +276,10 @@ export class XcmForm extends LitElement {
           this.isValidAddress(),
           () =>
             html`
-              <gc-account-id
+              <gc-account-identicon
                 slot="id"
                 .address=${this.address}
-                .ss58prefix=${this.destChain.ss58Format}></gc-account-id>
+                .ss58prefix=${this.destChain.ss58Format}></gc-account-identicon>
             `,
         )}
       </uigc-address-input>

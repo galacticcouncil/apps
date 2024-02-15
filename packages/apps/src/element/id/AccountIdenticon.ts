@@ -8,8 +8,8 @@ import { u8aToHex } from '@polkadot/util';
 import { decodeAddress } from '@polkadot/util-crypto';
 import { toSvg } from 'jdenticon';
 
-@customElement('gc-account-id')
-export class AccountId extends LitElement {
+@customElement('gc-account-identicon')
+export class AccountIdenticon extends LitElement {
   @property({ type: String }) address: string = null;
   @property({ type: Number }) ss58prefix: number = null;
 
