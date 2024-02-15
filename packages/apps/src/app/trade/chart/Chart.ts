@@ -21,8 +21,6 @@ import { ChartRange, ChartState } from 'element/chart/types';
 
 import { TradeChartApi } from './api';
 
-const MIN_DATAPOINTS = 6;
-
 @customElement('gc-trade-chart')
 export class TradeChart extends Chart {
   private chain = new DatabaseController<Chain>(this, ChainCursor);
@@ -61,7 +59,6 @@ export class TradeChart extends Chart {
     if (this.hasRecord()) {
       const cachedData = this.getRecord();
       this.syncChart(cachedData);
-      this.chartState = ChartState.Loaded;
       return;
     }
 
@@ -75,12 +72,10 @@ export class TradeChart extends Chart {
       to,
       this.chartRange,
       (assetIn, assetOut, data: TradeData) => {
-        const key = this.buildDataKey(assetIn, assetOut);
         this.storeRecord(assetIn, assetOut, data);
-        if (this.getDataKey() === key) {
+        if (this.shouldSync(assetIn, assetOut)) {
           this.syncChart(data);
         }
-        this.chartState = ChartState.Loaded;
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -101,14 +96,14 @@ export class TradeChart extends Chart {
     const priceBucket = new Bucket(data.primary).withRange(rangeFrom);
     priceBucket.push(lastPrice);
 
-    if (priceBucket.length <= MIN_DATAPOINTS) {
-      this.chartState = ChartState.Empty;
-      return;
-    } else {
+    if (this.shouldDisplay(data)) {
       this.chartPriceSeries.setData(priceBucket.data);
       this.chart
         .timeScale()
         .setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
+    } else {
+      this.chartState = ChartState.Empty;
+      return;
     }
 
     const max = priceBucket.max();
@@ -119,6 +114,7 @@ export class TradeChart extends Chart {
       baseValue: { type: 'price', price: min },
     });
     this.syncPriceScale(max, min, mid);
+    this.chartState = ChartState.Loaded;
   }
 
   onPriceSelection(price: string): string {

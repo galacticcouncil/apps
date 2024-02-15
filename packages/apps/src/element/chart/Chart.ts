@@ -38,6 +38,7 @@ import { Asset, ONE } from '@galacticcouncil/sdk';
 const CHART_HEIGHT = 325;
 const CHART_TIME_SCALE_HEIGHT = 26;
 const CHART_PADDING_RATIO = 0.8;
+const CHART_MIN_DATAPOINTS = 6;
 
 export abstract class Chart extends BaseElement {
   protected chart: IChartApi = null;
@@ -164,6 +165,15 @@ export abstract class Chart extends BaseElement {
   protected updateRange(value: string) {
     this.chartRange = ChartRange[value];
     this.requestUpdate();
+  }
+
+  protected shouldDisplay(data: TradeData) {
+    return data.primary.length > CHART_MIN_DATAPOINTS;
+  }
+
+  protected shouldSync(assetIn: Asset, assetOut: Asset) {
+    const key = this.buildDataKey(assetIn, assetOut);
+    return this.getDataKey() === key;
   }
 
   protected syncPriceLine(id: string, yCoord: number) {

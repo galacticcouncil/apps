@@ -99,12 +99,11 @@ export class BondsChart extends Chart {
           primary: primaryDataset,
           secondary: secondaryDataset,
         };
-        const key = this.buildDataKey(assetIn, assetOut);
+
         this.storeRecord(assetIn, assetOut, datasets);
-        if (this.getDataKey() === key) {
+        if (this.shouldSync(assetIn, assetOut)) {
           this.syncChart(datasets);
         }
-        this.chartState = ChartState.Loaded;
       },
       (_err) => {
         this.chartState = ChartState.Error;
@@ -130,6 +129,7 @@ export class BondsChart extends Chart {
       baseValue: { type: 'price', price: min },
     });
     this.syncPriceScale(max, min, mid);
+    this.chartState = ChartState.Loaded;
   }
 
   onPriceSelection(price: string): string {
