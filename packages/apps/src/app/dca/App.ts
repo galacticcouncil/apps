@@ -2,6 +2,7 @@ import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import i18n from 'i18next';
 import { translation } from './locales';
@@ -19,7 +20,6 @@ import {
   toBn,
   MIN_NATIVE_AMOUNT,
 } from 'utils/amount';
-import { getRenderString } from 'utils/dom';
 import { MINUTE_MS } from 'utils/time';
 
 import '@galacticcouncil/ui';
@@ -328,35 +328,42 @@ export class DcaApp extends PoolApp {
     }
   }
 
-  notificationTemplate(dca: DcaState, status: string): TxMessage {
-    const { frequency, frequencyManual } = dca;
+  notificationTemplate(dca: DcaState, tKey: string): TxMessage {
+    const {
+      amountIn,
+      amountInBudget,
+      assetIn,
+      assetOut,
+      frequency,
+      frequencyManual,
+    } = dca;
     const freq = frequencyManual || frequency;
     const freqHuman = this._humanizer.humanize(Number(freq) * MINUTE_MS, {
       round: true,
       largest: 2,
     });
-    const template = html`
-      <span>${'Spend'}</span>
-      <span class="highlight">${dca.amountIn}</span>
-      <span class="highlight">${dca.assetIn.symbol}</span>
-      <span></span>
-        ${`every ~${freqHuman} to buy ${dca.assetOut.symbol} with a total budget of`}
-      </span>
-      <span class="highlight">${dca.amountInBudget}</span>
-      <span class="highlight">${dca.assetIn.symbol}</span>
-      <span>${status}</span>
-    `;
+
+    const message = i18n
+      .t(tKey, {
+        amountIn: amountIn,
+        amountInBudget: amountInBudget,
+        assetIn: assetIn?.symbol,
+        assetOut: assetOut?.symbol,
+        frequency: freqHuman,
+      })
+      .replaceAll('<1>', '<span class="value highlight">')
+      .replaceAll('</1>', '</span>');
     return {
-      message: template,
-      rawHtml: getRenderString(template),
+      message: unsafeHTML(message),
+      rawHtml: message,
     } as TxMessage;
   }
 
   private processTx(account: Account, transaction: Transaction) {
     const notification = {
-      processing: this.notificationTemplate(this.dca, 'submitted'),
-      success: this.notificationTemplate(this.dca, 'scheduled'),
-      failure: this.notificationTemplate(this.dca, 'failed'),
+      processing: this.notificationTemplate(this.dca, 'notify.processing'),
+      success: this.notificationTemplate(this.dca, 'notify.success'),
+      failure: this.notificationTemplate(this.dca, 'notify.error'),
     };
     const options = {
       bubbles: true,

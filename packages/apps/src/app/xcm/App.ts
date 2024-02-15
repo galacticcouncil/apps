@@ -1,6 +1,7 @@
 import { html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import * as i18n from 'i18next';
 import { translation } from './locales';
@@ -17,7 +18,6 @@ import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
 import { calculateEffectiveBalance } from 'utils/balance';
-import { getRenderString } from 'utils/dom';
 import { convertFromH160, convertToH160, isEvmAccount } from 'utils/evm';
 
 import '@galacticcouncil/ui';
@@ -302,20 +302,22 @@ export class XcmApp extends PoolApp {
     this.requestUpdate();
   }
 
-  notificationTemplate(transfer: TransferState, status: string): TxMessage {
-    const template = html`
-      <span>${status ? i18n.t('notify.sending') : i18n.t('notify.sent')}</span>
-      <span class="highlight">${transfer.amount}</span>
-      <span class="highlight">${transfer.asset.originSymbol}</span>
-      <span>${i18n.t('notify.from')}</span>
-      <span class="highlight">${transfer.srcChain.name}</span>
-      <span>${i18n.t('notify.to')}</span>
-      <span class="highlight">${transfer.destChain.name}</span>
-      <span>${status}</span>
-    `;
+  notificationTemplate(transfer: TransferState, tKey: string): TxMessage {
+    const { amount, asset, srcChain, destChain } = transfer;
+
+    const message = i18n
+      .t(tKey, {
+        amount: amount,
+        asset: asset.originSymbol,
+        srcChain: srcChain.name,
+        destChain: destChain.name,
+      })
+      .replaceAll('<1>', '<span class="value highlight">')
+      .replaceAll('</1>', '</span>');
+
     return {
-      message: template,
-      rawHtml: getRenderString(template),
+      message: unsafeHTML(message),
+      rawHtml: message,
     } as TxMessage;
   }
 
@@ -326,9 +328,9 @@ export class XcmApp extends PoolApp {
     transfer: TransferState,
   ) {
     const notification = {
-      processing: this.notificationTemplate(transfer, i18n.t('tx.submitted')),
-      success: this.notificationTemplate(transfer, i18n.t('tx.inBlock')),
-      failure: this.notificationTemplate(transfer, i18n.t('tx.failed')),
+      processing: this.notificationTemplate(transfer, 'notify.processing'),
+      success: this.notificationTemplate(transfer, 'notify.success'),
+      failure: this.notificationTemplate(transfer, 'notify.error'),
     };
 
     const { srcChain, srcChainFee, destChain, destChainFee } = this.transfer;

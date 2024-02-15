@@ -49,5 +49,11 @@
   "orders.all": "All",
   "orders.open": "Open orders",
   "orders.history": "Order history",
-  "orders.noActivity": "No recent activity"
+  "orders.noActivity": "No recent activity",
+
+  "notify.processing": "{{action}} <1>{{amountIn}} {{assetIn}}</1> for <1>{{amountOut}} {{assetOut}}</1> submitted",
+  "notify.success": "You {{action}} <1>{{amountIn}} {{assetIn}}</1> for <1>{{amountOut}} {{assetOut}}</1>",
+  "notify.error": "{{action}} <1>{{amountIn}} {{assetIn}}</1> for <1>{{amountOut}} {{assetOut}}</1> failed",
+
+  "notify.twap": "{{noOfTrades}} trades * {{amountIn}} {{assetIn}} placed during next <1>{{timeframe}}</1> amounting to a total of <1>{{amountInBudget}} {{assetIn}}</1> {{status}}"
 }

@@ -2,6 +2,7 @@ import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import * as i18n from 'i18next';
 import { translation } from './locales';
@@ -13,7 +14,6 @@ import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { tradeLayoutStyles } from 'styles/layout/trade.css';
 import { formatAmount, humanizeAmount, toBn } from 'utils/amount';
-import { getRenderString } from 'utils/dom';
 import { DAY_MS } from 'utils/time';
 
 import '@galacticcouncil/ui';
@@ -315,26 +315,26 @@ export class YieldApp extends PoolApp {
     }
   }
 
-  notificationTemplate(dca: DcaState, status: string): TxMessage {
-    const { est, tradesNo } = dca;
+  notificationTemplate(dca: DcaState, tKey: string): TxMessage {
+    const { amountIn, amountInYield, assetIn, assetOut, est, tradesNo } = dca;
     const freq = this._humanizer.humanize(est / tradesNo, {
       round: true,
       largest: 2,
     });
-    const template = html`
-      <span>${'Spend'}</span>
-      <span class="highlight">${dca.amountIn}</span>
-      <span class="highlight">${dca.assetIn.symbol}</span>
-      <span></span>
-        ${`every ~${freq} to buy ${dca.assetOut.symbol} with a total budget of`}
-      </span>
-      <span class="highlight">${dca.amountInYield}</span>
-      <span class="highlight">${dca.assetIn.symbol}</span>
-      <span>${status}</span>
-    `;
+
+    const message = i18n
+      .t(tKey, {
+        amountIn: amountIn,
+        amountInYield: amountInYield,
+        assetIn: assetIn?.symbol,
+        assetOut: assetOut?.symbol,
+        frequency: freq,
+      })
+      .replaceAll('<1>', '<span class="value highlight">')
+      .replaceAll('</1>', '</span>');
     return {
-      message: template,
-      rawHtml: getRenderString(template),
+      message: unsafeHTML(message),
+      rawHtml: message,
     } as TxMessage;
   }
 
@@ -343,10 +343,11 @@ export class YieldApp extends PoolApp {
       this.dca;
 
     const notification = {
-      processing: this.notificationTemplate(this.dca, 'submitted'),
-      success: this.notificationTemplate(this.dca, 'scheduled'),
-      failure: this.notificationTemplate(this.dca, 'failed'),
+      processing: this.notificationTemplate(this.dca, 'notify.processing'),
+      success: this.notificationTemplate(this.dca, 'notify.success'),
+      failure: this.notificationTemplate(this.dca, 'notify.error'),
     };
+
     const options = {
       bubbles: true,
       composed: true,

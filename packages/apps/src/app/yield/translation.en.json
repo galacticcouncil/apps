@@ -41,5 +41,9 @@
   "orders.all": "All",
   "orders.open": "Open orders",
   "orders.history": "Order history",
-  "orders.noActivity": "No recent activity"
+  "orders.noActivity": "No recent activity",
+
+  "notify.processing": "Spend <1>{{amountIn}} {{assetIn}}</1> every ~{{frequency}} to buy {{assetOut}} with a total budget of <1>{{amountInYield}} {{assetIn}}</1> submitted",
+  "notify.success": "Spend <1>{{amountIn}} {{assetIn}}</1> every ~{{frequency}} to buy {{assetOut}} with a total budget of <1>{{amountInYield}} {{assetIn}}</1> scheduled",
+  "notify.error": "Spend <1>{{amountIn}} {{assetIn}}</1> every ~{{frequency}} to buy {{assetOut}} with a total budget of <1>{{amountInYield}} {{assetIn}}</1> failed"
 }

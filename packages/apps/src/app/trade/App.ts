@@ -2,6 +2,7 @@ import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import i18n from 'i18next';
 import { translation } from './locales';
@@ -26,7 +27,6 @@ import {
 } from 'utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 import { calculateEffectiveBalance } from 'utils/balance';
-import { getRenderString } from 'utils/dom';
 import { isEvmAccount } from 'utils/evm';
 import { updateQueryParams } from 'utils/url';
 
@@ -847,28 +847,26 @@ export class TradeApp extends PoolApp {
     this.updateAmountOut(effectiveOut);
   }
 
-  notificationTemplate(trade: TradeState, status: string): TxMessage {
-    const isSell: boolean = trade.type == TradeType.Sell;
-    const amountIn = trade.amountIn;
-    const assetIn = trade.assetIn.symbol;
-    const amountOut = trade.amountOut;
-    const assetOut = trade.assetOut.symbol;
-    const template = html`
-      <span>${status ? trade.type : isSell ? 'You sold' : 'You bought'}</span>
-      <span class="highlight">
-        ${humanizeAmount(isSell ? amountIn : amountOut)}
-      </span>
-      <span class="highlight">${isSell ? assetIn : assetOut}</span>
-      <span>${'for'}</span>
-      <span class="highlight">
-        ${humanizeAmount(isSell ? amountOut : amountIn)}
-      </span>
-      <span class="highlight">${isSell ? assetOut : assetIn}</span>
-      <span>${status}</span>
-    `;
+  notificationTemplate(trade: TradeState, tKey: string): TxMessage {
+    const { amountIn, amountOut, assetIn, assetOut, type } = this.trade;
+    const isSell: boolean = type == TradeType.Sell;
+    const action =
+      tKey === 'notify.success' ? (isSell ? 'sold' : 'bought') : trade.type;
+
+    const message = i18n
+      .t(tKey, {
+        action: action,
+        amountIn: humanizeAmount(isSell ? amountIn : amountOut),
+        amountOut: humanizeAmount(isSell ? amountOut : amountIn),
+        assetIn: isSell ? assetIn?.symbol : assetOut?.symbol,
+        assetOut: isSell ? assetOut?.symbol : assetIn?.symbol,
+      })
+      .replaceAll('<1>', '<span class="value highlight">')
+      .replaceAll('</1>', '</span>');
+
     return {
-      message: template,
-      rawHtml: getRenderString(template),
+      message: unsafeHTML(message),
+      rawHtml: message,
     } as TxMessage;
   }
 
@@ -878,9 +876,9 @@ export class TradeApp extends PoolApp {
     trade: TradeState,
   ) {
     const notification = {
-      processing: this.notificationTemplate(trade, 'submitted'),
-      success: this.notificationTemplate(trade, null),
-      failure: this.notificationTemplate(trade, 'failed'),
+      processing: this.notificationTemplate(trade, 'notify.processing'),
+      success: this.notificationTemplate(trade, 'notify.success'),
+      failure: this.notificationTemplate(trade, 'notify.error'),
     };
     const options = {
       bubbles: true,
@@ -913,40 +911,21 @@ export class TradeApp extends PoolApp {
       largest: 2,
     });
 
-    const template = html`
-      <span>${tradeReps}</span>
-      <span>${'trades'}</span>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="6"
-        height="7"
-        viewBox="0 0 6 7"
-        fill="none">
-        <line
-          x1="0.353553"
-          y1="1.16671"
-          x2="5.13786"
-          y2="5.95101"
-          stroke="#878C9E" />
-        <line
-          x1="5.22074"
-          y1="1.07743"
-          x2="0.436439"
-          y2="5.86173"
-          stroke="#878C9E" />
-      </svg>
-      <span>${humanizeAmount(tradeHuman.amountIn)}</span>
-      <span>${asset?.symbol}</span>
-      <span>${'placed during next'}</span>
-      <span class="highlight">${timeframe}</span>
-      <span>${'amounting to a total of'}</span>
-      <span class="highlight">${humanizeAmount(budget.toString())}</span>
-      <span class="highlight">${asset?.symbol}</span>
-      <span>${status}</span>
-    `;
+    const message = i18n
+      .t('notify.twap', {
+        amountIn: humanizeAmount(tradeHuman.amountIn),
+        amountInBudget: humanizeAmount(budget.toString()),
+        assetIn: asset?.symbol,
+        noOfTrades: tradeReps,
+        timeframe: timeframe,
+        status: status,
+      })
+      .replaceAll('<1>', '<span class="value highlight">')
+      .replaceAll('</1>', '</span>');
+
     return {
-      message: template,
-      rawHtml: getRenderString(template),
+      message: unsafeHTML(message),
+      rawHtml: message,
     } as TxMessage;
   }
 
