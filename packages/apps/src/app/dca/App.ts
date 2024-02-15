@@ -4,7 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
-import i18n from 'i18next';
+import { i18n } from 'localization';
 import { translation } from './locales';
 
 import { TradeApi } from 'api/trade';
@@ -62,8 +62,9 @@ export class DcaApp extends PoolApp {
   constructor() {
     super();
     i18n.init({
-      lng: 'en',
       debug: false,
+      lng: 'en',
+      postProcess: ['highlight'],
       resources: {
         en: {
           translation: translation.en,
@@ -343,16 +344,13 @@ export class DcaApp extends PoolApp {
       largest: 2,
     });
 
-    const message = i18n
-      .t(tKey, {
-        amountIn: amountIn,
-        amountInBudget: amountInBudget,
-        assetIn: assetIn?.symbol,
-        assetOut: assetOut?.symbol,
-        frequency: freqHuman,
-      })
-      .replaceAll('<1>', '<span class="value highlight">')
-      .replaceAll('</1>', '</span>');
+    const message = i18n.t(tKey, {
+      amountIn: amountIn,
+      amountInBudget: amountInBudget,
+      assetIn: assetIn?.symbol,
+      assetOut: assetOut?.symbol,
+      frequency: freqHuman,
+    });
     return {
       message: unsafeHTML(message),
       rawHtml: message,

@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
-import * as i18n from 'i18next';
+import { i18n } from 'localization';
 import { translation } from './locales';
 
 import { debounce } from 'ts-debounce';
@@ -89,8 +89,9 @@ export class XcmApp extends PoolApp {
     super();
     this._syncData = debounce(this.syncData, 300);
     i18n.init({
-      lng: 'en',
       debug: false,
+      lng: 'en',
+      postProcess: ['highlight'],
       resources: {
         en: {
           translation: translation.en,
@@ -285,14 +286,14 @@ export class XcmApp extends PoolApp {
     const minBN = toBigInt(min.amount, max.decimals);
 
     if (balance.amount == 0n) {
-      this.transfer.error['amount'] = i18n.t('xcm.error.balance');
+      this.transfer.error['amount'] = i18n.t('error.balance');
     } else if (amountBN > maxBN) {
-      this.transfer.error['amount'] = i18n.t('xcm.error.maxAmount', {
+      this.transfer.error['amount'] = i18n.t('error.maxAmount', {
         amount: max.toDecimal(),
         asset: asset.originSymbol,
       });
     } else if (amountBN < minBN) {
-      this.transfer.error['amount'] = i18n.t('xcm.error.minAmount', {
+      this.transfer.error['amount'] = i18n.t('error.minAmount', {
         amount: min.toDecimal(),
         asset: asset.originSymbol,
       });
@@ -440,13 +441,13 @@ export class XcmApp extends PoolApp {
     const { address, destChain } = this.transfer;
 
     if (address == null || address == '') {
-      this.transfer.error['address'] = i18n.t('xcm.error.required');
+      this.transfer.error['address'] = i18n.t('error.required');
     } else if (this.isEvmAddressError(destChain, address)) {
-      this.transfer.error['address'] = i18n.t('xcm.error.notEvmAddr');
+      this.transfer.error['address'] = i18n.t('error.notEvmAddr');
     } else if (this.isSubstrateAddressError(destChain, address)) {
-      this.transfer.error['address'] = i18n.t('xcm.error.notNativeAddr');
+      this.transfer.error['address'] = i18n.t('error.notNativeAddr');
     } else if (this.isAddressError(address)) {
-      this.transfer.error['address'] = i18n.t('xcm.error.notValidAddr');
+      this.transfer.error['address'] = i18n.t('error.notValidAddr');
     } else {
       delete this.transfer.error['address'];
     }

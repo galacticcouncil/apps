@@ -4,7 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
-import i18n from 'i18next';
+import { i18n } from 'localization';
 import { translation } from './locales';
 
 import { TradeInfo, TradeTwap, TWAP_BLOCK_PERIOD, TradeApi } from 'api/trade';
@@ -85,8 +85,9 @@ export class TradeApp extends PoolApp {
   constructor() {
     super();
     i18n.init({
-      lng: 'en',
       debug: false,
+      lng: 'en',
+      postProcess: ['highlight'],
       resources: {
         en: {
           translation: translation.en,
@@ -853,17 +854,13 @@ export class TradeApp extends PoolApp {
     const action =
       tKey === 'notify.success' ? (isSell ? 'sold' : 'bought') : trade.type;
 
-    const message = i18n
-      .t(tKey, {
-        action: action,
-        amountIn: humanizeAmount(isSell ? amountIn : amountOut),
-        amountOut: humanizeAmount(isSell ? amountOut : amountIn),
-        assetIn: isSell ? assetIn?.symbol : assetOut?.symbol,
-        assetOut: isSell ? assetOut?.symbol : assetIn?.symbol,
-      })
-      .replaceAll('<1>', '<span class="value highlight">')
-      .replaceAll('</1>', '</span>');
-
+    const message = i18n.t(tKey, {
+      action: action,
+      amountIn: humanizeAmount(isSell ? amountIn : amountOut),
+      amountOut: humanizeAmount(isSell ? amountOut : amountIn),
+      assetIn: isSell ? assetIn?.symbol : assetOut?.symbol,
+      assetOut: isSell ? assetOut?.symbol : assetIn?.symbol,
+    });
     return {
       message: unsafeHTML(message),
       rawHtml: message,
@@ -911,18 +908,14 @@ export class TradeApp extends PoolApp {
       largest: 2,
     });
 
-    const message = i18n
-      .t('notify.twap', {
-        amountIn: humanizeAmount(tradeHuman.amountIn),
-        amountInBudget: humanizeAmount(budget.toString()),
-        assetIn: asset?.symbol,
-        noOfTrades: tradeReps,
-        timeframe: timeframe,
-        status: status,
-      })
-      .replaceAll('<1>', '<span class="value highlight">')
-      .replaceAll('</1>', '</span>');
-
+    const message = i18n.t('notify.twap', {
+      amountIn: humanizeAmount(tradeHuman.amountIn),
+      amountInBudget: humanizeAmount(budget.toString()),
+      assetIn: asset?.symbol,
+      noOfTrades: tradeReps,
+      timeframe: timeframe,
+      status: status,
+    });
     return {
       message: unsafeHTML(message),
       rawHtml: message,

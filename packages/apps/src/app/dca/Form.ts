@@ -213,17 +213,14 @@ export class DcaForm extends BaseElement {
   }
 
   infoSummaryTemplate() {
-    const summary = i18n
-      .t('form.summary.message', {
-        amountInBudget: humanizeAmount(this.amountInBudget),
-        amountIn: humanizeAmount(this.amountIn),
-        assetIn: this.assetIn?.symbol,
-        assetOut: this.assetOut?.symbol,
-        frequency: this.getEstFreq(),
-        time: this.getEstTime(),
-      })
-      .replaceAll('<1>', '<span class="value highlight">')
-      .replaceAll('</1>', '</span>');
+    const summary = i18n.t('form.summary.message', {
+      amountInBudget: humanizeAmount(this.amountInBudget),
+      amountIn: humanizeAmount(this.amountIn),
+      assetIn: this.assetIn?.symbol,
+      assetOut: this.assetOut?.symbol,
+      frequency: this.getEstFreq(),
+      time: this.getEstTime(),
+    });
 
     return html`
       <span class="label">${i18n.t('form.summary')}</span>

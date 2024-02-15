@@ -194,19 +194,15 @@ export class YieldForm extends BaseElement {
   }
 
   infoSummaryTemplate() {
-    const summary = i18n
-      .t('form.summary.message', {
-        amountIn: humanizeAmount(this.amountIn),
-        amountInYield: humanizeAmount(this.amountInYield),
-        assetIn: this.assetIn?.symbol,
-        assetOut: this.assetOut?.symbol,
-        frequency: this.getEstFreq(),
-        int: this.interval.toLowerCase(),
-        rate: humanizeAmount(this.amountInYield * this.rate),
-      })
-      .replaceAll('<1>', '<span class="value highlight">')
-      .replaceAll('</1>', '</span>');
-
+    const summary = i18n.t('form.summary.message', {
+      amountIn: humanizeAmount(this.amountIn),
+      amountInYield: humanizeAmount(this.amountInYield),
+      assetIn: this.assetIn?.symbol,
+      assetOut: this.assetOut?.symbol,
+      frequency: this.getEstFreq(),
+      int: this.interval.toLowerCase(),
+      rate: humanizeAmount(this.amountInYield * this.rate),
+    });
     return html`
       <span class="label">${i18n.t('form.summary')}</span>
       <span class="value">${unsafeHTML(summary)}</span>

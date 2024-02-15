@@ -3,7 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { Asset, PoolToken, PoolBase, PoolType } from '@galacticcouncil/sdk';
 
-import * as i18n from 'i18next';
+import { i18n } from 'localization';
 import { translation } from './locales';
 
 import { TradeApp } from 'app/trade';
@@ -35,8 +35,9 @@ export class BondsApp extends TradeApp {
   constructor() {
     super();
     i18n.init({
-      lng: 'en',
       debug: false,
+      lng: 'en',
+      postProcess: ['highlight'],
       resources: {
         en: {
           translation: translation.en,
