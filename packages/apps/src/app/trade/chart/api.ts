@@ -2,6 +2,7 @@ import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
 
 import { Asset } from '@galacticcouncil/sdk';
 import { TradeData } from 'db';
+import { ChartRange } from 'element/chart/types';
 
 import { buildPriceQuery } from './query';
 
@@ -17,7 +18,9 @@ export class TradeChartApi {
   getTradeData(
     assetIn: Asset,
     assetOut: Asset,
-    endOfDay: string,
+    from: string,
+    to: string,
+    range: ChartRange,
     onSuccess: (assetIn: Asset, assetOut: Asset, price: TradeData) => void,
     onError: (error: any) => void,
   ) {
@@ -31,7 +34,13 @@ export class TradeChartApi {
         queries: [
           {
             refId: 'price',
-            rawSql: buildPriceQuery(assetIn.symbol, assetOut.symbol, endOfDay),
+            rawSql: buildPriceQuery(
+              assetIn.symbol,
+              assetOut.symbol,
+              from,
+              to,
+              range,
+            ),
             format: 'table',
             datasourceId: Number(this._grafanaDsn),
           },

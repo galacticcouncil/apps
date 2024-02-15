@@ -1,18 +1,23 @@
 import { html } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
-import { Chain, ChainCursor, DatabaseController, TradeData } from 'db';
+import {
+  Chain,
+  ChainCursor,
+  DatabaseController,
+  TradeData,
+  TradeDataCursor,
+} from 'db';
 import { humanizeAmount, multipleAmounts } from 'utils/amount';
 
 import { Amount } from '@galacticcouncil/sdk';
 
 import { Chart, Bucket } from 'element/chart';
 import { DEFAULT_DATASET } from 'element/chart/data';
-import { INIT_DATE } from 'element/chart/query';
-import { ChartState, Range } from 'element/chart/types';
+import { ChartRange, ChartState } from 'element/chart/types';
 
 import { TradeChartApi } from './api';
 
@@ -29,8 +34,6 @@ export class TradeChart extends Chart {
 
   private ready: boolean = false;
   private disconnectSubscribeNewHeads: () => void = null;
-
-  @state() range: Range = Range['1w'];
 
   @property({ type: String }) grafanaUrl = null;
   @property({ type: Number }) grafanaDsn = null;
@@ -62,12 +65,15 @@ export class TradeChart extends Chart {
       return;
     }
 
-    const endOfDay = this._dayjs().endOf('day').format('YYYY-MM-DDTHH:mm:ss'); // always use end of day so grafana cache query
+    const from = this.getRangeFrom().format('YYYY-MM-DDTHH:mm:ss');
+    const to = this.getRangeTo().format('YYYY-MM-DDTHH:mm:ss');
     this.chartState = ChartState.Loading;
     this.chartApi.getTradeData(
       this.assetIn,
       this.assetOut,
-      endOfDay,
+      from,
+      to,
+      this.chartRange,
       (assetIn, assetOut, data: TradeData) => {
         const key = this.buildDataKey(assetIn, assetOut);
         this.storeRecord(assetIn, assetOut, data);
@@ -82,20 +88,6 @@ export class TradeChart extends Chart {
     );
   }
 
-  private getRangeFrom(): UTCTimestamp {
-    const range = this.range;
-    switch (range) {
-      case Range['1d']:
-        return this._dayjs().subtract(1, 'day').unix() as UTCTimestamp;
-      case Range['1w']:
-        return this._dayjs().subtract(1, 'week').unix() as UTCTimestamp;
-      case Range['1m']:
-        return this._dayjs().subtract(1, 'month').unix() as UTCTimestamp;
-      default:
-        return this._dayjs(INIT_DATE).unix() as UTCTimestamp;
-    }
-  }
-
   private getLastPrice(): SingleValueData {
     return {
       time: this._dayjs().unix() as UTCTimestamp,
@@ -105,7 +97,7 @@ export class TradeChart extends Chart {
 
   protected syncChart(data: TradeData) {
     const lastPrice = this.getLastPrice();
-    const rangeFrom = this.getRangeFrom();
+    const rangeFrom = this.getRangeFrom().unix();
     const priceBucket = new Bucket(data.primary).withRange(rangeFrom);
     priceBucket.push(lastPrice);
 
@@ -175,7 +167,7 @@ export class TradeChart extends Chart {
   }
 
   getDatasetPrefix(): string {
-    return null;
+    return this.chartRange;
   }
 
   private async init() {
@@ -266,16 +258,16 @@ export class TradeChart extends Chart {
   }
 
   rangeTemplate() {
-    const rangeVal = Range[this.range];
+    const rangeVal = ChartRange[this.chartRange];
     return html`
       <uigc-range-button-group
-        selected=${rangeVal}
-        @range-button-clicked=${(e: CustomEvent) => {
-          this.range = Range[e.detail.value];
-          this.requestUpdate();
+        .selected=${rangeVal}
+        @range-button-clicked=${({ detail: { value } }) => {
+          console.log(TradeDataCursor.deref());
+          this.updateRange(value);
           this.loadData();
         }}>
-        ${Object.values(Range).map(
+        ${Object.values(ChartRange).map(
           (s: string) =>
             html`
               <uigc-range-button value=${s}>${s}</uigc-range-button>

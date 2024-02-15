@@ -1,16 +1,33 @@
-export const INIT_DATE = '2023-01-06T13:00:00.000Z';
+import { ChartRange } from 'element/chart/types';
 
-const priceQueryGroup = `SELECT
-    $__timeGroupAlias("timestamp",'1h'),
+function getPriceQuery(range: string) {
+  return `SELECT
+    $__timeGroupAlias("timestamp",'${range}'),
     max(price) AS "price"
-  FROM pair_price
-  `;
+    FROM pair_price
+    `;
+}
+
+function getRange(range: ChartRange) {
+  switch (range) {
+    case ChartRange['1d']:
+    case ChartRange['1w']:
+      return '1h';
+    case ChartRange['1m']:
+      return '3h';
+    default:
+      return '24h';
+  }
+}
 
 export function buildPriceQuery(
   assetIn: string,
   assetOut: string,
-  endOfDay: string,
+  from: string,
+  to: string,
+  range: ChartRange,
 ) {
+  const queryRange = getRange(range);
   return `
     WITH nor_trades AS (
       SELECT
@@ -29,7 +46,7 @@ export function buildPriceQuery(
       INNER JOIN token_metadata AS token_metadata_out ON (event.args->>'assetOut')::integer = token_metadata_out.id
       WHERE call.name != 'Router.buy'
         AND event.name IN ('Omnipool.BuyExecuted', 'Omnipool.SellExecuted', 'Router.RouteExecuted')
-        AND timestamp BETWEEN '${INIT_DATE}' AND '${endOfDay}'
+        AND timestamp BETWEEN '${from}' AND '${to}'
     ),
     pair_price AS (
       SELECT 
@@ -40,7 +57,7 @@ export function buildPriceQuery(
         END AS price
       FROM nor_trades
     )
-    ${priceQueryGroup}
+    ${getPriceQuery(queryRange)}
     WHERE price IS NOT NULL
     GROUP BY 1
     ORDER BY 1;

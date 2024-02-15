@@ -8,7 +8,6 @@ import {
   ISeriesApi,
   SingleValueData,
 } from 'lightweight-charts';
-import { TLRUCache } from '@thi.ng/cache';
 
 import { BaseElement } from 'element/BaseElement';
 import { TradeData, TradeDataCursor } from 'db';
@@ -25,7 +24,7 @@ import {
   timeScale,
 } from './opts';
 import { subscribeCrosshair } from './plugins';
-import { ChartState } from './types';
+import { ChartRange, ChartState, INIT_DATE } from './types';
 import { calculateWidth } from './utils';
 
 import './components/ButtonGroup';
@@ -67,6 +66,8 @@ export abstract class Chart extends BaseElement {
 
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
+
+  @state() chartRange: ChartRange = ChartRange['1w'];
   @state() chartState: ChartState = ChartState.Loading;
 
   static styles = [
@@ -140,6 +141,29 @@ export abstract class Chart extends BaseElement {
       primary: primarySwitch,
       secondary: secondarySwitch,
     });
+  }
+
+  protected getRangeFrom() {
+    const range = this.chartRange;
+    switch (range) {
+      case ChartRange['1d']:
+        return this._dayjs().subtract(1, 'day');
+      case ChartRange['1w']:
+        return this._dayjs().subtract(1, 'week');
+      case ChartRange['1m']:
+        return this._dayjs().subtract(1, 'month');
+      default:
+        return this._dayjs(INIT_DATE);
+    }
+  }
+
+  protected getRangeTo() {
+    return this._dayjs();
+  }
+
+  protected updateRange(value: string) {
+    this.chartRange = ChartRange[value];
+    this.requestUpdate();
   }
 
   protected syncPriceLine(id: string, yCoord: number) {
