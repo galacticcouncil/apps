@@ -22,12 +22,12 @@
   "form.twap.info": "Executed in the next {{timeframe}}",
   "form.twap.desc": "Achieve lower slippage by splitting your trade in smaller chunks.",
 
-  "form.summary.priceImpact": "Price impact:",
-  "form.summary.transactionFee": "Transaction cost:",
-  "form.summary.tradeFee": "Trade fee:",
-  "form.summary.bestRoute": "Best route",
-  "form.summary.minReceived": "Minimum received:",
-  "form.summary.maxSent": "MAximum sent:",
+  "form.info.priceImpact": "Price impact:",
+  "form.info.transactionFee": "Transaction cost:",
+  "form.info.tradeFee": "Trade fee:",
+  "form.info.bestRoute": "Best route",
+  "form.info.minReceived": "Minimum received:",
+  "form.info.maxSent": "MAximum sent:",
 
   "error.insufficientBalance": "Your trade is bigger than your balance.",
   "error.insufficientTradingAmount": "Your order size is lower than the minimum for trading.",

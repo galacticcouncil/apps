@@ -156,7 +156,6 @@ export const formStyles = css`
   .info .summary .value {
     text-align: left;
     font-size: 18px;
-    text-align: center;
   }
 
   .info .summary .value.small {

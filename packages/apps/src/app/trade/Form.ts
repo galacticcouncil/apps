@@ -484,10 +484,10 @@ export class TradeForm extends BaseElement {
     }
 
     const minReceived = html`
-      <span class="label">${i18n.t('form.summary.minReceived')}</span>
+      <span class="label">${i18n.t('form.info.minReceived')}</span>
     `;
     const maxSent = html`
-      <span class="label">${i18n.t('form.summary.maxSent')}</span>
+      <span class="label">${i18n.t('form.info.maxSent')}</span>
     `;
 
     return html`
@@ -527,7 +527,7 @@ export class TradeForm extends BaseElement {
       text_error: this.isSignificantPriceImpact(priceImpact),
     };
     return html`
-      <span class="label">${i18n.t('form.summary.priceImpact')}</span>
+      <span class="label">${i18n.t('form.info.priceImpact')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -606,7 +606,7 @@ export class TradeForm extends BaseElement {
 
   infoTradeFeeTemplate(assetSymbol: string) {
     return html`
-      <span class="label">${i18n.t('form.summary.tradeFee')}</span>
+      <span class="label">${i18n.t('form.info.tradeFee')}</span>
       <span class="grow"></span>
       ${this.infoTradeFeeDetail(assetSymbol)}
     `;
@@ -631,14 +631,14 @@ export class TradeForm extends BaseElement {
 
     if (fee === '0') {
       return html`
-        <span class="label">${i18n.t('form.summary.transactionFee')}</span>
+        <span class="label">${i18n.t('form.info.transactionFee')}</span>
         <span class="grow"></span>
         <span class="value">Estimation not available</span>
       `;
     }
 
     return html`
-      <span class="label">${i18n.t('form.summary.transactionFee')}</span>
+      <span class="label">${i18n.t('form.info.transactionFee')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -682,7 +682,7 @@ export class TradeForm extends BaseElement {
 
   infoBestRouteTemplate() {
     return html`
-      <span class="route-label">${i18n.t('form.summary.bestRoute')}</span>
+      <span class="route-label">${i18n.t('form.info.bestRoute')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,

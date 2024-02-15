@@ -2,6 +2,7 @@ import { html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import * as i18n from 'i18next';
 
@@ -192,9 +193,29 @@ export class YieldForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('interval-change', options));
   }
 
+  infoSummaryTemplate() {
+    const summary = i18n
+      .t('form.summary.message', {
+        amountIn: humanizeAmount(this.amountIn),
+        amountInYield: humanizeAmount(this.amountInYield),
+        assetIn: this.assetIn?.symbol,
+        assetOut: this.assetOut?.symbol,
+        frequency: this.getEstFreq(),
+        int: this.interval.toLowerCase(),
+        rate: humanizeAmount(this.amountInYield * this.rate),
+      })
+      .replaceAll('<1>', '<span class="value highlight">')
+      .replaceAll('</1>', '</span>');
+
+    return html`
+      <span class="label">${i18n.t('form.summary')}</span>
+      <span class="value">${unsafeHTML(summary)}</span>
+    `;
+  }
+
   infoApyTemplate() {
     return html`
-      <span class="label">${i18n.t('form.summary.avgApy')}</span>
+      <span class="label">${i18n.t('form.info.avgApy')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -216,7 +237,7 @@ export class YieldForm extends BaseElement {
 
   infoEstYieldTemplate() {
     return html`
-      <span class="label">${i18n.t('form.summary.estYield')}</span>
+      <span class="label">${i18n.t('form.info.estYield')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -240,35 +261,10 @@ export class YieldForm extends BaseElement {
     `;
   }
 
-  infoSummaryTemplate() {
-    const frequency = this.getEstFreq();
-    const int = this.interval.toLowerCase();
-    return html`
-      <span class="label">${i18n.t('form.summary')}</span>
-      <span>
-        <span class="value">Spend</span>
-        <span class="value highlight">
-          ${humanizeAmount(this.amountIn)} ${this.assetIn?.symbol}
-        </span>
-        <span class="value">
-          every ~${frequency} to buy ${this.assetOut?.symbol}
-        </span>
-
-        <span class="value">
-          over ${int} using expected underlying yield of
-        </span>
-        <span class="value highlight">
-          ${humanizeAmount(this.amountInYield * this.rate)} DOT /
-          ${humanizeAmount(this.amountInYield)} ${this.assetIn?.symbol}
-        </span>
-      </span>
-    `;
-  }
-
   infoSlippageTemplate() {
     const { slippage } = this.settings.state;
     return html`
-      <span class="label">${i18n.t('form.summary.slippage')}</span>
+      <span class="label">${i18n.t('form.info.slippage')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -291,7 +287,7 @@ export class YieldForm extends BaseElement {
   infoEstEndDateTemplate() {
     const estDate = this.getEstDate();
     return html`
-      <span class="label">${i18n.t('form.summary.estSchedule')}</span>
+      <span class="label">${i18n.t('form.info.estSchedule')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,

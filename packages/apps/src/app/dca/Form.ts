@@ -2,6 +2,7 @@ import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import * as i18n from 'i18next';
 
@@ -212,33 +213,27 @@ export class DcaForm extends BaseElement {
   }
 
   infoSummaryTemplate() {
-    const frequency = this.getEstFreq();
-    const time = this.getEstTime();
+    const summary = i18n
+      .t('form.summary.message', {
+        amountInBudget: humanizeAmount(this.amountInBudget),
+        amountIn: humanizeAmount(this.amountIn),
+        assetIn: this.assetIn?.symbol,
+        assetOut: this.assetOut?.symbol,
+        frequency: this.getEstFreq(),
+        time: this.getEstTime(),
+      })
+      .replaceAll('<1>', '<span class="value highlight">')
+      .replaceAll('</1>', '</span>');
 
     return html`
       <span class="label">${i18n.t('form.summary')}</span>
-      <span>
-        <span class="value">Swap a total of</span>
-        <span class="value highlight">
-          ${humanizeAmount(this.amountInBudget)} ${this.assetIn?.symbol}
-        </span>
-        <span class="value">for</span>
-        <span class="value highlight">${this.assetOut?.symbol}</span>
-        <span class="value">over</span>
-        <span class="value highlight">${time}</span>
-        <span class="value">with</span>
-        <span class="value highlight">
-          ${humanizeAmount(this.amountIn)} ${this.assetIn?.symbol}
-        </span>
-        <span class="value">trades every</span>
-        <span class="value highlight">${frequency}</span>
-      </span>
+      <span class="value">${unsafeHTML(summary)}</span>
     `;
   }
 
   infoSlippageTemplate() {
     return html`
-      <span class="label">${i18n.t('form.summary.slippage')}</span>
+      <span class="label">${i18n.t('form.info.slippage')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,
@@ -261,7 +256,7 @@ export class DcaForm extends BaseElement {
   infoEstEndDateTemplate() {
     const estDate = this.getEstDate();
     return html`
-      <span class="label">${i18n.t('form.summary.estSchedule')}</span>
+      <span class="label">${i18n.t('form.info.estSchedule')}</span>
       <span class="grow"></span>
       ${when(
         this.inProgress,

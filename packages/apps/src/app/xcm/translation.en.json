@@ -16,8 +16,8 @@
   "form.asset.label": "Transfer asset",
   "form.address.label": "To address",
 
-  "form.summary.sourceFee": "Source chain fee:",
-  "form.summary.destFee": "Destination chain fee:",
+  "form.info.sourceFee": "Source chain fee:",
+  "form.info.destFee": "Destination chain fee:",
 
   "error.required": "This field is required.",
   "error.notEvmAddr": "The address is incorrect. Please use valid ethereum address.",

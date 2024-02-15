@@ -16,8 +16,10 @@
   "form.advanced.interval": "Interval (minutes)",
 
   "form.summary": "Summary",
-  "form.summary.estSchedule": "Schedule end (est.)",
-  "form.summary.slippage": "Slippage protection",
+  "form.summary.message": "Swap a total of <1>{{amountInBudget}} {{assetIn}}</1> for <1>{{assetOut}}</1> over <1>{{time}}</1> with <1>{{amountIn}} {{assetIn}}</1> trades every <1>{{frequency}}</1>",
+
+  "form.info.estSchedule": "Schedule end (est.)",
+  "form.info.slippage": "Slippage protection",
 
   "error.insufficientBalance": "Your trade is bigger than your balance.",
   "error.minBudgetTooLow": "The minimum budget is {{amount}} {{asset}}.",

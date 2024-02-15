@@ -314,14 +314,14 @@ export class XcmForm extends LitElement {
       <div class="info show">
         <div class="row">
           ${this.transferFeeTemplate(
-            i18n.t('form.summary.sourceFee'),
+            i18n.t('form.info.sourceFee'),
             this.srcChainFee?.toDecimal(),
             this.srcChainFee?.originSymbol,
           )}
         </div>
         <div class="row">
           ${this.transferFeeTemplate(
-            i18n.t('form.summary.destFee'),
+            i18n.t('form.info.destFee'),
             this.destChainFee?.toDecimal(),
             this.destChainFee?.originSymbol,
           )}

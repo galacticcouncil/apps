@@ -13,10 +13,12 @@
   "form.duration.label": "Over the period of",
 
   "form.summary": "Summary",
-  "form.summary.avgApy": "Average APY",
-  "form.summary.estYield": "Estimated yield",
-  "form.summary.estSchedule": "Schedule end (est.)",
-  "form.summary.slippage": "Slippage protection",
+  "form.summary.message": "Spend <1>{{amountIn}} {{assetIn}}</1> every ~{{frequency}} to buy {{assetOut}} over {{int}} using expected underlying yield of <1>{{rate}} DOT / {{amountInYield}} {{assetIn}}</1>",
+
+  "form.info.avgApy": "Average APY",
+  "form.info.estYield": "Estimated yield",
+  "form.info.estSchedule": "Schedule end (est.)",
+  "form.info.slippage": "Slippage protection",
 
   "error.insufficientBalance": "Your trade is bigger than your balance.",
   "error.minInvestmentTooLow": "The minimum is {{amount}} {{asset}}.",
