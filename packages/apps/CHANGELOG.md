@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.1.1
+
+### Patch Changes
+
+- Fix trade chart sync (empty state)
+
 ## 3.1.0
 
 ### Minor Changes
