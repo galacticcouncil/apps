@@ -12,7 +12,7 @@ import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
 import { isSameAddress } from 'utils/account';
 
-import 'element/id/AccountIdenticon';
+import 'element/id';
 
 @customElement('gc-xcm-form')
 export class XcmForm extends LitElement {

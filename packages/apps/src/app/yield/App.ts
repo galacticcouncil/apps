@@ -39,7 +39,7 @@ import './Stepper';
 import 'app/trade/chart';
 import 'app/trade/orders';
 
-import 'element/selector/asset';
+import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
 import {

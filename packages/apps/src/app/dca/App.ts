@@ -41,7 +41,7 @@ import './Settings';
 import 'app/trade/chart';
 import 'app/trade/orders';
 
-import 'element/selector/asset';
+import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
 import { DcaTab, DcaState, DEFAULT_DCA_STATE, INTERVAL_DCA_MS } from './types';

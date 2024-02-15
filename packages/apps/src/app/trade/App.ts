@@ -49,7 +49,7 @@ import './Settings';
 import './chart';
 import './orders';
 
-import 'element/selector/asset';
+import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
 import {

@@ -13,7 +13,7 @@ import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 
 import { AssetSelector } from './types';
 
-import 'element/id/AssetIdenticon';
+import 'element/id';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {

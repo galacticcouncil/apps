@@ -41,10 +41,9 @@ import { ConfigService } from '@moonbeam-network/xcm-config';
 import { AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
 import { toBigInt } from '@moonbeam-network/xcm-utils';
 
-import './Form';
+import 'element/selector';
 
-import 'element/selector/token';
-import 'element/selector/chain';
+import './Form';
 
 import {
   TransferTab,
