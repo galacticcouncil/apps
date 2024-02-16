@@ -13,7 +13,7 @@
   "form.duration.label": "Over the period of",
 
   "form.summary": "Summary",
-  "form.summary.message": "Spend <1>{{amountIn}} {{assetIn}}</1> every ~{{frequency}} to buy {{assetOut}} over {{int}} using expected underlying yield of <1>{{rate}} DOT / {{amountInYield}} {{assetIn}}</1>",
+  "form.summary.message": "Spend <1>{{amountIn}} {{assetIn}}</1> every <1>~{{frequency}}</1> to buy <1>{{assetOut}}</1> over <1>{{int}}</1> using expected underlying yield of <1>{{rate}} DOT / {{amountInYield}} {{assetIn}}</1>",
 
   "form.info.avgApy": "Average APY",
   "form.info.estYield": "Estimated yield",
