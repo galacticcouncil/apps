@@ -1,5 +1,13 @@
 # @galacticcouncil/apps
 
+## 3.1.3
+
+### Patch Changes
+
+- Dca math fixes
+- Updated dependencies
+  - @galacticcouncil/ui@3.0.1
+
 ## 3.1.2
 
 ### Patch Changes
