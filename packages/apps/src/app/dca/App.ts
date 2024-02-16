@@ -105,6 +105,11 @@ export class DcaApp extends PoolApp {
     return Object.keys(this.dca.error).length > 0;
   }
 
+  updateProgress(status: boolean): void {
+    this.dca.inProgress = status;
+    this.requestUpdate();
+  }
+
   changeTab(active: DcaTab) {
     this.tab = active;
     this.requestUpdate();
@@ -194,28 +199,33 @@ export class DcaApp extends PoolApp {
     const periodMin = periodMsec / MINUTE_MS;
     const budget = Number(amountInBudget);
     const tradesNo = Math.round(periodMin / frequency);
-    const amountPerTrade = budget / tradesNo;
+    const optTradesNo = tradesNo === 1 ? 2 : tradesNo;
 
+    const amountPerTrade = budget / optTradesNo;
     this.dca = {
       ...this.dca,
       amountIn: amountPerTrade.toFixed(4),
       frequencyManual: frequency,
-      tradesNo: tradesNo,
+      tradesNo: optTradesNo,
     };
     this.validateFrequency();
+    this.validateMinBudget();
+    this.validateEnoughBalance();
   }
 
   private async updateTradeSize() {
-    const { router } = this.chain.state;
+    const { api, router } = this.chain.state;
     const { amountInBudget, assetIn, assetOut, interval, intervalMultiplier } =
       this.dca;
 
+    this.updateProgress(true);
     const bestSell = await router.getBestSell(
       assetIn.id,
       assetOut.id,
       amountInBudget,
     );
     const bestSellHuman = bestSell.toHuman();
+    console.log(bestSellHuman);
 
     const priceDifference = this.tradeApi.getSellPriceDifference(
       Number(amountInBudget),
@@ -223,33 +233,35 @@ export class DcaApp extends PoolApp {
       bestSellHuman.swaps,
     );
 
-    const minAmountIn = this.calculateAssetPrice(
-      assetIn,
-      MIN_NATIVE_AMOUNT,
-    ).toNumber();
+    const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
+    const minAmountIn = this.calculateAssetPrice(assetIn, minBudgetNative)
+      .multipliedBy(0.2) // 20% from budget
+      .toNumber();
 
     const periodMsec = intervalMultiplier * INTERVAL_DCA_MS[interval];
-    const periodMin = periodMsec / MINUTE_MS;
+    const periodMinutes = periodMsec / MINUTE_MS;
     const budget = Number(amountInBudget);
 
-    const minNoTrades = Math.round(budget / minAmountIn);
-    const avgNoTrades = Math.round(priceDifference.toNumber() * 10) || 1;
+    const minTradesNo = Math.round(budget / minAmountIn);
+    const optTradesNo = Math.round(priceDifference.toNumber() * 10) || 1;
+    const avgTradesNo = optTradesNo === 1 ? 2 : optTradesNo;
 
-    const minFreq = Math.ceil(periodMin / minNoTrades);
-    const avgFreq = Math.round(periodMin / avgNoTrades);
-    const maxFreq = periodMin;
+    const minFreq = Math.ceil(periodMinutes / minTradesNo);
+    const avgFreq = Math.round(periodMinutes / avgTradesNo);
 
-    const amountIn = Math.round(budget / avgNoTrades);
+    const amountIn = Math.round(budget / avgTradesNo);
     this.dca = {
       ...this.dca,
       amountIn: amountIn.toFixed(4),
-      amountInMin: minAmountIn.toFixed(4),
       frequency: avgFreq,
       frequencyManual: null,
-      frequencyRange: [minFreq, maxFreq],
-      tradesNo: avgNoTrades,
+      frequencyRange: [minFreq, avgFreq],
+      tradesNo: avgTradesNo,
+      inProgress: false,
     };
     this.validateFrequency();
+    this.validateMinBudget();
+    this.validateEnoughBalance();
   }
 
   private resetBalance() {
@@ -495,9 +507,7 @@ export class DcaApp extends PoolApp {
   }
 
   protected onAssetInputChange({ detail: { id, value } }) {
-    id == 'assetIn' && this.updateAmountInBudget(value);
-    this.validateMinBudget();
-    this.validateEnoughBalance();
+    this.updateAmountInBudget(value);
   }
 
   protected onAssetSelectorClick({ detail }: CustomEvent) {
@@ -550,6 +560,7 @@ export class DcaApp extends PoolApp {
       <uigc-paper class=${classMap(classes)} id="default-tab">
         <gc-dca-form
           .assets=${this.assets.registry}
+          .inProgress=${this.dca.inProgress}
           .disabled=${this.isFormDisabled()}
           .loaded=${this.isFormLoaded()}
           .assetIn=${this.dca.assetIn}
@@ -625,7 +636,7 @@ export class DcaApp extends PoolApp {
     id == 'assetIn' && this.changeAssetIn(asset, e.detail);
     id == 'assetOut' && this.changeAssetOut(asset, e.detail);
     this.syncBalance();
-    this.validateMinBudget();
+    this.updateTradeSize();
     this.changeTab(DcaTab.DcaForm);
   }
 

@@ -10,6 +10,7 @@ export enum DcaTab {
 }
 
 export type DcaState = {
+  inProgress: boolean;
   assetIn: Asset;
   assetOut: Asset;
   amountIn: string;
@@ -30,6 +31,7 @@ export type DcaState = {
 };
 
 export const DEFAULT_DCA_STATE: DcaState = {
+  inProgress: false,
   assetIn: null,
   assetOut: null,
   amountIn: null,

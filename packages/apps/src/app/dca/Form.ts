@@ -138,6 +138,10 @@ export class DcaForm extends BaseElement {
       uigc-asset {
         padding: 5px;
       }
+
+      uigc-skeleton.full {
+        width: 100%;
+      }
     `,
   ];
 
@@ -213,40 +217,35 @@ export class DcaForm extends BaseElement {
   }
 
   infoSummaryTemplate() {
+    if (this.inProgress) {
+      return html`
+        <span class="label">${i18n.t('form.summary')}</span>
+        <uigc-skeleton
+          class="full"
+          progress
+          rectangle
+          height="12px"></uigc-skeleton>
+        <uigc-skeleton
+          class="full"
+          progress
+          rectangle
+          height="12px"></uigc-skeleton>
+      `;
+    }
+
     const summary = i18n.t('form.summary.message', {
       amountInBudget: humanizeAmount(this.amountInBudget),
       amountIn: humanizeAmount(this.amountIn),
       assetIn: this.assetIn?.symbol,
       assetOut: this.assetOut?.symbol,
       frequency: this.getEstFreq(),
+      noOfTrades: this.tradesNo,
       time: this.getEstTime(),
     });
 
     return html`
       <span class="label">${i18n.t('form.summary')}</span>
       <span class="value">${unsafeHTML(summary)}</span>
-    `;
-  }
-
-  infoSlippageTemplate() {
-    return html`
-      <span class="label">${i18n.t('form.info.slippage')}</span>
-      <span class="grow"></span>
-      ${when(
-        this.inProgress,
-        () =>
-          html`
-            <uigc-skeleton
-              progress
-              rectangle
-              width="80px"
-              height="12px"></uigc-skeleton>
-          `,
-        () =>
-          html`
-            <span class="value">${this.settings.state.slippage}%</span>
-          `,
-      )}
     `;
   }
 
@@ -268,6 +267,29 @@ export class DcaForm extends BaseElement {
         () =>
           html`
             <span class="value">${estDate || '-'}</span>
+          `,
+      )}
+    `;
+  }
+
+  infoSlippageTemplate() {
+    const { slippage } = this.settings.state;
+    return html`
+      <span class="label">${i18n.t('form.info.slippage')}</span>
+      <span class="grow"></span>
+      ${when(
+        this.inProgress,
+        () =>
+          html`
+            <uigc-skeleton
+              progress
+              rectangle
+              width="80px"
+              height="12px"></uigc-skeleton>
+          `,
+        () =>
+          html`
+            <span class="value">${slippage}%</span>
           `,
       )}
     `;
@@ -448,7 +470,7 @@ export class DcaForm extends BaseElement {
         <div class="row">${this.infoSlippageTemplate()}</div>
       </div>
       <uigc-button
-        ?disabled=${this.disabled || !this.account.state}
+        ?disabled=${this.disabled || this.inProgress || !this.account.state}
         class="confirm"
         variant="info"
         fullWidth
