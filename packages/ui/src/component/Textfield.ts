@@ -241,6 +241,7 @@ export class Textfield extends UIGCElement {
               id="textField"
               placeholder=${this.placeholder}
               value=${this.value}
+              ?disabled=${this.disabled}
               @input=${(e: any) => {
                 this._onInputChange(e);
                 this._inputHandler();
