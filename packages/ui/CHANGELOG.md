@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.0.2
+
+### Patch Changes
+
+- Textfield disabled prop support
+
 ## 3.0.1
 
 ### Patch Changes
