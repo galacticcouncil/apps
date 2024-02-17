@@ -16,7 +16,7 @@
   "form.advanced.interval": "Interval (minutes)",
 
   "form.summary": "Summary",
-  "form.summary.message": "Swap a total of <1>{{amountInBudget}} {{assetIn}}</1> for <1>{{assetOut}}</1> over <1>~{{time}}</1>. <1>{{amountIn}} {{assetIn}}</1> will be swapped every <1>{{frequency}}</1> in {{noOfTrades}} trades.",
+  "form.summary.message": "Swap <1>{{amountIn}} {{assetIn}}</1> for <1>{{assetOut}}</1> every <1>~{{frequency}}</1> with a total budget of <1>{{amountInBudget}} {{assetIn}}</1> over the period of <1>~{{time}}</1>",
 
   "form.info.estSchedule": "Schedule end (est.)",
   "form.info.slippage": "Slippage protection",

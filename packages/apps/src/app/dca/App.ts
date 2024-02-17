@@ -14,12 +14,7 @@ import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { tradeLayoutStyles } from 'styles/layout/trade.css';
-import {
-  formatAmount,
-  humanizeAmount,
-  toBn,
-  MIN_NATIVE_AMOUNT,
-} from 'utils/amount';
+import { formatAmount, humanizeAmount, toBn } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
 import '@galacticcouncil/ui';
@@ -179,7 +174,24 @@ export class DcaApp extends PoolApp {
     this.recalculateSpotPrice();
   }
 
+  private resetDca() {
+    this.dca = {
+      ...this.dca,
+      amountIn: null,
+      amountInBudget: null,
+      amountInUsd: null,
+      frequency: null,
+      frequencyManual: null,
+      frequencyRange: [null, null],
+    };
+  }
+
   async updateAmountInBudget(amount: string) {
+    if (this.isEmptyAmount(amount)) {
+      this.resetDca();
+      return;
+    }
+
     this.dca = {
       ...this.dca,
       amountInBudget: amount,
@@ -573,8 +585,6 @@ export class DcaApp extends PoolApp {
           .intervalMultiplier=${this.dca.intervalMultiplier}
           .frequency=${this.dca.frequency}
           .frequencyManual=${this.dca.frequencyManual}
-          .tradeFee=${this.dca.tradeFee}
-          .tradeFeePct=${this.dca.tradeFeePct}
           .tradesNo=${this.dca.tradesNo}
           .error=${this.dca.error}
           @asset-input-change=${this.onAssetInputChange}

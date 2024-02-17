@@ -14,7 +14,6 @@ export type DcaState = {
   assetIn: Asset;
   assetOut: Asset;
   amountIn: string;
-  amountInMin: string;
   amountInBudget: string;
   amountInUsd: string;
   balanceIn: string;
@@ -24,8 +23,6 @@ export type DcaState = {
   frequencyManual: number;
   frequencyRange: [number, number];
   spotPrice: string;
-  tradeFee: string;
-  tradeFeePct: string;
   tradesNo: number;
   error: {};
 };
@@ -35,7 +32,6 @@ export const DEFAULT_DCA_STATE: DcaState = {
   assetIn: null,
   assetOut: null,
   amountIn: null,
-  amountInMin: null,
   amountInBudget: null,
   amountInUsd: null,
   balanceIn: null,
@@ -45,8 +41,6 @@ export const DEFAULT_DCA_STATE: DcaState = {
   frequencyManual: null,
   frequencyRange: [null, null],
   spotPrice: null,
-  tradeFee: null,
-  tradeFeePct: '0',
   tradesNo: null,
   error: {},
 };

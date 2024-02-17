@@ -42,9 +42,6 @@ export class DcaForm extends BaseElement {
   @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountInBudget = null;
   @property({ type: String }) balanceIn = null;
-  @property({ type: String }) slippagePct = '5';
-  @property({ type: String }) tradeFee = '0';
-  @property({ type: String }) tradeFeePct = '0';
   @property({ type: String }) tradesNo = null;
   @property({ attribute: false }) error = {};
 
@@ -425,10 +422,14 @@ export class DcaForm extends BaseElement {
 
   formFrequencyTemplate() {
     const error = this.error['frequencyOutOfRange'];
+    const isDisabled =
+      this.error['balanceTooLow'] || this.error['minBudgetTooLow'];
     return html`
       <uigc-textfield
         field
         number
+        ?disabled=${!!isDisabled}
+        .disabled=${!!isDisabled}
         ?error=${error}
         .error=${error}
         .min=${1}
