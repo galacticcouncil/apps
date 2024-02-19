@@ -10,42 +10,9 @@ Collection of views & components for seamless interaction with HydraDX & Basilis
 ├──<a href="./packages/ui/">UI Kit</a>: UI Component library.
 </pre>
 
-## Local Development and Build
+## Contributing
 
-### Requirements
-
-- [Node.js](https://nodejs.org/) (**version 18 or higher**)
-
-### Local development
-
-1. Link local modules
-
-```sh
-npm run link
-```
-
-2. Build packages
-
-- Build dist (with types)
-
-```sh
-npm run build
-```
-
-- Build & watch (js only + hot reloading)
-
-```sh
-npm run build:watch
-```
-
-3. Go to pages and run web dev server
-
-- <a href="./pages/api-viewer/">Component API Viewer</a></br>
-- <a href="./pages/apps-web/">Apps Playground</a></br>
-
-```sh
-npm run dev
-```
+Everything about building, setting up development environment & releasing can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Live [master]
 
