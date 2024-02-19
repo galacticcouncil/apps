@@ -1,6 +1,6 @@
 # Galactic Apps
 
-Galactic Apps monorepo is collection of views & components for seamless interaction with HydraDX & Basilisk chains.
+Collection of views & components for seamless interaction with HydraDX & Basilisk chains.
 
 ## Project Structure
 
