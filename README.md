@@ -4,11 +4,10 @@ Collection of views & components for seamless interaction with HydraDX & Basilis
 
 ## Project Structure
 
-<pre>
-<a href=".">Apps</a>: Galactic Apps monorepo.
-├──<a href="./packages/apps/">Apps</a>: View & Interaction layer.
-├──<a href="./packages/ui/">UI Kit</a>: UI Component library.
-</pre>
+| Package               | Version             | Changelog              | Description            |
+|:----------------------|:--------------------|:-----------------------|:-----------------------|
+| [`@galacticcouncil/apps`](./packages/apps)       | [![version](https://img.shields.io/npm/v/@galacticcouncil/apps.svg)](https://www.npmjs.com/package/@galacticcouncil/apps)    | [changelog](./packages/apps/CHANGELOG.md)  |  View & Interaction layer
+| [`@galacticcouncil/ui`](./packages/ui)           | [![version](https://img.shields.io/npm/v/@galacticcouncil/ui.svg)](https://www.npmjs.com/package/@galacticcouncil/ui)        | [changelog](./packages/ui/CHANGELOG.md)    |  UI Component library
 
 ## Contributing
 
