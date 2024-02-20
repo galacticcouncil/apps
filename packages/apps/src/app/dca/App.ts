@@ -537,6 +537,7 @@ export class DcaApp extends PoolApp {
 
   protected onAssetSwitchClick() {
     this.switch();
+    this.updateTradeSize();
   }
 
   protected onIntervalChange({ detail }: CustomEvent) {
