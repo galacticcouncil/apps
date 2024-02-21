@@ -35,8 +35,8 @@ export class TradeChartApi {
           {
             refId: 'price',
             rawSql: buildPriceQuery(
-              assetIn.symbol,
-              assetOut.symbol,
+              assetIn.id,
+              assetOut.id,
               from,
               to,
               range,

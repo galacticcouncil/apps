@@ -6,6 +6,7 @@ packages/*/build
 
 # dist folders
 pages/*/dist
+dist
 
 # public folders (js)
 pages/*/public/**/*.js

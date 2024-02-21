@@ -35,8 +35,8 @@ export function buildPriceQuery(
         block.height AS block,
         event.args->>'who' AS who,
         event.name AS operation,
-        token_metadata_in.symbol AS asset_in,
-        token_metadata_out.symbol AS asset_out,
+        (event.args->>'assetIn')::integer AS asset_in,
+        (event.args->>'assetOut')::integer AS asset_out,
         (event.args->>'amountIn')::numeric / (10 ^ token_metadata_in.decimals) AS amount_in,
         (event.args->>'amountOut')::numeric / (10 ^ token_metadata_out.decimals) AS amount_out
       FROM event
@@ -52,8 +52,8 @@ export function buildPriceQuery(
       SELECT 
         timestamp,
         CASE 
-          WHEN asset_in = '${assetIn}' AND asset_out = '${assetOut}' AND amount_in != 0 AND amount_out != 0 THEN amount_in / amount_out
-          WHEN asset_in = '${assetOut}' AND asset_out = '${assetIn}' AND amount_in != 0 AND amount_out != 0 THEN amount_out / amount_in
+          WHEN asset_in = ${assetIn} AND asset_out = ${assetOut} AND amount_in != 0 AND amount_out != 0 THEN amount_in / amount_out
+          WHEN asset_in = ${assetOut} AND asset_out = ${assetIn} AND amount_in != 0 AND amount_out != 0 THEN amount_out / amount_in
         END AS price
       FROM nor_trades
     )
