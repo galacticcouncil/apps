@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.1.5
+
+### Patch Changes
+
+- fixed chart query for 2pool
+
 ## 3.1.4
 
 ### Patch Changes
