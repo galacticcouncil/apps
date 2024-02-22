@@ -45,8 +45,8 @@ export function buildPriceQuery(
       INNER JOIN call ON call_id = call.id
       INNER JOIN token_metadata AS token_metadata_in ON (event.args->>'assetIn')::integer = token_metadata_in.id
       INNER JOIN token_metadata AS token_metadata_out ON (event.args->>'assetOut')::integer = token_metadata_out.id
-      WHERE call.name != 'Router.buy'
-        AND event.name IN ('Omnipool.BuyExecuted', 'Omnipool.SellExecuted', 'Router.RouteExecuted')
+      WHERE ((call.name != 'Router.buy' AND event.name = 'Router.RouteExecuted')
+        OR event.name IN ('Omnipool.BuyExecuted', 'Omnipool.SellExecuted', 'Router.Executed'))
         AND timestamp BETWEEN '${from}' AND '${to}'
     ),
     pair_price AS (
