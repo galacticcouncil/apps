@@ -17,6 +17,8 @@
     "build": "turbo run build",
     "build:watch": "turbo run build:watch",
     "clean": "turbo run clean",
+    "dev:apps": "npm run build:watch & npm run dev --prefix pages/apps-web",
+    "dev:ui": "npm run build:watch & npm run dev --prefix pages/api-viewer",
     "dist": "turbo run dist",
     "link": "turbo run link",
     "changeset": "changeset",

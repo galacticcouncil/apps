@@ -26,7 +26,7 @@ npm run build
 npm run build:watch
 ```
 
-3. Go to pages and run web dev server
+3. Go to **pages** folder and run web dev server
 
 - <a href="./pages/api-viewer/">Component API Viewer</a></br>
 - <a href="./pages/apps-web/">Apps Playground</a></br>

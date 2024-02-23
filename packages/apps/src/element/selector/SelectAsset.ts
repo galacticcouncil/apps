@@ -8,7 +8,7 @@ import { Amount, Asset } from '@galacticcouncil/sdk';
 
 import { baseStyles } from 'styles/base.css';
 import { selectorStyles } from 'styles/selector.css';
-import { formatAmount, humanizeAmount, multipleAmounts } from 'utils/amount';
+import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 
 import { AssetSelector } from './types';
@@ -43,25 +43,13 @@ export class SelectAsset extends LitElement {
     this.query = searchDetail.value;
   }
 
-  private getDollarPrice(asset: Asset, amount: string) {
-    if (this.usdPrice.size == 0) {
-      return null;
-    }
-
-    const usdPrice = this.usdPrice.get(asset.id);
-    if (usdPrice == null) {
-      return Number(amount).toFixed(2);
-    }
-    return multipleAmounts(amount, usdPrice).toFixed(2);
-  }
-
   private getAssetBalance(asset: Asset) {
     const balance = this.balances.get(asset.id);
     const balanceFormated = balance
       ? formatAmount(balance.amount, balance.decimals)
       : null;
     const balanceUsd = balance
-      ? this.getDollarPrice(asset, balanceFormated)
+      ? exchange(this.usdPrice, asset, balanceFormated)
       : null;
     return {
       asset: asset,

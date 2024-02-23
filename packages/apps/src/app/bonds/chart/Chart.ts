@@ -6,7 +6,7 @@ import { ISeriesApi, SingleValueData } from 'lightweight-charts';
 
 import { TimeApi } from 'api/time';
 import { Chain, ChainCursor, DatabaseController, TradeData } from 'db';
-import { humanizeAmount, multipleAmounts } from 'utils/amount';
+import { exchange, humanizeAmount } from 'utils/amount';
 
 import { Amount, PoolType } from '@galacticcouncil/sdk';
 
@@ -36,15 +36,7 @@ export class BondsChart extends Chart {
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
 
   private calculateDollarPrice(price: string) {
-    if (this.usdPrice.size == 0) {
-      return null;
-    }
-
-    const usdPrice = this.usdPrice.get(this.assetIn.id);
-    if (usdPrice == null) {
-      return price;
-    }
-    return multipleAmounts(price, usdPrice).toString();
+    return exchange(this.usdPrice, this.assetIn, price);
   }
 
   protected async loadData() {

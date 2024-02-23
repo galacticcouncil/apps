@@ -1,6 +1,12 @@
-import { Amount, Asset, BigNumber, TradeType } from '@galacticcouncil/sdk';
-
-import { TradeTwap } from '../../api/trade';
+import {
+  Amount,
+  Asset,
+  BigNumber,
+  Humanizer,
+  Trade,
+  TradeType,
+  Transaction,
+} from '@galacticcouncil/sdk';
 
 export enum TradeTab {
   TradeChart,
@@ -9,66 +15,75 @@ export enum TradeTab {
   SelectAsset,
 }
 
+export type TradeState = {
+  inProgress: boolean;
+  assetIn: Asset;
+  assetOut: Asset;
+  amountIn: string;
+  amountOut: string;
+  balanceIn: Amount;
+  balanceOut: Amount;
+  maxAmountIn: Amount;
+  minAmountOut: Amount;
+  spotPrice: string;
+  trade: Trade;
+  transactionFee: TransactionFee;
+  type: TradeType;
+  error: {};
+};
+
+export const DEFAULT_TRADE_STATE: TradeState = {
+  inProgress: false,
+  assetIn: null,
+  assetOut: null,
+  amountIn: null,
+  amountOut: null,
+  balanceIn: null,
+  balanceOut: null,
+  maxAmountIn: null,
+  minAmountOut: null,
+  spotPrice: null,
+  trade: null,
+  transactionFee: null,
+  type: TradeType.Buy,
+  error: {},
+};
+
+export type TwapState = {
+  inProgress: boolean;
+  active: boolean;
+  twap: Twap;
+};
+
+export const DEFAULT_TWAP_STATE: TwapState = {
+  inProgress: false,
+  active: true,
+  twap: null,
+};
+
 export type TransactionFee = {
   asset: Asset;
   amount: BigNumber;
   amountNative: string;
 };
 
-export type TradeState = {
-  inProgress: boolean;
-  afterSlippage: string;
-  afterSlippageUsd: string;
-  assetIn: Asset;
-  assetOut: Asset;
-  amountIn: string;
-  amountInUsd: string;
-  amountOut: string;
-  amountOutUsd: string;
-  balanceIn: Amount;
-  balanceOut: Amount;
-  priceImpactPct: string;
-  spotPrice: string;
-  tradeFee: string;
-  tradeFeePct: string;
-  tradeFeeRange: [number, number];
-  transactionFee: TransactionFee;
-  type: TradeType;
-  swaps: [];
-  error: {};
-};
+export interface Twap extends Humanizer {
+  amountIn: BigNumber;
+  amountOut: BigNumber;
+  maxAmountIn: BigNumber;
+  minAmountOut: BigNumber;
+  priceImpactPct: number;
+  reps: number;
+  time: number;
+  tradeFee: BigNumber;
+  error: TwapError;
+  estimateFee(txfee: BigNumber): BigNumber;
+  toTx(address: string, maxRetries: number): Transaction;
+  toHuman(): any;
+}
 
-export const DEFAULT_TRADE_STATE: TradeState = {
-  inProgress: false,
-  afterSlippage: '0',
-  afterSlippageUsd: '0',
-  assetIn: null,
-  assetOut: null,
-  amountIn: null,
-  amountInUsd: null,
-  amountOut: null,
-  amountOutUsd: null,
-  balanceIn: null,
-  balanceOut: null,
-  priceImpactPct: '0',
-  spotPrice: null,
-  tradeFee: null,
-  tradeFeePct: '0',
-  tradeFeeRange: null,
-  transactionFee: null,
-  type: TradeType.Buy,
-  swaps: [],
-  error: {},
-};
-
-export type TradeTwapState = {
-  inProgress: boolean;
-  active: boolean;
-  twap: TradeTwap;
-};
-
-export const DEFAULT_TWAP_STATE: TradeTwapState = {
-  inProgress: false,
-  active: true,
-  twap: null,
-};
+export enum TwapError {
+  OrderTooSmall = 'OrderTooSmall',
+  OrderTooBig = 'OrderTooBig',
+  OrderImpactTooBig = 'OrderImpactTooBig',
+}

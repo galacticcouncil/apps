@@ -24,10 +24,11 @@
 
   "form.info.priceImpact": "Price impact:",
   "form.info.transactionFee": "Transaction cost:",
+  "form.info.transactionFeeMin": "Minimum transaction cost:",
   "form.info.tradeFee": "Trade fee:",
   "form.info.bestRoute": "Best route",
   "form.info.minReceived": "Minimum received:",
-  "form.info.maxSent": "MAximum sent:",
+  "form.info.maxSent": "Maximum sent:",
 
   "error.insufficientBalance": "Your trade is bigger than your balance.",
   "error.insufficientTradingAmount": "Your order size is lower than the minimum for trading.",

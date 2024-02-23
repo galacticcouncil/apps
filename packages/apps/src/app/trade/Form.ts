@@ -6,7 +6,6 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { TradeApi, TradeTwap, TradeTwapError } from 'api/trade';
 import { BaseElement } from 'element/BaseElement';
 import {
   Account,
@@ -17,18 +16,21 @@ import {
 } from 'db';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
-import { formatAmount, humanizeAmount } from 'utils/amount';
+import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
 
 import {
   Amount,
   Asset,
+  BigNumber,
   ONE,
+  Swap,
+  Trade,
   TradeType,
   bnum,
   calculateDiffToRef,
 } from '@galacticcouncil/sdk';
 
-import { TransactionFee } from './types';
+import { TransactionFee, Twap, TwapError } from './types';
 
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
@@ -39,33 +41,28 @@ export class TradeForm extends BaseElement {
   );
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
-  @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
+  @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) loaded = false;
   @property({ type: Boolean }) readonly = false;
   @property({ type: Boolean }) switchAllowed = true;
-  @property({ attribute: false }) twap: TradeTwap = null;
-  @property({ type: Boolean }) twapAllowed = false;
-  @property({ type: Boolean }) twapProgress = false;
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) amountIn = null;
-  @property({ type: String }) amountInUsd = null;
   @property({ type: String }) amountOut = null;
-  @property({ type: String }) amountOutUsd = null;
   @property({ type: Object }) balanceIn: Amount = null;
   @property({ type: Object }) balanceOut: Amount = null;
+  @property({ type: Object }) maxAmountIn: Amount = null;
+  @property({ type: Object }) minAmountOut: Amount = null;
   @property({ type: String }) spotPrice = null;
-  @property({ type: String }) afterSlippage = '0';
-  @property({ type: String }) afterSlippageUsd = '0';
-  @property({ type: String }) priceImpactPct = '0';
-  @property({ type: String }) tradeFee = '0';
-  @property({ type: String }) tradeFeePct = '0';
-  @property({ attribute: false }) tradeFeeRange = null;
+  @property({ attribute: false }) trade: Trade = null;
+  @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ attribute: false }) transactionFee: TransactionFee = null;
+  @property({ attribute: false }) twap: Twap = null;
+  @property({ type: Boolean }) twapAllowed = false;
+  @property({ type: Boolean }) twapProgress = false;
   @property({ attribute: false }) error = {};
-  @property({ attribute: false }) swaps: [] = [];
 
   @state() twapEnabled: boolean = false;
   @state() isPriceReversed: boolean = false;
@@ -367,7 +364,7 @@ export class TradeForm extends BaseElement {
   ];
 
   private isTwapError(): boolean {
-    return this.twap && !!this.twap?.tradeError;
+    return this.twap && !!this.twap?.error;
   }
 
   private isSellTwap(): boolean {
@@ -388,11 +385,15 @@ export class TradeForm extends BaseElement {
     return Object.keys(this.error).length > 0;
   }
 
+  private hasTradeRoute(): boolean {
+    return this.trade?.swaps.length > 0;
+  }
+
   private hasTwapError(): boolean {
     const generalErrors = Object.assign({}, this.error);
     delete generalErrors['trade'];
     const hasError = Object.keys(generalErrors).length > 0;
-    const hasTwapError = this.twapEnabled && !!this.twap?.tradeError;
+    const hasTwapError = this.twapEnabled && !!this.twap?.error;
     return hasError || hasTwapError;
   }
 
@@ -403,7 +404,7 @@ export class TradeForm extends BaseElement {
     return this.disabled || this.hasTradeError();
   }
 
-  private isSignificantPriceImpact(impact: string): boolean {
+  private isSignificantPriceImpact(impact: number): boolean {
     return Number(impact) <= -1;
   }
 
@@ -419,8 +420,65 @@ export class TradeForm extends BaseElement {
     this.requestUpdate();
   }
 
-  private calculateTwapPctDiff(twapPrice: number) {
-    const swapPrice = Number(this.afterSlippage);
+  private getPriceImpact() {
+    if (this.twapEnabled) {
+      return this.twap?.priceImpactPct;
+    }
+    return this.trade?.priceImpactPct;
+  }
+
+  private getTradeFee(): string {
+    if (this.twapEnabled) {
+      const twap = this.twap?.toHuman();
+      return twap?.tradeFee;
+    }
+    const trade = this.trade?.toHuman();
+    return trade?.tradeFee;
+  }
+
+  private getTradeFeePct(): number {
+    const trade = this.trade?.toHuman();
+    return trade?.tradeFeePct;
+  }
+
+  private getTradeFeeIntervals(min: number, max: number, num = 3): number[] {
+    const { log2 } = Math;
+    return Array.from(
+      { length: num + 1 },
+      (_, index) => 2 ** (log2(min) + (index / num) * (log2(max) - log2(min))),
+    );
+  }
+
+  private getSwapSlippage(): string {
+    const out =
+      this.tradeType === TradeType.Sell ? this.minAmountOut : this.maxAmountIn;
+    return out ? formatAmount(out.amount, out.decimals) : null;
+  }
+
+  private getTwapSlippage(): string {
+    const { maxAmountIn, minAmountOut } = this.twap.toHuman();
+    return this.tradeType === TradeType.Sell ? minAmountOut : maxAmountIn;
+  }
+
+  private getSlippage(): string {
+    if (this.twapEnabled) {
+      return this.getTwapSlippage();
+    }
+    return this.getSwapSlippage();
+  }
+
+  private getBestRoute(): string[] {
+    return this.trade?.swaps.map(
+      (swap: Swap) => this.assets.get(swap.assetOut).symbol,
+    );
+  }
+
+  private calculateTwapPctDiff(twapPrice: string) {
+    const swapPrice = Number(this.getSlippage());
+    console.log(this.twap);
+    console.log(twapPrice);
+    console.log(swapPrice);
+
     const swapPriceBN = bnum(swapPrice);
     const twapPriceBN = bnum(twapPrice);
     if (this.tradeType === TradeType.Sell) {
@@ -430,9 +488,12 @@ export class TradeForm extends BaseElement {
     }
   }
 
-  private calculateTwapPriceDiff(twapPrice: number) {
+  private calculateTwapPriceDiff(twapPrice: string) {
     const swapPrice =
-      this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
+      this.tradeType === TradeType.Sell
+        ? exchange(this.usdPrice, this.assetOut, this.amountOut)
+        : exchange(this.usdPrice, this.assetIn, this.amountIn);
+
     const swapPriceBN = bnum(swapPrice);
     const twapPriceBN = bnum(twapPrice);
     if (this.tradeType === TradeType.Sell) {
@@ -475,11 +536,10 @@ export class TradeForm extends BaseElement {
   }
 
   infoSlippageTemplate(assetSymbol: string) {
-    let amount: string = this.afterSlippage;
-    let temp: TemplateResult = null;
+    const amount: string = this.getSlippage();
 
+    let temp: TemplateResult = null;
     if (this.twapEnabled) {
-      amount = this.twap.orderSlippage.toString();
       temp = this.infoTwapSlippagePctTemplate();
     }
 
@@ -517,11 +577,7 @@ export class TradeForm extends BaseElement {
   }
 
   infoPriceImpactTemplate() {
-    let priceImpact: string = this.priceImpactPct;
-    if (this.twapEnabled) {
-      priceImpact = this.twap.trade.toHuman().priceImpactPct;
-    }
-
+    const priceImpact = this.getPriceImpact();
     const priceImpactClasses = {
       value: true,
       text_error: this.isSignificantPriceImpact(priceImpact),
@@ -558,26 +614,18 @@ export class TradeForm extends BaseElement {
       `;
     }
 
-    let tradeFee: string = this.tradeFee;
-    let tradeFeePct: string = this.tradeFeePct;
+    const tradeFee: string = this.getTradeFee();
+    const tradeFeePct: number = this.getTradeFeePct();
+    const tradeFeeRange: [number, number] = this.trade?.toHuman().tradeFeeRange;
 
-    if (this.twapEnabled) {
-      const { tradeReps, trade } = this.twap;
-      const tradeHuman = trade.toHuman();
-      const tradeFeeNo = Number(tradeHuman.tradeFee) * tradeReps;
-      tradeFee = tradeFeeNo.toString();
-      tradeFeePct = tradeHuman.tradeFeePct;
-    }
-
-    if (this.tradeFeeRange) {
-      const [min, max] = this.tradeFeeRange;
-      const [, mediumLow, mediumHigh] = this.tradeFeeIntervals(min, max);
-      const fee = Number(this.tradeFeePct);
+    if (tradeFeeRange) {
+      const [min, max] = tradeFeeRange;
+      const [, mediumLow, mediumHigh] = this.getTradeFeeIntervals(min, max);
       const indicatorClasses = {
         indicator: true,
-        low: fee < mediumLow,
-        medium: fee >= mediumLow && fee <= mediumHigh,
-        high: fee > mediumHigh,
+        low: tradeFeePct < mediumLow,
+        medium: tradeFeePct >= mediumLow && tradeFeePct <= mediumHigh,
+        high: tradeFeePct > mediumHigh,
       };
       return html`
         <span class="value">${humanizeAmount(tradeFee)} ${assetSymbol}</span>
@@ -596,14 +644,6 @@ export class TradeForm extends BaseElement {
     `;
   }
 
-  tradeFeeIntervals(min: number, max: number, num = 3) {
-    const { log2 } = Math;
-    return Array.from(
-      { length: num + 1 },
-      (_, index) => 2 ** (log2(min) + (index / num) * (log2(max) - log2(min))),
-    );
-  }
-
   infoTradeFeeTemplate(assetSymbol: string) {
     return html`
       <span class="label">${i18n.t('form.info.tradeFee')}</span>
@@ -613,20 +653,15 @@ export class TradeForm extends BaseElement {
   }
 
   infoTransactionFeeTemplate() {
+    let feeAsset: Asset;
+    let feeBN: BigNumber;
     let fee: string;
-    let feeSymbol: string;
 
     if (this.transactionFee) {
       const { amount, asset } = this.transactionFee;
-      feeSymbol = asset.symbol;
-      fee = formatAmount(amount, asset.decimals);
-    }
-
-    if (this.twapEnabled && fee) {
-      const amountNo = Number(fee);
-      const { tradeReps } = this.twap;
-      const { maxRetries } = this.settings.state;
-      fee = TradeApi.getTwapTxFee(tradeReps, amountNo, maxRetries).toString();
+      feeAsset = asset;
+      feeBN = amount;
+      fee = formatAmount(amount, feeAsset.decimals);
     }
 
     if (fee === '0') {
@@ -634,6 +669,20 @@ export class TradeForm extends BaseElement {
         <span class="label">${i18n.t('form.info.transactionFee')}</span>
         <span class="grow"></span>
         <span class="value">Estimation not available</span>
+      `;
+    }
+
+    console.log(this.transactionFee);
+
+    if (this.twapEnabled && fee) {
+      const fee = this.twap.estimateFee(feeBN);
+      const feeMin = formatAmount(fee, feeAsset.decimals);
+      return html`
+        <span class="label">${i18n.t('form.info.transactionFeeMin')}</span>
+        <span class="grow"></span>
+        <span class="value">
+          ${humanizeAmount(feeMin) + ' ' + feeAsset.symbol}
+        </span>
       `;
     }
 
@@ -654,7 +703,7 @@ export class TradeForm extends BaseElement {
           html`
             <span class="value">
               ${this.transactionFee
-                ? humanizeAmount(fee) + ' ' + feeSymbol
+                ? humanizeAmount(fee) + ' ' + feeAsset.symbol
                 : '-'}
             </span>
           `,
@@ -663,10 +712,10 @@ export class TradeForm extends BaseElement {
   }
 
   bestRouteTemplate() {
-    const bestRoute = this.swaps.map(
-      (swap: any) => this.assets.get(swap.assetOut).symbol,
-    );
-    this.tradeType == TradeType.Buy && bestRoute.reverse();
+    const bestRoute = this.getBestRoute();
+    if (this.tradeType === TradeType.Buy) {
+      bestRoute.reverse();
+    }
     return html`
       <span class="value">${this.assetIn.symbol}</span>
       ${bestRoute.map(
@@ -696,11 +745,13 @@ export class TradeForm extends BaseElement {
   }
 
   infoTwapSlippageTemplate() {
-    const { amountInUsd, amountOutUsd } = this.twap;
+    const { amountIn, amountOut } = this.twap.toHuman();
+    const amountInUsd = exchange(this.usdPrice, this.assetIn, amountIn);
+    const amountOutUsd = exchange(this.usdPrice, this.assetOut, amountOut);
+
     const twapPrice =
       this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
-    const twapPriceeNo = Number(twapPrice);
-    const twapDiff = this.calculateTwapPriceDiff(twapPriceeNo);
+    const twapDiff = this.calculateTwapPriceDiff(twapPrice);
     const twapDiffAbs = Math.abs(twapDiff);
     const twapSellSymbol = twapDiff >= 0 ? '+$' : '-$';
     const twapBuySymbol = twapDiff > 0 ? '-$' : '+$';
@@ -720,8 +771,8 @@ export class TradeForm extends BaseElement {
   }
 
   infoTwapSlippagePctTemplate() {
-    const { orderSlippage } = this.twap;
-    const twapDiff = this.calculateTwapPctDiff(orderSlippage);
+    const amountTotal = this.getTwapSlippage();
+    const twapDiff = this.calculateTwapPctDiff(amountTotal);
     const twapDiffAbs = Math.abs(twapDiff);
     const twapSellSymbol = twapDiff >= 0 ? '+' : '-';
     const twapBuySymbol = twapDiff > 0 ? '-' : '+';
@@ -790,11 +841,11 @@ export class TradeForm extends BaseElement {
 
   formAssetInTemplate() {
     let amountIn: string = this.amountIn;
-    let amountInUsd: string = this.amountInUsd;
+    let amountInUsd: string = exchange(this.usdPrice, this.assetIn, amountIn);
 
     if (this.isBuyTwap()) {
       amountIn = this.twap.amountIn.toString();
-      amountInUsd = this.twap.amountInUsd.toString();
+      amountInUsd = exchange(this.usdPrice, this.assetIn, amountIn);
     }
 
     const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
@@ -827,14 +878,18 @@ export class TradeForm extends BaseElement {
 
   formAssetOutTemplate() {
     let amountOut: string = this.amountOut;
-    let amountOutUsd: string = this.amountOutUsd;
+    let amountOutUsd: string = exchange(
+      this.usdPrice,
+      this.assetOut,
+      amountOut,
+    );
 
     if (this.isSellTwap()) {
-      amountOut = this.twap.amountOut.toString();
-      amountOutUsd = this.twap.amountOutUsd.toString();
+      const twap = this.twap.toHuman();
+      amountOut = twap.amountOut;
+      amountOutUsd = exchange(this.usdPrice, this.assetOut, twap.amountOut);
     }
 
-    const amountUsdHuman = amountOutUsd ? humanizeAmount(amountOutUsd) : null;
     return html`
       <uigc-asset-transfer
         id="assetOut"
@@ -845,7 +900,7 @@ export class TradeForm extends BaseElement {
         .selectable=${!this.readonly && this.loaded}
         .asset=${this.assetOut?.symbol}
         .amount=${amountOut}
-        .amountUsd=${amountUsdHuman}
+        .amountUsd=${humanizeAmount(amountOutUsd)}
         @asset-input-change=${() => {
           this.twapEnabled = false;
         }}>
@@ -954,11 +1009,13 @@ export class TradeForm extends BaseElement {
     const price =
       this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
     const priceUsd =
-      this.tradeType === TradeType.Sell ? this.amountOutUsd : this.amountInUsd;
+      this.tradeType === TradeType.Sell
+        ? exchange(this.usdPrice, this.assetOut, price)
+        : exchange(this.usdPrice, this.assetIn, price);
     const swapClasses = {
       'form-option': true,
       active: !this.twapEnabled,
-      hidden: !(this.swaps.length > 0 && this.twapAllowed),
+      hidden: !(this.trade?.swaps.length > 0 && this.twapAllowed),
     };
     return html`
       <div
@@ -987,16 +1044,17 @@ export class TradeForm extends BaseElement {
       );
     }
 
-    if (this.twap && this.twap.tradeError === TradeTwapError.OrderTooBig) {
+    if (this.twap && this.twap.error === TwapError.OrderTooBig) {
       return this.formTwapOptionError(assetSymbol);
     }
 
-    const { tradeTime, amountIn, amountInUsd, amountOut, amountOutUsd } =
-      this.twap;
+    const { amountIn, amountOut, time } = this.twap.toHuman();
     const price = this.tradeType === TradeType.Sell ? amountOut : amountIn;
     const priceUsd =
-      this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
-    const timeframe = this._humanizer.humanize(tradeTime, {
+      this.tradeType === TradeType.Sell
+        ? exchange(this.usdPrice, this.assetOut, price)
+        : exchange(this.usdPrice, this.assetIn, price);
+    const timeframe = this._humanizer.humanize(time, {
       round: true,
       largest: 2,
       units: ['h', 'm'],
@@ -1005,7 +1063,7 @@ export class TradeForm extends BaseElement {
     const twapClasses = {
       'form-option': true,
       active: this.twapEnabled,
-      hidden: !(this.swaps.length > 0 && this.twapAllowed),
+      hidden: !(this.trade?.swaps.length > 0 && this.twapAllowed),
       disabled: this.isTwapError(),
     };
 
@@ -1052,13 +1110,14 @@ export class TradeForm extends BaseElement {
 
   formTwapSlippageWarning() {
     const { slippageTwap } = this.settings.state;
-    const priceImpact = Math.abs(Number(this.priceImpactPct));
+    const priceImpact = this.getPriceImpact();
+    const priceImpactAbs = Math.abs(priceImpact);
     const slippageWarnClasses = {
       warning: true,
       show:
         this.twapEnabled &&
-        priceImpact < 5 &&
-        Number(slippageTwap) < priceImpact,
+        priceImpactAbs < 5 &&
+        Number(slippageTwap) < priceImpactAbs,
     };
     return html`
       <div class=${classMap(slippageWarnClasses)}>
@@ -1072,10 +1131,11 @@ export class TradeForm extends BaseElement {
   }
 
   formTwapDcaWarning() {
-    const priceImpact = Math.abs(Number(this.priceImpactPct));
+    const priceImpact = this.getPriceImpact();
+    const priceImpactAbs = Math.abs(priceImpact);
     const dcaWarnClasses = {
       warning: true,
-      show: this.twapEnabled && priceImpact > 5,
+      show: this.twapEnabled && priceImpactAbs > 5,
     };
     return html`
       <div class=${classMap(dcaWarnClasses)}>
@@ -1100,16 +1160,15 @@ export class TradeForm extends BaseElement {
     const optionsClasses = {
       options: true,
       transfer: true,
-      show: this.swaps.length > 0 && this.twapAllowed,
+      show: this.hasTradeRoute() && this.twapAllowed,
     };
     const infoClasses = {
       info: true,
-      show: this.swaps.length > 0,
+      show: this.hasTradeRoute(),
     };
     const errorClasses = {
       error: true,
-      show:
-        this.swaps.length > 0 && !this.twapEnabled && this.hasGeneralError(),
+      show: this.hasTradeRoute() && !this.twapEnabled && this.hasGeneralError(),
     };
     return html`
       <slot name="header"></slot>
@@ -1128,7 +1187,7 @@ export class TradeForm extends BaseElement {
         <div class="row">${this.infoTradeFeeTemplate(assetSymbol)}</div>
         <div class="row">${this.infoTransactionFeeTemplate()}</div>
         ${when(
-          this.swaps.length > 1,
+          this.hasTradeRoute(),
           () =>
             html`
               <div class="row route">${this.infoBestRouteTemplate()}</div>

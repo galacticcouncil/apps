@@ -6,7 +6,6 @@ import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
 import { createApi } from 'chain';
 import { Account, Chain, ChainCursor, DatabaseController } from 'db';
-import { multipleAmounts } from 'utils/amount';
 
 import {
   Amount,
@@ -15,7 +14,6 @@ import {
   BigNumber,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
-  bnum,
 } from '@galacticcouncil/sdk';
 import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
 
@@ -216,35 +214,5 @@ export abstract class PoolApp extends BaseApp {
       this.assets.tradeable,
       SYSTEM_ASSET_ID,
     );
-  }
-
-  /**
-   * Get pool asset balance in $
-   *
-   * @param asset - asset entry
-   * @param amount - asset amount
-   * @returns - asset amount represented by $ (stablecoin)
-   */
-  protected calculateDollarPrice(asset: Asset, amount: string) {
-    if (this.stableCoinAssetId == asset.id) {
-      return Number(amount).toFixed(2);
-    }
-    const usdPrice = this.assets.usdPrice.get(asset.id);
-    return multipleAmounts(amount, usdPrice).toFixed(2);
-  }
-
-  /**
-   * Calculate asset balance from native amount
-   *
-   * @param asset - asset entry
-   * @param nativeAmount - asset amount represented by native token value
-   * @returns - asset amount represented by token value
-   */
-  protected calculateAssetPrice(asset: Asset, nativeAmount: string) {
-    if (SYSTEM_ASSET_ID == asset.id) {
-      return bnum(nativeAmount).shiftedBy(-1 * SYSTEM_ASSET_DECIMALS);
-    }
-    const assetNativePrice = this.assets.nativePrice.get(asset.id);
-    return bnum(nativeAmount).div(assetNativePrice.amount);
   }
 }
