@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - Fix twap tx fee display calc
+- DCA asset switcher
 
 ## 3.1.5
 
@@ -24,7 +25,7 @@
 
 ### Patch Changes
 
-- Dca math fixes
+- DCA math fixes
 - Updated dependencies
   - @galacticcouncil/ui@3.0.1
 
