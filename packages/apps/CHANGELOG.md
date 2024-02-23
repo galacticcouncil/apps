@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.1.6
+
+### Patch Changes
+
+- Fix twap tx fee display calc
+
 ## 3.1.5
 
 ### Patch Changes
