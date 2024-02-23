@@ -263,8 +263,9 @@ export class TradeApi {
     txFee: number,
     maxRetries: number,
   ): number {
+    const twapRetries = Number(maxRetries);
     const twapTxFee = txFee * TWAP_TX_MULTIPLIER;
-    const twapTxFeeWithRetries = twapTxFee * (maxRetries + 1);
+    const twapTxFeeWithRetries = twapTxFee * (twapRetries + 1);
     return twapTxFeeWithRetries * tradesNo;
   }
 }
