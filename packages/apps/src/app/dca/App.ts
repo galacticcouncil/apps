@@ -7,14 +7,18 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { i18n } from 'localization';
 import { translation } from './locales';
 
-import { TradeApi } from 'api/trade';
 import { PoolApp } from 'app/PoolApp';
 import { Account, DatabaseController, DcaConfig, DcaConfigCursor } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { tradeLayoutStyles } from 'styles/layout/trade.css';
-import { formatAmount, humanizeAmount, toBn } from 'utils/amount';
+import {
+  exchangeNative,
+  formatAmount,
+  humanizeAmount,
+  toBn,
+} from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
 import '@galacticcouncil/ui';
@@ -39,12 +43,13 @@ import 'app/trade/orders';
 import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
+import { DcaApi } from './api';
 import { DcaTab, DcaState, DEFAULT_DCA_STATE, INTERVAL_DCA_MS } from './types';
 
 @customElement('gc-dca')
 export class DcaApp extends PoolApp {
   protected settings = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
-  protected tradeApi: TradeApi = null;
+  protected dcaApi: DcaApi = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
 
@@ -239,14 +244,13 @@ export class DcaApp extends PoolApp {
     const bestSellHuman = bestSell.toHuman();
     console.log(bestSellHuman);
 
-    const priceDifference = this.tradeApi.getSellPriceDifference(
-      Number(amountInBudget),
-      Number(bestSellHuman.spotPrice),
-      bestSellHuman.swaps,
-    );
-
+    const priceDifference = this.dcaApi.getSellPriceDifference(bestSell);
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
-    const minAmountIn = this.calculateAssetPrice(assetIn, minBudgetNative)
+    const minAmountIn = exchangeNative(
+      this.assets.nativePrice,
+      assetIn,
+      minBudgetNative,
+    )
       .multipliedBy(0.2) // 20% from budget
       .toNumber();
 
@@ -318,7 +322,11 @@ export class DcaApp extends PoolApp {
     const { amountInBudget, assetIn } = this.dca;
 
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
-    const minBudget = this.calculateAssetPrice(assetIn, minBudgetNative);
+    const minBudget = exchangeNative(
+      this.assets.nativePrice,
+      assetIn,
+      minBudgetNative,
+    );
     const budget = new BigNumber(amountInBudget);
     if (minBudget.isGreaterThan(budget)) {
       this.dca.error['minBudgetTooLow'] = i18n.t('error.minBudgetTooLow', {
@@ -479,8 +487,8 @@ export class DcaApp extends PoolApp {
   }
 
   protected onInit(): void {
-    const { router } = this.chain.state;
-    this.tradeApi = new TradeApi(router);
+    const { api, router } = this.chain.state;
+    this.dcaApi = new DcaApi(api, router);
     this.initAssets();
     this.recalculateSpotPrice();
     this.syncBalance();

@@ -8,7 +8,7 @@ import {
   scale,
 } from '@galacticcouncil/sdk';
 
-export const MIN_NATIVE_AMOUNT = '500000000000000';
+export const MIN_NATIVE_AMOUNT = '1000000000000000';
 
 export function formatAmount(amount: BigNumber, decimals: number): string {
   return amount

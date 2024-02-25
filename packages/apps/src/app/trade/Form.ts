@@ -6,6 +6,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
+import { Twap, TwapError } from 'api/trade/types';
 import { BaseElement } from 'element/BaseElement';
 import {
   Account,
@@ -30,12 +31,12 @@ import {
   calculateDiffToRef,
 } from '@galacticcouncil/sdk';
 
-import { TransactionFee, Twap, TwapError } from './types';
+import { TransactionFee } from './types';
 
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
   private account = new DatabaseController<Account>(this, AccountCursor);
-  private settings = new DatabaseController<TradeConfig>(
+  private tradeConfig = new DatabaseController<TradeConfig>(
     this,
     TradeConfigCursor,
   );
@@ -460,6 +461,28 @@ export class TradeForm extends BaseElement {
     return this.tradeType === TradeType.Sell ? minAmountOut : maxAmountIn;
   }
 
+  private getSwapPrice(): string {
+    return this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
+  }
+
+  private getSwapUsdPrice(): string {
+    return this.tradeType === TradeType.Sell
+      ? exchange(this.usdPrice, this.assetOut, this.amountOut)
+      : exchange(this.usdPrice, this.assetIn, this.amountIn);
+  }
+
+  private getTwapPrice(): string {
+    const { amountIn, amountOut } = this.twap.toHuman();
+    return this.tradeType === TradeType.Sell ? amountOut : amountIn;
+  }
+
+  private getTwapUsdPrice(): string {
+    const { amountIn, amountOut } = this.twap.toHuman();
+    const amountInUsd = exchange(this.usdPrice, this.assetIn, amountIn);
+    const amountOutUsd = exchange(this.usdPrice, this.assetOut, amountOut);
+    return this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
+  }
+
   private getSlippage(): string {
     if (this.twapEnabled) {
       return this.getTwapSlippage();
@@ -473,12 +496,9 @@ export class TradeForm extends BaseElement {
     );
   }
 
-  private calculateTwapPctDiff(twapPrice: string) {
-    const swapPrice = Number(this.getSlippage());
-    console.log(this.twap);
-    console.log(twapPrice);
-    console.log(swapPrice);
-
+  private calculateTwapPctDiff() {
+    const twapPrice = this.getTwapSlippage();
+    const swapPrice = this.getSwapSlippage();
     const swapPriceBN = bnum(swapPrice);
     const twapPriceBN = bnum(twapPrice);
     if (this.tradeType === TradeType.Sell) {
@@ -488,12 +508,9 @@ export class TradeForm extends BaseElement {
     }
   }
 
-  private calculateTwapPriceDiff(twapPrice: string) {
-    const swapPrice =
-      this.tradeType === TradeType.Sell
-        ? exchange(this.usdPrice, this.assetOut, this.amountOut)
-        : exchange(this.usdPrice, this.assetIn, this.amountIn);
-
+  private calculateTwapPriceDiff() {
+    const twapPrice = this.getTwapUsdPrice();
+    const swapPrice = this.getSwapUsdPrice();
     const swapPriceBN = bnum(swapPrice);
     const twapPriceBN = bnum(twapPrice);
     if (this.tradeType === TradeType.Sell) {
@@ -504,6 +521,7 @@ export class TradeForm extends BaseElement {
   }
 
   onCtaClick(e: any) {
+    console.log('click');
     const options = {
       bubbles: true,
       composed: true,
@@ -672,8 +690,6 @@ export class TradeForm extends BaseElement {
       `;
     }
 
-    console.log(this.transactionFee);
-
     if (this.twapEnabled && fee) {
       const fee = this.twap.estimateFee(feeBN);
       const feeMin = formatAmount(fee, feeAsset.decimals);
@@ -745,13 +761,7 @@ export class TradeForm extends BaseElement {
   }
 
   infoTwapSlippageTemplate() {
-    const { amountIn, amountOut } = this.twap.toHuman();
-    const amountInUsd = exchange(this.usdPrice, this.assetIn, amountIn);
-    const amountOutUsd = exchange(this.usdPrice, this.assetOut, amountOut);
-
-    const twapPrice =
-      this.tradeType === TradeType.Sell ? amountOutUsd : amountInUsd;
-    const twapDiff = this.calculateTwapPriceDiff(twapPrice);
+    const twapDiff = this.calculateTwapPriceDiff();
     const twapDiffAbs = Math.abs(twapDiff);
     const twapSellSymbol = twapDiff >= 0 ? '+$' : '-$';
     const twapBuySymbol = twapDiff > 0 ? '-$' : '+$';
@@ -771,8 +781,7 @@ export class TradeForm extends BaseElement {
   }
 
   infoTwapSlippagePctTemplate() {
-    const amountTotal = this.getTwapSlippage();
-    const twapDiff = this.calculateTwapPctDiff(amountTotal);
+    const twapDiff = this.calculateTwapPctDiff();
     const twapDiffAbs = Math.abs(twapDiff);
     const twapSellSymbol = twapDiff >= 0 ? '+' : '-';
     const twapBuySymbol = twapDiff > 0 ? '-' : '+';
@@ -844,7 +853,8 @@ export class TradeForm extends BaseElement {
     let amountInUsd: string = exchange(this.usdPrice, this.assetIn, amountIn);
 
     if (this.isBuyTwap()) {
-      amountIn = this.twap.amountIn.toString();
+      const twap = this.twap.toHuman();
+      amountIn = twap.amountIn;
       amountInUsd = exchange(this.usdPrice, this.assetIn, amountIn);
     }
 
@@ -887,7 +897,7 @@ export class TradeForm extends BaseElement {
     if (this.isSellTwap()) {
       const twap = this.twap.toHuman();
       amountOut = twap.amountOut;
-      amountOutUsd = exchange(this.usdPrice, this.assetOut, twap.amountOut);
+      amountOutUsd = exchange(this.usdPrice, this.assetOut, amountOut);
     }
 
     return html`
@@ -1006,12 +1016,8 @@ export class TradeForm extends BaseElement {
       );
     }
 
-    const price =
-      this.tradeType === TradeType.Sell ? this.amountOut : this.amountIn;
-    const priceUsd =
-      this.tradeType === TradeType.Sell
-        ? exchange(this.usdPrice, this.assetOut, price)
-        : exchange(this.usdPrice, this.assetIn, price);
+    const price = this.getSwapPrice();
+    const priceUsd = this.getSwapUsdPrice();
     const swapClasses = {
       'form-option': true,
       active: !this.twapEnabled,
@@ -1048,12 +1054,9 @@ export class TradeForm extends BaseElement {
       return this.formTwapOptionError(assetSymbol);
     }
 
-    const { amountIn, amountOut, time } = this.twap.toHuman();
-    const price = this.tradeType === TradeType.Sell ? amountOut : amountIn;
-    const priceUsd =
-      this.tradeType === TradeType.Sell
-        ? exchange(this.usdPrice, this.assetOut, price)
-        : exchange(this.usdPrice, this.assetIn, price);
+    const { time } = this.twap.toHuman();
+    const price = this.getTwapPrice();
+    const priceUsd = this.getTwapUsdPrice();
     const timeframe = this._humanizer.humanize(time, {
       round: true,
       largest: 2,
@@ -1109,7 +1112,7 @@ export class TradeForm extends BaseElement {
   }
 
   formTwapSlippageWarning() {
-    const { slippageTwap } = this.settings.state;
+    const { slippageTwap } = this.tradeConfig.state;
     const priceImpact = this.getPriceImpact();
     const priceImpactAbs = Math.abs(priceImpact);
     const slippageWarnClasses = {

@@ -16,7 +16,7 @@ const SLIPPAGE_TWAP_OPTS = ['0.5', '1', '3', '5'];
 
 @customElement('gc-trade-settings')
 export class TradeSettings extends LitElement {
-  protected settings = new DatabaseController<TradeConfig>(
+  protected tradeConfig = new DatabaseController<TradeConfig>(
     this,
     TradeConfigCursor,
   );
@@ -123,8 +123,8 @@ export class TradeSettings extends LitElement {
   ];
 
   private onChange(value: any, propName: any) {
-    const settings = this.settings.state;
-    const currentValue = settings[propName];
+    const config = this.tradeConfig.state;
+    const currentValue = config[propName];
     if (currentValue == value) {
       return;
     }
@@ -168,7 +168,7 @@ export class TradeSettings extends LitElement {
   }
 
   formTradeTemplate() {
-    const { slippage } = this.settings.state;
+    const { slippage } = this.tradeConfig.state;
     const slippageOpts = new Set(SLIPPAGE_OPTS);
     const custom = slippageOpts.has(slippage) ? null : slippage;
 
@@ -196,7 +196,7 @@ export class TradeSettings extends LitElement {
   }
 
   formTwapTemplate() {
-    const { slippageTwap, maxRetries } = this.settings.state;
+    const { slippageTwap, maxRetries } = this.tradeConfig.state;
     const slippageOpts = new Set(SLIPPAGE_TWAP_OPTS);
     const custom = slippageOpts.has(slippageTwap) ? null : slippageTwap;
 

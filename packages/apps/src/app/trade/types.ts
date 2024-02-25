@@ -2,11 +2,11 @@ import {
   Amount,
   Asset,
   BigNumber,
-  Humanizer,
   Trade,
   TradeType,
-  Transaction,
 } from '@galacticcouncil/sdk';
+
+import { Twap } from 'api/trade/types';
 
 export enum TradeTab {
   TradeChart,
@@ -66,24 +66,3 @@ export type TransactionFee = {
   amount: BigNumber;
   amountNative: string;
 };
-
-export interface Twap extends Humanizer {
-  amountIn: BigNumber;
-  amountOut: BigNumber;
-  maxAmountIn: BigNumber;
-  minAmountOut: BigNumber;
-  priceImpactPct: number;
-  reps: number;
-  time: number;
-  tradeFee: BigNumber;
-  error: TwapError;
-  estimateFee(txfee: BigNumber): BigNumber;
-  toTx(address: string, maxRetries: number): Transaction;
-  toHuman(): any;
-}
-
-export enum TwapError {
-  OrderTooSmall = 'OrderTooSmall',
-  OrderTooBig = 'OrderTooBig',
-  OrderImpactTooBig = 'OrderImpactTooBig',
-}

@@ -7,6 +7,8 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { i18n } from 'localization';
 import { translation } from './locales';
 
+import { TradeApi } from 'api/trade';
+import { Twap } from 'api/trade/types';
 import { PoolApp } from 'app/PoolApp';
 import {
   Account,
@@ -55,13 +57,10 @@ import './orders';
 import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
-import { TwapApi } from './api';
-
 import {
   TradeTab,
   TradeState,
   DEFAULT_TRADE_STATE,
-  Twap,
   TwapState,
   DEFAULT_TWAP_STATE,
   TransactionFee,
@@ -69,12 +68,12 @@ import {
 
 @customElement('gc-trade')
 export class TradeApp extends PoolApp {
-  protected settings = new DatabaseController<TradeConfig>(
+  protected tradeConfig = new DatabaseController<TradeConfig>(
     this,
     TradeConfigCursor,
   );
 
-  protected twapApi: TwapApi = null;
+  protected tradeApi: TradeApi = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) smartSplit: Boolean = false;
@@ -212,7 +211,7 @@ export class TradeApp extends PoolApp {
         assetIn,
         MIN_NATIVE_AMOUNT,
       );
-      const twap = await this.twapApi.getSellTwap(
+      const twap = await this.tradeApi.getSellTwap(
         amountInMin,
         assetIn,
         assetOut,
@@ -239,7 +238,7 @@ export class TradeApp extends PoolApp {
       .div(trade.spotPrice)
       .toFixed();
 
-    const { slippage } = this.settings.state;
+    const { slippage } = this.tradeConfig.state;
     const minAmountOut = getTradeMinAmountOut(trade, slippage);
 
     const { amountOut } = Object.assign({}, tradeHuman);
@@ -290,7 +289,7 @@ export class TradeApp extends PoolApp {
         assetIn,
         MIN_NATIVE_AMOUNT,
       );
-      const twap = await this.twapApi.getBuyTwap(
+      const twap = await this.tradeApi.getBuyTwap(
         amountInMin,
         assetIn,
         assetOut,
@@ -314,7 +313,7 @@ export class TradeApp extends PoolApp {
     const trade = await this.safeBuy(assetIn, assetOut, amountOut);
     const tradeHuman = trade.toHuman();
 
-    const { slippage } = this.settings.state;
+    const { slippage } = this.tradeConfig.state;
     const maxAmountIn = getTradeMaxAmountIn(trade, slippage);
 
     const { amountIn, spotPrice } = Object.assign({}, tradeHuman);
@@ -902,7 +901,7 @@ export class TradeApp extends PoolApp {
 
   private async onTwapClick() {
     const account = this.account.state;
-    const { maxRetries } = this.settings.state;
+    const { maxRetries } = this.tradeConfig.state;
 
     if (account) {
       const { assetIn } = this.trade;
@@ -947,7 +946,7 @@ export class TradeApp extends PoolApp {
 
   protected async onInit(): Promise<void> {
     const { api, router } = this.chain.state;
-    this.twapApi = new TwapApi(api, router, TradeConfigCursor);
+    this.tradeApi = new TradeApi(api, router, TradeConfigCursor);
 
     this.initAssets();
     this.validatePool();
