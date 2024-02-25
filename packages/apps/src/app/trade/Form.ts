@@ -6,7 +6,6 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { Twap, TwapError } from 'api/trade/types';
 import { BaseElement } from 'element/BaseElement';
 import {
   Account,
@@ -31,7 +30,7 @@ import {
   calculateDiffToRef,
 } from '@galacticcouncil/sdk';
 
-import { TransactionFee } from './types';
+import { TransactionFee, Twap, TwapError } from './types';
 
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {

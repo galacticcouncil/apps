@@ -7,8 +7,6 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { i18n } from 'localization';
 import { translation } from './locales';
 
-import { TradeApi } from 'api/trade';
-import { Twap } from 'api/trade/types';
 import { PoolApp } from 'app/PoolApp';
 import {
   Account,
@@ -57,10 +55,12 @@ import './orders';
 import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
+import { TwapApi } from './api';
 import {
   TradeTab,
   TradeState,
   DEFAULT_TRADE_STATE,
+  Twap,
   TwapState,
   DEFAULT_TWAP_STATE,
   TransactionFee,
@@ -73,7 +73,7 @@ export class TradeApp extends PoolApp {
     TradeConfigCursor,
   );
 
-  protected tradeApi: TradeApi = null;
+  protected tradeApi: TwapApi = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) smartSplit: Boolean = false;
@@ -755,8 +755,6 @@ export class TradeApp extends PoolApp {
       paymentInfo.partialFee.toString(),
     );
 
-    console.log(txFee);
-
     const eb = calculateEffectiveBalance(
       this.trade.balanceIn.amount,
       this.trade.assetIn.symbol,
@@ -946,7 +944,7 @@ export class TradeApp extends PoolApp {
 
   protected async onInit(): Promise<void> {
     const { api, router } = this.chain.state;
-    this.tradeApi = new TradeApi(api, router, TradeConfigCursor);
+    this.tradeApi = new TwapApi(api, router, TradeConfigCursor);
 
     this.initAssets();
     this.validatePool();

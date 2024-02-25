@@ -2,39 +2,134 @@ import {
   type Asset,
   type Trade,
   buildRoute,
-  calculateDiffToRef,
   BigNumber,
-  SellSwap,
-  TradeRouter,
   Transaction,
 } from '@galacticcouncil/sdk';
-import { ApiPromise } from '@polkadot/api';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { Cursor } from '@thi.ng/atom';
 
-import { TradeConfig } from 'db';
+import { TradeApi } from 'api/trade';
+import { DcaConfig } from 'db';
 import { formatAmount } from 'utils/amount';
-import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
-import { HOUR_MS } from 'utils/time';
 
-export class DcaApi {
-  private _api: ApiPromise;
-  private _router: TradeRouter;
+import { Dca } from './types';
+import { MINUTE_MS } from 'utils/time';
 
-  public constructor(api: ApiPromise, router: TradeRouter) {
-    this._api = api;
-    this._router = router;
+export class DcaApi extends TradeApi<DcaConfig> {
+  /**
+   * Get DCA sell execution info & build order tx
+   *
+   * @param amountInMin - Minimum budget to be able to schedule an order, specified in native currency
+   * @param assetIn - Asset In
+   * @param assetOut - Asset Out
+   * @param trade - Swap execution info
+   * @param blockTime - Block time in ms
+   * @returns
+   */
+  async getSellOrder(
+    amountInMin: BigNumber,
+    assetIn: Asset,
+    assetOut: Asset,
+    trade: Trade,
+    period: number,
+    blockTime: number,
+    frequency?: number,
+  ): Promise<Dca> {
+    const { slippage } = this._config.deref();
+    const { amountIn, swaps } = trade;
+    const priceDifference = this.getSellPriceDifference(trade).toNumber();
+
+    const periodMinutes = period / MINUTE_MS;
+    const minTradesNo = this.getMinimumTradesNo(amountIn, amountInMin);
+
+    let optTradesNo: number;
+    if (frequency) {
+      optTradesNo = Math.round(periodMinutes / frequency);
+    } else {
+      optTradesNo = this.getOptimizedTradesNo(priceDifference);
+    }
+
+    const minFreq = Math.ceil(periodMinutes / minTradesNo);
+    const optFreq = Math.round(periodMinutes / optTradesNo);
+
+    const amountInPerTrade = amountIn.dividedBy(optTradesNo);
+
+    const orderTx = (address: string, maxRetries: number): Transaction => {
+      const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
+        {
+          owner: address,
+          period: this.toBlockPeriod(period, blockTime),
+          maxRetries,
+          totalAmount: amountIn.toFixed(),
+          slippage: Number(slippage) * 10000,
+          order: {
+            Sell: {
+              assetIn: assetIn.id,
+              assetOut: assetOut.id,
+              amountIn: amountInPerTrade.toFixed(),
+              minAmountOut: '0',
+              route: buildRoute(swaps),
+            },
+          },
+        },
+        null,
+      );
+
+      console.log(tx.toHuman());
+
+      return {
+        hex: tx.toHex(),
+        name: 'dcaSchedule',
+        get: (): SubmittableExtrinsic => {
+          return tx;
+        },
+      } as Transaction;
+    };
+
+    return {
+      amountIn: amountInPerTrade,
+      amountInBudget: amountIn,
+      frequency: optFreq,
+      frequencyMin: minFreq,
+      tradesNo: optTradesNo,
+      toTx: orderTx,
+      toHuman() {
+        return {
+          amountIn: formatAmount(amountInPerTrade, assetIn.decimals),
+          amountInBudget: formatAmount(amountIn, assetIn.decimals),
+          frequency: optFreq,
+          frequencyMin: minFreq,
+          tradesNo: optTradesNo,
+        };
+      },
+    } as Dca;
   }
 
-  getSellPriceDifference(trade: Trade): BigNumber {
-    const { amountIn, spotPrice, swaps } = trade;
-    const fistSwap = swaps[0] as SellSwap;
-    const lastSwap = swaps[swaps.length - 1] as SellSwap;
-    const calculatedOut = lastSwap.calculatedOut;
+  /**
+   * Calculate optimal no of trades for TWAP execution. We aim to achieve
+   * price impact 0.1% per single execution.
+   *
+   * @param priceDifference - price difference of swap execution (single trade)
+   * @returns optimal no of trades for dca execution
+   */
+  private getOptimizedTradesNo(priceDifference: number): number {
+    const optTradesNo = Math.round(priceDifference * 10) || 1;
+    return optTradesNo === 1 ? 2 : optTradesNo;
+  }
 
-    const swapAmount = amountIn
-      .shiftedBy(-1 * fistSwap.assetInDecimals)
-      .multipliedBy(spotPrice);
-    return calculateDiffToRef(swapAmount, calculatedOut);
+  /**
+   * Calculate optimal no of trades for TWAP execution. We aim to achieve
+   * price impact 0.1% per single execution.
+   *
+   * @param amountIn - Total budget
+   * @param amountInMin - Minimum budget to be able to schedule an order
+   * @returns optimal no of trades for dca execution
+   */
+  private getMinimumTradesNo(
+    amountIn: BigNumber,
+    amountInMin: BigNumber,
+  ): number {
+    const minAmountIn = amountInMin.multipliedBy(0.2); // 20% from budget
+    const res = amountIn.dividedBy(minAmountIn).toNumber();
+    return Math.round(res);
   }
 }

@@ -19,14 +19,14 @@ import { formStyles } from 'styles/form.css';
 import { humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
-import { INTERVAL_DCA, IntervalDca } from './types';
+import { Dca, INTERVAL_DCA, IntervalDca } from './types';
 
 import { Asset } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
   private account = new DatabaseController<Account>(this, AccountCursor);
-  private settings = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
+  private dcaConfig = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
@@ -37,12 +37,9 @@ export class DcaForm extends BaseElement {
   @property({ type: String }) interval: IntervalDca = 'hour';
   @property({ type: Number }) intervalMultiplier: number = 1;
   @property({ type: Number }) frequency: number = null;
-  @property({ type: Number }) frequencyManual: number = null;
   @property({ type: String }) amountIn = null;
-  @property({ type: String }) amountInUsd = null;
-  @property({ type: String }) amountInBudget = null;
   @property({ type: String }) balanceIn = null;
-  @property({ type: String }) tradesNo = null;
+  @property({ attribute: false }) order: Dca = null;
   @property({ attribute: false }) error = {};
 
   @state() advanced: boolean = false;
@@ -143,18 +140,18 @@ export class DcaForm extends BaseElement {
   ];
 
   private getEstDate(): string {
-    const freq = this.frequencyManual || this.frequency;
-    if (freq) {
-      const est = Number(freq) * this.tradesNo * MINUTE_MS;
+    const order = this.order;
+    if (order) {
+      const est = order.frequency * order.tradesNo * MINUTE_MS;
       return this._dayjs().add(est, 'millisecond').format('DD-MM-YYYY HH:mm');
     }
     return null;
   }
 
   private getEstTime(): string {
-    const freq = this.frequencyManual || this.frequency;
-    if (freq) {
-      const est = Number(freq) * this.tradesNo * MINUTE_MS;
+    const order = this.order;
+    if (order) {
+      const est = order.frequency * order.tradesNo * MINUTE_MS;
       return this._humanizer.humanize(est, {
         round: true,
         largest: 2,
@@ -164,9 +161,9 @@ export class DcaForm extends BaseElement {
   }
 
   private getEstFreq(): string {
-    const freq = this.frequencyManual || this.frequency;
-    if (freq) {
-      return this._humanizer.humanize(Number(freq) * MINUTE_MS, {
+    const order = this.order;
+    if (order) {
+      return this._humanizer.humanize(order.frequency * MINUTE_MS, {
         round: true,
         largest: 2,
       });
@@ -230,13 +227,14 @@ export class DcaForm extends BaseElement {
       `;
     }
 
+    const order = this.order?.toHuman();
     const summary = i18n.t('form.summary.message', {
-      amountInBudget: humanizeAmount(this.amountInBudget),
-      amountIn: humanizeAmount(this.amountIn),
+      amountInBudget: humanizeAmount(this.amountIn),
+      amountIn: humanizeAmount(order?.amountIn),
       assetIn: this.assetIn?.symbol,
       assetOut: this.assetOut?.symbol,
       frequency: this.getEstFreq(),
-      noOfTrades: this.tradesNo,
+      noOfTrades: order?.tradesNo,
       time: this.getEstTime(),
     });
 
@@ -270,7 +268,7 @@ export class DcaForm extends BaseElement {
   }
 
   infoSlippageTemplate() {
-    const { slippage } = this.settings.state;
+    const { slippage } = this.dcaConfig.state;
     return html`
       <span class="label">${i18n.t('form.info.slippage')}</span>
       <span class="grow"></span>
@@ -386,7 +384,7 @@ export class DcaForm extends BaseElement {
         .error=${error}
         asset=${this.assetIn?.symbol}
         unit=${this.assetIn?.symbol}
-        amount=${this.amountInBudget}>
+        amount=${this.amountIn}>
         ${this.formAssetTemplate(this.assetIn, 'asset')}
         ${this.formAssetBalanceTemplate(this.balanceIn)}
       </uigc-asset-transfer>
@@ -433,8 +431,8 @@ export class DcaForm extends BaseElement {
         ?error=${error}
         .error=${error}
         .min=${1}
-        .placeholder=${this.frequency}
-        .value=${this.frequencyManual}
+        .placeholder=${this.order?.frequency}
+        .value=${this.frequency}
         @input-change=${(e: CustomEvent) => this.onFrequencyChange(e)}>
         <span class="adornment" slot="inputAdornment">
           ${i18n.t('form.advanced.interval')}
@@ -444,9 +442,10 @@ export class DcaForm extends BaseElement {
   }
 
   render() {
+    console.log(this.order?.toHuman());
     const isValid =
       this.amountIn &&
-      this.amountInBudget &&
+      this.order?.amountIn &&
       Object.keys(this.error).length == 0;
     const infoClasses = {
       info: true,

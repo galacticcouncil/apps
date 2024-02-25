@@ -2,16 +2,12 @@ import {
   type Asset,
   type Trade,
   buildRoute,
-  calculateDiffToRef,
   BigNumber,
-  SellSwap,
-  TradeRouter,
   Transaction,
 } from '@galacticcouncil/sdk';
-import { ApiPromise } from '@polkadot/api';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { Cursor } from '@thi.ng/atom';
 
+import { TradeApi } from 'api/trade';
 import { TradeConfig } from 'db';
 import { formatAmount } from 'utils/amount';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
@@ -24,33 +20,18 @@ const TWAP_MAX_PRICE_IMPACT = -5;
 const TWAP_MAX_DURATION = 6 * HOUR_MS;
 const TWAP_TX_MULTIPLIER = 3;
 
-export class TradeApi {
-  private _api: ApiPromise;
-  private _router: TradeRouter;
-  private _config: Cursor<TradeConfig>;
-
-  public constructor(
-    api: ApiPromise,
-    router: TradeRouter,
-    config: Cursor<TradeConfig>,
-  ) {
-    this._api = api;
-    this._router = router;
-    this._config = config;
-  }
-
-  getSellPriceDifference(trade: Trade): BigNumber {
-    const { amountIn, spotPrice, swaps } = trade;
-    const fistSwap = swaps[0] as SellSwap;
-    const lastSwap = swaps[swaps.length - 1] as SellSwap;
-    const calculatedOut = lastSwap.calculatedOut;
-
-    const swapAmount = amountIn
-      .shiftedBy(-1 * fistSwap.assetInDecimals)
-      .multipliedBy(spotPrice);
-    return calculateDiffToRef(swapAmount, calculatedOut);
-  }
-
+export class TwapApi extends TradeApi<TradeConfig> {
+  /**
+   * Get TWAP sell execution info & build order tx
+   *
+   * @param amountInMin - Minimum budget to be able to schedule an order, specified in native currency
+   * @param assetIn - Asset In
+   * @param assetOut - Asset Out
+   * @param trade - Swap execution info
+   * @param txFee - Swap transaction fee
+   * @param blockTime - Block time in ms
+   * @returns sell twap
+   */
   async getSellTwap(
     amountInMin: BigNumber,
     assetIn: Asset,
@@ -155,6 +136,17 @@ export class TradeApi {
     } as Twap;
   }
 
+  /**
+   * Get TWAP buy execution info & build order tx
+   *
+   * @param amountInMin - Minimum budget to be able to schedule an order, specified in native currency
+   * @param assetIn - Asset In
+   * @param assetOut - Asset Out
+   * @param trade - Swap execution info
+   * @param txFee - Swap transaction fee
+   * @param blockTime - Block time in ms
+   * @returns buy twap
+   */
   async getBuyTwap(
     amountInMin: BigNumber,
     assetIn: Asset,
@@ -263,6 +255,14 @@ export class TradeApi {
     } as Twap;
   }
 
+  /**
+   * Calculate optimal no of trades for TWAP execution. We aim to achieve
+   * price impact 0.1% per single execution with max execution time 6 hours.
+   *
+   * @param priceDifference - price difference of swap execution (single trade)
+   * @param blockTime - block time in ms
+   * @returns optimal no of trades for twap execution
+   */
   private getOptimizedTradesNo(
     priceDifference: number,
     blockTime: number,
@@ -277,10 +277,24 @@ export class TradeApi {
     return noOfTrades;
   }
 
+  /**
+   * Calculate approx. execution time for TWAP
+   *
+   * @param tradesNo - number of trades required to execute order
+   * @param blockTime - block time in ms
+   * @returns unix representation of execution time
+   */
   private getExecutionTime(tradesNo: number, blockTime: number): number {
     return tradesNo * TWAP_BLOCK_PERIOD * blockTime;
   }
 
+  /**
+   * Calculate approx. tx fees for TWAP execution
+   *
+   * @param tradesNo - number of trades required to execute order
+   * @param txFee - swap transaction fee (single trade)
+   * @returns twap fees
+   */
   private getFees(tradesNo: number, txFee: BigNumber): BigNumber {
     return txFee.multipliedBy(TWAP_TX_MULTIPLIER).multipliedBy(tradesNo);
   }

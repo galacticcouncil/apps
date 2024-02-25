@@ -14,6 +14,7 @@ import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { tradeLayoutStyles } from 'styles/layout/trade.css';
 import {
+  exchange,
   exchangeNative,
   formatAmount,
   humanizeAmount,
@@ -45,10 +46,14 @@ import { AssetSelector } from 'element/selector/types';
 
 import { DcaApi } from './api';
 import { DcaTab, DcaState, DEFAULT_DCA_STATE, INTERVAL_DCA_MS } from './types';
+import { getPeriod } from './utils';
 
 @customElement('gc-dca')
 export class DcaApp extends PoolApp {
-  protected settings = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
+  protected dcaConfig = new DatabaseController<DcaConfig>(
+    this,
+    DcaConfigCursor,
+  );
   protected dcaApi: DcaApi = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
@@ -97,8 +102,8 @@ export class DcaApp extends PoolApp {
   }
 
   isSwapEmpty(): boolean {
-    const { amountIn, amountInBudget } = this.dca;
-    return this.isEmptyAmount(amountIn) || this.isEmptyAmount(amountInBudget);
+    const { amountIn } = this.dca;
+    return this.isEmptyAmount(amountIn);
   }
 
   hasError(): boolean {
@@ -183,11 +188,7 @@ export class DcaApp extends PoolApp {
     this.dca = {
       ...this.dca,
       amountIn: null,
-      amountInBudget: null,
-      amountInUsd: null,
       frequency: null,
-      frequencyManual: null,
-      frequencyRange: [null, null],
     };
   }
 
@@ -199,81 +200,48 @@ export class DcaApp extends PoolApp {
 
     this.dca = {
       ...this.dca,
-      amountInBudget: amount,
+      amountIn: amount,
     };
     this.updateTradeSize();
   }
 
   async updateFrequency(frequency: number) {
-    const freq = Number(frequency);
-    if (freq === 0) {
-      this.updateTradeSize();
-      return;
-    }
-
-    const { amountInBudget, interval, intervalMultiplier } = this.dca;
-    const periodMsec = intervalMultiplier * INTERVAL_DCA_MS[interval];
-    const periodMin = periodMsec / MINUTE_MS;
-    const budget = Number(amountInBudget);
-    const tradesNo = Math.round(periodMin / frequency);
-    const optTradesNo = tradesNo === 1 ? 2 : tradesNo;
-
-    const amountPerTrade = budget / optTradesNo;
+    this.updateTradeSize(frequency);
     this.dca = {
       ...this.dca,
-      amountIn: amountPerTrade.toFixed(4),
-      frequencyManual: frequency,
-      tradesNo: optTradesNo,
+      frequency: frequency,
     };
-    this.validateFrequency();
-    this.validateMinBudget();
-    this.validateEnoughBalance();
   }
 
-  private async updateTradeSize() {
+  private async updateTradeSize(frequency?: number) {
     const { api, router } = this.chain.state;
-    const { amountInBudget, assetIn, assetOut, interval, intervalMultiplier } =
+    const { amountIn, assetIn, assetOut, interval, intervalMultiplier } =
       this.dca;
 
     this.updateProgress(true);
     const bestSell = await router.getBestSell(
       assetIn.id,
       assetOut.id,
-      amountInBudget,
+      amountIn,
     );
-    const bestSellHuman = bestSell.toHuman();
-    console.log(bestSellHuman);
 
-    const priceDifference = this.dcaApi.getSellPriceDifference(bestSell);
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
-    const minAmountIn = exchangeNative(
-      this.assets.nativePrice,
+    const period = intervalMultiplier * INTERVAL_DCA_MS[interval];
+    const order = await this.dcaApi.getSellOrder(
+      exchangeNative(this.assets.nativePrice, assetIn, minBudgetNative),
       assetIn,
-      minBudgetNative,
-    )
-      .multipliedBy(0.2) // 20% from budget
-      .toNumber();
+      assetOut,
+      bestSell,
+      period,
+      this.blockTime,
+      frequency,
+    );
 
-    const periodMsec = intervalMultiplier * INTERVAL_DCA_MS[interval];
-    const periodMinutes = periodMsec / MINUTE_MS;
-    const budget = Number(amountInBudget);
-
-    const minTradesNo = Math.round(budget / minAmountIn);
-    const optTradesNo = Math.round(priceDifference.toNumber() * 10) || 1;
-    const avgTradesNo = optTradesNo === 1 ? 2 : optTradesNo;
-
-    const minFreq = Math.ceil(periodMinutes / minTradesNo);
-    const avgFreq = Math.round(periodMinutes / avgTradesNo);
-
-    const amountIn = Math.round(budget / avgTradesNo);
     this.dca = {
       ...this.dca,
-      amountIn: amountIn.toFixed(4),
-      frequency: avgFreq,
-      frequencyManual: null,
-      frequencyRange: [minFreq, avgFreq],
-      tradesNo: avgTradesNo,
       inProgress: false,
+      frequency: frequency,
+      order: order,
     };
     this.validateFrequency();
     this.validateMinBudget();
@@ -294,16 +262,15 @@ export class DcaApp extends PoolApp {
   }
 
   validateEnoughBalance() {
-    const assetIn = this.dca.assetIn?.id;
-    const ammountIn = this.dca.amountInBudget;
+    const { assetIn, amountIn } = this.dca;
 
-    if (this.isEmptyAmount(ammountIn) || !this.hasAccount()) {
+    if (this.isEmptyAmount(amountIn) || !this.hasAccount()) {
       delete this.dca.error['balanceTooLow'];
       return;
     }
 
-    const balanceIn = this.assets.balance.get(assetIn);
-    const amount = scale(bnum(ammountIn), balanceIn.decimals);
+    const balanceIn = this.assets.balance.get(assetIn?.id);
+    const amount = scale(bnum(amountIn), balanceIn.decimals);
     if (amount.gt(balanceIn.amount)) {
       this.dca.error['balanceTooLow'] = i18n.t('error.insufficientBalance');
     } else {
@@ -319,15 +286,16 @@ export class DcaApp extends PoolApp {
       return;
     }
 
-    const { amountInBudget, assetIn } = this.dca;
+    const { amountIn, assetIn } = this.dca;
 
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
     const minBudget = exchangeNative(
       this.assets.nativePrice,
       assetIn,
       minBudgetNative,
-    );
-    const budget = new BigNumber(amountInBudget);
+    ).shiftedBy(-1 * assetIn.decimals);
+
+    const budget = new BigNumber(amountIn);
     if (minBudget.isGreaterThan(budget)) {
       this.dca.error['minBudgetTooLow'] = i18n.t('error.minBudgetTooLow', {
         amount: humanizeAmount(minBudget.toString()),
@@ -339,46 +307,38 @@ export class DcaApp extends PoolApp {
   }
 
   async validateFrequency() {
-    const { frequencyManual, frequencyRange } = this.dca;
-    const freq = Number(frequencyManual);
+    const { order, frequency } = this.dca;
 
-    if (this.isSwapEmpty() || freq === 0) {
+    if (this.isSwapEmpty() || !frequency) {
       delete this.dca.error['frequencyOutOfRange'];
       return;
     }
 
-    const [min, max] = frequencyRange;
-    if (frequencyManual >= min && frequencyManual <= max) {
+    if (order.frequency < order.frequencyMin) {
       delete this.dca.error['frequencyOutOfRange'];
     } else {
       this.dca.error['frequencyOutOfRange'] = i18n.t(
         'error.frequencyOutOfRange',
         {
-          min: min,
-          max: max,
+          min: order.frequencyMin,
+          max: order.frequency,
         },
       );
     }
   }
 
   notificationTemplate(dca: DcaState, tKey: string): TxMessage {
-    const {
-      amountIn,
-      amountInBudget,
-      assetIn,
-      assetOut,
-      frequency,
-      frequencyManual,
-    } = dca;
-    const freq = frequencyManual || frequency;
+    const { amountIn, assetIn, assetOut, frequency, order } = dca;
+    const orderHuman = order.toHuman();
+    const freq = frequency || order.frequency;
     const freqHuman = this._humanizer.humanize(Number(freq) * MINUTE_MS, {
       round: true,
       largest: 2,
     });
 
     const message = i18n.t(tKey, {
-      amountIn: amountIn,
-      amountInBudget: amountInBudget,
+      amountIn: orderHuman.amountIn,
+      amountInBudget: amountIn,
       assetIn: assetIn?.symbol,
       assetOut: assetOut?.symbol,
       frequency: freqHuman,
@@ -410,10 +370,10 @@ export class DcaApp extends PoolApp {
   private async onSchedule() {
     const account = this.account.state;
     const { api, router } = this.chain.state;
-    const { slippage, maxRetries } = this.settings.state;
+    const { slippage, maxRetries } = this.dcaConfig.state;
 
     if (account) {
-      const { assetIn, assetOut, amountInBudget, frequency, frequencyManual } =
+      /*    const { assetIn, assetOut, amountInBudget, frequency, frequencyManual } =
         this.dca;
 
       const amountInBn = toBn(this.dca.amountIn, assetIn.decimals);
@@ -457,6 +417,7 @@ export class DcaApp extends PoolApp {
         },
       } as Transaction;
       this.processTx(account, transaction);
+    } */
     }
   }
 
@@ -488,7 +449,7 @@ export class DcaApp extends PoolApp {
 
   protected onInit(): void {
     const { api, router } = this.chain.state;
-    this.dcaApi = new DcaApi(api, router);
+    this.dcaApi = new DcaApi(api, router, DcaConfigCursor);
     this.initAssets();
     this.recalculateSpotPrice();
     this.syncBalance();
@@ -586,14 +547,11 @@ export class DcaApp extends PoolApp {
           .assetIn=${this.dca.assetIn}
           .assetOut=${this.dca.assetOut}
           .amountIn=${this.dca.amountIn}
-          .amountInUsd=${this.dca.amountInUsd}
-          .amountInBudget=${this.dca.amountInBudget}
           .balanceIn=${this.dca.balanceIn}
           .interval=${this.dca.interval}
           .intervalMultiplier=${this.dca.intervalMultiplier}
           .frequency=${this.dca.frequency}
-          .frequencyManual=${this.dca.frequencyManual}
-          .tradesNo=${this.dca.tradesNo}
+          .order=${this.dca.order}
           .error=${this.dca.error}
           @asset-input-change=${this.onAssetInputChange}
           @asset-selector-click=${this.onAssetSelectorClick}
