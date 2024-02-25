@@ -1,10 +1,12 @@
 import { html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
 @customElement('uigc-button')
 export class Button extends UIGCElement {
+  @property({ type: Boolean }) disabled = false;
+
   static styles = [
     UIGCElement.styles,
     css`
@@ -147,18 +149,21 @@ export class Button extends UIGCElement {
         transform-style: preserve-3d;
       }
 
-      :host([disabled]) .button-root {
-        cursor: not-allowed;
+      :host([disabled]) {
         pointer-events: none;
-        opacity: var(--uigc-button__disabled-opacity);
       }
 
-      .button-root:hover {
-        transition: 0.2s ease-in-out;
+      :host([disabled]) .button-root {
+        cursor: not-allowed;
+        opacity: var(--uigc-button__disabled-opacity);
       }
 
       :host([disabled]) .button-root:before {
         content: none;
+      }
+
+      .button-root:hover {
+        transition: 0.2s ease-in-out;
       }
 
       .button-root:before {
@@ -182,7 +187,7 @@ export class Button extends UIGCElement {
 
   render() {
     return html`
-      <button type="button" class="button-root">
+      <button ?disabled=${this.disabled} class="button-root">
         <slot name="icon"></slot>
         <slot></slot>
         <slot name="endIcon"></slot>
