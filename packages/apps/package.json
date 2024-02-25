@@ -50,10 +50,10 @@
     "@galacticcouncil/api-augment": "^0.0.5"
   },
   "peerDependencies": {
-    "@galacticcouncil/sdk": "^1.1.7",
+    "@galacticcouncil/sdk": "^1.1.9",
     "@galacticcouncil/ui": "^3.0.2",
-    "@galacticcouncil/xcm-cfg": "^1.3.0",
-    "@galacticcouncil/xcm-sdk": "^2.1.0",
+    "@galacticcouncil/xcm-cfg": "^1.6.1",
+    "@galacticcouncil/xcm-sdk": "^2.2.0",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
     "graphql-request": "^6.1.0"
