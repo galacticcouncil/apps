@@ -61,7 +61,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     return html`
       <gc-trade
         chart
-        twap
+        twapOn
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.hydradx.cloud"
@@ -79,7 +79,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
     return html`
       <gc-trade
         chart
-        twap
+        twapOn
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         apiAddress="wss://rpc.nice.hydration.cloud"

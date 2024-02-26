@@ -42,11 +42,8 @@ export class TwapApi extends TradeApi<TradeConfig> {
   ): Promise<TwapOrder> {
     const { slippageTwap } = this._config.deref();
     const { amountIn } = trade;
-    const priceDifference = this.getSellPriceDifference(trade);
-    const tradesNumber = this.getOptimizedTradesNo(
-      priceDifference.toNumber(),
-      blockTime,
-    );
+    const priceDifference = Math.abs(trade.priceImpactPct);
+    const tradesNumber = this.getOptimizedTradesNo(priceDifference, blockTime);
     const txFees = this.getFees(tradesNumber, txFee);
     const executionTime = this.getExecutionTime(tradesNumber, blockTime);
 
@@ -156,9 +153,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
   ): Promise<TwapOrder> {
     const { slippageTwap } = this._config.deref();
     const { amountOut } = trade;
-
-    const priceImpact = Number(trade.priceImpactPct);
-    const priceDifference = Math.abs(priceImpact);
+    const priceDifference = Math.abs(trade.priceImpactPct);
 
     const tradesNumber = this.getOptimizedTradesNo(priceDifference, blockTime);
     const txFees = this.getFees(tradesNumber, txFee);

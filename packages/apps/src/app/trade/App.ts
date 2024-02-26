@@ -76,7 +76,7 @@ export class TradeApp extends PoolApp {
   protected tradeApi: TwapApi = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
-  @property({ type: Boolean }) smartSplit: Boolean = false;
+  @property({ type: Boolean }) twapOn: Boolean = false;
 
   @state() tab: TradeTab = TradeTab.Form;
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
@@ -130,7 +130,7 @@ export class TradeApp extends PoolApp {
       : [];
     const notSupportedRoute =
       pools.includes(PoolType.LBP) || pools.includes(PoolType.XYK);
-    return this.twap && !notSupportedRoute;
+    return this.twapOn && !notSupportedRoute;
   }
 
   isSwitchEnabled(): boolean {

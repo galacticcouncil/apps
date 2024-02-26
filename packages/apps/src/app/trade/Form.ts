@@ -1111,7 +1111,7 @@ export class TradeForm extends BaseElement {
 
   formTwapSlippageWarning() {
     const { slippageTwap } = this.tradeConfig.state;
-    const priceImpact = this.getPriceImpact();
+    const priceImpact = this.trade?.priceImpactPct;
     const priceImpactAbs = Math.abs(priceImpact);
     const slippageWarnClasses = {
       warning: true,
@@ -1132,7 +1132,7 @@ export class TradeForm extends BaseElement {
   }
 
   formTwapDcaWarning() {
-    const priceImpact = this.getPriceImpact();
+    const priceImpact = this.trade?.priceImpactPct;
     const priceImpactAbs = Math.abs(priceImpact);
     const dcaWarnClasses = {
       warning: true,
@@ -1171,8 +1171,6 @@ export class TradeForm extends BaseElement {
       error: true,
       show: this.hasTradeRoute() && !this.twapEnabled && this.hasGeneralError(),
     };
-    const isDisabledBtn = this.readonly || this.isDisabled();
-
     return html`
       <slot name="header"></slot>
       <div class="transfer">
@@ -1202,11 +1200,11 @@ export class TradeForm extends BaseElement {
         <span>${this.error['pool'] || this.error['trade']}</span>
       </div>
       <uigc-button
-        ?disabled=${isDisabledBtn}
+        ?disabled=${this.readonly || this.isDisabled()}
         class="confirm"
         variant="primary"
         fullWidth
-        @click=${isDisabledBtn ? undefined : this.onCtaClick}>
+        @click=${this.onCtaClick}>
         <div class=${classMap(ctaClasses)}>
           <span class="swap">
             ${this.account.state
