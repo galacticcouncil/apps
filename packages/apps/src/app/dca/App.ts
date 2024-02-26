@@ -314,14 +314,17 @@ export class DcaApp extends PoolApp {
       return;
     }
 
-    if (order.frequency < order.frequencyMin) {
+    const min = order.frequencyMin;
+    const max = order.frequencyOpt;
+
+    if (frequency >= min && frequency <= max) {
       delete this.dca.error['frequencyOutOfRange'];
     } else {
       this.dca.error['frequencyOutOfRange'] = i18n.t(
         'error.frequencyOutOfRange',
         {
-          min: order.frequencyMin,
-          max: order.frequency,
+          min: min,
+          max: max,
         },
       );
     }
@@ -369,55 +372,12 @@ export class DcaApp extends PoolApp {
 
   private async onSchedule() {
     const account = this.account.state;
-    const { api, router } = this.chain.state;
-    const { slippage, maxRetries } = this.dcaConfig.state;
+    const { maxRetries } = this.dcaConfig.state;
 
     if (account) {
-      /*    const { assetIn, assetOut, amountInBudget, frequency, frequencyManual } =
-        this.dca;
-
-      const amountInBn = toBn(this.dca.amountIn, assetIn.decimals);
-      const amountInBudgetBn = toBn(amountInBudget, assetIn.decimals);
-
-      const freq = frequencyManual || frequency;
-      const periodBlock = this.timeApi.toBlockPeriod(
-        this.blockTime,
-        Number(freq) * MINUTE_MS,
-      );
-      const sell = await router.getBestSell(
-        assetIn.id,
-        assetOut.id,
-        this.dca.amountIn,
-      );
-      const tx: SubmittableExtrinsic = api.tx.dca.schedule(
-        {
-          owner: account.address,
-          period: periodBlock,
-          maxRetries,
-          totalAmount: amountInBudgetBn.toFixed(),
-          slippage: Number(slippage) * 10000,
-          order: {
-            Sell: {
-              assetIn: assetIn.id,
-              assetOut: assetOut.id,
-              amountIn: amountInBn.toFixed(),
-              minAmountOut: '0',
-              route: buildRoute(sell.swaps),
-            },
-          },
-        },
-        null,
-      );
-
-      const transaction = {
-        hex: tx.toHex(),
-        name: 'dcaSchedule',
-        get: (): SubmittableExtrinsic => {
-          return tx;
-        },
-      } as Transaction;
+      const { order } = this.dca;
+      const transaction = order.toTx(account.address, maxRetries);
       this.processTx(account, transaction);
-    } */
     }
   }
 

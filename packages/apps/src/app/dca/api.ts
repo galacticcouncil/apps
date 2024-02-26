@@ -40,18 +40,18 @@ export class DcaApi extends TradeApi<DcaConfig> {
 
     const periodMinutes = period / MINUTE_MS;
     const minTradesNo = this.getMinimumTradesNo(amountIn, amountInMin);
-
-    let optTradesNo: number;
-    if (frequency) {
-      optTradesNo = Math.round(periodMinutes / frequency);
-    } else {
-      optTradesNo = this.getOptimizedTradesNo(priceDifference);
-    }
+    const optTradesNo = this.getOptimizedTradesNo(priceDifference);
+    const tradeNo = frequency
+      ? Math.round(periodMinutes / frequency)
+      : optTradesNo;
+    console.log(frequency);
+    console.log(optTradesNo);
 
     const minFreq = Math.ceil(periodMinutes / minTradesNo);
     const optFreq = Math.round(periodMinutes / optTradesNo);
+    const freq = Math.round(periodMinutes / tradeNo);
 
-    const amountInPerTrade = amountIn.dividedBy(optTradesNo);
+    const amountInPerTrade = amountIn.dividedBy(tradeNo);
 
     const orderTx = (address: string, maxRetries: number): Transaction => {
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
@@ -88,17 +88,19 @@ export class DcaApi extends TradeApi<DcaConfig> {
     return {
       amountIn: amountInPerTrade,
       amountInBudget: amountIn,
-      frequency: optFreq,
       frequencyMin: minFreq,
-      tradesNo: optTradesNo,
+      frequencyOpt: optFreq,
+      frequency: freq,
+      tradesNo: tradeNo,
       toTx: orderTx,
       toHuman() {
         return {
           amountIn: formatAmount(amountInPerTrade, assetIn.decimals),
           amountInBudget: formatAmount(amountIn, assetIn.decimals),
-          frequency: optFreq,
+          frequency: freq,
           frequencyMin: minFreq,
-          tradesNo: optTradesNo,
+          frequencyOpt: optFreq,
+          tradesNo: tradeNo,
         };
       },
     } as Dca;
