@@ -796,7 +796,7 @@ export class XcmApp extends PoolApp {
     const isDest = this.isDestChainSelection();
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-chain
+        <gc-select-xchain
           .chains=${isDest
             ? this.xchain.dest.map((c) => c.key)
             : this.xchain.list.map((c) => c.key)}
@@ -817,7 +817,7 @@ export class XcmApp extends PoolApp {
             </uigc-typography>
             <span></span>
           </div>
-        </gc-select-chain>
+        </gc-select-xchain>
       </uigc-paper>
     `;
   }
@@ -834,7 +834,7 @@ export class XcmApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-token
+        <gc-select-xasset
           .assets=${this.xchain.tokens}
           .balances=${this.xchain.balance}
           .asset=${this.transfer.asset}
@@ -850,7 +850,7 @@ export class XcmApp extends PoolApp {
             </uigc-typography>
             <span></span>
           </div>
-        </gc-select-token>
+        </gc-select-xasset>
       </uigc-paper>
     `;
   }

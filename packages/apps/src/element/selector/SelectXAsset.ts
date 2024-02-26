@@ -10,8 +10,8 @@ import { baseStyles } from 'styles/base.css';
 import { selectorStyles } from 'styles/selector.css';
 import { humanizeAmount } from 'utils/amount';
 
-@customElement('gc-select-token')
-export class SelectToken extends LitElement {
+@customElement('gc-select-xasset')
+export class SelectXAsset extends LitElement {
   @property({ attribute: false }) assets: Asset[] = [];
   @property({ attribute: false }) balances: Map<string, AssetAmount> = new Map(
     [],

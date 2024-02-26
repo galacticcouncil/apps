@@ -177,7 +177,7 @@ export class SelectAsset extends LitElement {
                   .asset=${asset}
                   .unit=${icons.length === 1 ? asset.symbol : null}
                   .balance=${humanizeAmount(balance)}
-                  .balanceUsd=${humanizeAmount(balanceUsd)}>
+                  .balanceUsd=${humanizeAmount(balanceUsd, 2)}>
                   <gc-asset-identicon
                     slot="asset"
                     .showDesc=${true}

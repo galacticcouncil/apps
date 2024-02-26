@@ -856,7 +856,7 @@ export class TradeForm extends BaseElement {
       amountInUsd = exchange(this.usdPrice, this.assetIn, amountIn);
     }
 
-    const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd) : null;
+    const amountUsdHuman = amountInUsd ? humanizeAmount(amountInUsd, 2) : null;
     const error = this.error['balance'];
     return html`
       <uigc-asset-transfer
@@ -908,7 +908,7 @@ export class TradeForm extends BaseElement {
         .selectable=${!this.readonly && this.loaded}
         .asset=${this.assetOut?.symbol}
         .amount=${amountOut}
-        .amountUsd=${humanizeAmount(amountOutUsd)}
+        .amountUsd=${humanizeAmount(amountOutUsd, 2)}
         @asset-input-change=${() => {
           this.twapEnabled = false;
         }}>
@@ -1031,7 +1031,7 @@ export class TradeForm extends BaseElement {
         </div>
         <div class="right">
           <span class="price">${humanizeAmount(price)} ${assetSymbol}</span>
-          <span class="usd">≈ ${humanizeAmount(priceUsd)} USD</span>
+          <span class="usd">≈ ${humanizeAmount(priceUsd, 2)} USD</span>
         </div>
       </div>
     `;
@@ -1081,7 +1081,7 @@ export class TradeForm extends BaseElement {
             ${humanizeAmount(price.toString())} ${assetSymbol}
           </span>
           <span class="usd">
-            <span>≈ ${humanizeAmount(priceUsd)} USD</span>
+            <span>≈ ${humanizeAmount(priceUsd, 2)} USD</span>
             ${this.infoTwapSlippageTemplate()}
           </span>
         </div>

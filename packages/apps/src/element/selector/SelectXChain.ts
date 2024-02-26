@@ -7,8 +7,8 @@ import { map } from 'lit/directives/map.js';
 import { baseStyles } from 'styles/base.css';
 import { selectorStyles } from 'styles/selector.css';
 
-@customElement('gc-select-chain')
-export class SelectChain extends LitElement {
+@customElement('gc-select-xchain')
+export class SelectXChain extends LitElement {
   @property({ attribute: false }) chains: string[] = [];
   @property({ type: String }) srcChain = null;
   @property({ type: String }) destChain = null;
