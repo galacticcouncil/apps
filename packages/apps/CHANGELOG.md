@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.2.1
+
+### Patch Changes
+
+- Fix transaction fee recalc
+
 ## 3.2.0
 
 ### Minor Changes
