@@ -479,7 +479,7 @@ export class DcaApp extends PoolApp {
     return this.assets.tradeable.length > 0;
   }
 
-  dcaFormTab() {
+  formTab() {
     const classes = {
       tab: true,
       main: true,
@@ -530,7 +530,7 @@ export class DcaApp extends PoolApp {
     `;
   }
 
-  dcaSettingsTab() {
+  settingsTab() {
     const classes = {
       tab: true,
       main: true,
@@ -598,7 +598,7 @@ export class DcaApp extends PoolApp {
     `;
   }
 
-  tradeOrdersSummary() {
+  ordersSummary() {
     const account = this.account.state;
     return html`
       <gc-trade-orders
@@ -617,7 +617,7 @@ export class DcaApp extends PoolApp {
     `;
   }
 
-  tradeChartTab() {
+  chartTab() {
     const classes = {
       tab: true,
       chart: true,
@@ -656,8 +656,8 @@ export class DcaApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.tradeChartTab()} ${this.dcaFormTab()} ${this.dcaSettingsTab()}
-        ${this.tradeOrdersSummary()} ${this.selectAssetTab()}
+        ${this.chartTab()} ${this.formTab()} ${this.settingsTab()}
+        ${this.ordersSummary()} ${this.selectAssetTab()}
       </div>
     `;
   }

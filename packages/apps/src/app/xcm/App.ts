@@ -52,6 +52,7 @@ import {
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
 } from './types';
+import { exchange } from 'utils/amount';
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
@@ -63,7 +64,7 @@ export class XcmApp extends PoolApp {
 
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
-      if (TransferTab.TransferForm == this.tab) {
+      if (TransferTab.Form == this.tab) {
         const defaultScreen = this.shadowRoot.getElementById('default-tab');
         const tabs = this.shadowRoot.querySelectorAll('.tab:not(#default-tab)');
         tabs.forEach((tab: Element) => {
@@ -81,7 +82,7 @@ export class XcmApp extends PoolApp {
   @property({ type: String }) asset: string = null;
   @property({ type: String }) blacklist: string = null;
 
-  @state() tab: TransferTab = TransferTab.TransferForm;
+  @state() tab: TransferTab = TransferTab.Form;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
   @state() xchain: ChainState = DEFAULT_CHAIN_STATE;
 
@@ -495,7 +496,11 @@ export class XcmApp extends PoolApp {
       }
     }
 
-    const fee = this.calculateAssetPrice(feeAsset, srcFee.amount.toString());
+    const fee = exchange(
+      this.assets.usdPrice,
+      feeAsset,
+      srcFee.amount.toString(),
+    );
     return AssetAmount.fromAsset(feeAssetData.asset, {
       amount: toBigInt(fee.toString(), feeAsset.decimals),
       decimals: feeAsset.decimals,
@@ -780,7 +785,7 @@ export class XcmApp extends PoolApp {
     this.isDestChainSelection()
       ? this.changeDestinationChain(item)
       : this.changeSourceChain(item);
-    this.changeTab(TransferTab.TransferForm);
+    this.changeTab(TransferTab.Form);
   }
 
   selectChainTab() {
@@ -802,7 +807,7 @@ export class XcmApp extends PoolApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(TransferTab.TransferForm)}>
+              @click=${() => this.changeTab(TransferTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -819,7 +824,7 @@ export class XcmApp extends PoolApp {
 
   protected onAssetClick({ detail: { symbol } }) {
     this.changeAsset(symbol);
-    this.changeTab(TransferTab.TransferForm);
+    this.changeTab(TransferTab.Form);
   }
 
   selectTokenTab() {
@@ -837,7 +842,7 @@ export class XcmApp extends PoolApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(TransferTab.TransferForm)}>
+              @click=${() => this.changeTab(TransferTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -900,10 +905,10 @@ export class XcmApp extends PoolApp {
     return this.isTransferEmpty() || this.hasError() || !this.hasTransferData();
   }
 
-  xcmFormTab() {
+  formTab() {
     const classes = {
       tab: true,
-      active: this.tab == TransferTab.TransferForm,
+      active: this.tab == TransferTab.Form,
     };
     return html`
       <uigc-paper class=${classMap(classes)} id="default-tab">
@@ -940,7 +945,7 @@ export class XcmApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.xcmFormTab()} ${this.selectChainTab()} ${this.selectTokenTab()}
+        ${this.formTab()} ${this.selectChainTab()} ${this.selectTokenTab()}
       </div>
     `;
   }

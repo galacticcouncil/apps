@@ -1,11 +1,16 @@
-import { Asset } from '@galacticcouncil/sdk';
+import {
+  Asset,
+  BigNumber,
+  Humanizer,
+  Trade,
+  Transaction,
+} from '@galacticcouncil/sdk';
 import { DAY_MS, MONTH_MS, WEEK_MS } from '../../utils/time';
 
 export enum DcaTab {
-  TradeChart,
-  DcaForm,
-  DcaSettings,
-  DcaPositions,
+  Chart,
+  Form,
+  Settings,
   SelectAsset,
 }
 
@@ -13,14 +18,11 @@ export type DcaState = {
   assetIn: Asset;
   assetOut: Asset;
   amountIn: string;
-  amountInYield: string;
-  amountInFrom: string;
   balanceIn: string;
   interval: IntervalDca;
-  rate: number;
   spotPrice: string;
-  tradesNo: number;
-  est: number;
+  rate: number;
+  order: DcaYieldOrder;
   error: {};
 };
 
@@ -28,14 +30,11 @@ export const DEFAULT_DCA_STATE: DcaState = {
   assetIn: null,
   assetOut: null,
   amountIn: null,
-  amountInYield: null,
-  amountInFrom: null,
   balanceIn: null,
   interval: '1 month',
-  rate: null,
   spotPrice: null,
-  tradesNo: null,
-  est: null,
+  rate: null,
+  order: null,
   error: {},
 };
 
@@ -66,3 +65,11 @@ export const APY_DENOMINATOR: Record<IntervalDca, number> = {
 
 export const MIN_TRADE_SIZE = 0.33;
 export const MAX_TRADE_SIZE = 10;
+
+export interface DcaYieldOrder extends Humanizer {
+  amountIn: BigNumber;
+  amountInYield: BigNumber;
+  tradesNo: number;
+  toTx(address: string, maxRetries: number, trade: Trade): Transaction;
+  toHuman(): any;
+}

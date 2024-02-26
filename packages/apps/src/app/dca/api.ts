@@ -18,12 +18,12 @@ export class DcaApi extends TradeApi<DcaConfig> {
   /**
    * Get DCA sell execution info & build order tx
    *
-   * @param amountInMin - Minimum budget to be able to schedule an order, specified in native currency
-   * @param assetIn - Asset In
-   * @param assetOut - Asset Out
-   * @param trade - Swap execution info
-   * @param period - order execution period
-   * @param blockTime - Block time in ms
+   * @param amountInMin - minimum budget to schedule an order, specified in native currency
+   * @param assetIn - asset in
+   * @param assetOut - asset out
+   * @param trade - trade execution info
+   * @param period - order execution period (ms)
+   * @param blockTime - avg block time (ms)
    * @param frequency - interval between the trades in minutes specified by user
    * @returns dca order
    */
@@ -107,8 +107,8 @@ export class DcaApi extends TradeApi<DcaConfig> {
   }
 
   /**
-   * Calculate optimal no of trades for DCA execution. We aim to achieve
-   * price impact 0.1% per single execution and at least 2 trades.
+   * Calculate optimal no of trades for order execution. We aim to achieve
+   * price impact 0.1% per single execution with at least 2 trades.
    *
    * @param priceDifference - price difference of swap execution (single trade)
    * @returns optimal no of trades
@@ -119,11 +119,11 @@ export class DcaApi extends TradeApi<DcaConfig> {
   }
 
   /**
-   * Calculate minimal no of trades for DCA execution. Minimal single trade
-   * execution amount must be at least 20% from minimum budget
+   * Calculate minimal no of trades for order execution. Minimal single trade
+   * execution amount must be at least 20% from minimal budget
    *
-   * @param amountIn - User budget
-   * @param amountInMin - Minimum budget to be able to schedule an order
+   * @param amountIn - user budget
+   * @param amountInMin - minimum budget to schedule an order
    * @returns minimal no of trades
    */
   private getMinimumTradesNo(

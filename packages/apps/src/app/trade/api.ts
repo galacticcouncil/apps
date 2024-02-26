@@ -24,12 +24,12 @@ export class TwapApi extends TradeApi<TradeConfig> {
   /**
    * Get TWAP sell execution info & build order tx
    *
-   * @param amountInMin - Minimum budget to be able to schedule an order, specified in native currency
-   * @param assetIn - Asset In
-   * @param assetOut - Asset Out
-   * @param trade - Swap execution info
-   * @param txFee - Swap transaction fee
-   * @param blockTime - Block time in ms
+   * @param amountInMin - minimum budget to schedule an order, specified in native currency
+   * @param assetIn - asset in
+   * @param assetOut - asset out
+   * @param trade - trade execution info
+   * @param txFee - trade transaction fee
+   * @param blockTime - avg block time (ms)
    * @returns twap sell order
    */
   async getSellTwap(
@@ -38,7 +38,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     assetOut: Asset,
     trade: Trade,
     txFee: BigNumber,
-    blockTime = 12 * SECOND_MS,
+    blockTime: number,
   ): Promise<TwapOrder> {
     const { slippageTwap } = this._config.deref();
     const { amountIn } = trade;
@@ -92,7 +92,6 @@ export class TwapApi extends TradeApi<TradeConfig> {
         },
         null,
       );
-      console.log(tx.toHuman());
       return {
         hex: tx.toHex(),
         name: 'dcaSchedule',
@@ -139,12 +138,12 @@ export class TwapApi extends TradeApi<TradeConfig> {
   /**
    * Get TWAP buy execution info & build order tx
    *
-   * @param amountInMin - Minimum budget to be able to schedule an order, specified in native currency
-   * @param assetIn - Asset In
-   * @param assetOut - Asset Out
-   * @param trade - Swap execution info
-   * @param txFee - Swap transaction fee
-   * @param blockTime - Block time in ms
+   * @param amountInMin - minimum budget to schedule an order, specified in native currency
+   * @param assetIn - asset in
+   * @param assetOut - asset out
+   * @param trade - trade execution info
+   * @param txFee - trade transaction fee
+   * @param blockTime - avg block time (ms)
    * @returns twap buy order
    */
   async getBuyTwap(
@@ -153,7 +152,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     assetOut: Asset,
     trade: Trade,
     txFee: BigNumber,
-    blockTime = 12 * SECOND_MS,
+    blockTime: number,
   ): Promise<TwapOrder> {
     const { slippageTwap } = this._config.deref();
     const { amountOut } = trade;
@@ -212,7 +211,6 @@ export class TwapApi extends TradeApi<TradeConfig> {
         },
         null,
       );
-      console.log(tx.toHuman());
       return {
         hex: tx.toHex(),
         name: 'dcaSchedule',
@@ -256,7 +254,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
   }
 
   /**
-   * Calculate optimal no of trades for TWAP execution. We aim to achieve
+   * Calculate optimal no of trades for order execution. We aim to achieve
    * price impact 0.1% per single execution with max execution time 6 hours.
    *
    * @param priceDifference - price difference of swap execution (single trade)
@@ -278,7 +276,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
   }
 
   /**
-   * Calculate approx. execution time for TWAP
+   * Calculate approx. execution time
    *
    * @param tradesNo - number of trades required to execute order
    * @param blockTime - block time in ms
@@ -289,10 +287,10 @@ export class TwapApi extends TradeApi<TradeConfig> {
   }
 
   /**
-   * Calculate approx. tx fees for TWAP execution
+   * Calculate approx. tx fees
    *
    * @param tradesNo - number of trades required to execute order
-   * @param txFee - swap transaction fee (single trade)
+   * @param txFee - trade transaction fee (single trade)
    * @returns twap fees
    */
   private getFees(tradesNo: number, txFee: BigNumber): BigNumber {

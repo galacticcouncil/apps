@@ -16,6 +16,7 @@ import {
   SYSTEM_ASSET_ID,
 } from '@galacticcouncil/sdk';
 import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
+import { SECOND_MS } from 'utils/time';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
@@ -24,7 +25,7 @@ export abstract class PoolApp extends BaseApp {
   protected disconnectSubscribeBalance: VoidFn[] = [];
 
   protected blockNumber: number = null;
-  protected blockTime: number = null;
+  protected blockTime: number = 12 * SECOND_MS;
 
   protected assetApi: AssetApi = null;
   protected balanceClient: BalanceClient = null;

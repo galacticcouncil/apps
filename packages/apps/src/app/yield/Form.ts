@@ -16,16 +16,22 @@ import {
 import { BaseElement } from 'element/BaseElement';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
-import { humanizeAmount } from 'utils/amount';
+import { formatAmount, humanizeAmount } from 'utils/amount';
 
-import { INTERVAL_DCA, APY, IntervalDca } from './types';
+import {
+  INTERVAL_DCA,
+  APY,
+  IntervalDca,
+  DcaYieldOrder,
+  INTERVAL_DCA_MS,
+} from './types';
 
 import { Asset } from '@galacticcouncil/sdk';
 
 @customElement('gc-yield-form')
 export class YieldForm extends BaseElement {
   private account = new DatabaseController<Account>(this, AccountCursor);
-  private settings = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
+  private dcaConfig = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
@@ -35,12 +41,9 @@ export class YieldForm extends BaseElement {
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) interval: IntervalDca = '1 month';
   @property({ type: String }) amountIn = null;
-  @property({ type: String }) amountInYield = null;
-  @property({ type: String }) amountInFrom = null;
   @property({ type: String }) balanceIn = null;
   @property({ type: Number }) rate = null;
-  @property({ type: Number }) tradesNo = null;
-  @property({ type: String }) est = null;
+  @property({ attribute: false }) order: DcaYieldOrder = null;
   @property({ attribute: false }) error = {};
 
   static styles = [
@@ -147,24 +150,36 @@ export class YieldForm extends BaseElement {
   ];
 
   private getEstDate(): string {
-    if (!this.est) {
+    if (!this.interval) {
       return null;
     }
 
+    const intervalMs = INTERVAL_DCA_MS[this.interval];
     return this._dayjs()
-      .add(this.est, 'millisecond')
+      .add(intervalMs, 'millisecond')
       .format('DD-MM-YYYY HH:mm');
   }
 
   private getEstFreq(): string {
-    if (this.est && this.tradesNo) {
-      return this._humanizer.humanize(this.est / this.tradesNo, {
+    if (this.interval && this.order) {
+      const { tradesNo } = this.order;
+      const intervalMs = INTERVAL_DCA_MS[this.interval];
+      return this._humanizer.humanize(intervalMs / tradesNo, {
         round: true,
         largest: 2,
       });
     } else {
       return null;
     }
+  }
+
+  private getDotYield(): string {
+    if (this.order) {
+      console.log(this.rate);
+      const dotYield = this.order.amountInYield.multipliedBy(this.rate);
+      return formatAmount(dotYield, this.assetIn.decimals);
+    }
+    return null;
   }
 
   onScheduleClick(e: any) {
@@ -194,14 +209,17 @@ export class YieldForm extends BaseElement {
   }
 
   infoSummaryTemplate() {
+    const order = this.order?.toHuman();
+    const dotYield = this.getDotYield();
+
     const summary = i18n.t('form.summary.message', {
-      amountIn: humanizeAmount(this.amountIn),
-      amountInYield: humanizeAmount(this.amountInYield),
+      amountIn: humanizeAmount(order?.amountIn),
+      amountInYield: humanizeAmount(order?.amountInYield),
       assetIn: this.assetIn?.symbol,
       assetOut: this.assetOut?.symbol,
       frequency: this.getEstFreq(),
       int: this.interval.toLowerCase(),
-      rate: humanizeAmount(this.amountInYield * this.rate),
+      rate: humanizeAmount(dotYield),
     });
     return html`
       <span class="label">${i18n.t('form.summary')}</span>
@@ -232,6 +250,7 @@ export class YieldForm extends BaseElement {
   }
 
   infoEstYieldTemplate() {
+    const dotYield = this.getDotYield();
     return html`
       <span class="label">${i18n.t('form.info.estYield')}</span>
       <span class="grow"></span>
@@ -248,9 +267,7 @@ export class YieldForm extends BaseElement {
         () =>
           html`
             <span class="value highlight">
-              ${`${humanizeAmount(this.amountInYield * this.rate)} DOT/${
-                this.interval
-              }` || '-'}
+              ${`${humanizeAmount(dotYield)} DOT/${this.interval}` || '-'}
             </span>
           `,
       )}
@@ -258,7 +275,7 @@ export class YieldForm extends BaseElement {
   }
 
   infoSlippageTemplate() {
-    const { slippage } = this.settings.state;
+    const { slippage } = this.dcaConfig.state;
     return html`
       <span class="label">${i18n.t('form.info.slippage')}</span>
       <span class="grow"></span>
@@ -393,7 +410,7 @@ export class YieldForm extends BaseElement {
         .error=${error}
         asset=${this.assetIn?.symbol}
         unit=${this.assetIn?.symbol}
-        amount=${this.amountInFrom}>
+        amount=${this.amountIn}>
         ${this.formAssetTemplate(this.assetIn, 'asset')}
         ${this.formAssetBalanceTemplate(this.balanceIn)}
       </uigc-asset-transfer>
@@ -414,8 +431,9 @@ export class YieldForm extends BaseElement {
 
   render() {
     const isValid =
-      this.amountInYield &&
-      this.amountInFrom &&
+      this.amountIn &&
+      this.order &&
+      this.rate &&
       Object.keys(this.error).length == 0;
     const infoClasses = {
       info: true,

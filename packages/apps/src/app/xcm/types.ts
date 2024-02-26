@@ -2,7 +2,7 @@ import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 import { XData } from '@galacticcouncil/xcm-sdk';
 
 export enum TransferTab {
-  TransferForm,
+  Form,
   SelectChain,
   SelectToken,
 }

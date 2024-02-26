@@ -8,18 +8,16 @@ import { i18n } from 'localization';
 import { translation } from './locales';
 
 import { PoolApp } from 'app/PoolApp';
-import { Account, DcaConfigCursor } from 'db';
+import { Account, DatabaseController, DcaConfig, DcaConfigCursor } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { tradeLayoutStyles } from 'styles/layout/trade.css';
-import { formatAmount, humanizeAmount, toBn } from 'utils/amount';
-import { DAY_MS } from 'utils/time';
+import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 
 import '@galacticcouncil/ui';
 import {
   bnum,
-  buildRoute,
   Amount,
   Asset,
   scale,
@@ -29,8 +27,6 @@ import {
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
-
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './Form';
 import './Settings';
@@ -42,22 +38,27 @@ import 'app/trade/orders';
 import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
+import { DcaYieldApi } from './api';
 import {
   DcaTab,
   DcaState,
+  DEFAULT_DCA_STATE,
   APY,
   APY_DENOMINATOR,
-  DEFAULT_DCA_STATE,
   INTERVAL_DCA_MS,
-  MIN_TRADE_SIZE,
-  MAX_TRADE_SIZE,
 } from './types';
 
 @customElement('gc-yield')
 export class YieldApp extends PoolApp {
+  protected dcaConfig = new DatabaseController<DcaConfig>(
+    this,
+    DcaConfigCursor,
+  );
+  protected dcaApi: DcaYieldApi = null;
+
   @property({ type: Boolean }) chart: Boolean = false;
 
-  @state() tab: DcaTab = DcaTab.DcaForm;
+  @state() tab: DcaTab = DcaTab.Form;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
   @state() asset = {
     selector: null as AssetSelector,
@@ -105,8 +106,13 @@ export class YieldApp extends PoolApp {
   }
 
   isSwapEmpty(): boolean {
-    const { amountInFrom } = this.dca;
-    return this.isEmptyAmount(amountInFrom);
+    const { amountIn } = this.dca;
+    return this.isEmptyAmount(amountIn);
+  }
+
+  hasRate(): boolean {
+    const { rate } = this.dca;
+    return rate && rate > 0;
   }
 
   hasError(): boolean {
@@ -182,74 +188,31 @@ export class YieldApp extends PoolApp {
     this.recalculateSpotPrice();
   }
 
-  updateAmountIn(amount: string) {
+  updateAmountInFrom(amount: string) {
     this.dca = {
       ...this.dca,
       amountIn: amount,
     };
-    this.updateEstimated();
-  }
-
-  updateAmountInFrom(amount: string) {
-    this.dca = {
-      ...this.dca,
-      amountInFrom: amount,
-    };
-    this.updateYield();
     this.updateTradeSize();
-    this.updateEstimated();
-  }
-
-  private updateYield() {
-    const { amountInFrom, interval } = this.dca;
-
-    const apyDenominator = APY_DENOMINATOR[interval];
-    const apyMultiplier = 1 + APY / 100;
-
-    const investment = Number(amountInFrom);
-    const futureValue = investment * apyMultiplier;
-    const gain = futureValue - investment;
-    const amountInYield = gain / apyDenominator;
-
-    this.dca = {
-      ...this.dca,
-      amountInYield: amountInYield.toFixed(4),
-    };
-    this.requestUpdate();
   }
 
   private async updateTradeSize() {
-    const { amountInYield, interval } = this.dca;
+    const { amountIn, assetIn, assetOut, interval } = this.dca;
 
-    const intervalMs = INTERVAL_DCA_MS[interval];
-    const budget = Number(amountInYield);
-
-    let noOfTrades = Math.round(intervalMs / DAY_MS) || 1;
-    let tradeSize = budget / noOfTrades;
-
-    if (tradeSize < MIN_TRADE_SIZE) {
-      noOfTrades = Math.floor(budget / MIN_TRADE_SIZE);
-      tradeSize = budget / noOfTrades;
-    }
-
-    if (tradeSize > MAX_TRADE_SIZE) {
-      noOfTrades = Math.round(budget / MAX_TRADE_SIZE);
-      tradeSize = budget / noOfTrades;
-    }
+    const order = await this.dcaApi.getYieldOrder(
+      amountIn,
+      assetIn,
+      assetOut,
+      APY,
+      APY_DENOMINATOR[interval],
+      INTERVAL_DCA_MS[interval],
+      this.blockTime,
+    );
 
     this.dca = {
       ...this.dca,
-      amountIn: tradeSize.toFixed(4),
-      tradesNo: noOfTrades,
+      order: order,
     };
-    this.requestUpdate();
-  }
-
-  private async updateEstimated() {
-    const { interval } = this.dca;
-
-    let periodMsec = INTERVAL_DCA_MS[interval];
-    this.dca.est = periodMsec;
     this.requestUpdate();
   }
 
@@ -268,7 +231,7 @@ export class YieldApp extends PoolApp {
 
   validateEnoughBalance() {
     const assetIn = this.dca.assetIn?.id;
-    const amountIn = this.dca.amountInFrom;
+    const amountIn = this.dca.amountIn;
 
     if (this.isEmptyAmount(amountIn) || !this.hasAccount()) {
       delete this.dca.error['balanceTooLow'];
@@ -292,10 +255,14 @@ export class YieldApp extends PoolApp {
       return;
     }
 
-    const { amountInFrom, assetIn, interval } = this.dca;
+    const { amountIn, assetIn, interval } = this.dca;
 
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
-    const minBudget = this.calculateAssetPrice(assetIn, minBudgetNative);
+    const minBudget = exchangeNative(
+      this.assets.nativePrice,
+      assetIn,
+      minBudgetNative,
+    ).shiftedBy(-1 * assetIn.decimals);
 
     const apyDenominator = APY_DENOMINATOR[interval];
     const apyMultiplier = 1 + APY / 100;
@@ -303,7 +270,7 @@ export class YieldApp extends PoolApp {
     const minGain = apyDenominator * minBudget.toNumber();
     const minInvestment = minGain / (apyMultiplier - 1);
 
-    if (minInvestment > Number(amountInFrom)) {
+    if (minInvestment > Number(amountIn)) {
       this.dca.error['minInvestmentTooLow'] = i18n.t(
         'error.minInvestmentTooLow',
         {
@@ -317,17 +284,19 @@ export class YieldApp extends PoolApp {
   }
 
   notificationTemplate(dca: DcaState, tKey: string): TxMessage {
-    const { amountIn, amountInYield, assetIn, assetOut, est, tradesNo } = dca;
-    const freq = this._humanizer.humanize(est / tradesNo, {
+    const { assetIn, assetOut, interval, order } = dca;
+    const { tradesNo, amountIn, amountInYield } = order.toHuman();
+    const period = INTERVAL_DCA_MS[interval];
+    const freq = this._humanizer.humanize(period / tradesNo, {
       round: true,
       largest: 2,
     });
 
     const message = i18n.t(tKey, {
-      amountIn: amountIn,
-      amountInYield: amountInYield,
-      assetIn: assetIn?.symbol,
-      assetOut: assetOut?.symbol,
+      amountIn: humanizeAmount(amountIn),
+      amountInYield: humanizeAmount(amountInYield),
+      assetIn: assetIn.symbol,
+      assetOut: assetOut.symbol,
       frequency: freq,
     });
     return {
@@ -337,8 +306,8 @@ export class YieldApp extends PoolApp {
   }
 
   private processTx(account: Account, transaction: Transaction) {
-    const { amountIn, amountInYield, amountInFrom, assetIn, assetOut } =
-      this.dca;
+    const { amountIn, assetIn, assetOut, order } = this.dca;
+    const orderHuman = order.toHuman();
 
     const notification = {
       processing: this.notificationTemplate(this.dca, 'notify.processing'),
@@ -354,9 +323,9 @@ export class YieldApp extends PoolApp {
         transaction: transaction,
         notification: notification,
         meta: {
-          amountIn: humanizeAmount(amountIn),
-          amountInYield: humanizeAmount(amountInYield),
-          amountInFrom: humanizeAmount(amountInFrom),
+          amountIn: humanizeAmount(orderHuman.amountIn),
+          amountInYield: humanizeAmount(orderHuman.amountInYield),
+          amountInFrom: humanizeAmount(amountIn),
           assetIn: assetIn.symbol,
           assetOut: assetOut.symbol,
         },
@@ -367,49 +336,13 @@ export class YieldApp extends PoolApp {
 
   private async onSchedule() {
     const account = this.account.state;
-    const { api, router } = this.chain.state;
+    const { router } = this.chain.state;
+    const { maxRetries } = this.dcaConfig.state;
+
     if (account) {
-      const { assetIn, assetOut, amountInYield, est, tradesNo } = this.dca;
-
-      const amountInBn = toBn(this.dca.amountIn, assetIn.decimals);
-      const amountInYieldBN = toBn(amountInYield, assetIn.decimals);
-
-      const periodBlock = this.timeApi.toBlockPeriod(
-        this.blockTime,
-        Math.floor(est / tradesNo),
-      );
-      const slippage = DcaConfigCursor.deref().slippage;
-      const sell = await router.getBestSell(
-        assetIn.id,
-        assetOut.id,
-        this.dca.amountIn,
-      );
-      const tx: SubmittableExtrinsic = api.tx.dca.schedule(
-        {
-          owner: account.address,
-          period: periodBlock,
-          totalAmount: amountInYieldBN.toFixed(),
-          slippage: Number(slippage) * 10000,
-          order: {
-            Sell: {
-              assetIn: assetIn.id,
-              assetOut: assetOut.id,
-              amountIn: amountInBn.toFixed(),
-              minLimit: '0',
-              route: buildRoute(sell.swaps),
-            },
-          },
-        },
-        null,
-      );
-
-      const transaction = {
-        hex: tx.toHex(),
-        name: 'dcaSchedule',
-        get: (): SubmittableExtrinsic => {
-          return tx;
-        },
-      } as Transaction;
+      const { amountIn, assetIn, assetOut, order } = this.dca;
+      const trade = await router.getBestSell(assetIn.id, assetOut.id, amountIn);
+      const transaction = order.toTx(account.address, maxRetries, trade);
       this.processTx(account, transaction);
     }
   }
@@ -447,6 +380,8 @@ export class YieldApp extends PoolApp {
   }
 
   protected onInit(): void {
+    const { api, router } = this.chain.state;
+    this.dcaApi = new DcaYieldApi(api, router, DcaConfigCursor);
     this.initAssets();
     this.recalculateSpotPrice();
     this.syncRate();
@@ -470,8 +405,8 @@ export class YieldApp extends PoolApp {
   }
 
   onResize(_evt: UIEvent) {
-    if (window.innerWidth > 1023 && DcaTab.TradeChart == this.tab) {
-      this.changeTab(DcaTab.DcaForm);
+    if (window.innerWidth > 1023 && DcaTab.Chart == this.tab) {
+      this.changeTab(DcaTab.Form);
     }
   }
 
@@ -506,28 +441,31 @@ export class YieldApp extends PoolApp {
 
   protected onIntervalChange({ detail }: CustomEvent) {
     this.dca.interval = detail.value;
-    this.updateEstimated();
-    this.updateYield();
     this.updateTradeSize();
     this.validateMinInvestment();
   }
 
   protected isFormDisabled() {
-    return !this.isSwapSelected() || this.isSwapEmpty() || this.hasError();
+    return (
+      !this.isSwapSelected() ||
+      !this.hasRate() ||
+      this.isSwapEmpty() ||
+      this.hasError()
+    );
   }
 
   protected isFormLoaded() {
     return this.assets.tradeable.length > 0;
   }
 
-  dcaFormTab() {
+  formTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == DcaTab.DcaForm,
+      active: this.tab == DcaTab.Form,
     };
     const stepClasses = {
-      active: this.tab == DcaTab.DcaForm,
+      active: this.tab == DcaTab.Form,
     };
     return html`
       <div class="main">
@@ -539,13 +477,10 @@ export class YieldApp extends PoolApp {
             .assetIn=${this.dca.assetIn}
             .assetOut=${this.dca.assetOut}
             .amountIn=${this.dca.amountIn}
-            .amountInYield=${this.dca.amountInYield}
-            .amountInFrom=${this.dca.amountInFrom}
             .balanceIn=${this.dca.balanceIn}
             .interval=${this.dca.interval}
             .rate=${this.dca.rate}
-            .tradesNo=${this.dca.tradesNo}
-            .est=${this.dca.est}
+            .order=${this.dca.order}
             .error=${this.dca.error}
             @asset-input-change=${this.onAssetInputChange}
             @asset-selector-click=${this.onAssetSelectorClick}
@@ -560,12 +495,12 @@ export class YieldApp extends PoolApp {
               <uigc-icon-button
                 basic
                 class="chart-btn"
-                @click=${() => this.changeTab(DcaTab.TradeChart)}>
+                @click=${() => this.changeTab(DcaTab.Chart)}>
                 <uigc-icon-chart></uigc-icon-chart>
               </uigc-icon-button>
               <uigc-icon-button
                 basic
-                @click=${() => this.changeTab(DcaTab.DcaSettings)}>
+                @click=${() => this.changeTab(DcaTab.Settings)}>
                 <uigc-icon-settings></uigc-icon-settings>
               </uigc-icon-button>
             </div>
@@ -576,19 +511,19 @@ export class YieldApp extends PoolApp {
     `;
   }
 
-  dcaSettingsTab() {
+  settingsTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == DcaTab.DcaSettings,
+      active: this.tab == DcaTab.Settings,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-yield-settings @slippage-change=${() => {}}>
+        <gc-yield-settings @slippage-change=${() => this.updateTradeSize()}>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(DcaTab.DcaForm)}>
+              @click=${() => this.changeTab(DcaTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -607,7 +542,7 @@ export class YieldApp extends PoolApp {
     id == 'assetOut' && this.changeAssetOut(asset, e.detail);
     this.syncBalance();
     this.validateMinInvestment();
-    this.changeTab(DcaTab.DcaForm);
+    this.changeTab(DcaTab.Form);
   }
 
   selectAssetTab() {
@@ -633,7 +568,7 @@ export class YieldApp extends PoolApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(DcaTab.DcaForm)}>
+              @click=${() => this.changeTab(DcaTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -646,19 +581,7 @@ export class YieldApp extends PoolApp {
     `;
   }
 
-  /*   dcaStepper() {
-    const classes = {
-      stepper: true,
-      main: true,
-    };
-    return html`
-      <uigc-paper class=${classMap(classes)}>
-        <gc-yield-stepper></gc-yield-stepper>
-      </uigc-paper>
-    `;
-  } */
-
-  tradeOrdersSummary() {
+  ordersSummary() {
     const account = this.account.state;
     return html`
       <gc-trade-orders
@@ -677,11 +600,11 @@ export class YieldApp extends PoolApp {
     `;
   }
 
-  tradeChartTab() {
+  chartTab() {
     const classes = {
       tab: true,
       chart: true,
-      active: this.tab == DcaTab.TradeChart,
+      active: this.tab == DcaTab.Chart,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
@@ -698,7 +621,7 @@ export class YieldApp extends PoolApp {
               <div class="header section" slot="header">
                 <uigc-icon-button
                   class="back"
-                  @click=${() => this.changeTab(DcaTab.DcaForm)}>
+                  @click=${() => this.changeTab(DcaTab.Form)}>
                   <uigc-icon-back></uigc-icon-back>
                 </uigc-icon-button>
                 <uigc-typography variant="section">
@@ -716,8 +639,8 @@ export class YieldApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.tradeChartTab()} ${this.dcaFormTab()} ${this.dcaSettingsTab()}
-        ${this.tradeOrdersSummary()} ${this.selectAssetTab()}
+        ${this.chartTab()} ${this.formTab()} ${this.settingsTab()}
+        ${this.ordersSummary()} ${this.selectAssetTab()}
       </div>
     `;
   }
