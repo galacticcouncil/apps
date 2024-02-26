@@ -697,16 +697,15 @@ export class TradeApp extends PoolApp {
   }
 
   private async calculateTransactionFee(
+    transaction: Transaction,
     feeAssetId: string,
     feeNative: string,
   ): Promise<TransactionFee> {
     const account = this.account.state;
     const feeAsset = this.assets.registry.get(feeAssetId);
 
-    const { trade } = this.trade;
-    const tx = trade.toTx(ZERO);
     const { amount } = isEvmAccount(account?.address)
-      ? await this.paymentApi.getEvmPaymentFee(tx.hex, account)
+      ? await this.paymentApi.getEvmPaymentFee(transaction.hex, account)
       : await this.paymentApi.getPaymentFee(feeAsset, feeNative);
 
     return {
@@ -719,13 +718,14 @@ export class TradeApp extends PoolApp {
   async syncTransactionFee() {
     const account = this.account.state;
     const { trade } = this.trade;
-    const tx = trade.toTx(ZERO);
+    const transaction = trade.toTx(ZERO);
     const [paymentInfo, feeAssetId] = await Promise.all([
-      this.paymentApi.getPaymentInfo(tx, account),
+      this.paymentApi.getPaymentInfo(transaction, account),
       this.paymentApi.getPaymentFeeAsset(account),
     ]);
 
     this.trade.transactionFee = await this.calculateTransactionFee(
+      transaction,
       feeAssetId,
       paymentInfo.partialFee.toString(),
     );
@@ -746,11 +746,13 @@ export class TradeApp extends PoolApp {
     }
 
     const trade = await this.safeSell(assetIn, assetOut, ONE.toFixed());
+    const transaction = trade.toTx(ZERO);
     const paymentInfo = await this.paymentApi.getPaymentInfo(
-      trade.toTx(ZERO),
+      transaction,
       account,
     );
     const txFee = await this.calculateTransactionFee(
+      transaction,
       feeAssetId,
       paymentInfo.partialFee.toString(),
     );
@@ -780,11 +782,13 @@ export class TradeApp extends PoolApp {
     }
 
     const trade = await this.safeBuy(assetIn, assetOut, ONE.toFixed());
+    const transaction = trade.toTx(ZERO);
     const paymentInfo = await this.paymentApi.getPaymentInfo(
-      trade.toTx(ZERO),
+      transaction,
       account,
     );
     const txFee = await this.calculateTransactionFee(
+      transaction,
       feeAssetId,
       paymentInfo.partialFee.toString(),
     );
