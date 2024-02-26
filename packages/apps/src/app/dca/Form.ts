@@ -19,7 +19,7 @@ import { formStyles } from 'styles/form.css';
 import { humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
-import { Dca, INTERVAL_DCA, IntervalDca } from './types';
+import { DcaOrder, INTERVAL_DCA, IntervalDca } from './types';
 
 import { Asset } from '@galacticcouncil/sdk';
 
@@ -39,7 +39,7 @@ export class DcaForm extends BaseElement {
   @property({ type: Number }) frequency: number = null;
   @property({ type: String }) amountIn = null;
   @property({ type: String }) balanceIn = null;
-  @property({ attribute: false }) order: Dca = null;
+  @property({ attribute: false }) order: DcaOrder = null;
   @property({ attribute: false }) error = {};
 
   @state() advanced: boolean = false;
@@ -442,7 +442,6 @@ export class DcaForm extends BaseElement {
   }
 
   render() {
-    console.log(this.order?.toHuman());
     const isValid =
       this.amountIn &&
       this.order?.amountIn &&

@@ -1,11 +1,16 @@
-import { Asset, BigNumber, Humanizer, Transaction } from '@galacticcouncil/sdk';
+import {
+  Asset,
+  BigNumber,
+  Humanizer,
+  Trade,
+  Transaction,
+} from '@galacticcouncil/sdk';
 import { DAY_MS, HOUR_MS, WEEK_MS } from '../../utils/time';
 
 export enum DcaTab {
-  TradeChart,
-  DcaForm,
-  DcaSettings,
-  DcaPositions,
+  Chart,
+  Form,
+  Settings,
   SelectAsset,
 }
 
@@ -19,7 +24,8 @@ export type DcaState = {
   intervalMultiplier: number;
   frequency: number;
   spotPrice: string;
-  order: Dca;
+  order: DcaOrder;
+  trade: Trade;
   error: {};
 };
 
@@ -34,6 +40,7 @@ export const DEFAULT_DCA_STATE: DcaState = {
   frequency: null,
   spotPrice: null,
   order: null,
+  trade: null,
   error: {},
 };
 
@@ -47,7 +54,7 @@ export const INTERVAL_DCA_MS: Record<IntervalDca, number> = {
 
 export type IntervalDca = (typeof INTERVAL_DCA)[number];
 
-export interface Dca extends Humanizer {
+export interface DcaOrder extends Humanizer {
   amountIn: BigNumber;
   frequency: number;
   frequencyMin: number;

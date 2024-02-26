@@ -52,9 +52,8 @@ export class BondsApp extends TradeApp {
     amountIn: string,
   ) {
     await super.calculateSell(assetIn, assetOut, amountIn);
-    this.lbpSwap = this.trade.swaps.find(
-      (swap: any) => swap.pool === PoolType.LBP,
-    );
+    const { trade } = this.trade;
+    this.lbpSwap = trade.swaps.find((swap: any) => swap.pool === PoolType.LBP);
   }
 
   protected async calculateBuy(
@@ -63,9 +62,8 @@ export class BondsApp extends TradeApp {
     amountOut: string,
   ) {
     await super.calculateBuy(assetIn, assetOut, amountOut);
-    this.lbpSwap = this.trade.swaps.find(
-      (swap: any) => swap.pool === PoolType.LBP,
-    );
+    const { trade } = this.trade;
+    this.lbpSwap = trade.swaps.find((swap: any) => swap.pool === PoolType.LBP);
   }
 
   protected async recalculateSpotPrice() {
@@ -182,7 +180,7 @@ export class BondsApp extends TradeApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(TradeTab.TradeForm)}>
+              @click=${() => this.changeTab(TradeTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -195,11 +193,11 @@ export class BondsApp extends TradeApp {
     `;
   }
 
-  tradeChartTab() {
+  chartTab() {
     const classes = {
       tab: true,
       chart: true,
-      active: this.tab == TradeTab.TradeChart,
+      active: this.tab == TradeTab.Chart,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
@@ -214,7 +212,7 @@ export class BondsApp extends TradeApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(TradeTab.TradeForm)}>
+              @click=${() => this.changeTab(TradeTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -227,11 +225,11 @@ export class BondsApp extends TradeApp {
     `;
   }
 
-  tradeSettingsTab() {
+  settingsTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == TradeTab.TradeSettings,
+      active: this.tab == TradeTab.Settings,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
@@ -239,7 +237,7 @@ export class BondsApp extends TradeApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(TradeTab.TradeForm)}>
+              @click=${() => this.changeTab(TradeTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -255,8 +253,8 @@ export class BondsApp extends TradeApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.tradeChartTab()} ${this.tradeFormTab()}
-        ${this.tradeSettingsTab()} ${this.selectAssetTab()}
+        ${this.chartTab()} ${this.formTab()} ${this.settingsTab()}
+        ${this.selectAssetTab()}
       </div>
     `;
   }

@@ -30,7 +30,7 @@ import {
   calculateDiffToRef,
 } from '@galacticcouncil/sdk';
 
-import { TransactionFee, Twap, TwapError } from './types';
+import { TransactionFee, TwapOrder, TwapError } from './types';
 
 @customElement('gc-trade-form')
 export class TradeForm extends BaseElement {
@@ -59,7 +59,7 @@ export class TradeForm extends BaseElement {
   @property({ attribute: false }) trade: Trade = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ attribute: false }) transactionFee: TransactionFee = null;
-  @property({ attribute: false }) twap: Twap = null;
+  @property({ attribute: false }) twap: TwapOrder = null;
   @property({ type: Boolean }) twapAllowed = false;
   @property({ type: Boolean }) twapProgress = false;
   @property({ attribute: false }) error = {};
@@ -520,7 +520,6 @@ export class TradeForm extends BaseElement {
   }
 
   onCtaClick(e: any) {
-    console.log('click');
     const options = {
       bubbles: true,
       composed: true,

@@ -60,7 +60,7 @@ import {
   TradeTab,
   TradeState,
   DEFAULT_TRADE_STATE,
-  Twap,
+  TwapOrder,
   TwapState,
   DEFAULT_TWAP_STATE,
   TransactionFee,
@@ -78,7 +78,7 @@ export class TradeApp extends PoolApp {
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) smartSplit: Boolean = false;
 
-  @state() tab: TradeTab = TradeTab.TradeForm;
+  @state() tab: TradeTab = TradeTab.Form;
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
   @state() twap: TwapState = { ...DEFAULT_TWAP_STATE };
   @state() asset = {
@@ -222,7 +222,7 @@ export class TradeApp extends PoolApp {
       this.twap = {
         ...this.twap,
         inProgress: false,
-        twap: twap,
+        order: twap,
       };
     }
   }
@@ -300,7 +300,7 @@ export class TradeApp extends PoolApp {
       this.twap = {
         ...this.twap,
         inProgress: false,
-        twap: twap,
+        order: twap,
       };
     }
   }
@@ -396,7 +396,7 @@ export class TradeApp extends PoolApp {
     this.twap = {
       ...this.twap,
       inProgress: false,
-      twap: null,
+      order: null,
     };
   }
 
@@ -452,7 +452,7 @@ export class TradeApp extends PoolApp {
     this.twap = {
       ...this.twap,
       inProgress: true,
-      twap: null,
+      order: null,
     };
 
     if (previous == this.asset.active) {
@@ -512,7 +512,7 @@ export class TradeApp extends PoolApp {
     this.twap = {
       ...this.twap,
       inProgress: true,
-      twap: null,
+      order: null,
     };
 
     if (previous == this.asset.active) {
@@ -619,7 +619,7 @@ export class TradeApp extends PoolApp {
     this.twap = {
       ...this.twap,
       inProgress: false,
-      twap: null,
+      order: null,
     };
   }
 
@@ -640,7 +640,7 @@ export class TradeApp extends PoolApp {
       this.twap = {
         ...this.twap,
         inProgress: true,
-        twap: null,
+        order: null,
       };
       this.calculateSell(this.trade.assetIn, this.trade.assetOut, amount);
     } else {
@@ -665,7 +665,7 @@ export class TradeApp extends PoolApp {
       this.twap = {
         ...this.twap,
         inProgress: true,
-        twap: null,
+        order: null,
       };
       this.calculateBuy(this.trade.assetIn, this.trade.assetOut, amount);
     } else {
@@ -852,17 +852,20 @@ export class TradeApp extends PoolApp {
     }
   }
 
-  dcaNotificationTemplate(twap: Twap, asset: Asset, status: string): TxMessage {
-    const { reps, time } = twap;
-    const twapHuman = twap.toHuman();
+  twapNotificationTemplate(
+    order: TwapOrder,
+    asset: Asset,
+    status: string,
+  ): TxMessage {
+    const { amountIn, amountInPerTrade, reps, time } = order.toHuman();
     const timeframe = this._humanizer.humanize(time, {
       round: true,
       largest: 2,
     });
 
     const message = i18n.t('notify.twap', {
-      amountIn: humanizeAmount(twapHuman.trade.amountIn),
-      amountInBudget: humanizeAmount(twapHuman.amountIn),
+      amountIn: humanizeAmount(amountInPerTrade),
+      amountInBudget: humanizeAmount(amountIn),
       assetIn: asset.symbol,
       noOfTrades: reps,
       timeframe: timeframe,
@@ -874,16 +877,16 @@ export class TradeApp extends PoolApp {
     } as TxMessage;
   }
 
-  private processDca(
+  private processTwap(
     account: Account,
     transaction: Transaction,
-    twap: Twap,
+    order: TwapOrder,
     asset: Asset,
   ) {
     const notification = {
-      processing: this.dcaNotificationTemplate(twap, asset, 'submitted'),
-      success: this.dcaNotificationTemplate(twap, asset, 'placed'),
-      failure: this.dcaNotificationTemplate(twap, asset, 'failed'),
+      processing: this.twapNotificationTemplate(order, asset, 'submitted'),
+      success: this.twapNotificationTemplate(order, asset, 'placed'),
+      failure: this.twapNotificationTemplate(order, asset, 'failed'),
     };
     const options = {
       bubbles: true,
@@ -903,9 +906,9 @@ export class TradeApp extends PoolApp {
 
     if (account) {
       const { assetIn } = this.trade;
-      const { twap } = this.twap;
-      const transaction = twap.toTx(account.address, maxRetries);
-      this.processDca(account, transaction, twap, assetIn);
+      const { order } = this.twap;
+      const transaction = order.toTx(account.address, maxRetries);
+      this.processTwap(account, transaction, order, assetIn);
     }
   }
 
@@ -975,8 +978,8 @@ export class TradeApp extends PoolApp {
   }
 
   private onResize(_evt: UIEvent) {
-    if (window.innerWidth > 1023 && TradeTab.TradeChart == this.tab) {
-      this.changeTab(TradeTab.TradeForm);
+    if (window.innerWidth > 1023 && TradeTab.Chart == this.tab) {
+      this.changeTab(TradeTab.Form);
     }
   }
 
@@ -1027,11 +1030,11 @@ export class TradeApp extends PoolApp {
     return false;
   }
 
-  tradeFormTab() {
+  formTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == TradeTab.TradeForm,
+      active: this.tab == TradeTab.Form,
     };
     return html`
       <uigc-paper class=${classMap(classes)} id="default-tab">
@@ -1055,7 +1058,7 @@ export class TradeApp extends PoolApp {
           .trade=${this.trade.trade}
           .tradeType=${this.trade.type}
           .transactionFee=${this.trade.transactionFee}
-          .twap=${this.twap.twap}
+          .twap=${this.twap.order}
           .twapAllowed=${this.isTwapEnabled()}
           .twapProgress=${this.twap.inProgress}
           .error=${this.trade.error}
@@ -1065,7 +1068,7 @@ export class TradeApp extends PoolApp {
           @asset-switch-click=${this.onAssetSwitchClick}
           @swap-click=${() => this.onSwapClick()}
           @twap-click=${() => this.onTwapClick()}
-          @slippage-click=${() => this.changeTab(TradeTab.TradeSettings)}>
+          @slippage-click=${() => this.changeTab(TradeTab.Settings)}>
           <div class="header" slot="header">
             <uigc-typography variant="title" gradient>
               ${i18n.t('header.form')}
@@ -1074,12 +1077,12 @@ export class TradeApp extends PoolApp {
             <uigc-icon-button
               basic
               class="chart-btn"
-              @click=${() => this.changeTab(TradeTab.TradeChart)}>
+              @click=${() => this.changeTab(TradeTab.Chart)}>
               <uigc-icon-chart></uigc-icon-chart>
             </uigc-icon-button>
             <uigc-icon-button
               basic
-              @click=${() => this.changeTab(TradeTab.TradeSettings)}>
+              @click=${() => this.changeTab(TradeTab.Settings)}>
               <uigc-icon-settings></uigc-icon-settings>
             </uigc-icon-button>
           </div>
@@ -1088,11 +1091,11 @@ export class TradeApp extends PoolApp {
     `;
   }
 
-  tradeSettingsTab() {
+  settingsTab() {
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == TradeTab.TradeSettings,
+      active: this.tab == TradeTab.Settings,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
@@ -1100,7 +1103,7 @@ export class TradeApp extends PoolApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(TradeTab.TradeForm)}>
+              @click=${() => this.changeTab(TradeTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -1120,7 +1123,7 @@ export class TradeApp extends PoolApp {
     this.updateBalances();
     this.validatePool();
     this.updateQuery();
-    this.changeTab(TradeTab.TradeForm);
+    this.changeTab(TradeTab.Form);
   }
 
   selectAssetTab() {
@@ -1144,7 +1147,7 @@ export class TradeApp extends PoolApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(TradeTab.TradeForm)}>
+              @click=${() => this.changeTab(TradeTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -1157,11 +1160,11 @@ export class TradeApp extends PoolApp {
     `;
   }
 
-  tradeChartTab() {
+  chartTab() {
     const classes = {
       tab: true,
       chart: true,
-      active: this.tab == TradeTab.TradeChart,
+      active: this.tab == TradeTab.Chart,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
@@ -1179,7 +1182,7 @@ export class TradeApp extends PoolApp {
               <div class="header section" slot="header">
                 <uigc-icon-button
                   class="back"
-                  @click=${() => this.changeTab(TradeTab.TradeForm)}>
+                  @click=${() => this.changeTab(TradeTab.Form)}>
                   <uigc-icon-back></uigc-icon-back>
                 </uigc-icon-button>
                 <uigc-typography variant="section">
@@ -1194,7 +1197,7 @@ export class TradeApp extends PoolApp {
     `;
   }
 
-  tradeOrdersSummary() {
+  ordersSummary() {
     const account = this.account.state;
     if (this.twap) {
       return html`
@@ -1218,9 +1221,8 @@ export class TradeApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.tradeChartTab()} ${this.tradeFormTab()}
-        ${this.tradeSettingsTab()} ${this.tradeOrdersSummary()}
-        ${this.selectAssetTab()}
+        ${this.chartTab()} ${this.formTab()} ${this.settingsTab()}
+        ${this.ordersSummary()} ${this.selectAssetTab()}
       </div>
     `;
   }

@@ -15,7 +15,7 @@ const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
 @customElement('gc-bonds-settings')
 export class BondsSettings extends LitElement {
-  protected settings = new DatabaseController<TradeConfig>(
+  protected tradeConfig = new DatabaseController<TradeConfig>(
     this,
     TradeConfigCursor,
   );
@@ -122,8 +122,8 @@ export class BondsSettings extends LitElement {
   ];
 
   private onChange(value: any, propName: any) {
-    const settings = this.settings.state;
-    const currentValue = settings[propName];
+    const config = this.tradeConfig.state;
+    const currentValue = config[propName];
     if (currentValue == value) {
       return;
     }
@@ -147,7 +147,7 @@ export class BondsSettings extends LitElement {
   }
 
   formSlippageTemplate() {
-    const { slippage } = this.settings.state;
+    const { slippage } = this.tradeConfig.state;
     const slippageOpts = new Set(SLIPPAGE_OPTS);
     const custom = slippageOpts.has(slippage) ? null : slippage;
 

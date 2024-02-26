@@ -9,9 +9,9 @@ import {
 } from '@galacticcouncil/sdk';
 
 export enum TradeTab {
-  TradeChart,
-  TradeForm,
-  TradeSettings,
+  Chart,
+  Form,
+  Settings,
   SelectAsset,
 }
 
@@ -52,13 +52,13 @@ export const DEFAULT_TRADE_STATE: TradeState = {
 export type TwapState = {
   inProgress: boolean;
   active: boolean;
-  twap: Twap;
+  order: TwapOrder;
 };
 
 export const DEFAULT_TWAP_STATE: TwapState = {
   inProgress: false,
   active: true,
-  twap: null,
+  order: null,
 };
 
 export type TransactionFee = {
@@ -67,7 +67,8 @@ export type TransactionFee = {
   amountNative: string;
 };
 
-export interface Twap extends Humanizer {
+export interface TwapOrder extends Humanizer {
+  amountInPerTrade: BigNumber;
   amountIn: BigNumber;
   amountOut: BigNumber;
   maxAmountIn: BigNumber;

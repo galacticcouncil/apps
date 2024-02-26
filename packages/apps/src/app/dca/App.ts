@@ -13,19 +13,12 @@ import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { tradeLayoutStyles } from 'styles/layout/trade.css';
-import {
-  exchange,
-  exchangeNative,
-  formatAmount,
-  humanizeAmount,
-  toBn,
-} from 'utils/amount';
+import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
 import '@galacticcouncil/ui';
 import {
   bnum,
-  buildRoute,
   Amount,
   Asset,
   BigNumber,
@@ -33,8 +26,8 @@ import {
   Transaction,
   ONE,
   SYSTEM_ASSET_ID,
+  Trade,
 } from '@galacticcouncil/sdk';
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import './Form';
 import './Settings';
@@ -46,7 +39,6 @@ import { AssetSelector } from 'element/selector/types';
 
 import { DcaApi } from './api';
 import { DcaTab, DcaState, DEFAULT_DCA_STATE, INTERVAL_DCA_MS } from './types';
-import { getPeriod } from './utils';
 
 @customElement('gc-dca')
 export class DcaApp extends PoolApp {
@@ -58,7 +50,7 @@ export class DcaApp extends PoolApp {
 
   @property({ type: Boolean }) chart: Boolean = false;
 
-  @state() tab: DcaTab = DcaTab.DcaForm;
+  @state() tab: DcaTab = DcaTab.Form;
   @state() dca: DcaState = { ...DEFAULT_DCA_STATE };
   @state() asset = {
     selector: null as AssetSelector,
@@ -189,6 +181,8 @@ export class DcaApp extends PoolApp {
       ...this.dca,
       amountIn: null,
       frequency: null,
+      trade: null,
+      order: null,
     };
   }
 
@@ -205,25 +199,18 @@ export class DcaApp extends PoolApp {
     this.updateTradeSize();
   }
 
-  async updateFrequency(frequency: number) {
-    this.updateTradeSize(frequency);
-    this.dca = {
-      ...this.dca,
-      frequency: frequency,
-    };
-  }
-
   private async updateTradeSize(frequency?: number) {
     const { api, router } = this.chain.state;
-    const { amountIn, assetIn, assetOut, interval, intervalMultiplier } =
+    const { amountIn, assetIn, assetOut, interval, intervalMultiplier, trade } =
       this.dca;
 
-    this.updateProgress(true);
-    const bestSell = await router.getBestSell(
-      assetIn.id,
-      assetOut.id,
-      amountIn,
-    );
+    let sellTrade: Trade;
+    if (frequency) {
+      sellTrade = trade;
+    } else {
+      this.updateProgress(true);
+      sellTrade = await router.getBestSell(assetIn.id, assetOut.id, amountIn);
+    }
 
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
     const period = intervalMultiplier * INTERVAL_DCA_MS[interval];
@@ -231,7 +218,7 @@ export class DcaApp extends PoolApp {
       exchangeNative(this.assets.nativePrice, assetIn, minBudgetNative),
       assetIn,
       assetOut,
-      bestSell,
+      sellTrade,
       period,
       this.blockTime,
       frequency,
@@ -241,6 +228,7 @@ export class DcaApp extends PoolApp {
       ...this.dca,
       inProgress: false,
       frequency: frequency,
+      trade: sellTrade,
       order: order,
     };
     this.validateFrequency();
@@ -331,16 +319,16 @@ export class DcaApp extends PoolApp {
   }
 
   notificationTemplate(dca: DcaState, tKey: string): TxMessage {
-    const { amountIn, assetIn, assetOut, frequency, order } = dca;
+    const { amountIn, assetIn, assetOut, order } = dca;
     const orderHuman = order.toHuman();
-    const freq = frequency || order.frequency;
+    const freq = order.frequency;
     const freqHuman = this._humanizer.humanize(Number(freq) * MINUTE_MS, {
       round: true,
       largest: 2,
     });
 
     const message = i18n.t(tKey, {
-      amountIn: orderHuman.amountIn,
+      amountIn: humanizeAmount(orderHuman.amountIn),
       amountInBudget: amountIn,
       assetIn: assetIn?.symbol,
       assetOut: assetOut?.symbol,
@@ -432,8 +420,8 @@ export class DcaApp extends PoolApp {
   }
 
   onResize(_evt: UIEvent) {
-    if (window.innerWidth > 1023 && DcaTab.TradeChart == this.tab) {
-      this.changeTab(DcaTab.DcaForm);
+    if (window.innerWidth > 1023 && DcaTab.Chart == this.tab) {
+      this.changeTab(DcaTab.Form);
     }
   }
 
@@ -477,7 +465,7 @@ export class DcaApp extends PoolApp {
   protected onFrequencyChange({ detail: { value } }: CustomEvent) {
     const freq = Number(value);
     if (freq > 0) {
-      this.updateFrequency(value);
+      this.updateTradeSize(value);
     } else {
       this.updateTradeSize();
     }
@@ -495,7 +483,7 @@ export class DcaApp extends PoolApp {
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == DcaTab.DcaForm,
+      active: this.tab == DcaTab.Form,
     };
     return html`
       <uigc-paper class=${classMap(classes)} id="default-tab">
@@ -528,12 +516,12 @@ export class DcaApp extends PoolApp {
             <uigc-icon-button
               basic
               class="chart-btn"
-              @click=${() => this.changeTab(DcaTab.TradeChart)}>
+              @click=${() => this.changeTab(DcaTab.Chart)}>
               <uigc-icon-chart></uigc-icon-chart>
             </uigc-icon-button>
             <uigc-icon-button
               basic
-              @click=${() => this.changeTab(DcaTab.DcaSettings)}>
+              @click=${() => this.changeTab(DcaTab.Settings)}>
               <uigc-icon-settings></uigc-icon-settings>
             </uigc-icon-button>
           </div>
@@ -546,15 +534,15 @@ export class DcaApp extends PoolApp {
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == DcaTab.DcaSettings,
+      active: this.tab == DcaTab.Settings,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-dca-settings @slippage-change=${() => {}}>
+        <gc-dca-settings @slippage-change=${() => this.updateTradeSize()}>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(DcaTab.DcaForm)}>
+              @click=${() => this.changeTab(DcaTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -573,7 +561,7 @@ export class DcaApp extends PoolApp {
     id == 'assetOut' && this.changeAssetOut(asset, e.detail);
     this.syncBalance();
     this.updateTradeSize();
-    this.changeTab(DcaTab.DcaForm);
+    this.changeTab(DcaTab.Form);
   }
 
   selectAssetTab() {
@@ -597,7 +585,7 @@ export class DcaApp extends PoolApp {
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
-              @click=${() => this.changeTab(DcaTab.DcaForm)}>
+              @click=${() => this.changeTab(DcaTab.Form)}>
               <uigc-icon-back></uigc-icon-back>
             </uigc-icon-button>
             <uigc-typography variant="section">
@@ -633,7 +621,7 @@ export class DcaApp extends PoolApp {
     const classes = {
       tab: true,
       chart: true,
-      active: this.tab == DcaTab.TradeChart,
+      active: this.tab == DcaTab.Chart,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
@@ -650,7 +638,7 @@ export class DcaApp extends PoolApp {
               <div class="header section" slot="header">
                 <uigc-icon-button
                   class="back"
-                  @click=${() => this.changeTab(DcaTab.DcaForm)}>
+                  @click=${() => this.changeTab(DcaTab.Form)}>
                   <uigc-icon-back></uigc-icon-back>
                 </uigc-icon-button>
                 <uigc-typography variant="section">

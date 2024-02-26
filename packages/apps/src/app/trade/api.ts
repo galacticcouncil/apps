@@ -11,9 +11,9 @@ import { TradeApi } from 'api/trade';
 import { TradeConfig } from 'db';
 import { formatAmount } from 'utils/amount';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
-import { HOUR_MS } from 'utils/time';
+import { HOUR_MS, SECOND_MS } from 'utils/time';
 
-import { Twap, TwapError } from './types';
+import { TwapOrder, TwapError } from './types';
 
 const TWAP_BLOCK_PERIOD = 6;
 const TWAP_MAX_PRICE_IMPACT = -5;
@@ -30,7 +30,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
    * @param trade - Swap execution info
    * @param txFee - Swap transaction fee
    * @param blockTime - Block time in ms
-   * @returns sell twap
+   * @returns twap sell order
    */
   async getSellTwap(
     amountInMin: BigNumber,
@@ -38,8 +38,8 @@ export class TwapApi extends TradeApi<TradeConfig> {
     assetOut: Asset,
     trade: Trade,
     txFee: BigNumber,
-    blockTime: number,
-  ): Promise<Twap> {
+    blockTime = 12 * SECOND_MS,
+  ): Promise<TwapOrder> {
     const { slippageTwap } = this._config.deref();
     const { amountIn } = trade;
     const priceDifference = this.getSellPriceDifference(trade);
@@ -92,9 +92,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
         },
         null,
       );
-
       console.log(tx.toHuman());
-
       return {
         hex: tx.toHex(),
         name: 'dcaSchedule',
@@ -111,6 +109,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     const { tradeFee, priceImpactPct } = bestSell;
     const fee = tradeFee.multipliedBy(tradesNumber);
     return {
+      amountInPerTrade: bestSell.amountIn,
       amountIn: amountIn,
       amountOut: amountOutTotal,
       minAmountOut: minAmountOutTotal,
@@ -123,6 +122,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
       toTx: orderTx,
       toHuman() {
         return {
+          amountInPerTrade: formatAmount(bestSell.amountIn, assetIn.decimals),
           amountIn: formatAmount(amountIn, assetIn.decimals),
           amountOut: formatAmount(amountOutTotal, assetOut.decimals),
           minAmountOut: formatAmount(minAmountOutTotal, assetOut.decimals),
@@ -133,7 +133,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
           error: tradeError,
         };
       },
-    } as Twap;
+    } as TwapOrder;
   }
 
   /**
@@ -145,7 +145,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
    * @param trade - Swap execution info
    * @param txFee - Swap transaction fee
    * @param blockTime - Block time in ms
-   * @returns buy twap
+   * @returns twap buy order
    */
   async getBuyTwap(
     amountInMin: BigNumber,
@@ -153,8 +153,8 @@ export class TwapApi extends TradeApi<TradeConfig> {
     assetOut: Asset,
     trade: Trade,
     txFee: BigNumber,
-    blockTime: number,
-  ): Promise<Twap> {
+    blockTime = 12 * SECOND_MS,
+  ): Promise<TwapOrder> {
     const { slippageTwap } = this._config.deref();
     const { amountOut } = trade;
 
@@ -212,9 +212,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
         },
         null,
       );
-
       console.log(tx.toHuman());
-
       return {
         hex: tx.toHex(),
         name: 'dcaSchedule',
@@ -231,6 +229,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     const { tradeFee, priceImpactPct } = bestBuy;
     const fee = tradeFee.multipliedBy(tradesNumber);
     return {
+      amountInPerTrade: bestBuy.amountIn,
       amountIn: amountInTotal,
       amountOut: amountOut,
       maxAmountIn: maxAmountInTotal,
@@ -243,6 +242,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
       toTx: orderTx,
       toHuman() {
         return {
+          amountInPerTrade: formatAmount(bestBuy.amountIn, assetIn.decimals),
           amountIn: formatAmount(amountInTotal, assetIn.decimals),
           amountOut: formatAmount(amountOut, assetOut.decimals),
           maxAmountIn: formatAmount(maxAmountInTotal, assetIn.decimals),
@@ -252,7 +252,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
           error: tradeError,
         };
       },
-    } as Twap;
+    } as TwapOrder;
   }
 
   /**

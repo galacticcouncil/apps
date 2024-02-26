@@ -110,6 +110,7 @@ export abstract class PoolApp extends BaseApp {
     };
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
+      console.log('Avg blockTime:', time);
     });
     this.onInit();
   }

@@ -15,7 +15,10 @@ const SLIPPAGE_OPTS = ['1', '1.5', '3', '5'];
 
 @customElement('gc-dca-settings')
 export class DcaSettings extends LitElement {
-  protected settings = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
+  protected dcaConfig = new DatabaseController<DcaConfig>(
+    this,
+    DcaConfigCursor,
+  );
 
   static styles = [
     baseStyles,
@@ -113,8 +116,8 @@ export class DcaSettings extends LitElement {
   ];
 
   private onChange(value: any, propName: any) {
-    const settings = this.settings.state;
-    const currentValue = settings[propName];
+    const config = this.dcaConfig.state;
+    const currentValue = config[propName];
     if (currentValue == value) {
       return;
     }
@@ -149,7 +152,7 @@ export class DcaSettings extends LitElement {
   }
 
   formSlippageTemplate() {
-    const { slippage, maxRetries } = this.settings.state;
+    const { slippage, maxRetries } = this.dcaConfig.state;
     const slippageOpts = new Set(SLIPPAGE_OPTS);
     const custom = slippageOpts.has(slippage) ? null : slippage;
 

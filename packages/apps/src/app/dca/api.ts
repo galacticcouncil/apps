@@ -10,9 +10,9 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { TradeApi } from 'api/trade';
 import { DcaConfig } from 'db';
 import { formatAmount } from 'utils/amount';
+import { MINUTE_MS, SECOND_MS } from 'utils/time';
 
-import { Dca } from './types';
-import { MINUTE_MS } from 'utils/time';
+import { DcaOrder } from './types';
 
 export class DcaApi extends TradeApi<DcaConfig> {
   /**
@@ -22,8 +22,10 @@ export class DcaApi extends TradeApi<DcaConfig> {
    * @param assetIn - Asset In
    * @param assetOut - Asset Out
    * @param trade - Swap execution info
+   * @param period - order execution period
    * @param blockTime - Block time in ms
-   * @returns
+   * @param frequency - interval between the trades in minutes specified by user
+   * @returns dca order
    */
   async getSellOrder(
     amountInMin: BigNumber,
@@ -31,9 +33,9 @@ export class DcaApi extends TradeApi<DcaConfig> {
     assetOut: Asset,
     trade: Trade,
     period: number,
-    blockTime: number,
+    blockTime = 12 * SECOND_MS,
     frequency?: number,
-  ): Promise<Dca> {
+  ): Promise<DcaOrder> {
     const { slippage } = this._config.deref();
     const { amountIn, swaps } = trade;
     const priceDifference = this.getSellPriceDifference(trade).toNumber();
@@ -44,14 +46,12 @@ export class DcaApi extends TradeApi<DcaConfig> {
     const tradeNo = frequency
       ? Math.round(periodMinutes / frequency)
       : optTradesNo;
-    console.log(frequency);
-    console.log(optTradesNo);
 
     const minFreq = Math.ceil(periodMinutes / minTradesNo);
     const optFreq = Math.round(periodMinutes / optTradesNo);
     const freq = Math.round(periodMinutes / tradeNo);
 
-    const amountInPerTrade = amountIn.dividedBy(tradeNo);
+    const amountInPerTrade = amountIn.dividedBy(tradeNo).decimalPlaces(0, 1);
 
     const orderTx = (address: string, maxRetries: number): Transaction => {
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
@@ -103,15 +103,15 @@ export class DcaApi extends TradeApi<DcaConfig> {
           tradesNo: tradeNo,
         };
       },
-    } as Dca;
+    } as DcaOrder;
   }
 
   /**
-   * Calculate optimal no of trades for TWAP execution. We aim to achieve
-   * price impact 0.1% per single execution.
+   * Calculate optimal no of trades for DCA execution. We aim to achieve
+   * price impact 0.1% per single execution and at least 2 trades.
    *
    * @param priceDifference - price difference of swap execution (single trade)
-   * @returns optimal no of trades for dca execution
+   * @returns optimal no of trades
    */
   private getOptimizedTradesNo(priceDifference: number): number {
     const optTradesNo = Math.round(priceDifference * 10) || 1;
@@ -119,18 +119,18 @@ export class DcaApi extends TradeApi<DcaConfig> {
   }
 
   /**
-   * Calculate optimal no of trades for TWAP execution. We aim to achieve
-   * price impact 0.1% per single execution.
+   * Calculate minimal no of trades for DCA execution. Minimal single trade
+   * execution amount must be at least 20% from minimum budget
    *
-   * @param amountIn - Total budget
+   * @param amountIn - User budget
    * @param amountInMin - Minimum budget to be able to schedule an order
-   * @returns optimal no of trades for dca execution
+   * @returns minimal no of trades
    */
   private getMinimumTradesNo(
     amountIn: BigNumber,
     amountInMin: BigNumber,
   ): number {
-    const minAmountIn = amountInMin.multipliedBy(0.2); // 20% from budget
+    const minAmountIn = amountInMin.multipliedBy(0.2);
     const res = amountIn.dividedBy(minAmountIn).toNumber();
     return Math.round(res);
   }
