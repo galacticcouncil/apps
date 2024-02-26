@@ -175,7 +175,6 @@ export class YieldForm extends BaseElement {
 
   private getDotYield(): string {
     if (this.order) {
-      console.log(this.rate);
       const dotYield = this.order.amountInYield.multipliedBy(this.rate);
       return formatAmount(dotYield, this.assetIn.decimals);
     }
