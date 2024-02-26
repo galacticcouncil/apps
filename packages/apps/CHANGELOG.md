@@ -1,5 +1,16 @@
 # @galacticcouncil/apps
 
+## 3.2.0
+
+### Minor Changes
+
+- Move order logic to api section & fix related issues
+
+### Patch Changes
+
+- Updated dependencies
+  - @galacticcouncil/ui@3.0.3
+
 ## 3.1.7
 
 ### Patch Changes

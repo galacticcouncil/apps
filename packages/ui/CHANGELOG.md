@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.0.3
+
+### Patch Changes
+
+- Disable button pointer events if disabled
+
 ## 3.0.2
 
 ### Patch Changes
