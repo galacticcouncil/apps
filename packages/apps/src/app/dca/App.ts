@@ -452,6 +452,11 @@ export class DcaApp extends PoolApp {
     this.changeTab(DcaTab.SelectAsset);
   }
 
+  protected onAssetSwitchClick() {
+    this.switch();
+    this.updateTradeSize();
+  }
+
   protected onIntervalChange({ detail }: CustomEvent) {
     this.dca.interval = detail.value;
     this.updateTradeSize();
@@ -503,6 +508,7 @@ export class DcaApp extends PoolApp {
           .error=${this.dca.error}
           @asset-input-change=${this.onAssetInputChange}
           @asset-selector-click=${this.onAssetSelectorClick}
+          @asset-switch-click=${this.onAssetSwitchClick}
           @selector-click=${this.onSelectorClick}
           @interval-change=${this.onIntervalChange}
           @interval-mul-change=${this.onIntervalMultiplierChange}

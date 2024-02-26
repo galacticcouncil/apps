@@ -1171,6 +1171,8 @@ export class TradeForm extends BaseElement {
       error: true,
       show: this.hasTradeRoute() && !this.twapEnabled && this.hasGeneralError(),
     };
+    const isDisabledBtn = this.readonly || this.isDisabled();
+
     return html`
       <slot name="header"></slot>
       <div class="transfer">
@@ -1200,11 +1202,11 @@ export class TradeForm extends BaseElement {
         <span>${this.error['pool'] || this.error['trade']}</span>
       </div>
       <uigc-button
-        ?disabled=${this.readonly || this.isDisabled()}
+        ?disabled=${isDisabledBtn}
         class="confirm"
         variant="primary"
         fullWidth
-        @click=${this.onCtaClick}>
+        @click=${isDisabledBtn ? undefined : this.onCtaClick}>
         <div class=${classMap(ctaClasses)}>
           <span class="swap">
             ${this.account.state

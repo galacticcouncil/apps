@@ -1,5 +1,24 @@
 # @galacticcouncil/apps
 
+## 3.1.7
+
+### Patch Changes
+
+- Fix substrate transaction fee calc
+
+## 3.1.6
+
+### Patch Changes
+
+- Fix twap tx fee display calc
+- DCA asset switcher
+
+## 3.1.5
+
+### Patch Changes
+
+- fixed chart query for 2pool
+
 ## 3.1.4
 
 ### Patch Changes
@@ -12,7 +31,7 @@
 
 ### Patch Changes
 
-- Dca math fixes
+- DCA math fixes
 - Updated dependencies
   - @galacticcouncil/ui@3.0.1
 

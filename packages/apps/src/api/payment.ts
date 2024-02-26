@@ -4,17 +4,16 @@ import {
   Asset,
   Amount,
   bnum,
-  SYSTEM_ASSET_ID,
   TradeRouter,
   ZERO,
   Transaction,
-  scale,
+  SYSTEM_ASSET_ID,
+  SYSTEM_ASSET_DECIMALS,
 } from '@galacticcouncil/sdk';
 import { EvmClient, evmChains } from '@galacticcouncil/xcm-sdk';
 
 import { Account } from 'db';
 import { convertToH160, isEvmAccount } from 'utils/evm';
-import { formatAmount } from 'utils/amount';
 
 const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';
 const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
@@ -72,26 +71,17 @@ export class PaymentApi {
         decimals: feeAsset.decimals,
       };
     }
-    console.log(feeAsset);
-    console.log(feeNative);
-
-    const rate = await this._router.getBestSpotPrice(
+    const spotPrice = await this._router.getBestSpotPrice(
       SYSTEM_ASSET_ID,
       feeAsset.id,
     );
 
-    const a = formatAmount(rate.amount, rate.decimals);
-    const result = bnum(feeNativeBN)
-      .times(a)
-      .shiftedBy(-1 * 12);
-
     return {
-      amount: scale(result, feeAsset.decimals).decimalPlaces(0, 1),
-      decimals: feeAsset.decimals,
+      ...spotPrice,
+      amount: bnum(feeNative)
+        .shiftedBy(-SYSTEM_ASSET_DECIMALS)
+        .times(spotPrice.amount),
     };
-
-    // rate.amount.multipliedBy(amount)
-    // return await this._router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAsset.id);
   }
 
   async getEvmPaymentFee(txHex: string, account: Account): Promise<Amount> {

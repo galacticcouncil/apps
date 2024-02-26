@@ -63,6 +63,34 @@ export class DcaForm extends BaseElement {
         box-sizing: border-box;
       }
 
+      .invest .divider {
+        background: var(--uigc-divider-background);
+        height: 1px;
+        width: 100%;
+        left: 0;
+        position: absolute;
+      }
+
+      .invest .switch {
+        align-items: center;
+        display: flex;
+        height: 43px;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      .switch-button {
+        position: absolute;
+        left: 14px;
+        border-radius: 50%;
+      }
+
+      @media (min-width: 768px) {
+        .switch-button {
+          left: 28px;
+        }
+      }
+
       .advanced {
         display: flex;
         flex-direction: column;
@@ -441,6 +469,18 @@ export class DcaForm extends BaseElement {
     `;
   }
 
+  formSwitch() {
+    return html`
+      <div class="switch">
+        <div class="divider"></div>
+        <uigc-asset-switch
+          class="switch-button"
+          ?disabled=${!this.loaded}
+          @asset-switch-click></uigc-asset-switch>
+      </div>
+    `;
+  }
+
   render() {
     const isValid =
       this.amountIn &&
@@ -457,7 +497,8 @@ export class DcaForm extends BaseElement {
     return html`
       <slot name="header"></slot>
       <div class="invest">
-        ${this.formAssetInTemplate()} ${this.formAssetOutTemplate()}
+        ${this.formAssetInTemplate()}
+        ${this.formSwitch()}${this.formAssetOutTemplate()}
         ${this.formIntervalTemplate()} ${this.formAdvancedSwitch()}
         <div class=${classMap(advancedClasses)}>
           ${this.formFrequencyTemplate()}
