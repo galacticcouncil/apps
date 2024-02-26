@@ -134,10 +134,13 @@ export class DcaApp extends PoolApp {
   }
 
   private switch() {
+    const { assetIn, assetOut } = this.dca;
+    const balanceIn = this.assets.balance.get(assetOut.id);
     this.dca = {
       ...this.dca,
-      assetIn: this.dca.assetOut,
-      assetOut: this.dca.assetIn,
+      assetIn: assetOut,
+      assetOut: assetIn,
+      balanceIn: balanceIn,
     };
     this.recalculateSpotPrice();
   }
@@ -200,6 +203,10 @@ export class DcaApp extends PoolApp {
   }
 
   private async updateTradeSize(frequency?: number) {
+    if (this.isSwapEmpty()) {
+      return;
+    }
+
     const { api, router } = this.chain.state;
     const { amountIn, assetIn, assetOut, interval, intervalMultiplier, trade } =
       this.dca;
@@ -244,8 +251,7 @@ export class DcaApp extends PoolApp {
     const balanceIn = this.assets.balance.get(this.dca.assetIn?.id);
     this.dca = {
       ...this.dca,
-      balanceIn:
-        balanceIn && formatAmount(balanceIn.amount, balanceIn.decimals),
+      balanceIn,
     };
   }
 

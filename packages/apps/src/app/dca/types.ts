@@ -1,4 +1,5 @@
 import {
+  Amount,
   Asset,
   BigNumber,
   Humanizer,
@@ -19,7 +20,7 @@ export type DcaState = {
   assetIn: Asset;
   assetOut: Asset;
   amountIn: string;
-  balanceIn: string;
+  balanceIn: Amount;
   interval: IntervalDca;
   intervalMultiplier: number;
   frequency: number;

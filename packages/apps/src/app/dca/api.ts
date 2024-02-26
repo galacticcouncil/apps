@@ -33,12 +33,12 @@ export class DcaApi extends TradeApi<DcaConfig> {
     assetOut: Asset,
     trade: Trade,
     period: number,
-    blockTime = 12 * SECOND_MS,
+    blockTime: number,
     frequency?: number,
   ): Promise<DcaOrder> {
     const { slippage } = this._config.deref();
     const { amountIn, swaps } = trade;
-    const priceDifference = this.getSellPriceDifference(trade).toNumber();
+    const priceDifference = Math.abs(trade.priceImpactPct);
 
     const periodMinutes = period / MINUTE_MS;
     const minTradesNo = this.getMinimumTradesNo(amountIn, amountInMin);

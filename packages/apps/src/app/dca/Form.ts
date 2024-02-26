@@ -16,12 +16,12 @@ import {
 } from 'db';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
-import { humanizeAmount } from 'utils/amount';
+import { formatAmount, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
 import { DcaOrder, INTERVAL_DCA, IntervalDca } from './types';
 
-import { Asset } from '@galacticcouncil/sdk';
+import { Amount, Asset } from '@galacticcouncil/sdk';
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
@@ -38,7 +38,7 @@ export class DcaForm extends BaseElement {
   @property({ type: Number }) intervalMultiplier: number = 1;
   @property({ type: Number }) frequency: number = null;
   @property({ type: String }) amountIn = null;
-  @property({ type: String }) balanceIn = null;
+  @property({ type: Object }) balanceIn: Amount = null;
   @property({ attribute: false }) order: DcaOrder = null;
   @property({ attribute: false }) error = {};
 
@@ -330,11 +330,11 @@ export class DcaForm extends BaseElement {
     return this.formAssetLoadingTemplate(slot);
   }
 
-  formAssetBalanceTemplate(balance: string) {
+  formAssetBalanceTemplate(balance: Amount) {
     return html`
       <uigc-asset-balance
         slot="balance"
-        .balance=${balance}
+        .balance=${balance && formatAmount(balance.amount, balance.decimals)}
         .visible=${false}
         .formatter=${humanizeAmount}></uigc-asset-balance>
     `;
@@ -475,8 +475,7 @@ export class DcaForm extends BaseElement {
         <div class="divider"></div>
         <uigc-asset-switch
           class="switch-button"
-          ?disabled=${!this.loaded}
-          @asset-switch-click></uigc-asset-switch>
+          ?disabled=${!this.loaded}></uigc-asset-switch>
       </div>
     `;
   }
