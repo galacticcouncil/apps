@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.1.7
+
+### Patch Changes
+
+- Fix substrate transaction fee calc
+
 ## 3.1.6
 
 ### Patch Changes
