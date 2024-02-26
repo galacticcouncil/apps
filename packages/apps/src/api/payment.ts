@@ -8,6 +8,7 @@ import {
   TradeRouter,
   ZERO,
   Transaction,
+  SYSTEM_ASSET_DECIMALS,
 } from '@galacticcouncil/sdk';
 import { EvmClient, evmChains } from '@galacticcouncil/xcm-sdk';
 
@@ -70,7 +71,17 @@ export class PaymentApi {
         decimals: feeAsset.decimals,
       };
     }
-    return await this._router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAsset.id);
+    const spotPrice = await this._router.getBestSpotPrice(
+      SYSTEM_ASSET_ID,
+      feeAsset.id,
+    );
+
+    return {
+      ...spotPrice,
+      amount: bnum(feeNative)
+        .shiftedBy(-SYSTEM_ASSET_DECIMALS)
+        .times(spotPrice.amount),
+    };
   }
 
   async getEvmPaymentFee(txHex: string, account: Account): Promise<Amount> {
