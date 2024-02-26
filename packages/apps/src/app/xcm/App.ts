@@ -52,7 +52,7 @@ import {
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
 } from './types';
-import { exchange } from 'utils/amount';
+import { exchange, exchangeNative } from 'utils/amount';
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
@@ -496,13 +496,13 @@ export class XcmApp extends PoolApp {
       }
     }
 
-    const fee = exchange(
-      this.assets.usdPrice,
+    const fee = exchangeNative(
+      this.assets.nativePrice,
       feeAsset,
       srcFee.amount.toString(),
     );
     return AssetAmount.fromAsset(feeAssetData.asset, {
-      amount: toBigInt(fee.toString(), feeAsset.decimals),
+      amount: toBigInt(fee.toString(), 0),
       decimals: feeAsset.decimals,
     });
   }
