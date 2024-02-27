@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.2.2
+
+### Patch Changes
+
+- Default xcm address in substrate format (42)
+
 ## 3.2.1
 
 ### Patch Changes
