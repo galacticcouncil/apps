@@ -1,4 +1,3 @@
-import { HYDRADX_SS58_PREFIX } from '@galacticcouncil/sdk';
 import { isH160Address } from '@galacticcouncil/xcm-sdk';
 import { u8aToHex, hexToU8a, isHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
@@ -7,10 +6,7 @@ import { convertFromH160 } from './evm';
 
 export const EVM_PROVIDERS = ['metamask'];
 
-export function convertAddressSS58(
-  address: string,
-  ss58prefix = HYDRADX_SS58_PREFIX,
-): string {
+export function convertAddressSS58(address: string, ss58prefix = 42): string {
   try {
     return encodeAddress(decodeAddress(address), ss58prefix);
   } catch {
