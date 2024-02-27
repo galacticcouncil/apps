@@ -1103,7 +1103,7 @@ export class TradeApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-trade-settings @slippage-change=${() => this.recalculateTrade()}>
+        <gc-trade-settings @settings-change=${() => this.recalculateTrade()}>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"

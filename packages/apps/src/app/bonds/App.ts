@@ -233,7 +233,7 @@ export class BondsApp extends TradeApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-bonds-settings @slippage-change=${() => this.recalculateTrade()}>
+        <gc-bonds-settings @settings-change=${() => this.recalculateTrade()}>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"

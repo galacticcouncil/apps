@@ -137,7 +137,7 @@ export class DcaSettings extends LitElement {
       bubbles: true,
       composed: true,
     };
-    this.dispatchEvent(new CustomEvent('slippage-change', options));
+    this.dispatchEvent(new CustomEvent('settings-change', options));
   }
 
   onMaxRetriesChange({ detail: { value } }) {
@@ -148,7 +148,7 @@ export class DcaSettings extends LitElement {
       bubbles: true,
       composed: true,
     };
-    this.dispatchEvent(new CustomEvent('slippage-change', options));
+    this.dispatchEvent(new CustomEvent('settings-change', options));
   }
 
   formSlippageTemplate() {

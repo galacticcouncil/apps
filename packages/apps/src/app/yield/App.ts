@@ -519,7 +519,7 @@ export class YieldApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-yield-settings @slippage-change=${() => this.updateTradeSize()}>
+        <gc-yield-settings @settings-change=${() => this.updateTradeSize()}>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"

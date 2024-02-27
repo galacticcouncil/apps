@@ -129,7 +129,7 @@ export class YieldSettings extends LitElement {
       bubbles: true,
       composed: true,
     };
-    this.dispatchEvent(new CustomEvent('slippage-change', options));
+    this.dispatchEvent(new CustomEvent('settings-change', options));
   }
 
   formSlippageTemplate() {
