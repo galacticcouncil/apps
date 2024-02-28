@@ -13,14 +13,21 @@ import {
   moonbeam,
   phala,
   polkadot,
-  statemine,
   interlay,
   zeitgeist,
   assetHub,
   assetHubKusama,
   subsocial,
 } from './chains';
-import { astar, kusama, nodle, robonomics, tinkernet, unique } from './assets';
+import {
+  astar,
+  crust,
+  kusama,
+  nodle,
+  robonomics,
+  tinkernet,
+  unique,
+} from './assets';
 
 @customElement('uigc-logo-chain')
 export class ChainLogo extends BaseLogo {
@@ -38,6 +45,7 @@ export class ChainLogo extends BaseLogo {
           ['basilisk', () => basilisk],
           ['bifrost', () => bifrost],
           ['centrifuge', () => centrifuge],
+          ['crust', () => crust],
           ['hydradx', () => hydradx],
           ['interlay', () => interlay],
           ['karura', () => karura],

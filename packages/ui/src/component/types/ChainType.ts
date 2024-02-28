@@ -6,6 +6,7 @@ export const ChainTypes = {
   basilisk: 'Basilisk',
   bifrost: 'Bifrost',
   centrifuge: 'Centrifuge',
+  crust: 'Crust',
   hydradx: 'HydraDX',
   interlay: 'Interlay',
   karura: 'Karura',
