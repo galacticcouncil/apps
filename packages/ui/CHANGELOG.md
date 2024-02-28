@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.0.4
+
+### Patch Changes
+
+- Crust icons support
+
 ## 3.0.3
 
 ### Patch Changes

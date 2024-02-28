@@ -8,7 +8,6 @@
   "updateInternalDependencies": "patch",
   "ignore": ["@galacticcouncil/apps-web", "@galacticcouncil/api-viewer"],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
-    "onlyUpdatePeerDependentsWhenOutOfRange": true,
-    "updateInternalDependents": "always"
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
   }
 }
