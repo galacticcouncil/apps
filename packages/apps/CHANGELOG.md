@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.2.4
+
+### Patch Changes
+
+- Fix swap buy
+
 ## 3.2.3
 
 ### Patch Changes
