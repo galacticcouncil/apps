@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.2.3
+
+### Patch Changes
+
+- Fix DCA / Yield DCA extrinsic period calc
+
 ## 3.2.2
 
 ### Patch Changes
