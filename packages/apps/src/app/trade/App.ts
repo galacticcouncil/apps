@@ -583,7 +583,8 @@ export class TradeApp extends PoolApp {
       return;
     }
 
-    const swaps = type == TradeType.Buy ? trade.swaps.reverse() : trade.swaps;
+    const swaps =
+      type == TradeType.Buy ? trade.swaps.slice().reverse() : trade.swaps;
     const swapWithError: Swap = swaps.find(
       (swap: Swap) => swap.errors.length > 0,
     );
