@@ -247,6 +247,7 @@ export class AssetInput extends UIGCElement {
           <span class="asset-field">
             <input
               ?disabled=${!this.asset || this.disabled}
+              autocomplete="off"
               type="text"
               id="asset"
               class="asset-input"
