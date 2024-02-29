@@ -71,10 +71,11 @@ export class DcaYieldApi extends TradeApi<DcaConfig> {
       maxRetries: number,
       trade: Trade,
     ): Transaction => {
+      const f = period / noOfTrades;
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
         {
           owner: address,
-          period: this.toBlockPeriod(period, blockTime),
+          period: this.toBlockPeriod(f, blockTime),
           maxRetries,
           totalAmount: amountInYieldBN.toFixed(),
           slippage: Number(slippage) * 10000,

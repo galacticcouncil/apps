@@ -10,7 +10,7 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { TradeApi } from 'api/trade';
 import { DcaConfig } from 'db';
 import { formatAmount } from 'utils/amount';
-import { MINUTE_MS, SECOND_MS } from 'utils/time';
+import { MINUTE_MS } from 'utils/time';
 
 import { DcaOrder } from './types';
 
@@ -54,10 +54,11 @@ export class DcaApi extends TradeApi<DcaConfig> {
     const amountInPerTrade = amountIn.dividedBy(tradeNo).decimalPlaces(0, 1);
 
     const orderTx = (address: string, maxRetries: number): Transaction => {
+      const f = freq * MINUTE_MS;
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
         {
           owner: address,
-          period: this.toBlockPeriod(period, blockTime),
+          period: this.toBlockPeriod(f, blockTime),
           maxRetries,
           totalAmount: amountIn.toFixed(),
           slippage: Number(slippage) * 10000,
@@ -73,9 +74,6 @@ export class DcaApi extends TradeApi<DcaConfig> {
         },
         null,
       );
-
-      console.log(tx.toHuman());
-
       return {
         hex: tx.toHex(),
         name: 'dcaSchedule',
