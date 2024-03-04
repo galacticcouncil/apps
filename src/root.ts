@@ -7,6 +7,7 @@ import './component/transaction';
 @customElement('gc-root')
 export class Root extends LitElement {
   render() {
+    console.log('test');
     return html`
       <gc-notification-center>
         <gc-transaction-center>
