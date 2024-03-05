@@ -52,7 +52,7 @@ import {
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
 } from './types';
-import { exchange, exchangeNative } from 'utils/amount';
+import { exchangeNative } from 'utils/amount';
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
@@ -307,15 +307,12 @@ export class XcmApp extends PoolApp {
   notificationTemplate(transfer: TransferState, tKey: string): TxMessage {
     const { amount, asset, srcChain, destChain } = transfer;
 
-    const message = i18n
-      .t(tKey, {
-        amount: amount,
-        asset: asset.originSymbol,
-        srcChain: srcChain.name,
-        destChain: destChain.name,
-      })
-      .replaceAll('<1>', '<span class="value highlight">')
-      .replaceAll('</1>', '</span>');
+    const message = i18n.t(tKey, {
+      amount: amount,
+      asset: asset.originSymbol,
+      srcChain: srcChain.name,
+      destChain: destChain.name,
+    });
 
     return {
       message: unsafeHTML(message),
