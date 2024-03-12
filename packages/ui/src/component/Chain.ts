@@ -6,13 +6,10 @@ import { UIGCElement } from './base/UIGCElement';
 import './logo/ChainLogo';
 import './logo/PlaceholderLogo';
 
-import { ChainType, ChainTypes } from './types/ChainType';
-
-const KNOWN_CHAINS = ChainType.getMap(ChainTypes);
-
 @customElement('uigc-chain')
 export class Chain extends UIGCElement {
-  @property({ type: String }) chain = null;
+  @property({ type: String }) name = null;
+  @property({ type: String }) key = null;
 
   static styles = [
     UIGCElement.styles,
@@ -42,12 +39,11 @@ export class Chain extends UIGCElement {
   ];
 
   render() {
-    const chainTitle = KNOWN_CHAINS.get(this.chain) || this.chain;
     return html`
-      <uigc-logo-chain fit chain=${this.chain}>
+      <uigc-logo-chain fit chain=${this.key}>
         <uigc-logo-placeholder fit slot="placeholder"></uigc-logo-placeholder>
       </uigc-logo-chain>
-      <span class="title">${chainTitle}</span>
+      <span class="title">${this.name}</span>
       <slot></slot>
     `;
   }

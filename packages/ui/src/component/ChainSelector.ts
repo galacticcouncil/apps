@@ -10,6 +10,7 @@ import './icons/Dropdown';
 export class ChainSelector extends UIGCElement {
   @property({ type: String }) title = null;
   @property({ type: String }) chain = null;
+  @property({ type: String }) chainKey = null;
 
   static styles = [
     UIGCElement.styles,
@@ -78,7 +79,7 @@ export class ChainSelector extends UIGCElement {
     const options = {
       bubbles: true,
       composed: true,
-      detail: { chain: this.chain },
+      detail: { chain: this.chainKey },
     };
     this.dispatchEvent(new CustomEvent('chain-selector-click', options));
   }
@@ -92,7 +93,9 @@ export class ChainSelector extends UIGCElement {
             this.chain,
             () =>
               html`
-                <uigc-chain .chain=${this.chain}></uigc-chain>
+                <uigc-chain
+                  .name=${this.chain}
+                  .key=${this.chainKey}></uigc-chain>
               `,
             () => html`
               <span class="select">
