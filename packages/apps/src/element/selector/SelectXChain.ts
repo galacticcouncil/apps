@@ -7,11 +7,13 @@ import { map } from 'lit/directives/map.js';
 import { baseStyles } from 'styles/base.css';
 import { selectorStyles } from 'styles/selector.css';
 
+import { AnyChain } from '@moonbeam-network/xcm-types';
+
 @customElement('gc-select-xchain')
 export class SelectXChain extends LitElement {
-  @property({ attribute: false }) chains: string[] = [];
-  @property({ type: String }) srcChain = null;
-  @property({ type: String }) destChain = null;
+  @property({ attribute: false }) chains: AnyChain[] = [];
+  @property({ attribute: false }) srcChain = null;
+  @property({ attribute: false }) destChain = null;
   @property({ type: String }) selector = null;
   @property({ type: String }) query = '';
 
@@ -23,7 +25,7 @@ export class SelectXChain extends LitElement {
 
   filterChains(query: string) {
     return this.chains.filter((c) =>
-      c.toLowerCase().includes(query.toLowerCase()),
+      c.name.toLowerCase().includes(query.toLowerCase()),
     );
   }
 
@@ -69,14 +71,15 @@ export class SelectXChain extends LitElement {
         () => html`
           <uigc-list>
             <span slot="header">Supported chains</span>
-            ${map(this.filterChains(this.query), (chain: string) => {
+            ${map(this.filterChains(this.query), (chain: AnyChain) => {
+              const { key, name } = chain;
               return html`
                 <uigc-list-item
                   .item=${chain}
-                  slot=${this.getSlot(chain)}
-                  ?selected=${this.isSelected(chain)}
-                  ?disabled=${this.isDisabled(chain)}>
-                  <uigc-chain .chain=${chain}></uigc-chain>
+                  slot=${this.getSlot(key)}
+                  ?selected=${this.isSelected(key)}
+                  ?disabled=${this.isDisabled(key)}>
+                  <uigc-chain .name=${name} .key=${key}></uigc-chain>
                 </uigc-list-item>
               `;
             })}

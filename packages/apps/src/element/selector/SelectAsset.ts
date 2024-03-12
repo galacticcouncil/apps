@@ -6,6 +6,7 @@ import { map } from 'lit/directives/map.js';
 
 import { Amount, Asset } from '@galacticcouncil/sdk';
 
+import { Ecosystem } from 'db';
 import { baseStyles } from 'styles/base.css';
 import { selectorStyles } from 'styles/selector.css';
 import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
@@ -23,6 +24,7 @@ export class SelectAsset extends LitElement {
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
+  @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: Boolean }) switchAllowed = true;
@@ -182,7 +184,8 @@ export class SelectAsset extends LitElement {
                     slot="asset"
                     .showDesc=${true}
                     .asset=${asset}
-                    .assets=${this.getAssets()}></gc-asset-identicon>
+                    .assets=${this.getAssets()}
+                    .ecosystem=${this.ecosystem}></gc-asset-identicon>
                 </uigc-asset-list-item>
               `;
             })}
