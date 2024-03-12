@@ -22,7 +22,7 @@ import {
 import {
   astar,
   crust,
-  integretee,
+  integritee,
   kusama,
   nodle,
   robonomics,
@@ -47,7 +47,7 @@ export class ChainLogo extends BaseLogo {
           ['centrifuge', () => centrifuge],
           ['crust', () => crust],
           ['hydradx', () => hydradx],
-          ['integritee', () => integretee],
+          ['integritee', () => integritee],
           ['interlay', () => interlay],
           ['karura', () => karura],
           ['kusama', () => kusama],
