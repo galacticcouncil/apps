@@ -6,6 +6,7 @@ import {
   Account,
   AccountCursor,
   DatabaseController,
+  Ecosystem,
 } from '@galacticcouncil/apps';
 
 import { ThemeController } from 'theme.ctrl';
@@ -35,6 +36,7 @@ export class XcmScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         apiAddress="wss://rpc.basilisk.cloud"
+        ecosystem=${Ecosystem.Kusama}
         stableCoinAssetId="14"></gc-xcm>
     `;
   }

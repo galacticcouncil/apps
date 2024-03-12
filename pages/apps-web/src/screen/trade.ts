@@ -28,10 +28,9 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
   bsxTemplate() {
     return html`
       <gc-trade
-        chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://chopsticks.rpc.hydration.cloud"
+        apiAddress="wss://rpc.basilisk.cloud"
         ecosystem=${Ecosystem.Kusama}
         stableCoinAssetId="14"
         accountAddress=${this.account.state?.address}
