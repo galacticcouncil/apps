@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 
 import * as i18n from 'i18next';
 
@@ -8,6 +9,7 @@ import {
   TradeConfig,
   TradeConfigCursor,
   DEFAULT_TRADE_CONFIG,
+  Ecosystem,
 } from 'db';
 import { baseStyles } from 'styles/base.css';
 
@@ -20,6 +22,8 @@ export class TradeSettings extends LitElement {
     this,
     TradeConfigCursor,
   );
+
+  @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
   static styles = [
     baseStyles,
@@ -240,8 +244,13 @@ export class TradeSettings extends LitElement {
       <div class="content">
         <div class="section">${i18n.t('settings.section.swap')}</div>
         ${this.formTradeTemplate()}
-        <div class="section">${i18n.t('settings.section.twap')}</div>
-        ${this.formTwapTemplate()}
+        ${when(
+          this.ecosystem === Ecosystem.Polkadot,
+          () => html`
+            <div class="section">${i18n.t('settings.section.twap')}</div>
+            ${this.formTwapTemplate()}
+          `,
+        )}
       </div>
     `;
   }

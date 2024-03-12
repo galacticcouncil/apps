@@ -11,6 +11,7 @@ import {
   Account,
   AccountCursor,
   DatabaseController,
+  Ecosystem,
   TradeConfig,
   TradeConfigCursor,
 } from 'db';
@@ -42,6 +43,7 @@ export class TradeForm extends BaseElement {
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
+  @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ type: Boolean }) inProgress = false;
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) loaded = false;
@@ -802,7 +804,8 @@ export class TradeForm extends BaseElement {
         <gc-asset-identicon
           slot="asset"
           .asset=${asset}
-          .assets=${this.assets}></gc-asset-identicon>
+          .assets=${this.assets}
+          .ecosystem=${this.ecosystem}></gc-asset-identicon>
       `;
     }
     return this.formAssetLoadingTemplate();

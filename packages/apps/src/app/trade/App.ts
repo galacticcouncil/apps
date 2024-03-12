@@ -1047,6 +1047,7 @@ export class TradeApp extends PoolApp {
           .assets=${this.assets.registry}
           .usdPrice=${this.assets.usdPrice}
           .inProgress=${this.trade.inProgress}
+          .ecosystem=${this.ecosystem}
           .disabled=${this.isFormDisabled()}
           .loaded=${this.isFormLoaded()}
           .readonly=${this.isFormReadOnly()}
@@ -1104,7 +1105,9 @@ export class TradeApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-trade-settings @settings-change=${() => this.recalculateTrade()}>
+        <gc-trade-settings
+          .ecosystem=${this.ecosystem}
+          @settings-change=${() => this.recalculateTrade()}>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
@@ -1143,6 +1146,7 @@ export class TradeApp extends PoolApp {
           .assets=${this.assets.tradeable}
           .pairs=${this.assets.pairs}
           .balances=${this.assets.balance}
+          .ecosystem=${this.ecosystem}
           .usdPrice=${this.assets.usdPrice}
           .assetIn=${this.trade.assetIn}
           .assetOut=${this.trade.assetOut}
@@ -1204,7 +1208,7 @@ export class TradeApp extends PoolApp {
 
   ordersSummary() {
     const account = this.account.state;
-    if (this.twap) {
+    if (this.twapOn) {
       return html`
         <gc-trade-orders
           class="orders"
