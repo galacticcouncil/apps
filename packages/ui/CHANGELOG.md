@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.0
+
+### Minor Changes
+
+- Integritee icon, upgrade chain selector
+
 ## 3.0.5
 
 ### Patch Changes

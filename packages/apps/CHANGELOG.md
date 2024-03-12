@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.0
+
+### Minor Changes
+
+- Basilisk xcm support
+
 ## 3.2.4
 
 ### Patch Changes
