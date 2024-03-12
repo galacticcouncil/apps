@@ -249,7 +249,8 @@ export class XcmForm extends LitElement {
       <div class="chain">
         <uigc-chain-selector
           title=${i18n.t('form.chainSrc.label')}
-          .chain=${this.srcChain?.key}></uigc-chain-selector>
+          .chain=${this.srcChain?.name}
+          .chainKey=${this.srcChain?.key}></uigc-chain-selector>
         <div class="switch__mobile">
           <div class="divider"></div>
           <uigc-asset-switch class="switch"></uigc-asset-switch>
@@ -257,7 +258,8 @@ export class XcmForm extends LitElement {
         <uigc-asset-switch basic class="switch__desktop"></uigc-asset-switch>
         <uigc-chain-selector
           title=${i18n.t('form.chainDst.label')}
-          .chain=${this.destChain?.key}></uigc-chain-selector>
+          .chain=${this.destChain?.name}
+          .chainKey=${this.destChain?.key}></uigc-chain-selector>
       </div>
     `;
   }

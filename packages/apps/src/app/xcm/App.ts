@@ -17,6 +17,7 @@ import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
+import { exchangeNative } from 'utils/amount';
 import { calculateEffectiveBalance } from 'utils/balance';
 import { convertFromH160, convertToH160, isEvmAccount } from 'utils/evm';
 
@@ -52,7 +53,6 @@ import {
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
 } from './types';
-import { exchangeNative } from 'utils/amount';
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
@@ -731,9 +731,10 @@ export class XcmApp extends PoolApp {
   }
 
   private initXChainState() {
+    const chains = Array.from(chainsMap.values());
     this.xchain = {
       ...this.xchain,
-      list: Array.from(chainsMap.values()),
+      list: chains.filter((c) => c.ecosystem.toString() === this.ecosystem),
     };
   }
 
@@ -780,8 +781,8 @@ export class XcmApp extends PoolApp {
 
   protected onChainClick({ detail: { item } }) {
     this.isDestChainSelection()
-      ? this.changeDestinationChain(item)
-      : this.changeSourceChain(item);
+      ? this.changeDestinationChain(item.key)
+      : this.changeSourceChain(item.key);
     this.changeTab(TransferTab.Form);
   }
 
@@ -795,8 +796,8 @@ export class XcmApp extends PoolApp {
       <uigc-paper class=${classMap(classes)}>
         <gc-select-xchain
           .chains=${isDest
-            ? this.xchain.dest.map((c) => c.key)
-            : this.xchain.list.map((c) => c.key)}
+            ? this.xchain.dest.map((c) => c)
+            : this.xchain.list.map((c) => c)}
           .srcChain=${this.transfer.srcChain}
           .destChain=${this.transfer.destChain}
           .selector=${this.xchain.selector}
