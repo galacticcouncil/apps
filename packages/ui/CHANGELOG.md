@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.2
+
+### Patch Changes
+
+- Chart theme states
+
 ## 3.1.1
 
 ### Patch Changes
