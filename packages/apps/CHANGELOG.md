@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.3
+
+### Patch Changes
+
+- Fix: use app font for chart state / tooltip
+
 ## 3.3.2
 
 ### Patch Changes
