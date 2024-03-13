@@ -99,7 +99,7 @@ export const chartStyles = css`
     font-weight: 600;
     font-size: 18px;
     line-height: 100%;
-    color: #85d1ff;
+    color: var(--uigc-chart-color);
   }
 
   .tooltip .usd {

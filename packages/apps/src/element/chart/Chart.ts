@@ -12,6 +12,7 @@ import {
 import { BaseElement } from 'element/BaseElement';
 import { TradeData, TradeDataCursor } from 'db';
 import { baseStyles } from 'styles/base.css';
+import { ThemeController } from 'theme.ctrl';
 import { humanizeAmount } from 'utils/amount';
 
 import { chartStyles } from './chart.css';
@@ -41,6 +42,7 @@ const CHART_PADDING_RATIO = 0.8;
 const CHART_MIN_DATAPOINTS = 6;
 
 export abstract class Chart extends BaseElement {
+  protected theme = new ThemeController(this);
   protected chart: IChartApi = null;
   protected chartContainer: HTMLElement = null;
 

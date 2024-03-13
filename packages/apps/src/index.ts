@@ -4,11 +4,14 @@ export { YieldApp } from './app/yield';
 export { BondsApp } from './app/bonds';
 export { XcmApp } from './app/xcm';
 
-/* Signer */
-export * from './signer';
-
 /* Chain */
-export { useApi } from './chain';
+export * from './chain';
 
 /* Database */
 export * from './db';
+
+/* Signer */
+export * from './signer';
+
+/* Theme */
+export * from './theme.ctrl';

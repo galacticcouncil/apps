@@ -103,9 +103,9 @@ export const tradeLayoutStyles = css`
       box-shadow: none;
       height: 456px !important;
       padding: 0px 30px;
-      background: rgba(6, 9, 23, 0.4);
+      background: var(--uigc-chart-background);
       border-radius: 8px;
-      border: 1px solid rgba(152, 176, 214, 0.27);
+      border: var(--uigc-chart-border);
     }
 
     :host([chart]) uigc-paper.chart:before {

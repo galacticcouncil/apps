@@ -114,11 +114,16 @@ export class TradeChart extends Chart {
   }
 
   initSeries(): void {
+    const theme = this.theme.state;
     this.chartPriceSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
-      topLineColor: '#85D1FF',
-      topFillColor1: 'rgba(79, 223, 255, 0.31)',
-      topFillColor2: 'rgba(79, 234, 255, 0',
+      topLineColor: theme === 'hdx' ? '#85D1FF' : '#4fffb0',
+      topFillColor1:
+        theme === 'hdx'
+          ? 'rgba(79, 223, 255, 0.31)'
+          : 'rgba(79, 255, 176, 0.31)',
+      topFillColor2:
+        theme === 'hdx' ? 'rgba(79, 223, 255, 0)' : 'rgba(79, 255, 176, 0)',
       bottomLineColor: 'transparent',
       lastValueVisible: false,
       priceLineVisible: false,

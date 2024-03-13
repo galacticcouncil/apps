@@ -33,8 +33,8 @@ export class RangeButton extends LitElement {
       }
 
       :host([selected]) .toggle-button-root {
-        background: rgba(84, 99, 128, 0.35);
-        color: #85d1ff;
+        background: var(--uigc-chart-toggle__selected);
+        color: var(--uigc-chart-color);
       }
     `,
   ];
