@@ -175,6 +175,11 @@ export const bsxThemeProperties = css`
     --uigc-app-font-color__secondary: var(--hex-neutral-gray-300);
     --uigc-app-font-color__alternative: var(--hex-neutral-gray-400);
 
+    --uigc-chart-background: var(--hex-background-gray-1000);
+    --uigc-chart-color: var(--hex-primary-400);
+    --uigc-chart-border: 1px solid var(--hex-background-gray-1000);
+    --uigc-chart-toggle__selected: trannsparent;
+
     --uigc-field-border-radius: 12px;
     --uigc-field-border: none;
     --uigc-field-border-bottom__hover: none;
@@ -457,6 +462,11 @@ export const hdxThemeProperties = css`
     --uigc-app-font-color__primary: var(--hex-bright-blue-300);
     --uigc-app-font-color__secondary: var(--hex-dark-blue-300);
     --uigc-app-font-color__alternative: var(--hex-basic-400);
+
+    --uigc-chart-background: rgba(6, 9, 23, 0.4);
+    --uigc-chart-border: 1px solid rgba(152, 176, 214, 0.27);
+    --uigc-chart-color: var(--hex-bright-blue-300);
+    --uigc-chart-toggle__selected: rgba(84, 99, 128, 0.35);
 
     --uigc-field-border-radius: 2px;
     --uigc-field-border-bottom: 1px solid var(--hex-dark-blue-400);
