@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.1
+
+### Patch Changes
+
+- Basilisk chart theme config
+
 ## 3.1.0
 
 ### Minor Changes
