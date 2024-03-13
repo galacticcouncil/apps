@@ -179,6 +179,8 @@ export const bsxThemeProperties = css`
     --uigc-chart-color: var(--hex-primary-400);
     --uigc-chart-border: 1px solid var(--hex-background-gray-1000);
     --uigc-chart-toggle__selected: trannsparent;
+    --uigc-chart-state__secondary: var(--hex-primary-400);
+    --uigc-chart-state__primary: var(--hex-primary-200);
 
     --uigc-field-border-radius: 12px;
     --uigc-field-border: none;
@@ -467,6 +469,8 @@ export const hdxThemeProperties = css`
     --uigc-chart-border: 1px solid rgba(152, 176, 214, 0.27);
     --uigc-chart-color: var(--hex-bright-blue-300);
     --uigc-chart-toggle__selected: rgba(84, 99, 128, 0.35);
+    --uigc-chart-state__secondary: #25cbff;
+    --uigc-chart-state__primary: #9cddff;
 
     --uigc-field-border-radius: 2px;
     --uigc-field-border-bottom: 1px solid var(--hex-dark-blue-400);
