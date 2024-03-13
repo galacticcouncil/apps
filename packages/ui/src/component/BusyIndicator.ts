@@ -24,7 +24,7 @@ export class BusyIndicator extends UIGCElement {
 
       :host(:not([size])) .busy-indicator-root,
       :host([size='medium']) .busy-indicator-root {
-        min-width: 3rem;
+        min-width: 4rem;
         min-height: 1rem;
       }
 
