@@ -20,13 +20,21 @@ export class ChartEmpty extends LitElement {
         text-align: center;
       }
 
+      svg rect {
+        fill: var(--uigc-chart-state__secondary);
+      }
+
+      svg path {
+        fill: var(--uigc-chart-state__primary);
+      }
+
       p {
         font-family: 'ChakraPetch';
         font-style: normal;
         font-weight: 500;
         font-size: 14px;
         line-height: 100%;
-        color: #9cddff;
+        color: var(--uigc-chart-state__primary);
       }
     `,
   ];
