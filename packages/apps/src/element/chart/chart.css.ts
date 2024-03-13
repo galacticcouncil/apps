@@ -68,7 +68,7 @@ export const chartStyles = css`
   }
 
   .summary .pair {
-    font-family: 'ChakraPetch';
+    font-family: var(--uigc-app-font);
     font-style: normal;
     font-weight: 700;
     font-size: 24px;
@@ -76,7 +76,7 @@ export const chartStyles = css`
   }
 
   .summary .desc {
-    font-family: 'ChakraPetch';
+    font-family: var(--uigc-app-font);
     font-style: normal;
     font-weight: 500;
     font-size: 14px;
@@ -94,7 +94,7 @@ export const chartStyles = css`
   }
 
   .tooltip .price {
-    font-family: 'ChakraPetch';
+    font-family: var(--uigc-app-font);
     font-style: normal;
     font-weight: 600;
     font-size: 18px;
@@ -103,7 +103,7 @@ export const chartStyles = css`
   }
 
   .tooltip .usd {
-    font-family: 'ChakraPetch';
+    font-family: var(--uigc-app-font);
     font-style: normal;
     font-weight: 500;
     font-size: 14px;
@@ -123,7 +123,7 @@ export const chartStyles = css`
     z-index: 5;
     pointer-events: none;
     border-radius: 2px;
-    font-family: 'ChakraPetch';
+    font-family: var(--uigc-app-font);
     font-weight: 700;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.4);

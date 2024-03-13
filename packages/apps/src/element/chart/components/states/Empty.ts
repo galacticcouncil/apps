@@ -29,7 +29,7 @@ export class ChartEmpty extends LitElement {
       }
 
       p {
-        font-family: 'ChakraPetch';
+        font-family: var(--uigc-app-font);
         font-style: normal;
         font-weight: 500;
         font-size: 14px;
