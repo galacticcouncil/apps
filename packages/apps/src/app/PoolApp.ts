@@ -54,7 +54,12 @@ export abstract class PoolApp extends BaseApp {
     return !!this.chain.state;
   }
 
-  override async firstUpdated() {
+  override update(changedProperties: Map<string, unknown>) {
+    super.update(changedProperties);
+  }
+
+  override connectedCallback() {
+    super.connectedCallback();
     if (this.isApiReady()) {
       this._init();
     } else {
@@ -65,14 +70,6 @@ export abstract class PoolApp extends BaseApp {
         () => {},
       );
     }
-  }
-
-  override update(changedProperties: Map<string, unknown>) {
-    super.update(changedProperties);
-  }
-
-  override connectedCallback() {
-    super.connectedCallback();
   }
 
   override disconnectedCallback() {
