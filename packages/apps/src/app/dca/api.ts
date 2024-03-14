@@ -117,8 +117,8 @@ export class DcaApi extends TradeApi<DcaConfig> {
   }
 
   /**
-   * Calculate minimal no of trades for order execution. Minimal single trade
-   * execution amount must be at least 20% from minimal budget
+   * Calculate minimal no of trades for order execution. Single trade
+   * execution amount must be at least 20% of minimal budget
    *
    * @param amountIn - user budget
    * @param amountInMin - minimum budget to schedule an order
