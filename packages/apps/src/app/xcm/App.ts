@@ -81,6 +81,7 @@ export class XcmApp extends PoolApp {
   @property({ type: String }) destChain: string = null;
   @property({ type: String }) asset: string = null;
   @property({ type: String }) blacklist: string = null;
+  @property({ type: String }) ss58Prefix: string = null;
 
   @state() tab: TransferTab = TransferTab.Form;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
@@ -377,9 +378,12 @@ export class XcmApp extends PoolApp {
     return address;
   }
 
-  private prefillNative(address: string, chain: AnyChain) {
+  private prefillNative(address: string, chain: AnyChain, ss58prefix?: string) {
     if (this.isNativeCompatible(chain)) {
-      return convertAddressSS58(address);
+      return convertAddressSS58(
+        address,
+        ss58prefix ? Number(ss58prefix) : undefined,
+      );
     } else {
       return null;
     }
@@ -405,7 +409,11 @@ export class XcmApp extends PoolApp {
     if (isEvmAccount(account.address)) {
       prefilled = this.prefillEvm(account.address, destChain);
     } else {
-      prefilled = this.prefillNative(account.address, destChain);
+      prefilled = this.prefillNative(
+        account.address,
+        destChain,
+        this.ss58Prefix,
+      );
     }
 
     this.transfer = {

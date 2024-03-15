@@ -36,6 +36,7 @@ export abstract class PoolApp extends BaseApp {
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
   @property({ type: String }) stableCoinAssetId: string = null;
+  @property({ type: String }) stableCoinRate: string = null;
 
   @state() assets = {
     tradeable: [] as Asset[],
@@ -205,6 +206,7 @@ export abstract class PoolApp extends BaseApp {
     this.assets.usdPrice = await this.assetApi.getPrice(
       this.assets.tradeable,
       this.stableCoinAssetId,
+      this.stableCoinRate,
     );
   }
 
