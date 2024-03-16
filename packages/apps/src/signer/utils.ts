@@ -68,12 +68,16 @@ export async function signAndSendEvm(
       provider.getGasPrice(),
     ]);
 
+    const onePrc = gasPrice / 100n;
+    const gasPricePlus = gasPrice + onePrc;
+
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
       chain: evmClient.chain,
       data: data,
-      maxPriorityFeePerGas: gasPrice,
-      maxFeePerGas: gasPrice,
+      maxPriorityFeePerGas: gasPricePlus,
+      maxFeePerGas: gasPricePlus,
+      gasLimit: (gas * 11n) / 10n,
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
