@@ -4,13 +4,7 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
-import {
-  Chain,
-  ChainCursor,
-  DatabaseController,
-  TradeData,
-  TradeDataCursor,
-} from 'db';
+import { Chain, ChainCursor, DatabaseController, TradeData } from 'db';
 import { exchange, humanizeAmount } from 'utils/amount';
 
 import { Amount } from '@galacticcouncil/sdk';
@@ -28,6 +22,7 @@ export class TradeChart extends Chart {
   private chartApi: TradeChartApi = null;
 
   private chartPriceSeries: ISeriesApi<'Baseline'> = null;
+  private chartPriceOhlcSeries: ISeriesApi<'Candlestick'> = null;
   private chartVolumeSeries: ISeriesApi<'Histogram'> = null;
 
   private ready: boolean = false;
@@ -86,10 +81,22 @@ export class TradeChart extends Chart {
     const lastPrice = this.getLastPrice();
     const rangeFrom = this.getRangeFrom().unix();
     const priceBucket = new Bucket(data.primary).withRange(rangeFrom);
+    const priceOhlcBucket = data.primaryOhlc.filter(
+      (dp) => dp.time > rangeFrom,
+    );
+    const volumeBucket = new Bucket(data.secondary).withRange(rangeFrom);
+
     priceBucket.push(lastPrice);
+    volumeBucket.push({ time: lastPrice.time, value: 0 });
 
     if (this.shouldDisplay(data)) {
       this.chartPriceSeries.setData(priceBucket.data);
+      if (volumeBucket.length > 50) {
+        this.chartPriceOhlcSeries.setData(priceOhlcBucket);
+        this.chartVolumeSeries.setData(volumeBucket.data);
+      } else {
+        this.chartVolumeSeries.setData([]);
+      }
       this.chart
         .timeScale()
         .setVisibleLogicalRange({ from: 0.5, to: priceBucket.length - 1.5 });
@@ -117,6 +124,10 @@ export class TradeChart extends Chart {
     const theme = this.theme.state;
     this.chartPriceSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
+      /* OHLC -> 
+      topLineColor: 'transparent',
+      topFillColor1: 'transparent',
+      topFillColor2: 'transparent', */
       topLineColor: theme === 'hdx' ? '#85D1FF' : '#4fffb0',
       topFillColor1:
         theme === 'hdx'
@@ -131,6 +142,15 @@ export class TradeChart extends Chart {
       crosshairMarkerBorderColor: '#000',
       crosshairMarkerBackgroundColor: '#fff',
     });
+
+    this.chartPriceOhlcSeries = this.chart.addCandlestickSeries({
+      visible: false,
+      lastValueVisible: false,
+      priceLineVisible: false,
+      wickVisible: true,
+      borderVisible: true,
+    });
+
     const min = new Bucket(DEFAULT_DATASET).min();
     this.chartPriceSeries.setData(DEFAULT_DATASET);
     this.chartPriceSeries.applyOptions({
@@ -138,7 +158,7 @@ export class TradeChart extends Chart {
     });
 
     this.chartVolumeSeries = this.chart.addHistogramSeries({
-      color: '#85D1FF',
+      color: theme === 'hdx' ? '#85D1FF' : '#4fffb0',
       lastValueVisible: false,
       priceLineVisible: false,
       priceFormat: {
@@ -156,7 +176,7 @@ export class TradeChart extends Chart {
   }
 
   getSeries(): ISeriesApi<any>[] {
-    return [this.chartPriceSeries];
+    return [this.chartPriceSeries, this.chartVolumeSeries];
   }
 
   getDatasetPrefix(): string {
@@ -245,7 +265,10 @@ export class TradeChart extends Chart {
           ${humanizeAmount(this.spotPrice)}
           <span class="asset">${this.assetIn.symbol}</span>
         </div>
-        <div class=${classMap(usdClasses)}>≈$${humanizeAmount(spotUsd)}</div>
+        <div class=${classMap(usdClasses)}>
+          <span>Price:</span>
+          <span>$${humanizeAmount(spotUsd)}</span>
+        </div>
       `;
     }
   }
@@ -256,7 +279,6 @@ export class TradeChart extends Chart {
       <uigc-range-button-group
         .selected=${rangeVal}
         @range-button-clicked=${({ detail: { value } }) => {
-          console.log(TradeDataCursor.deref());
           this.updateRange(value);
           this.loadData();
         }}>

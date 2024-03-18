@@ -142,6 +142,7 @@ export abstract class Chart extends BaseElement {
     const secondarySwitch = this.reverseDataset(data.secondary);
     cache.set(keySwitch, {
       primary: primarySwitch,
+      primaryOhlc: [],
       secondary: secondarySwitch,
     });
   }

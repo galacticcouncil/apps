@@ -3,8 +3,22 @@ import { ChartRange } from 'element/chart/types';
 function getPriceQuery(range: string) {
   return `SELECT
     $__timeGroupAlias("timestamp",'${range}'),
-    max(price) AS "price"
+    avg(price) AS "price",
+    min(price) AS "low",
+    max(price) AS "high",
+    (array_agg(price ORDER BY timestamp ASC))[1] AS "open",
+    (array_agg(price ORDER BY timestamp DESC))[1] AS "close"
     FROM pair_price
+    WHERE price IS NOT NULL
+    `;
+}
+
+function getVolumeQuery(range: string) {
+  return `SELECT
+    $__timeGroupAlias("timestamp",'${range}'),
+    sum(volume) AS "volume"
+    FROM pair_volume
+    WHERE volume IS NOT NULL
     `;
 }
 
@@ -23,12 +37,13 @@ function getRange(range: ChartRange) {
   }
 }
 
-export function buildPriceQuery(
+function buildQuery(
   assetIn: string,
   assetOut: string,
   from: string,
   to: string,
   range: ChartRange,
+  selector: (range: string) => string,
 ) {
   const queryRange = getRange(range);
   return `
@@ -59,10 +74,47 @@ export function buildPriceQuery(
           WHEN asset_in = ${assetOut} AND asset_out = ${assetIn} AND amount_in != 0 AND amount_out != 0 THEN amount_out / amount_in
         END AS price
       FROM nor_trades
+    ),
+    pair_volume AS (
+      SELECT 
+        timestamp,
+        CASE 
+          WHEN asset_in = ${assetIn} AND asset_out = ${assetOut} THEN amount_in
+          WHEN asset_in = ${assetOut} AND asset_out = ${assetIn} THEN amount_out
+        END AS volume
+      FROM nor_trades
+    ),
+    pair_volume_rev AS (
+      SELECT 
+        timestamp,
+        CASE 
+          WHEN asset_in = ${assetIn} AND asset_out = ${assetOut} THEN amount_out
+          WHEN asset_in = ${assetOut} AND asset_out = ${assetIn} THEN amount_in
+        END AS volume
+      FROM nor_trades
     )
-    ${getPriceQuery(queryRange)}
-    WHERE price IS NOT NULL
+    ${selector(queryRange)}
     GROUP BY 1
     ORDER BY 1;
     `;
+}
+
+export function buildPriceQuery(
+  assetIn: string,
+  assetOut: string,
+  from: string,
+  to: string,
+  range: ChartRange,
+) {
+  return buildQuery(assetIn, assetOut, from, to, range, getPriceQuery);
+}
+
+export function buildVolumeQuery(
+  assetIn: string,
+  assetOut: string,
+  from: string,
+  to: string,
+  range: ChartRange,
+) {
+  return buildQuery(assetIn, assetOut, from, to, range, getVolumeQuery);
 }

@@ -4,7 +4,7 @@ import type {
   TradeRouter,
 } from '@galacticcouncil/sdk';
 import type { ApiPromise } from '@polkadot/api';
-import type { SingleValueData } from 'lightweight-charts';
+import type { SingleValueData, OhlcData } from 'lightweight-charts';
 
 export interface Account {
   name: string;
@@ -45,5 +45,6 @@ export interface ExternalAssetConfig {
 
 export type TradeData = {
   primary: SingleValueData[];
+  primaryOhlc: OhlcData[];
   secondary: SingleValueData[];
 };

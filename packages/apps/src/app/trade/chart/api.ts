@@ -1,10 +1,10 @@
-import { SingleValueData, UTCTimestamp } from 'lightweight-charts';
+import { OhlcData, SingleValueData, UTCTimestamp } from 'lightweight-charts';
 
 import { Asset } from '@galacticcouncil/sdk';
 import { TradeData } from 'db';
 import { ChartRange } from 'element/chart/types';
 
-import { buildPriceQuery } from './query';
+import { buildPriceQuery, buildVolumeQuery } from './query';
 
 export class TradeChartApi {
   private _grafanaUrl: string;
@@ -38,16 +38,26 @@ export class TradeChartApi {
             format: 'table',
             datasourceId: Number(this._grafanaDsn),
           },
+          {
+            refId: 'volume',
+            rawSql: buildVolumeQuery(assetIn.id, assetOut.id, from, to, range),
+            format: 'table',
+            datasourceId: Number(this._grafanaDsn),
+          },
         ],
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         const rawPrice = data.results.price.frames[0].data.values;
-        const formattedPrice = this.formatData(rawPrice);
+        const rawVolume = data.results.volume?.frames[0].data.values;
+        const priceDS = this.formatData(rawPrice);
+        const priceOhlcDS = this.formatOhlcData(rawPrice);
+        const volumeDS = this.formatVolumeData(rawPrice, rawVolume);
         onSuccess(assetIn, assetOut, {
-          primary: formattedPrice,
-          secondary: [],
+          primary: priceDS,
+          primaryOhlc: priceOhlcDS,
+          secondary: volumeDS,
         });
       })
       .catch(function (res) {
@@ -62,6 +72,28 @@ export class TradeChartApi {
         time: Math.floor(obj / 1000) as UTCTimestamp,
         value: value[index],
       } as SingleValueData;
+    });
+  }
+
+  private formatOhlcData([ts, _value, low, high, open, close]) {
+    return ts.map((obj: number, index: number) => {
+      return {
+        time: Math.floor(obj / 1000) as UTCTimestamp,
+        low: low[index],
+        high: high[index],
+        open: open[index],
+        close: close[index],
+      } as OhlcData;
+    });
+  }
+
+  private formatVolumeData([_, _value, _low, _high, open, close], [ts, value]) {
+    return ts.map((obj: number, index: number) => {
+      return {
+        time: Math.floor(obj / 1000) as UTCTimestamp,
+        value: value[index],
+        // OHLC color: open[index] > close[index] ? '#ef5350' : '#26a69a',
+      } as unknown as OhlcData;
     });
   }
 }
