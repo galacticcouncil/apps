@@ -11,6 +11,7 @@ import { Account, AccountCursor, DatabaseController } from 'db';
 import { baseStyles } from 'styles/base.css';
 import { formStyles } from 'styles/form.css';
 import { isSameAddress } from 'utils/account';
+import { humanizeAmount } from 'utils/amount';
 
 import 'element/id';
 
@@ -157,7 +158,7 @@ export class XcmForm extends LitElement {
     };
   }
 
-  transferFeeTemplate(label: string, tradeFee: string, assetSymbol: string) {
+  transferFeeTemplate(label: string, fee: AssetAmount) {
     if (this.inProgress) {
       return html`
         <span class="label">${label}</span>
@@ -170,7 +171,18 @@ export class XcmForm extends LitElement {
       `;
     }
 
-    if (tradeFee === '0') {
+    if (!fee) {
+      return html`
+        <span class="label">${label}</span>
+        <span class="grow"></span>
+        <span class="value">-</span>
+      `;
+    }
+
+    const { amount, decimals, originSymbol } = fee;
+    const formatted = fee.toDecimal(decimals);
+
+    if (amount === 0n) {
       return html`
         <span class="label">${label}</span>
         <span class="grow"></span>
@@ -181,17 +193,7 @@ export class XcmForm extends LitElement {
     return html`
       <span class="label">${label}</span>
       <span class="grow"></span>
-      ${when(
-        tradeFee,
-        () =>
-          html`
-            <span class="value">${tradeFee} ${assetSymbol}</span>
-          `,
-        () =>
-          html`
-            <span class="value">-</span>
-          `,
-      )}
+      <span class="value">${humanizeAmount(formatted)} ${originSymbol}</span>
     `;
   }
 
@@ -317,15 +319,13 @@ export class XcmForm extends LitElement {
         <div class="row">
           ${this.transferFeeTemplate(
             i18n.t('form.info.sourceFee'),
-            this.srcChainFee?.toDecimal(),
-            this.srcChainFee?.originSymbol,
+            this.srcChainFee,
           )}
         </div>
         <div class="row">
           ${this.transferFeeTemplate(
             i18n.t('form.info.destFee'),
-            this.destChainFee?.toDecimal(),
-            this.destChainFee?.originSymbol,
+            this.destChainFee,
           )}
         </div>
       </div>
