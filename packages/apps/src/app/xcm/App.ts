@@ -12,14 +12,18 @@ import { Subscription } from 'rxjs';
 import { PoolApp } from 'app/PoolApp';
 import { Account } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
-import { DISPATCH_ADDRESS } from 'signer/utils';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
 import { exchangeNative } from 'utils/amount';
 import { calculateEffectiveBalance } from 'utils/balance';
-import { convertFromH160, convertToH160, isEvmAccount } from 'utils/evm';
+import {
+  convertFromH160,
+  convertToH160,
+  isEvmAccount,
+  DISPATCH_ADDRESS,
+} from 'utils/evm';
 
 import '@galacticcouncil/ui';
 import { Asset, BigNumber, Transaction } from '@galacticcouncil/sdk';

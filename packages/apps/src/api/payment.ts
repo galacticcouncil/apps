@@ -13,12 +13,9 @@ import {
 import { EvmClient, evmChains } from '@galacticcouncil/xcm-sdk';
 
 import { Account } from 'db';
-import { convertToH160, isEvmAccount } from 'utils/evm';
+import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
 
-const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';
 const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
-const EVM_PAYMENT_ASSET = 'WETH';
-const EVM_PAYMENT_ORIGIN = 2004;
 
 export type PaymentFee = { amount: string; ed: string };
 
@@ -33,16 +30,6 @@ export class PaymentApi {
 
   async getPaymentFeeAsset(account: Account): Promise<string> {
     const address = this.getAddress(account);
-    if (isEvmAccount(address)) {
-      const assets = await this._router.getAllAssets();
-      const paymentAsset = assets.find(
-        (asset: Asset) =>
-          asset.symbol === EVM_PAYMENT_ASSET &&
-          asset.origin === EVM_PAYMENT_ORIGIN,
-      );
-      return paymentAsset.id;
-    }
-
     try {
       const feeAsset =
         await this._api.query.multiTransactionPayment.accountCurrencyMap(

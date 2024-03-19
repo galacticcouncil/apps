@@ -5,6 +5,8 @@ import { Buffer } from 'buffer';
 
 const ETH_PREFIX = 'ETH\0';
 
+export const DISPATCH_ADDRESS = '0x0000000000000000000000000000000000000401';
+
 export function convertFromH160(
   h160Addr: string,
   ss58prefix = HYDRADX_SS58_PREFIX,
