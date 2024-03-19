@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.6
+
+### Patch Changes
+
+- Remove chain init from callback (breaking main repo)
+
 ## 3.3.5
 
 ### Patch Changes
