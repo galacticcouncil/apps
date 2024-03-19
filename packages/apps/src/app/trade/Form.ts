@@ -729,9 +729,6 @@ export class TradeForm extends BaseElement {
 
   bestRouteTemplate() {
     const bestRoute = this.getBestRoute();
-    if (this.tradeType === TradeType.Buy) {
-      bestRoute.reverse();
-    }
     return html`
       <span class="value">${this.assetIn.symbol}</span>
       ${bestRoute.map(
