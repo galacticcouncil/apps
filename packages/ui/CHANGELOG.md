@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.3
+
+### Patch Changes
+
+- Minify build html literals (setup)
+
 ## 3.1.2
 
 ### Patch Changes
