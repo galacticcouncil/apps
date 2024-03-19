@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.4
+
+### Patch Changes
+
+- Minify build html literals (setup), clenaup peer deps
+
 ## 3.3.3
 
 ### Patch Changes
