@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.5
+
+### Patch Changes
+
+- Revert i18n peer deps (breaking main repo)
+
 ## 3.3.4
 
 ### Patch Changes
