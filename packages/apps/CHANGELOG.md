@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.7
+
+### Patch Changes
+
+- Fix wrong route display (buy)
+
 ## 3.3.6
 
 ### Patch Changes
