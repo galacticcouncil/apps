@@ -5,6 +5,8 @@
 ### Patch Changes
 
 - Minify build html literals (setup), clenaup peer deps
+- EVM: Use multiTransactionPayment pallet for fee asset instead of WETH
+- EVM: Fix ccm source fee display
 
 ## 3.3.3
 
