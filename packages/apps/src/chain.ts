@@ -1,7 +1,12 @@
-import { CachingPoolService, TradeRouter } from '@galacticcouncil/sdk';
+import {
+  CachingPoolService,
+  ExternalAsset,
+  TradeRouter,
+} from '@galacticcouncil/sdk';
 import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
 import { ApiPromise } from '@polkadot/api';
 import { Ecosystem, ChainCursor } from './db';
+import { getObj } from './db/storage';
 
 async function info(api: ApiPromise): Promise<void> {
   const [systemChain, systemChainType, systemName, systemVersion] =
@@ -24,7 +29,15 @@ function initApi(
   const poolService = new CachingPoolService(api);
   const router = new TradeRouter(poolService);
   // Get pools and cache the result
-  router.getPools().then(() => {
+
+  // Cleanup after
+  const external = getObj('external-tokens');
+  const externalState = external ? external['state'] : undefined;
+  const externalAssets = externalState
+    ? (externalState['tokens'] as ExternalAsset[])
+    : undefined;
+
+  poolService.syncRegistry(externalAssets).then(() => {
     console.log('Router ready ✅');
     ChainCursor.reset({
       api: api,
