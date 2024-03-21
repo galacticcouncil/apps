@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.4
+
+### Patch Changes
+
+- Added DED & PINK
+
 ## 3.1.3
 
 ### Patch Changes
