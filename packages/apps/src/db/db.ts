@@ -6,7 +6,14 @@ import { defCursor } from '@thi.ng/atom/cursor';
 import { TLRUCache } from '@thi.ng/cache';
 
 import { getObj, setObj } from './storage';
-import { Account, Chain, DcaConfig, TradeConfig, TradeData } from './types';
+import {
+  Account,
+  Chain,
+  DcaConfig,
+  ExternalAssetConfig,
+  TradeConfig,
+  TradeData,
+} from './types';
 
 const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
 
@@ -32,6 +39,7 @@ interface State {
     data: TLRUCache<string, TradeData>;
   };
   wallet: Wallet;
+  external: ExternalAssetConfig;
 }
 
 const db = defAtom<State>({
@@ -45,6 +53,7 @@ const db = defAtom<State>({
     data: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
   },
   wallet: null,
+  external: null,
 });
 
 // Cursors (Direct & Immutable access to a nested value)
@@ -54,21 +63,25 @@ export const DcaConfigCursor = defCursor(db, ['dca', 'config']);
 export const TradeConfigCursor = defCursor(db, ['trade', 'config']);
 export const TradeDataCursor = defCursor(db, ['trade', 'data']);
 export const WalletCursor = defCursor(db, ['wallet']);
+export const ExternalAssetCursor = defCursor(db, ['external']);
 
 // Storage keys
 const ACCOUNT_KEY = 'trade.account';
 const TRADE_CONFIG_KEY = 'trade.settings';
 const DCA_CONFIG_KEY = 'dca.settings';
+const EXT_ASSETS_CONFIG_KEY = 'external-tokens';
 
 // Load current config
 const currentAccount = getObj<Account>(ACCOUNT_KEY);
 const currentTradeConfig = getObj<TradeConfig>(TRADE_CONFIG_KEY);
 const currentDcaConfig = getObj<DcaConfig>(DCA_CONFIG_KEY);
+const externalAssetConfig = getObj<ExternalAssetConfig>(EXT_ASSETS_CONFIG_KEY);
 
 // Initialize state from current config
 AccountCursor.reset(currentAccount);
 TradeConfigCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...currentTradeConfig });
 DcaConfigCursor.reset({ ...DEFAULT_DCA_CONFIG, ...currentDcaConfig });
+ExternalAssetCursor.reset(externalAssetConfig);
 
 /**
  * Create watchdog to update storage on state change
@@ -94,6 +107,13 @@ addWatch(DcaConfigCursor, DCA_CONFIG_KEY, 'dca-settings-update');
 //     tokens: [
 //       { decimals: 10, id: '30', name: 'DED', origin: 1000, symbol: 'DED' },
 //       { decimals: 10, id: '23', name: 'PINK', origin: 1000, symbol: 'PINK' },
+//       {
+//         decimals: 8,
+//         id: '666',
+//         name: 'Danger Coin',
+//         origin: 1000,
+//         symbol: 'DANGER',
+//       },
 //     ],
 //   },
 //   version: 0.2,

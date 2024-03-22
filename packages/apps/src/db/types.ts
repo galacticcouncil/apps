@@ -1,4 +1,8 @@
-import type { IPoolService, TradeRouter } from '@galacticcouncil/sdk';
+import type {
+  ExternalAsset,
+  IPoolService,
+  TradeRouter,
+} from '@galacticcouncil/sdk';
 import type { ApiPromise } from '@polkadot/api';
 import type { SingleValueData } from 'lightweight-charts';
 
@@ -30,6 +34,13 @@ export interface TradeConfig {
 export interface DcaConfig {
   slippage: string;
   maxRetries: number;
+}
+
+export interface ExternalAssetsConfig {
+  state: {
+    tokens: ExternalAsset[];
+  };
+  version: number;
 }
 
 export type TradeData = {

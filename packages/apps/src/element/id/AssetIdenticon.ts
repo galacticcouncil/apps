@@ -70,7 +70,7 @@ export class AssetIdenticon extends LitElement {
         ?icon=${!this.showSymbol}
         symbol=${symbol}
         desc=${this.showDesc ? name : altDesc}>
-        ${this.iconTemplate(id, icon)}
+        ${this.iconTemplate(id, icon || symbol)}
       </uigc-asset>
     `;
   }

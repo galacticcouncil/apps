@@ -7,6 +7,7 @@ import {
   TradeRouter,
 } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
+import { ExternalAssetCursor } from 'db';
 
 import { pairs2Map } from 'utils/mapper';
 
@@ -24,7 +25,10 @@ export class AssetApi {
   }
 
   async getAssets(): Promise<Map<string, Asset>> {
-    const assets = await this._assetClient.getOnChainAssets();
+    const external = ExternalAssetCursor.deref();
+    const assets = await this._assetClient.getOnChainAssets(
+      external?.state.tokens,
+    );
     return new Map(assets.map((a) => [a.id, a]));
   }
 
