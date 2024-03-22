@@ -36,7 +36,7 @@ export interface DcaConfig {
   maxRetries: number;
 }
 
-export interface ExternalAssetsConfig {
+export interface ExternalAssetConfig {
   state: {
     tokens: ExternalAsset[];
   };
