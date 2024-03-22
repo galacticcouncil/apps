@@ -31,39 +31,39 @@ export const DEFAULT_DCA_CONFIG: DcaConfig = {
 interface State {
   account: Account;
   chain: Chain;
-  dca: {
-    config: DcaConfig;
+  config: {
+    trade: TradeConfig;
+    dca: DcaConfig;
+    external: ExternalAssetConfig;
   };
-  trade: {
-    config: TradeConfig;
-    data: TLRUCache<string, TradeData>;
+  data: {
+    trade: TLRUCache<string, TradeData>;
   };
   wallet: Wallet;
-  external: ExternalAssetConfig;
 }
 
 const db = defAtom<State>({
   account: null,
   chain: null,
-  dca: {
-    config: null,
+  config: {
+    trade: null,
+    dca: null,
+    external: null,
   },
-  trade: {
-    config: null,
-    data: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
+  data: {
+    trade: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
   },
   wallet: null,
-  external: null,
 });
 
 // Cursors (Direct & Immutable access to a nested value)
 export const AccountCursor = defCursor(db, ['account']);
 export const ChainCursor = defCursor(db, ['chain']);
-export const DcaConfigCursor = defCursor(db, ['dca', 'config']);
-export const TradeConfigCursor = defCursor(db, ['trade', 'config']);
-export const TradeDataCursor = defCursor(db, ['trade', 'data']);
+export const DcaConfigCursor = defCursor(db, ['config', 'dca']);
+export const ExternalAssetCursor = defCursor(db, ['config', 'external']);
+export const TradeConfigCursor = defCursor(db, ['config', 'trade']);
+export const TradeDataCursor = defCursor(db, ['data', 'trade']);
 export const WalletCursor = defCursor(db, ['wallet']);
-export const ExternalAssetCursor = defCursor(db, ['external']);
 
 // Storage keys
 const ACCOUNT_KEY = 'trade.account';
@@ -79,9 +79,9 @@ const externalAssetConfig = getObj<ExternalAssetConfig>(EXT_ASSETS_CONFIG_KEY);
 
 // Initialize state from current config
 AccountCursor.reset(currentAccount);
-TradeConfigCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...currentTradeConfig });
-DcaConfigCursor.reset({ ...DEFAULT_DCA_CONFIG, ...currentDcaConfig });
 ExternalAssetCursor.reset(externalAssetConfig);
+DcaConfigCursor.reset({ ...DEFAULT_DCA_CONFIG, ...currentDcaConfig });
+TradeConfigCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...currentTradeConfig });
 
 /**
  * Create watchdog to update storage on state change
@@ -99,8 +99,8 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
 
 // Register watchdogs
 addWatch(AccountCursor, ACCOUNT_KEY, 'account-update');
-addWatch(TradeConfigCursor, TRADE_CONFIG_KEY, 'trade-settings-update');
 addWatch(DcaConfigCursor, DCA_CONFIG_KEY, 'dca-settings-update');
+addWatch(TradeConfigCursor, TRADE_CONFIG_KEY, 'trade-settings-update');
 
 // setObj('external-tokens', {
 //   state: {
