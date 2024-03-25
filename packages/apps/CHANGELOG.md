@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.9
+
+### Patch Changes
+
+- XCM transfer validations (wip)
+
 ## 3.3.8
 
 ### Patch Changes
