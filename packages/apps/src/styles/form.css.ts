@@ -296,4 +296,9 @@ export const formStyles = css`
     gap: 4px;
     padding: 5px 0;
   }
+
+  uigc-icon-warning,
+  uigc-icon-error {
+    width: 24px;
+  }
 `;

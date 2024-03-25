@@ -16,7 +16,7 @@ import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
-import { exchangeNative } from 'utils/amount';
+import { exchangeNative, formatAmount } from 'utils/amount';
 import { calculateEffectiveBalance } from 'utils/balance';
 import {
   convertFromH160,
@@ -26,7 +26,12 @@ import {
 } from 'utils/evm';
 
 import '@galacticcouncil/ui';
-import { Asset, BigNumber, Transaction } from '@galacticcouncil/sdk';
+import {
+  Asset,
+  BigNumber,
+  SYSTEM_ASSET_ID,
+  Transaction,
+} from '@galacticcouncil/sdk';
 
 import {
   assetsMap,
@@ -79,7 +84,8 @@ export class XcmApp extends PoolApp {
   });
 
   private shouldPrefill: boolean = true;
-  private disconnectBalanceSubscription: Subscription = null;
+  private balanceSubscription: Subscription = null;
+  private balanceDestSubscription: Subscription = null;
 
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) destChain: string = null;
@@ -205,6 +211,7 @@ export class XcmApp extends PoolApp {
 
   private async changeChain() {
     this.disconnectSubscriptions();
+    this.clearTransfer();
     // Sync form
     this.syncChains();
     this._syncData(true);
@@ -261,6 +268,7 @@ export class XcmApp extends PoolApp {
       balance: balance,
       asset: assetsMap.get(asset),
     });
+    this.clearTransfer();
     this._syncData();
   }
 
@@ -326,7 +334,6 @@ export class XcmApp extends PoolApp {
 
   processTx(
     account: Account,
-    data: XData,
     transaction: Transaction,
     transfer: TransferState,
   ) {
@@ -336,13 +343,8 @@ export class XcmApp extends PoolApp {
       failure: this.notificationTemplate(transfer, 'notify.error'),
     };
 
-    const { srcChain, srcChainFee, destChain, destChainFee } = this.transfer;
-
-    const srcChainFeeBalance =
-      srcChain.key === 'hydradx'
-        ? this.xchain.balance.get(srcChainFee.key)
-        : data.srcFeeBalance;
-
+    const { srcChain, srcChainFee, destChain, destChainFee } = transfer;
+    const srcChainFeeBalance = this.xchain.balance.get(srcChainFee.key);
     const options = {
       bubbles: true,
       composed: true,
@@ -364,6 +366,122 @@ export class XcmApp extends PoolApp {
       } as TxInfo,
     };
     this.dispatchEvent(new CustomEvent<TxInfo>('gc:xcm:new', options));
+  }
+
+  private async validateSrcFee() {
+    const { srcChain, srcChainFee } = this.transfer;
+    const srcChainFeeBalance = this.xchain.balance.get(srcChainFee.key);
+    const skipValidationFor = new Set(['bifrost', 'hydradx']);
+
+    if (
+      !skipValidationFor.has(srcChain.key) &&
+      srcChainFee.amount > srcChainFeeBalance.amount
+    ) {
+      const amount = srcChainFee.toDecimal(srcChainFee.decimals);
+      const symbol = srcChainFee.originSymbol;
+      const chain = srcChain.name;
+      this.transfer.error['feeSrc'] = i18n.t('error.transfer.fee', {
+        amount,
+        symbol,
+        chain,
+      });
+    } else {
+      delete this.transfer.error['feeSrc'];
+    }
+  }
+
+  private async validateDestFee() {
+    const { srcChain, destChainFee } = this.transfer;
+    const srcChainFeeAssetBalance = this.xchain.balance.get(destChainFee.key);
+    if (destChainFee.amount > srcChainFeeAssetBalance.amount) {
+      const amount = destChainFee.toDecimal(destChainFee.decimals);
+      const symbol = destChainFee.originSymbol;
+      const chain = srcChain.name;
+      this.transfer.error['feeDest'] = i18n.t('error.transfer.fee', {
+        amount,
+        symbol,
+        chain,
+      });
+    } else {
+      delete this.transfer.error['feeDest'];
+    }
+  }
+
+  private async validateHubEd() {
+    const { destChain } = this.transfer;
+    const destChainDotBalance = this.xchain.balanceDest.get('dot');
+    if (
+      destChain.key === 'assethub' &&
+      destChainDotBalance &&
+      destChainDotBalance.amount === 0n
+    ) {
+      this.transfer.error['hubEd'] = i18n.t('error.transfer.ed', {
+        amount: '0.01',
+        symbol: 'DOT',
+        chain: 'AssetHub',
+      });
+    } else {
+      delete this.transfer.error['hubEd'];
+    }
+  }
+
+  private async validateHydraEd() {
+    const { router } = this.chain.state;
+    const { asset, srcChain, destChain, destChainFee } = this.transfer;
+    const destChainBalance = this.xchain.balanceDest.get(asset.key);
+    const destChainFeeBalance = this.xchain.balanceDest.get(destChainFee.key);
+    const insufficientAssets = new Set(['PINK', 'DED']); // TODO: Add support to SDK
+    const isExistingAccount = destChainBalance.amount > 0n;
+    const isSufficientAsset = !insufficientAssets.has(asset.originSymbol);
+
+    if (destChain.key !== 'hydradx' || isSufficientAsset || isExistingAccount) {
+      return;
+    }
+
+    const feeAsset = this.assets.tradeable.find(
+      (a) =>
+        a.symbol.toLowerCase() === destChainFee.originSymbol.toLowerCase() &&
+        a.origin === srcChain.parachainId,
+    );
+    const { amount, decimals } = await router.getBestSpotPrice(
+      SYSTEM_ASSET_ID,
+      feeAsset.id,
+    );
+    const feeAssetEd = formatAmount(amount.multipliedBy(1.1), decimals);
+    const isNotSuffient =
+      destChainFeeBalance.amount < toBigInt(feeAssetEd, decimals);
+
+    if (isNotSuffient) {
+      this.transfer.error['hdxEd'] = i18n.t('error.transfer.ed', {
+        amount: feeAssetEd,
+        symbol: feeAsset.symbol,
+        chain: 'HydraDX',
+      });
+    } else {
+      delete this.transfer.error['hdxEd'];
+    }
+  }
+
+  private async clearTransfer() {
+    delete this.transfer.error['feeSrc'];
+    delete this.transfer.error['feeDest'];
+    delete this.transfer.error['hubEd'];
+    delete this.transfer.error['hdxEd'];
+  }
+
+  private async validateTransfer() {
+    const { asset, destChainFee } = this.transfer;
+    this.validateSrcFee();
+
+    // No need for additional checks, exit & clean
+    const isSufficientPaymentAsset = asset.isEqual(destChainFee);
+    if (isSufficientPaymentAsset) {
+      return;
+    }
+
+    this.validateDestFee();
+    this.validateHubEd();
+    this.validateHydraEd();
   }
 
   private formatAddress(address: string, chain: AnyChain): string {
@@ -423,6 +541,8 @@ export class XcmApp extends PoolApp {
       ...this.transfer,
       address: address,
     };
+    this.syncBalancesDest();
+    this._syncData();
   }
 
   private isEvmAddressError(dest: AnyChain, address: string) {
@@ -519,15 +639,22 @@ export class XcmApp extends PoolApp {
     this.transfer.balance = newBalance;
     this.xchain.balance = updated;
 
-    if (this.hasTransferData()) {
-      const diff = newBalance.amount - balance.amount;
+    if (this.hasTransferData() && balance) {
+      const diff = newBalance.amount - balance.amount || 0n;
       const newMax = max.amount + diff;
       this.transfer.max = max.copyWith({
         amount: newMax < 0 ? 0n : newMax,
       });
     }
-
     this.validateAmount();
+  }
+
+  private updateBalanceDest(balances: AssetAmount[]) {
+    const updated: Map<string, AssetAmount> = new Map([]);
+    balances.forEach((balance: AssetAmount) => {
+      updated.set(balance.key, balance);
+    });
+    this.xchain.balanceDest = updated;
   }
 
   private resetTransfer(delta: Partial<TransferState>) {
@@ -545,23 +672,44 @@ export class XcmApp extends PoolApp {
   private resetBalances() {
     this.transfer.balance = null;
     this.xchain.balance = new Map([]);
+    this.xchain.balanceDest = new Map([]);
   }
 
-  private async syncBalances() {
+  private async syncBalancesDest() {
+    this.balanceDestSubscription?.unsubscribe();
     const account = this.account.state;
-
     if (!account) {
       return;
     }
 
-    const { srcChain } = this.transfer;
-    const srcAddress = this.formatAddress(account.address, srcChain);
+    const { address, destChain } = this.transfer;
+    const destAddr = this.formatAddress(address, destChain);
+    this.balanceDestSubscription = await this.wallet.subscribeBalance(
+      destAddr,
+      destChain,
+      (balances: AssetAmount[]) => this.updateBalanceDest(balances),
+    );
+  }
 
-    const observer = (balances: AssetAmount[]) => this.updateBalance(balances);
-    this.disconnectBalanceSubscription = await this.wallet.subscribeBalance(
+  private async syncBalances() {
+    const account = this.account.state;
+    if (!account) {
+      return;
+    }
+
+    const { address, srcChain, destChain } = this.transfer;
+    const srcAddress = this.formatAddress(account.address, srcChain);
+    const destAddr = this.formatAddress(address || account.address, destChain);
+
+    this.balanceSubscription = await this.wallet.subscribeBalance(
       srcAddress,
       srcChain,
-      observer,
+      (balances: AssetAmount[]) => this.updateBalance(balances),
+    );
+    this.balanceDestSubscription = await this.wallet.subscribeBalance(
+      destAddr,
+      destChain,
+      (balances: AssetAmount[]) => this.updateBalanceDest(balances),
     );
   }
 
@@ -618,6 +766,7 @@ export class XcmApp extends PoolApp {
         xdata: data,
       };
       this.validateAmount();
+      this.validateTransfer();
     }
   }
 
@@ -774,7 +923,8 @@ export class XcmApp extends PoolApp {
 
   private disconnectSubscriptions() {
     this.resetBalances();
-    this.disconnectBalanceSubscription?.unsubscribe();
+    this.balanceSubscription?.unsubscribe();
+    this.balanceDestSubscription?.unsubscribe();
   }
 
   override disconnectedCallback() {
@@ -900,7 +1050,7 @@ export class XcmApp extends PoolApp {
         return call;
       },
     } as Transaction;
-    this.processTx(account, xData, transaction, this.transfer);
+    this.processTx(account, transaction, this.transfer);
   }
 
   private isFormDisabled() {

@@ -31,9 +31,9 @@ export type TxNotification = {
   failure: TxMessage;
 };
 
-export type TxInfo = {
+export type TxInfo<TxMeta extends object = never> = {
   account: Account;
   transaction: Transaction;
   notification: TxNotification;
-  meta?: Record<string, string>;
+  meta?: Record<string, string> | TxMeta;
 };

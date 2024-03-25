@@ -41,6 +41,7 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
 
 export type ChainState = {
   balance: Map<string, AssetAmount>;
+  balanceDest: Map<string, AssetAmount>;
   dest: AnyChain[];
   list: AnyChain[];
   tokens: Asset[];
@@ -49,6 +50,7 @@ export type ChainState = {
 
 export const DEFAULT_CHAIN_STATE: ChainState = {
   balance: new Map([]),
+  balanceDest: new Map([]),
   dest: [],
   list: [],
   tokens: [],

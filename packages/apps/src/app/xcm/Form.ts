@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
 
@@ -90,6 +91,16 @@ export class XcmForm extends LitElement {
       .transfer uigc-asset-switch.switch {
         background: var(--uigc-asset-switch-background);
         position: absolute;
+      }
+
+      .errors {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .errors .highlight {
+        font-weight: 600;
+        color: var(--hex-white);
       }
 
       @media (min-width: 480px) {
@@ -294,6 +305,14 @@ export class XcmForm extends LitElement {
     const account = this.account.state;
     const isValidAddr = this.isValidAddress();
     const isSameAddr = isSameAddress(this.address, account?.address);
+    const errWarnClasses = {
+      error: true,
+      show:
+        this.error['feeSrc'] ||
+        this.error['feeDest'] ||
+        this.error['hubEd'] ||
+        this.error['hdxEd'],
+    };
     const cexWarnClasses = {
       warning: true,
       show: account && isValidAddr && !isSameAddr,
@@ -336,6 +355,15 @@ export class XcmForm extends LitElement {
       <div class=${classMap(ledgerWarnClasses)}>
         <uigc-icon-warning></uigc-icon-warning>
         <span>${i18n.t('warning.ledger')}</span>
+      </div>
+      <div class=${classMap(errWarnClasses)}>
+        <uigc-icon-error></uigc-icon-error>
+        <div class="errors">
+          <span>${unsafeHTML(this.error['feeSrc'])}</span>
+          <span>${unsafeHTML(this.error['feeDest'])}</span>
+          <span>${unsafeHTML(this.error['hubEd'])}</span>
+          <span>${unsafeHTML(this.error['hdxEd'])}</span>
+        </div>
       </div>
       <div class="grow"></div>
       <uigc-button
