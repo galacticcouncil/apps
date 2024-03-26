@@ -81,7 +81,7 @@ export class XcmApp extends PoolApp {
   @property({ type: String }) destChain: string = null;
   @property({ type: String }) asset: string = null;
   @property({ type: String }) blacklist: string = null;
-  @property({ type: String }) ss58Prefix: string = null;
+  @property({ type: String }) ss58Prefix: number = null;
 
   @state() tab: TransferTab = TransferTab.Form;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
@@ -378,12 +378,9 @@ export class XcmApp extends PoolApp {
     return address;
   }
 
-  private prefillNative(address: string, chain: AnyChain, ss58prefix?: string) {
+  private prefillNative(address: string, chain: AnyChain, ss58prefix?: number) {
     if (this.isNativeCompatible(chain)) {
-      return convertAddressSS58(
-        address,
-        ss58prefix ? Number(ss58prefix) : undefined,
-      );
+      return convertAddressSS58(address, ss58prefix ? ss58prefix : undefined);
     } else {
       return null;
     }
