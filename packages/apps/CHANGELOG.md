@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.11
+
+### Patch Changes
+
+- Evm insufficient asset ED validation
+
 ## 3.3.10
 
 ### Patch Changes
