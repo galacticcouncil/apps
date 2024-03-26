@@ -16,7 +16,7 @@ import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
-import { exchangeNative, formatAmount } from 'utils/amount';
+import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 import { getXcmKey } from 'utils/asset';
 import { calculateEffectiveBalance } from 'utils/balance';
 import {
@@ -479,22 +479,24 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(address);
+    const addr = this.formatDestAddress(address, destChain);
+    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(addr);
     const feeAsset = this.assets.registry.get(feeAssetId);
     const feeAssetKey = getXcmKey(feeAsset);
     const feeAssetBalance = this.xchain.balanceDest.get(feeAssetKey);
     const feeAssetBalanceBN = new BigNumber(feeAssetBalance.amount.toString());
 
     const feeNativeEd = ONE.multipliedBy(1.1);
-    const feeAssetSpot = await router.getBestSpotPrice(
-      SYSTEM_ASSET_ID,
-      feeAssetId,
-    );
+    let feeAssetSpot: BigNumber;
 
-    const feeAssetEd = feeNativeEd.times(
-      feeAssetSpot?.amount || scale(ONE, SYSTEM_ASSET_DECIMALS),
-    );
+    if (SYSTEM_ASSET_ID === feeAssetId) {
+      feeAssetSpot = scale(ONE, SYSTEM_ASSET_DECIMALS);
+    } else {
+      const price = await router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAssetId);
+      feeAssetSpot = price.amount;
+    }
 
+    const feeAssetEd = feeNativeEd.times(feeAssetSpot);
     const feeAssetNotSuffient = feeAssetEd.gt(feeAssetBalanceBN);
     const feeAssetEdFmt = formatAmount(feeAssetEd, feeAssetBalance.decimals);
     const feeAssetBalanceFmt = feeAssetBalance.toDecimal(
@@ -508,7 +510,7 @@ export class XcmApp extends PoolApp {
       this.addError(
         'hdxEd',
         i18n.t('error.transfer.ed', {
-          amount: formatAmount(feeAssetEd, feeAssetBalance.decimals),
+          amount: humanizeAmount(feeAssetEdFmt),
           symbol: feeAsset.symbol,
           chain: 'HydraDX',
         }),
@@ -516,7 +518,6 @@ export class XcmApp extends PoolApp {
     } else {
       this.clearError('hdxEd');
     }
-    this.requestUpdate();
   }
 
   private addError(key: string, error: string) {
@@ -524,6 +525,7 @@ export class XcmApp extends PoolApp {
       ...this.transfer.error,
       [key]: error,
     };
+    this.requestUpdate();
   }
 
   private clearError(key: string) {
@@ -531,6 +533,7 @@ export class XcmApp extends PoolApp {
     this.transfer.error = {
       ...rest,
     };
+    this.requestUpdate();
   }
 
   private async clearErrors() {
