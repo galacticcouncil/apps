@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.10
+
+### Patch Changes
+
+- Update xcm validations
+
 ## 3.3.9
 
 ### Patch Changes
