@@ -17,6 +17,7 @@ import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
 import { exchangeNative, formatAmount } from 'utils/amount';
+import { getXcmKey } from 'utils/asset';
 import { calculateEffectiveBalance } from 'utils/balance';
 import {
   convertFromH160,
@@ -29,8 +30,11 @@ import '@galacticcouncil/ui';
 import {
   Asset,
   BigNumber,
+  ONE,
+  SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
   Transaction,
+  scale,
 } from '@galacticcouncil/sdk';
 
 import {
@@ -211,7 +215,7 @@ export class XcmApp extends PoolApp {
 
   private async changeChain() {
     this.disconnectSubscriptions();
-    this.clearTransfer();
+    this.clearErrors();
     // Sync form
     this.syncChains();
     this._syncData(true);
@@ -263,12 +267,12 @@ export class XcmApp extends PoolApp {
 
   private async changeAsset(asset: string) {
     const balance = this.xchain.balance.get(asset);
+    this.clearErrors();
     this.resetTransfer({
       inProgress: true,
       balance: balance,
       asset: assetsMap.get(asset),
     });
-    this.clearTransfer();
     this._syncData();
   }
 
@@ -369,109 +373,176 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateSrcFee() {
+    console.log('[validation] => source fee');
     const { srcChain, srcChainFee } = this.transfer;
-    const srcChainFeeBalance = this.xchain.balance.get(srcChainFee.key);
+    const srcFeeBalance = this.xchain.balance.get(srcChainFee.key);
     const skipValidationFor = new Set(['bifrost', 'hydradx']);
-
     if (
       !skipValidationFor.has(srcChain.key) &&
-      srcChainFee.amount > srcChainFeeBalance.amount
+      srcChainFee.amount > srcFeeBalance.amount
     ) {
+      const srcFeeBalanceFmt = srcFeeBalance.toDecimal(srcFeeBalance.decimals);
+      console.log(' Balance: ' + srcFeeBalanceFmt);
       const amount = srcChainFee.toDecimal(srcChainFee.decimals);
       const symbol = srcChainFee.originSymbol;
       const chain = srcChain.name;
-      this.transfer.error['feeSrc'] = i18n.t('error.transfer.fee', {
-        amount,
-        symbol,
-        chain,
-      });
+      this.addError(
+        'feeSrc',
+        i18n.t('error.transfer.fee', {
+          amount,
+          symbol,
+          chain,
+        }),
+      );
     } else {
-      delete this.transfer.error['feeSrc'];
+      this.clearError('feeSrc');
     }
   }
 
   private async validateDestFee() {
+    console.log('[validation] => destination fee');
     const { srcChain, destChainFee } = this.transfer;
-    const srcChainFeeAssetBalance = this.xchain.balance.get(destChainFee.key);
-    if (destChainFee.amount > srcChainFeeAssetBalance.amount) {
+    const destFeeBalance = this.xchain.balance.get(destChainFee.key);
+
+    if (destChainFee.amount > destFeeBalance.amount) {
+      const destFeeBalanceFmt = destFeeBalance.toDecimal(
+        destFeeBalance.decimals,
+      );
+      console.log(' Balance: ' + destFeeBalanceFmt);
       const amount = destChainFee.toDecimal(destChainFee.decimals);
       const symbol = destChainFee.originSymbol;
       const chain = srcChain.name;
-      this.transfer.error['feeDest'] = i18n.t('error.transfer.fee', {
-        amount,
-        symbol,
-        chain,
-      });
+      this.addError(
+        'feeDest',
+        i18n.t('error.transfer.fee', {
+          amount,
+          symbol,
+          chain,
+        }),
+      );
     } else {
-      delete this.transfer.error['feeDest'];
+      this.clearError('feeDest');
     }
   }
 
   private async validateHubEd() {
+    console.log('[validation] => assethub');
     const { destChain } = this.transfer;
     const destChainDotBalance = this.xchain.balanceDest.get('dot');
+
     if (
       destChain.key === 'assethub' &&
       destChainDotBalance &&
       destChainDotBalance.amount === 0n
     ) {
-      this.transfer.error['hubEd'] = i18n.t('error.transfer.ed', {
-        amount: '0.01',
-        symbol: 'DOT',
-        chain: 'AssetHub',
-      });
+      const dotBalanceFmt = destChainDotBalance.toDecimal(
+        destChainDotBalance.decimals,
+      );
+      const dotEd = '0.01';
+      console.log(' DOT min: ' + dotEd);
+      console.log(' DOT balance: ' + dotBalanceFmt);
+      this.addError(
+        'hubEd',
+        i18n.t('error.transfer.ed', {
+          amount: '0.01',
+          symbol: 'DOT',
+          chain: 'AssetHub',
+        }),
+      );
     } else {
-      delete this.transfer.error['hubEd'];
+      this.clearError('hubEd');
     }
   }
 
   private async validateHydraEd() {
+    console.log('[validation] => hydradx');
     const { router } = this.chain.state;
-    const { asset, srcChain, destChain, destChainFee } = this.transfer;
-    const destChainBalance = this.xchain.balanceDest.get(asset.key);
-    const destChainFeeBalance = this.xchain.balanceDest.get(destChainFee.key);
-    const insufficientAssets = new Set(['PINK', 'DED']); // TODO: Add support to SDK
-    const isExistingAccount = destChainBalance.amount > 0n;
-    const isSufficientAsset = !insufficientAssets.has(asset.originSymbol);
+    const { asset, address, srcChain, destChain } = this.transfer;
 
-    if (destChain.key !== 'hydradx' || isSufficientAsset || isExistingAccount) {
+    if (destChain.key !== 'hydradx') {
+      this.clearError('hdxEd');
       return;
     }
 
-    const feeAsset = this.assets.tradeable.find(
+    const destChainBalance = this.xchain.balanceDest.get(asset.key);
+    const isExistingAccount = destChainBalance.amount > 0n;
+    const isSufficient = Array.from(this.assets.registry.values()).find(
       (a) =>
-        a.symbol.toLowerCase() === destChainFee.originSymbol.toLowerCase() &&
+        a.symbol.toLowerCase() === asset.originSymbol.toLowerCase() &&
         a.origin === srcChain.parachainId,
-    );
-    const { amount, decimals } = await router.getBestSpotPrice(
-      SYSTEM_ASSET_ID,
-      feeAsset.id,
-    );
-    const feeAssetEd = formatAmount(amount.multipliedBy(1.1), decimals);
-    const isNotSuffient =
-      destChainFeeBalance.amount < toBigInt(feeAssetEd, decimals);
+    ).isSufficient;
 
-    if (isNotSuffient) {
-      this.transfer.error['hdxEd'] = i18n.t('error.transfer.ed', {
-        amount: feeAssetEd,
-        symbol: feeAsset.symbol,
-        chain: 'HydraDX',
-      });
-    } else {
-      delete this.transfer.error['hdxEd'];
+    console.log(' Is sufficient: ' + isSufficient);
+    console.log(' Is existing acc: ' + isExistingAccount);
+    if (isSufficient || isExistingAccount) {
+      this.clearError['hdxEd'];
+      return;
     }
+
+    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(address);
+    const feeAsset = this.assets.registry.get(feeAssetId);
+    const feeAssetKey = getXcmKey(feeAsset);
+    const feeAssetBalance = this.xchain.balanceDest.get(feeAssetKey);
+    const feeAssetBalanceBN = new BigNumber(feeAssetBalance.amount.toString());
+
+    const feeNativeEd = ONE.multipliedBy(1.1);
+    const feeAssetSpot = await router.getBestSpotPrice(
+      SYSTEM_ASSET_ID,
+      feeAssetId,
+    );
+
+    const feeAssetEd = feeNativeEd.times(
+      feeAssetSpot?.amount || scale(ONE, SYSTEM_ASSET_DECIMALS),
+    );
+
+    const feeAssetNotSuffient = feeAssetEd.gt(feeAssetBalanceBN);
+    const feeAssetEdFmt = formatAmount(feeAssetEd, feeAssetBalance.decimals);
+    const feeAssetBalanceFmt = feeAssetBalance.toDecimal(
+      feeAssetBalance.decimals,
+    );
+
+    console.log(' Fee asset: ' + feeAsset.symbol);
+    console.log(' Fee asset min: ' + feeAssetEdFmt);
+    console.log(' Fee asset balance: ' + feeAssetBalanceFmt);
+    if (feeAssetNotSuffient) {
+      this.addError(
+        'hdxEd',
+        i18n.t('error.transfer.ed', {
+          amount: formatAmount(feeAssetEd, feeAssetBalance.decimals),
+          symbol: feeAsset.symbol,
+          chain: 'HydraDX',
+        }),
+      );
+    } else {
+      this.clearError('hdxEd');
+    }
+    this.requestUpdate();
   }
 
-  private async clearTransfer() {
-    delete this.transfer.error['feeSrc'];
-    delete this.transfer.error['feeDest'];
-    delete this.transfer.error['hubEd'];
-    delete this.transfer.error['hdxEd'];
+  private addError(key: string, error: string) {
+    this.transfer.error = {
+      ...this.transfer.error,
+      [key]: error,
+    };
+  }
+
+  private clearError(key: string) {
+    const { [key]: string, ...rest } = this.transfer.error;
+    this.transfer.error = {
+      ...rest,
+    };
+  }
+
+  private async clearErrors() {
+    this.clearError('feeSrc');
+    this.clearError('feeDest');
+    this.clearError('hubEd');
+    this.clearError('hdxEd');
   }
 
   private async validateTransfer() {
     const { asset, destChainFee } = this.transfer;
-    this.validateSrcFee();
+    await this.validateSrcFee();
 
     // No need for additional checks, exit & clean
     const isSufficientPaymentAsset = asset.isEqual(destChainFee);
@@ -479,9 +550,9 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    this.validateDestFee();
-    this.validateHubEd();
-    this.validateHydraEd();
+    await this.validateDestFee();
+    await this.validateHubEd();
+    await this.validateHydraEd();
   }
 
   private formatAddress(address: string, chain: AnyChain): string {
@@ -541,8 +612,6 @@ export class XcmApp extends PoolApp {
       ...this.transfer,
       address: address,
     };
-    this.syncBalancesDest();
-    this._syncData();
   }
 
   private isEvmAddressError(dest: AnyChain, address: string) {
@@ -573,6 +642,10 @@ export class XcmApp extends PoolApp {
     } else {
       delete this.transfer.error['address'];
     }
+  }
+
+  private isToAddressValid() {
+    return this.transfer.error['address'] === undefined;
   }
 
   private async calculateSourceFee(
@@ -655,6 +728,7 @@ export class XcmApp extends PoolApp {
       updated.set(balance.key, balance);
     });
     this.xchain.balanceDest = updated;
+    //this.validateTransfer();
   }
 
   private resetTransfer(delta: Partial<TransferState>) {
@@ -675,7 +749,7 @@ export class XcmApp extends PoolApp {
     this.xchain.balanceDest = new Map([]);
   }
 
-  private async syncBalancesDest() {
+  private async syncBalancesOnAddressChange() {
     this.balanceDestSubscription?.unsubscribe();
     const account = this.account.state;
     if (!account) {
@@ -687,7 +761,10 @@ export class XcmApp extends PoolApp {
     this.balanceDestSubscription = await this.wallet.subscribeBalance(
       destAddr,
       destChain,
-      (balances: AssetAmount[]) => this.updateBalanceDest(balances),
+      (balances: AssetAmount[]) => {
+        this.updateBalanceDest(balances);
+        this.validateTransfer();
+      },
     );
   }
 
@@ -737,7 +814,9 @@ export class XcmApp extends PoolApp {
     let srcChainFee: AssetAmount;
     let srcChainMax: AssetAmount;
     if (srcChain.key == 'hydradx') {
-      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(
+        account?.address,
+      );
       const feeAsset = this.assets.registry.get(feeAssetId);
       srcChainFee = await this.calculateSourceFee(data, feeAsset, srcChain);
       const eb = calculateEffectiveBalance(
@@ -1016,6 +1095,12 @@ export class XcmApp extends PoolApp {
     this.disablePrefill();
     this.updateAddress(address);
     this.validateAddress();
+    if (this.isToAddressValid()) {
+      this.syncBalancesOnAddressChange();
+    } else {
+      this.clearError('hubEd');
+      this.clearError('hdxEd');
+    }
   }
 
   protected onChainSwitchClick({ detail }) {

@@ -28,13 +28,11 @@ export class PaymentApi {
     this._router = router;
   }
 
-  async getPaymentFeeAsset(account: Account): Promise<string> {
-    const address = this.getAddress(account);
+  async getPaymentFeeAsset(address: string): Promise<string> {
+    const addr = this.getSafeAddress(address);
     try {
       const feeAsset =
-        await this._api.query.multiTransactionPayment.accountCurrencyMap(
-          address,
-        );
+        await this._api.query.multiTransactionPayment.accountCurrencyMap(addr);
       return feeAsset.toHuman() ? feeAsset.toString() : SYSTEM_ASSET_ID;
     } catch {
       return SYSTEM_ASSET_ID;
@@ -45,7 +43,7 @@ export class PaymentApi {
     transaction: Transaction,
     account: Account,
   ): Promise<RuntimeDispatchInfo> {
-    const address = this.getAddress(account);
+    const address = this.getSafeAddress(account?.address);
     const transactionExtrinsic = this._api.tx(transaction.hex);
     return await transactionExtrinsic.paymentInfo(address);
   }
@@ -100,7 +98,7 @@ export class PaymentApi {
     }
   }
 
-  private getAddress(account: Account) {
-    return account?.address ?? TRSRY_ACC;
+  private getSafeAddress(address: string) {
+    return address ?? TRSRY_ACC;
   }
 }

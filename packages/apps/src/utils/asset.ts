@@ -45,3 +45,19 @@ export function isAssetOutAllowed(
   const allowed = Array.from(unique.values()).map((asset: Asset) => asset.id);
   return new Set(allowed).has(assetOut);
 }
+
+/**
+ * Build cross-chain asset key
+ *
+ * @param asset - chain asset
+ * @returns - key representation of asset in xcm config
+ */
+export function getXcmKey(asset: Asset) {
+  if (asset.origin === 2004) {
+    return asset.symbol.toLowerCase() + '_mwh';
+  } else if (asset.origin === 2000) {
+    return asset.symbol.toLowerCase() + '_awh';
+  } else {
+    return asset.symbol.toLowerCase();
+  }
+}

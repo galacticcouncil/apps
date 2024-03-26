@@ -31,7 +31,7 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) srcChainFee: AssetAmount = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destChainFee: AssetAmount = null;
-  @property({ type: Object }) error = {};
+  @property({ attribute: false }) error = {};
 
   static styles = [
     baseStyles,

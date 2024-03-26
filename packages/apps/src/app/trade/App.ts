@@ -722,7 +722,7 @@ export class TradeApp extends PoolApp {
     const transaction = trade.toTx(ZERO);
     const [paymentInfo, feeAssetId] = await Promise.all([
       this.paymentApi.getPaymentInfo(transaction, account),
-      this.paymentApi.getPaymentFeeAsset(account),
+      this.paymentApi.getPaymentFeeAsset(account?.address),
     ]);
 
     this.trade.transactionFee = await this.calculateTransactionFee(
@@ -735,7 +735,9 @@ export class TradeApp extends PoolApp {
 
   private async updateMaxAmountIn(asset: Asset) {
     const account = this.account.state;
-    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(
+      account?.address,
+    );
 
     const { assetIn, assetOut, balanceIn } = this.trade;
 
@@ -771,7 +773,9 @@ export class TradeApp extends PoolApp {
 
   private async updateMaxAmountOut(asset: Asset) {
     const account = this.account.state;
-    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(account);
+    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(
+      account?.address,
+    );
 
     const { assetIn, assetOut, balanceOut } = this.trade;
 

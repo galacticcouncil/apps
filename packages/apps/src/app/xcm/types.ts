@@ -19,7 +19,7 @@ export type TransferState = {
   min: AssetAmount;
   srcChain: AnyChain;
   srcChainFee: AssetAmount;
-  error: {};
+  error: { [key: string]: string };
   xdata: XData;
 };
 
