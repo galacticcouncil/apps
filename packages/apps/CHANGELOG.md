@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.12
+
+### Patch Changes
+
+- Skip xcm fee validations if missing adapter
+
 ## 3.3.11
 
 ### Patch Changes
