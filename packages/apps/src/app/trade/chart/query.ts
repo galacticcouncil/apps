@@ -10,8 +10,10 @@ function getPriceQuery(range: string) {
 
 function getRange(range: ChartRange) {
   switch (range) {
+    case ChartRange['1h']:
+      return '1m';
     case ChartRange['1d']:
-      return `10m`;
+      return '10m';
     case ChartRange['1w']:
       return '1h';
     case ChartRange['1m']:

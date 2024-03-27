@@ -54,8 +54,8 @@ export class TradeChart extends Chart {
       return;
     }
 
-    const from = this.getRangeFrom().format('YYYY-MM-DDTHH:mm:ss');
-    const to = this.getRangeTo().format('YYYY-MM-DDTHH:mm:ss');
+    const from = this.getRangeFrom().format('YYYY-MM-DDTHH:mm:ssZ');
+    const to = this.getRangeTo().format('YYYY-MM-DDTHH:mm:ssZ');
     this.chartState = ChartState.Loading;
     this.chartApi.getTradeData(
       this.assetIn,

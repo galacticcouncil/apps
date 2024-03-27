@@ -2,6 +2,7 @@ import { LitElement } from 'lit';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
 import {
   HumanizeDurationLanguage,
@@ -15,6 +16,8 @@ export abstract class BaseElement extends LitElement {
 
   constructor() {
     super();
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
     this._langService = new HumanizeDurationLanguage();
     this._langService.addLanguage('shortEn', {
       y: () => 'y',
@@ -28,7 +31,7 @@ export abstract class BaseElement extends LitElement {
       decimal: '2',
     });
     this._humanizer = new HumanizeDuration(this._langService);
-    this._dayjs = dayjs.extend(utc);
+    this._dayjs = dayjs;
   }
 
   parseListArgs(list: string) {

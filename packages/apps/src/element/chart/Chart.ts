@@ -147,16 +147,19 @@ export abstract class Chart extends BaseElement {
   }
 
   protected getRangeFrom() {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const range = this.chartRange;
     switch (range) {
+      case ChartRange['1h']:
+        return this._dayjs().tz(tz).subtract(1, 'hour');
       case ChartRange['1d']:
-        return this._dayjs().subtract(1, 'day');
+        return this._dayjs().tz(tz).subtract(1, 'day');
       case ChartRange['1w']:
-        return this._dayjs().subtract(1, 'week');
+        return this._dayjs().tz(tz).subtract(1, 'week');
       case ChartRange['1m']:
-        return this._dayjs().subtract(1, 'month');
+        return this._dayjs().tz(tz).subtract(1, 'month');
       default:
-        return this._dayjs(INIT_DATE);
+        return this._dayjs(INIT_DATE).tz(tz);
     }
   }
 

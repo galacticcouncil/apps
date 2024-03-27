@@ -34,13 +34,7 @@ export class TradeChartApi {
         queries: [
           {
             refId: 'price',
-            rawSql: buildPriceQuery(
-              assetIn.id,
-              assetOut.id,
-              from,
-              to,
-              range,
-            ),
+            rawSql: buildPriceQuery(assetIn.id, assetOut.id, from, to, range),
             format: 'table',
             datasourceId: Number(this._grafanaDsn),
           },
