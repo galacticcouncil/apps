@@ -375,12 +375,15 @@ export class XcmApp extends PoolApp {
   private async validateSrcFee() {
     console.log('[validation] => source fee');
     const { srcChain, srcChainFee } = this.transfer;
-    const srcFeeBalance = this.xchain.balance.get(srcChainFee.key);
+
     const skipValidationFor = new Set(['bifrost', 'hydradx']);
-    if (
-      !skipValidationFor.has(srcChain.key) &&
-      srcChainFee.amount > srcFeeBalance.amount
-    ) {
+    if (skipValidationFor.has(srcChain.key)) {
+      this.clearError('feeSrc');
+      return;
+    }
+
+    const srcFeeBalance = this.xchain.balance.get(srcChainFee.key);
+    if (srcFeeBalance && srcFeeBalance.amount < srcChainFee.amount) {
       const srcFeeBalanceFmt = srcFeeBalance.toDecimal(srcFeeBalance.decimals);
       console.log(' Balance: ' + srcFeeBalanceFmt);
       const amount = srcChainFee.toDecimal(srcChainFee.decimals);
@@ -403,8 +406,7 @@ export class XcmApp extends PoolApp {
     console.log('[validation] => destination fee');
     const { srcChain, destChainFee } = this.transfer;
     const destFeeBalance = this.xchain.balance.get(destChainFee.key);
-
-    if (destChainFee.amount > destFeeBalance.amount) {
+    if (destFeeBalance && destFeeBalance.amount < destChainFee.amount) {
       const destFeeBalanceFmt = destFeeBalance.toDecimal(
         destFeeBalance.decimals,
       );
@@ -731,7 +733,6 @@ export class XcmApp extends PoolApp {
       updated.set(balance.key, balance);
     });
     this.xchain.balanceDest = updated;
-    //this.validateTransfer();
   }
 
   private resetTransfer(delta: Partial<TransferState>) {
