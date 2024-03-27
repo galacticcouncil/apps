@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.13
+
+### Patch Changes
+
+- Add chart tz support
+
 ## 3.3.12
 
 ### Patch Changes
