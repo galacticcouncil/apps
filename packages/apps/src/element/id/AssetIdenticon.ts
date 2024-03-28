@@ -2,6 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
+import { i18n } from 'localization';
+
 import { Asset } from '@galacticcouncil/sdk';
 
 import { Ecosystem } from 'db';
@@ -30,17 +32,25 @@ export class AssetIdenticon extends LitElement {
 
   iconTemplate(id: string, icon: string) {
     const asset = this.assets.get(id);
+
+    const warning =
+      asset.type === 'External' ? i18n.t('asset.warning.external') : undefined;
+
     if (asset.origin) {
       const originChain = getChainKey(asset.origin, this.ecosystem);
       return html`
         <uigc-asset-id
           slot="icon"
           symbol=${icon}
+          warning=${warning}
           chain=${originChain}></uigc-asset-id>
       `;
     }
     return html`
-      <uigc-asset-id slot="icon" symbol=${icon}></uigc-asset-id>
+      <uigc-asset-id
+        slot="icon"
+        symbol=${icon}
+        warning=${warning}></uigc-asset-id>
     `;
   }
 

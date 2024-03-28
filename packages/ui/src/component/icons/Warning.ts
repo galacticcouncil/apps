@@ -6,11 +6,12 @@ import { BaseIcon } from './BaseIcon';
 @customElement('uigc-icon-warning')
 export class WarningIcon extends BaseIcon {
   static styles = [
+    BaseIcon.styles,
     css`
       :host {
-        --stop-first-color: #ffd53e;
+        --stop-first-color: #ffea9b;
         --stop-first-offset: 0;
-        --stop-second-color: #ffec8a;
+        --stop-second-color: #ffdd2a;
       }
 
       :host([red]) {
@@ -32,23 +33,21 @@ export class WarningIcon extends BaseIcon {
         <path
           fill-rule="evenodd"
           clip-rule="evenodd"
-          d="M12 2.875L22.5366 21.125H1.46338L12 2.875ZM11.0101 15.8919H12.9932V17.8751H11.0101V15.8919ZM12.9932 9.875H11.0101V14.5024H12.9932V9.875Z"
+          d="M9.96 3.338a2.358 2.358 0 0 1 4.084 0l8.64 14.965a2.358 2.358 0 0 1-2.042 3.538H3.36a2.358 2.358 0 0 1-2.043-3.54Zm.847 13.378a1.198 1.198 0 1 1 2.396 0 1.198 1.198 0 0 1-2.396 0zm2.396-7.264a1.198 1.198 0 0 0-2.396 0v3.193a1.198 1.198 0 0 0 2.396 0z"
           fill="url(#paint0_linear_3_2)"></path>
         <defs>
           <linearGradient
             id="paint0_linear_3_2"
-            x1="12"
-            y1="3.77624"
-            x2="12"
-            y2="21.125"
+            x1="11.638"
+            x2="11.638"
+            y1="10.524"
+            y2="15.469"
+            gradientTransform="matrix(1.7969 0 0 1.7969 -8.912 -5.955)"
             gradientUnits="userSpaceOnUse">
             <stop
               offset="var(--stop-first-offset)"
-              stop-color="var(--stop-first-color)"></stop>
-            <stop
-              offset="1"
-              stop-color="var(--stop-second-color)"
-              stop-opacity="0.27"></stop>
+              stop-color="var(--stop-first-color)" />
+            <stop offset="1" stop-color="var(--stop-second-color)" />
           </linearGradient>
         </defs>
       </svg>

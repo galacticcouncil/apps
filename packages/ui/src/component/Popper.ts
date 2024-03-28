@@ -15,14 +15,15 @@ export class Popper extends UIGCElement {
       .tooltip {
         display: none;
         width: max-content;
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
-        background: #d00000;
+        background: var(--hex-dark-blue-400);
         color: white;
         padding: 5px;
         border-radius: 4px;
         font-size: 90%;
+        z-index: 1000;
       }
     `,
   ];
