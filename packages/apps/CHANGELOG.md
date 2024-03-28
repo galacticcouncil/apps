@@ -1,5 +1,13 @@
 # @galacticcouncil/apps
 
+## 3.4.0
+
+### Minor Changes
+
+- AH asset status validation
+- Oracles fee support
+- Stablecoin rate support
+
 ## 3.3.14
 
 ### Patch Changes
