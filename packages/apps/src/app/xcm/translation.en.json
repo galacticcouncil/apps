@@ -28,6 +28,7 @@
   "error.minAmount": "The minimum transferable amount is {{amount}} {{asset}}.",
 
   "error.transfer.fee": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for fees",
+  "error.transfer.frozen": "Your account on <1>{{chain}}</1> has frozen balance for <1>{{symbol}}</1>",
   "error.transfer.ed": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for existential deposit",
 
   "warning.cex": "Transferring assets to CEX through XCM directly will result in loss of funds. Please send them to your address on the relevant network first.",
