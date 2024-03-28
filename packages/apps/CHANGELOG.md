@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.3.14
+
+### Patch Changes
+
+- Hide insufficient assets for DCA
+
 ## 3.3.13
 
 ### Patch Changes
