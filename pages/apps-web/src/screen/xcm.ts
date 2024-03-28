@@ -51,7 +51,8 @@ export class XcmScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         apiAddress="wss://rpc.hydradx.cloud"
-        stableCoinAssetId="10"></gc-xcm>
+        stableCoinAssetId="10"
+        ss58Prefix="63"></gc-xcm>
     `;
   }
 

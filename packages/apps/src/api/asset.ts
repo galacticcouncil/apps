@@ -56,12 +56,24 @@ export class AssetApi {
   async getPrice(
     assets: Asset[],
     stableCoinAssetId: string,
+    stableCoinRate?: string,
   ): Promise<Map<string, Amount>> {
     const prices: [string, Amount][] = await Promise.all(
-      assets.map(async (asset: Asset) => [
-        asset.id,
-        await this._router.getBestSpotPrice(asset.id, stableCoinAssetId),
-      ]),
+      assets.map(async (asset: Asset) => {
+        const price = await this._router.getBestSpotPrice(
+          asset.id,
+          stableCoinAssetId,
+        );
+
+        if (stableCoinRate && price) {
+          return [
+            asset.id,
+            { ...price, amount: price.amount?.times(stableCoinRate) },
+          ];
+        }
+
+        return [asset.id, price];
+      }),
     );
     return pairs2Map(prices);
   }
