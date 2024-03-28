@@ -555,7 +555,10 @@ export class YieldApp extends PoolApp {
       <uigc-paper class=${classMap(classes)}>
         <gc-select-asset
           .assets=${this.assets.tradeable.filter(
-            (a) => a.type !== 'Bond' && !['vDOT', 'DOT'].includes(a.symbol),
+            (a) =>
+              a.type !== 'Bond' &&
+              a.isSufficient &&
+              !['vDOT', 'DOT'].includes(a.symbol),
           )}
           .pairs=${this.assets.pairs}
           .balances=${this.assets.balance}
