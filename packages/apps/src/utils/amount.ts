@@ -45,7 +45,7 @@ export function exchange(
   asset: Asset,
   amount: string | number,
 ): string {
-  if (rates.size === 0) {
+  if (rates.size === 0 || !asset) {
     return null;
   }
 
