@@ -5,11 +5,14 @@ import { UIGCElement } from './base/UIGCElement';
 import './logo/AssetLogo';
 import './logo/ChainLogo';
 import './logo/PlaceholderLogo';
+import './icons/Warning';
+import './Popper';
 
 @customElement('uigc-asset-id')
 export class AssetId extends UIGCElement {
   @property({ type: String }) symbol = null;
   @property({ type: String }) chain = null;
+  @property({ type: String }) warning = null;
 
   static styles = [
     css`
@@ -30,14 +33,24 @@ export class AssetId extends UIGCElement {
         );
       }
 
-      :host([chain]) uigc-logo-chain {
+      :host([chain]) uigc-logo-chain,
+      uigc-icon-warning {
         display: flex;
         position: absolute;
         width: 50%;
         height: 50%;
+        z-index: 1;
+      }
+
+      :host([chain]) uigc-logo-chain {
         right: -10%;
         top: -10%;
-        z-index: 1;
+      }
+
+      uigc-icon-warning {
+        right: -10%;
+        bottom: -10%;
+        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
       }
     `,
   ];
@@ -51,6 +64,16 @@ export class AssetId extends UIGCElement {
     }
   }
 
+  renderWarning() {
+    if (this.warning) {
+      return html`
+        <uigc-popper text=${this.warning}>
+          <uigc-icon-warning fit></uigc-icon-warning>
+        </uigc-popper>
+      `;
+    }
+  }
+
   render() {
     return html`
       <uigc-logo-asset fit .asset=${this.symbol}>
@@ -59,6 +82,7 @@ export class AssetId extends UIGCElement {
       <uigc-logo-chain fit>
         <uigc-logo-placeholder fit slot="placeholder"></uigc-logo-placeholder>
       </uigc-logo-chain>
+      ${this.renderWarning()}
     `;
   }
 }
