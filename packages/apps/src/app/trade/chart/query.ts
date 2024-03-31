@@ -3,7 +3,7 @@ import { ChartRange } from 'element/chart/types';
 function getPriceQuery(range: string) {
   return `SELECT
     $__timeGroupAlias("timestamp",'${range}'),
-    max(price) AS "price"
+    last(price) AS "price"
     FROM pair_price
     `;
 }
