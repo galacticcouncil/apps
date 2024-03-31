@@ -3,7 +3,7 @@ import { ChartRange } from 'element/chart/types';
 function getPriceQuery(range: string) {
   return `SELECT
     $__timeGroupAlias("timestamp",'${range}'),
-    avg(price) AS "price"
+    sum(price * volume) / sum(volume) AS "price"
     FROM filtered_price
     `;
 }
@@ -57,7 +57,11 @@ export function buildPriceQuery(
         CASE 
           WHEN asset_in = ${assetIn} AND asset_out = ${assetOut} AND amount_in != 0 AND amount_out != 0 THEN amount_in / amount_out
           WHEN asset_in = ${assetOut} AND asset_out = ${assetIn} AND amount_in != 0 AND amount_out != 0 THEN amount_out / amount_in
-        END AS price
+        END AS price,
+        CASE
+          WHEN asset_in = ${assetIn} THEN amount_in
+          WHEN asset_in = ${assetOut} THEN amount_out
+        END AS volume
       FROM nor_trades
     ),
     prev_price AS (
