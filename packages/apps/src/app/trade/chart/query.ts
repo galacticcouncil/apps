@@ -63,10 +63,9 @@ export function buildPriceQuery(
     prev_price AS (
       SELECT
         *,
-        lag(price) over () as prev_price
+        lag(price) over (order by timestamp) as prev_price
       from pair_price
       WHERE price IS NOT NULL
-      order by timestamp
     ),
     filtered_price AS (
       select *
