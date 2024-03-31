@@ -3,8 +3,8 @@ import { ChartRange } from 'element/chart/types';
 function getPriceQuery(range: string) {
   return `SELECT
     $__timeGroupAlias("timestamp",'${range}'),
-    last(price) AS "price"
-    FROM pair_price
+    avg(price) AS "price"
+    FROM filtered_price
     `;
 }
 
@@ -59,9 +59,22 @@ export function buildPriceQuery(
           WHEN asset_in = ${assetOut} AND asset_out = ${assetIn} AND amount_in != 0 AND amount_out != 0 THEN amount_out / amount_in
         END AS price
       FROM nor_trades
+    ),
+    prev_price AS (
+      SELECT
+        *,
+        lag(price) over () as prev_price
+      from pair_price
+      WHERE price IS NOT NULL
+      order by timestamp
+    ),
+    filtered_price AS (
+      select *
+      FROM prev_price
+      where prev_price IS NULL
+         or (prev_price < price * 2 and price < prev_price * 2)
     )
     ${getPriceQuery(queryRange)}
-    WHERE price IS NOT NULL
     GROUP BY 1
     ORDER BY 1;
     `;
