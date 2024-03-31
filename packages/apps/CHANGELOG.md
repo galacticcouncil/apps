@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.1
+
+### Patch Changes
+
+- Use last instead of max for chart data
+
 ## 3.4.0
 
 ### Minor Changes
