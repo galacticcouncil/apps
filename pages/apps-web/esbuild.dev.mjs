@@ -1,7 +1,18 @@
 import esbuild from 'esbuild';
+import { copy } from 'esbuild-plugin-copy';
 import { createProxyServer } from '../../esbuild.proxy.mjs';
 
-const plugins = [];
+const plugins = [
+  copy({
+    resolveFrom: 'cwd',
+    assets: {
+      from: ['../../node_modules/@galacticcouncil/sdk/build/*.wasm'],
+      to: ['./public'],
+    },
+    watch: true,
+    once: true,
+  }),
+];
 
 const options = {
   entryPoints: ['src/index.ts'],

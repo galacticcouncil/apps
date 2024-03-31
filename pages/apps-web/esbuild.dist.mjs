@@ -1,15 +1,16 @@
 import esbuild from 'esbuild';
-import fs from 'fs';
-import path from 'path';
+import { copy } from 'esbuild-plugin-copy';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { htmlPlugin } from '@craftamap/esbuild-plugin-html';
 import { parse } from 'node-html-parser';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
-const indexTemplate = fs.readFileSync(
-  path.resolve(__dirname, 'public/index.html'),
+const indexTemplate = readFileSync(
+  resolve(__dirname, 'public/index.html'),
   'utf8',
 );
 
@@ -19,6 +20,33 @@ indexDOM.getElementsByTagName('script').forEach((script) => {
     script.remove();
   }
 });
+
+const plugins = [
+  htmlPlugin({
+    files: [
+      {
+        entryPoints: ['src/index.ts'],
+        filename: 'index.html',
+        scriptLoading: 'module',
+        htmlTemplate: indexDOM.toString(),
+      },
+    ],
+  }),
+  copy({
+    resolveFrom: 'cwd',
+    assets: [
+      {
+        from: ['./public/assets/**/*'],
+        to: ['./dist/assets'],
+      },
+      {
+        from: ['../../node_modules/@galacticcouncil/sdk/build/*.wasm'],
+        to: ['./dist'],
+      },
+    ],
+    watch: false,
+  }),
+];
 
 const common = {
   preserveSymlinks: true,
@@ -36,16 +64,5 @@ esbuild.build({
   entryPoints: ['src/index.ts'],
   entryNames: 'bundle-[hash]',
   outdir: 'dist/',
-  plugins: [
-    htmlPlugin({
-      files: [
-        {
-          entryPoints: ['src/index.ts'],
-          filename: 'index.html',
-          scriptLoading: 'module',
-          htmlTemplate: indexDOM.toString(),
-        },
-      ],
-    }),
-  ],
+  plugins: plugins,
 });

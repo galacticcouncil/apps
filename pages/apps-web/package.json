@@ -22,7 +22,7 @@
     "dev": "node ./esbuild.dev.mjs",
     "dist": "node ./esbuild.dist.mjs",
     "predist": "rimraf dist",
-    "postdist": "cp -R ./public/assets ./dist/assets/ && cp ./dist/index.html ./dist/404.html"
+    "postdist": "cp ./dist/index.html ./dist/404.html"
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",
