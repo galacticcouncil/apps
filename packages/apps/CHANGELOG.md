@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.4
+
+### Patch Changes
+
+- weighted average chart aggr
+
 ## 3.4.3
 
 ### Patch Changes
