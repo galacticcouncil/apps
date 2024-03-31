@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.3
+
+### Patch Changes
+
+- trade order fixed
+
 ## 3.4.2
 
 ### Patch Changes
