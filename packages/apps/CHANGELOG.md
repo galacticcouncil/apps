@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.2
+
+### Patch Changes
+
+- eliminating outliers from chart
+
 ## 3.4.1
 
 ### Patch Changes
