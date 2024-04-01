@@ -3,7 +3,9 @@ node_modules/
 
 # build folders
 packages/*/build
-packages/*/build-meta.json
+
+# build metadata
+build-meta.json
 
 # dist folders
 pages/*/dist

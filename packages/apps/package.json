@@ -51,7 +51,7 @@
     "@galacticcouncil/sdk": "^2.0.1",
     "@galacticcouncil/ui": "^3.1.4",
     "@galacticcouncil/xcm-cfg": "^1.11.0",
-    "@galacticcouncil/xcm-sdk": "^2.3.1",
+    "@galacticcouncil/xcm-sdk": "^2.4.0",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
     "@talismn/connect-wallets": "^1.2.1",

@@ -1,7 +1,7 @@
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 import { wasmLoader } from 'esbuild-plugin-wasm';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { htmlPlugin } from '@craftamap/esbuild-plugin-html';
@@ -50,16 +50,22 @@ const common = {
   treeShaking: true,
   metafile: true,
   minify: true,
+  metafile: true,
   bundle: true,
   format: 'esm',
   platform: 'browser',
   target: 'esnext',
 };
 
-esbuild.build({
-  ...common,
-  entryPoints: ['src/index.ts'],
-  entryNames: 'bundle-[hash]',
-  outdir: 'dist/',
-  plugins: plugins,
-});
+esbuild
+  .build({
+    ...common,
+    entryPoints: ['src/index.ts'],
+    entryNames: 'bundle-[hash]',
+    outdir: 'dist/',
+    plugins: plugins,
+  })
+  .then(({ metafile }) => {
+    writeFileSync('build-meta.json', JSON.stringify(metafile));
+  })
+  .catch(() => process.exit(1));
