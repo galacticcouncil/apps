@@ -1,5 +1,6 @@
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
+import { wasmLoader } from 'esbuild-plugin-wasm';
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -22,6 +23,15 @@ indexDOM.getElementsByTagName('script').forEach((script) => {
 });
 
 const plugins = [
+  copy({
+    resolveFrom: 'cwd',
+    assets: [
+      {
+        from: ['./public/assets/**/*'],
+        to: ['./dist/assets'],
+      },
+    ],
+  }),
   htmlPlugin({
     files: [
       {
@@ -32,20 +42,7 @@ const plugins = [
       },
     ],
   }),
-  copy({
-    resolveFrom: 'cwd',
-    assets: [
-      {
-        from: ['./public/assets/**/*'],
-        to: ['./dist/assets'],
-      },
-      {
-        from: ['../../node_modules/@galacticcouncil/sdk/build/*.wasm'],
-        to: ['./dist'],
-      },
-    ],
-    watch: false,
-  }),
+  wasmLoader({ mode: 'deferred' }),
 ];
 
 const common = {

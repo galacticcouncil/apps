@@ -34,6 +34,7 @@
     "esbuild-plugin-compress": "^1.0.1",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-minify-html-literals": "^1.0.6",
+    "esbuild-plugin-wasm": "^1.0.0",
     "node-html-parser": "^5.4.2-0",
     "patch-package": "^7.0.0",
     "prettier": "^2.3.2",
