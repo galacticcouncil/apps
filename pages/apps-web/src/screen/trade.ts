@@ -64,7 +64,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         twapOn
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://hydradx-rpc.dwellir.com"
+        apiAddress="wss://rpc.hydradx.cloud"
         stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
