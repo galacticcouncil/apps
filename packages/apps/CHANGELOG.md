@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.5
+
+### Patch Changes
+
+- Fix trade spotPrice display
+
 ## 3.4.4
 
 ### Patch Changes
