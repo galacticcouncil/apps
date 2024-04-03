@@ -928,9 +928,11 @@ export class TradeForm extends BaseElement {
       show: this.spotPrice || this.inProgress,
     };
 
-    const spotPrice = this.isPriceReversed
-      ? ONE.div(this.spotPrice)
+    const spotPrice = this.trade
+      ? this.trade.toHuman().spotPrice
       : this.spotPrice;
+
+    const spotPriceFmt = this.isPriceReversed ? ONE.div(spotPrice) : spotPrice;
     const inputSymbol = this.isPriceReversed
       ? this.assetIn?.symbol
       : this.assetOut?.symbol;
@@ -952,7 +954,7 @@ export class TradeForm extends BaseElement {
           class=${classMap(spotPriceClasses)}
           .inputAsset=${inputSymbol}
           .outputAsset=${outputSymbol}
-          .outputBalance=${spotPrice}
+          .outputBalance=${spotPriceFmt}
           .loading=${this.inProgress}
           @click=${() => {
             this.isPriceReversed = !this.isPriceReversed;
