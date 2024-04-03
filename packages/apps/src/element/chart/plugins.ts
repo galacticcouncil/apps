@@ -1,4 +1,4 @@
-import { humanizeAmount } from 'utils/amount';
+import { html } from 'lit';
 import {
   IChartApi,
   ISeriesApi,
@@ -6,10 +6,31 @@ import {
   UTCTimestamp,
 } from 'lightweight-charts';
 
+import { humanizeAmount } from 'utils/amount';
+import { getRenderString } from 'utils/dom';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
+
+function usdTemplate(usdPrice: string) {
+  return html`
+    <div class="usd">
+      <span>Price:</span>
+      <span>$${humanizeAmount(usdPrice)}</span>
+    </div>
+  `;
+}
+
+function volumeTemplate(volume: string, asset: string) {
+  return html`
+    <div class="usd">
+      <span>Vol:</span>
+      <span>${humanizeAmount(volume) + ' ' + asset}</span>
+    </div>
+  `;
+}
 
 export function subscribeCrosshair(
   chart: IChartApi,
@@ -34,10 +55,19 @@ export function subscribeCrosshair(
       actual.style.display = 'flex';
     } else {
       const asset = actual.getElementsByClassName('asset');
-      const prices: SingleValueData[] = series.map((serie) => {
-        return param.seriesData.get(serie) as SingleValueData;
-      });
-      const price: SingleValueData = prices.find((price) => !!price);
+      const prices: SingleValueData[] = series
+        .filter((serie) => serie.seriesType() === 'Baseline')
+        .map((serie) => {
+          return param.seriesData.get(serie) as SingleValueData;
+        });
+      const price: SingleValueData = prices.find((price) => !!price); // Fallback to secondary prediction dataset
+
+      const histogram = series.find(
+        (serie) => serie.seriesType() === 'Histogram',
+      );
+      const volume: SingleValueData = param.seriesData.get(
+        histogram,
+      ) as SingleValueData;
 
       if (asset.length == 0 || !price) {
         selected.style.display = 'none';
@@ -56,11 +86,18 @@ export function subscribeCrosshair(
         `<div class="price">` +
         humanizeAmount(price.value.toString()) +
         ` ${assetText}</div>`;
-      const usdHtml =
-        `<div class="usd"><span>` +
-        `≈$${humanizeAmount(usdPrice)}` +
-        `</span></div>`;
-      selected.innerHTML = usdPrice ? priceHtml + usdHtml : priceHtml;
+
+      const usdHtml = usdTemplate(usdPrice);
+      if (volume) {
+        const volumeHtml = volumeTemplate(volume.value.toFixed(), assetText);
+        selected.innerHTML = usdPrice
+          ? priceHtml + getRenderString(usdHtml) + getRenderString(volumeHtml)
+          : priceHtml;
+      } else {
+        selected.innerHTML = usdPrice
+          ? priceHtml + getRenderString(usdHtml)
+          : priceHtml;
+      }
 
       const date = dayjs
         .unix(param.time as UTCTimestamp)

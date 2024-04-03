@@ -89,6 +89,7 @@ export class BondsChart extends Chart {
         const secondaryDataset = toDatapoints(prediction);
         const datasets = {
           primary: primaryDataset,
+          primaryOhlc: [],
           secondary: secondaryDataset,
         };
 

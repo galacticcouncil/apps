@@ -111,6 +111,15 @@ export const chartStyles = css`
     color: rgba(255, 255, 255, 0.4);
   }
 
+  .tooltip .usd > span {
+    font-family: var(--uigc-app-font);
+    font-style: normal;
+    //font-weight: 500;
+    font-size: 14px;
+    line-height: 100%;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
   .tooltip-floating {
     width: 96px;
     padding: 5px 0;
