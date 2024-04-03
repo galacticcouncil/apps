@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.6
+
+### Patch Changes
+
+- filtering out low volume buckets from chart
+
 ## 3.4.5
 
 ### Patch Changes
