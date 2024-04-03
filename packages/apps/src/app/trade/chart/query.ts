@@ -1,13 +1,5 @@
 import { ChartRange } from 'element/chart/types';
 
-function getPriceQuery(range: string) {
-  return `SELECT
-    $__timeGroupAlias("timestamp",'${range}'),
-    sum(price * volume) / sum(volume) AS "price"
-    FROM filtered_price
-    `;
-}
-
 function getRange(range: ChartRange) {
   switch (range) {
     case ChartRange['1h']:
@@ -76,9 +68,18 @@ export function buildPriceQuery(
       FROM prev_price
       where prev_price IS NULL
          or (prev_price < price * 2 and price < prev_price * 2)
+    ),
+    buckets AS (
+      SELECT
+          $__timeGroupAlias("timestamp",'${queryRange}'),
+        avg(price) AS price,
+        sum(volume) as volume
+      FROM filtered_price
+      GROUP BY 1
+      ORDER BY 1
     )
-    ${getPriceQuery(queryRange)}
-    GROUP BY 1
-    ORDER BY 1;
+    select time, price 
+    FROM buckets 
+    where volume * 1000 > (select avg(volume) from buckets);
     `;
 }
