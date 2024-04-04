@@ -4,10 +4,16 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import { ISeriesApi, UTCTimestamp, SingleValueData } from 'lightweight-charts';
 
-import { Chain, ChainCursor, DatabaseController, TradeData } from 'db';
+import {
+  Chain,
+  ChainCursor,
+  DatabaseController,
+  TradeData,
+  TradeDataCursor,
+} from 'db';
 import { exchange, humanizeAmount } from 'utils/amount';
 
-import { Amount } from '@galacticcouncil/sdk';
+import { Amount, Asset } from '@galacticcouncil/sdk';
 
 import { Chart, Bucket } from 'element/chart';
 import { DEFAULT_DATASET } from 'element/chart/data';
@@ -123,11 +129,8 @@ export class TradeChart extends Chart {
   initSeries(): void {
     const theme = this.theme.state;
     this.chartPriceSeries = this.chart.addBaselineSeries({
+      visible: true,
       lineWidth: 2,
-      /* OHLC -> 
-      topLineColor: 'transparent',
-      topFillColor1: 'transparent',
-      topFillColor2: 'transparent', */
       topLineColor: theme === 'hdx' ? '#85D1FF' : '#4fffb0',
       topFillColor1:
         theme === 'hdx'
@@ -158,6 +161,7 @@ export class TradeChart extends Chart {
     });
 
     this.chartVolumeSeries = this.chart.addHistogramSeries({
+      visible: true,
       color: theme === 'hdx' ? '#85D1FF' : '#4fffb0',
       lastValueVisible: false,
       priceLineVisible: false,
@@ -181,6 +185,40 @@ export class TradeChart extends Chart {
 
   getDatasetPrefix(): string {
     return this.chartRange;
+  }
+
+  private reverseHistogramDataset(
+    volume: SingleValueData[],
+    price: SingleValueData[],
+  ): SingleValueData[] {
+    return volume.map((d: SingleValueData, i: number) => {
+      return {
+        time: d.time,
+        value: d.value / price[i].value,
+      } as SingleValueData;
+    });
+  }
+
+  protected storeRecord(
+    assetIn: Asset,
+    assetOut: Asset,
+    data: TradeData,
+  ): void {
+    const cache = TradeDataCursor.deref();
+    const key = this.buildDataKey(assetIn, assetOut);
+    cache.set(key, data);
+
+    const keySwitch = this.buildDataKey(assetOut, assetIn);
+    const primarySwitch = this.reverseDataset(data.primary);
+    const secondarySwitch = this.reverseHistogramDataset(
+      data.secondary,
+      data.primary,
+    );
+    cache.set(keySwitch, {
+      primary: primarySwitch,
+      primaryOhlc: [],
+      secondary: secondarySwitch,
+    });
   }
 
   private async init() {

@@ -123,7 +123,7 @@ export abstract class Chart extends BaseElement {
     return cache.has(this.getDataKey());
   }
 
-  private reverseDataset(data: SingleValueData[]): SingleValueData[] {
+  protected reverseDataset(data: SingleValueData[]): SingleValueData[] {
     return data.map((d: SingleValueData) => {
       return {
         time: d.time,
@@ -132,7 +132,11 @@ export abstract class Chart extends BaseElement {
     });
   }
 
-  protected storeRecord(assetIn: Asset, assetOut: Asset, data: TradeData) {
+  protected storeRecord(
+    assetIn: Asset,
+    assetOut: Asset,
+    data: TradeData,
+  ): void {
     const cache = TradeDataCursor.deref();
     const key = this.buildDataKey(assetIn, assetOut);
     cache.set(key, data);

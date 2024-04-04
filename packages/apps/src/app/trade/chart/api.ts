@@ -4,7 +4,7 @@ import { Asset } from '@galacticcouncil/sdk';
 import { TradeData } from 'db';
 import { ChartRange } from 'element/chart/types';
 
-import { buildPriceQuery, buildVolumeQuery } from './query';
+import { buildQuery } from './query';
 
 export class TradeChartApi {
   private _grafanaUrl: string;
@@ -33,14 +33,8 @@ export class TradeChartApi {
       body: JSON.stringify({
         queries: [
           {
-            refId: 'price',
-            rawSql: buildPriceQuery(assetIn.id, assetOut.id, from, to, range),
-            format: 'table',
-            datasourceId: Number(this._grafanaDsn),
-          },
-          {
-            refId: 'volume',
-            rawSql: buildVolumeQuery(assetIn.id, assetOut.id, from, to, range),
+            refId: 'buckets',
+            rawSql: buildQuery(assetIn.id, assetOut.id, from, to, range),
             format: 'table',
             datasourceId: Number(this._grafanaDsn),
           },
@@ -49,11 +43,10 @@ export class TradeChartApi {
     })
       .then((response) => response.json())
       .then((data) => {
-        const rawPrice = data.results.price.frames[0].data.values;
-        const rawVolume = data.results.volume?.frames[0].data.values;
-        const priceDS = this.formatData(rawPrice);
-        const priceOhlcDS = this.formatOhlcData(rawPrice);
-        const volumeDS = this.formatVolumeData(rawPrice, rawVolume);
+        const buckets = data.results.buckets.frames[0].data.values;
+        const priceDS = this.formatPriceData(buckets);
+        const priceOhlcDS = [];
+        const volumeDS = this.formatVolumeData(buckets);
         onSuccess(assetIn, assetOut, {
           primary: priceDS,
           primaryOhlc: priceOhlcDS,
@@ -66,11 +59,20 @@ export class TradeChartApi {
       });
   }
 
-  private formatData([ts, value]) {
+  private formatPriceData([ts, price, _volume]) {
     return ts.map((obj: number, index: number) => {
       return {
         time: Math.floor(obj / 1000) as UTCTimestamp,
-        value: value[index],
+        value: price[index],
+      } as SingleValueData;
+    });
+  }
+
+  private formatVolumeData([ts, _price, volume]) {
+    return ts.map((obj: number, index: number) => {
+      return {
+        time: Math.floor(obj / 1000) as UTCTimestamp,
+        value: volume[index],
       } as SingleValueData;
     });
   }
@@ -84,16 +86,6 @@ export class TradeChartApi {
         open: open[index],
         close: close[index],
       } as OhlcData;
-    });
-  }
-
-  private formatVolumeData([_, _value, _low, _high, open, close], [ts, value]) {
-    return ts.map((obj: number, index: number) => {
-      return {
-        time: Math.floor(obj / 1000) as UTCTimestamp,
-        value: value[index],
-        // OHLC color: open[index] > close[index] ? '#ef5350' : '#26a69a',
-      } as unknown as OhlcData;
     });
   }
 }
