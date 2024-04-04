@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.7
+
+### Patch Changes
+
+- Fix spot price calc / volumes
+
 ## 3.4.6
 
 ### Patch Changes
