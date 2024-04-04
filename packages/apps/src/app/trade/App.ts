@@ -227,12 +227,27 @@ export class TradeApp extends PoolApp {
     }
   }
 
+  private async calculateSpotPrice(
+    assetIn: Asset,
+    assetOut: Asset,
+  ): Promise<string> {
+    const { router } = this.chain.state;
+    const price: Amount = await router.getBestSpotPrice(
+      assetIn.id,
+      assetOut.id,
+    );
+    return scale(ONE, price.decimals).div(price.amount).toFixed();
+  }
+
   protected async calculateSell(
     assetIn: Asset,
     assetOut: Asset,
     amountIn: string,
   ) {
-    const trade = await this.safeSell(assetIn, assetOut, amountIn);
+    const [trade, spotPrice] = await Promise.all([
+      this.safeSell(assetIn, assetOut, amountIn),
+      this.calculateSpotPrice(assetIn, assetOut),
+    ]);
     const tradeHuman = trade.toHuman();
 
     const { slippage } = this.tradeConfig.state;
@@ -246,6 +261,7 @@ export class TradeApp extends PoolApp {
       assetOut: assetOut,
       inProgress: false,
       minAmountOut: minAmountOut,
+      spotPrice: spotPrice,
       trade: trade,
       type: TradeType.Sell,
     };
@@ -306,7 +322,10 @@ export class TradeApp extends PoolApp {
     assetOut: Asset,
     amountOut: string,
   ) {
-    const trade = await this.safeBuy(assetIn, assetOut, amountOut);
+    const [trade, spotPrice] = await Promise.all([
+      this.safeBuy(assetIn, assetOut, amountOut),
+      this.calculateSpotPrice(assetIn, assetOut),
+    ]);
     const tradeHuman = trade.toHuman();
 
     const { slippage } = this.tradeConfig.state;
@@ -320,6 +339,7 @@ export class TradeApp extends PoolApp {
       assetIn: assetIn,
       assetOut: assetOut,
       maxAmountIn: maxAmountIn,
+      spotPrice: spotPrice,
       trade: trade,
       type: TradeType.Buy,
     };
@@ -364,12 +384,7 @@ export class TradeApp extends PoolApp {
     }
 
     const { assetIn, assetOut } = this.trade;
-    const { router } = this.chain.state;
-    const price: Amount = await router.getBestSpotPrice(
-      assetIn.id,
-      assetOut.id,
-    );
-    const spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
+    const spotPrice = await this.calculateSpotPrice(assetIn, assetOut);
     this.trade = {
       ...this.trade,
       inProgress: false,
