@@ -1,5 +1,49 @@
 # @galacticcouncil/apps
 
+## 3.4.6
+
+### Patch Changes
+
+- filtering out low volume buckets from chart
+
+## 3.4.5
+
+### Patch Changes
+
+- Fix trade spotPrice display
+
+## 3.4.4
+
+### Patch Changes
+
+- weighted average chart aggr
+
+## 3.4.3
+
+### Patch Changes
+
+- trade order fixed
+
+## 3.4.2
+
+### Patch Changes
+
+- eliminating outliers from chart
+
+## 3.4.1
+
+### Patch Changes
+
+- Use last instead of max for chart data
+
+## 3.4.0
+
+### Minor Changes
+
+- AH asset status validation
+- Oracles fee support
+- Stablecoin rate support
+
 ## 3.3.14
 
 ### Patch Changes

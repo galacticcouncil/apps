@@ -34,6 +34,7 @@ import {
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
   Transaction,
+  findNestedKey,
   scale,
 } from '@galacticcouncil/sdk';
 
@@ -95,6 +96,7 @@ export class XcmApp extends PoolApp {
   @property({ type: String }) destChain: string = null;
   @property({ type: String }) asset: string = null;
   @property({ type: String }) blacklist: string = null;
+  @property({ type: Number }) ss58Prefix: number = null;
 
   @state() tab: TransferTab = TransferTab.Form;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
@@ -373,7 +375,7 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateSrcFee() {
-    console.log('[validation] => source fee');
+    console.log('[validation] => Fee (SRC)');
     const { srcChain, srcChainFee } = this.transfer;
 
     const skipValidationFor = new Set(['bifrost', 'hydradx']);
@@ -403,7 +405,7 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateDestFee() {
-    console.log('[validation] => destination fee');
+    console.log('[validation] => Fee (DEST)');
     const { srcChain, destChainFee } = this.transfer;
     const destFeeBalance = this.xchain.balance.get(destChainFee.key);
     if (destFeeBalance && destFeeBalance.amount < destChainFee.amount) {
@@ -428,7 +430,7 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateHubEd() {
-    console.log('[validation] => assethub');
+    console.log('[validation] => AssetHub ED');
     const { destChain } = this.transfer;
     const destChainDotBalance = this.xchain.balanceDest.get('dot');
 
@@ -456,8 +458,48 @@ export class XcmApp extends PoolApp {
     }
   }
 
+  private async validateHubFrozen() {
+    console.log('[validation] => AssetHub FROZEN');
+    const { asset, srcChain } = this.transfer;
+    const account = this.account.state;
+
+    if (srcChain.key !== 'assethub' || !account) {
+      this.clearError('hubFrozen');
+      return;
+    }
+
+    const api = await SubstrateApis.getInstance().api(srcChain.ws);
+    const assetData = srcChain.assetsData.get(asset.key);
+    const response = await api.query.assets.account(
+      assetData.id,
+      account.address,
+    );
+
+    if (response.isEmpty) {
+      this.clearError('hubFrozen');
+      return;
+    }
+
+    const json = response.toHuman();
+    const entry = findNestedKey(json, 'status');
+    const status = entry['status'];
+    console.log(' Asset: ' + asset.originSymbol);
+    console.log(' Status: ' + status);
+    if (status === 'Frozen') {
+      this.addError(
+        'hubFrozen',
+        i18n.t('error.transfer.frozen', {
+          symbol: asset.originSymbol,
+          chain: srcChain.name,
+        }),
+      );
+    } else {
+      this.clearError('hubFrozen');
+    }
+  }
+
   private async validateHydraEd() {
-    console.log('[validation] => hydradx');
+    console.log('[validation] => HydraDX ED');
     const { router } = this.chain.state;
     const { asset, address, srcChain, destChain } = this.transfer;
 
@@ -468,12 +510,12 @@ export class XcmApp extends PoolApp {
 
     const destChainBalance = this.xchain.balanceDest.get(asset.key);
     const isExistingAccount = destChainBalance.amount > 0n;
-    const isSufficient = Array.from(this.assets.registry.values()).find(
+    const onChainAsset = Array.from(this.assets.registry.values()).find(
       (a) =>
         a.symbol.toLowerCase() === asset.originSymbol.toLowerCase() &&
         a.origin === srcChain.parachainId,
-    ).isSufficient;
-
+    );
+    const isSufficient = onChainAsset ? onChainAsset.isSufficient : true;
     console.log(' Is sufficient: ' + isSufficient);
     console.log(' Is existing acc: ' + isExistingAccount);
     if (isSufficient || isExistingAccount) {
@@ -542,6 +584,7 @@ export class XcmApp extends PoolApp {
     this.clearError('feeSrc');
     this.clearError('feeDest');
     this.clearError('hubEd');
+    this.clearError('hubFrozen');
     this.clearError('hdxEd');
   }
 
@@ -557,6 +600,7 @@ export class XcmApp extends PoolApp {
 
     await this.validateDestFee();
     await this.validateHubEd();
+    await this.validateHubFrozen();
     await this.validateHydraEd();
   }
 
@@ -575,9 +619,9 @@ export class XcmApp extends PoolApp {
     return address;
   }
 
-  private prefillNative(address: string, chain: AnyChain) {
+  private prefillNative(address: string, chain: AnyChain, ss58prefix?: number) {
     if (this.isNativeCompatible(chain)) {
-      return convertAddressSS58(address);
+      return convertAddressSS58(address, ss58prefix ? ss58prefix : undefined);
     } else {
       return null;
     }
@@ -603,7 +647,11 @@ export class XcmApp extends PoolApp {
     if (isEvmAccount(account.address)) {
       prefilled = this.prefillEvm(account.address, destChain);
     } else {
-      prefilled = this.prefillNative(account.address, destChain);
+      prefilled = this.prefillNative(
+        account.address,
+        destChain,
+        this.ss58Prefix,
+      );
     }
 
     this.transfer = {

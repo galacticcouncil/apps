@@ -22,7 +22,7 @@
     "dev": "node ./esbuild.dev.mjs",
     "dist": "node ./esbuild.dist.mjs",
     "predist": "rimraf dist",
-    "postdist": "cp -R ./public/assets ./dist/assets/ && cp ./dist/index.html ./dist/404.html"
+    "postdist": "cp ./dist/index.html ./dist/404.html"
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.4.0",
@@ -30,10 +30,9 @@
     "rimraf": "^3.0.2"
   },
   "dependencies": {
-    "@galacticcouncil/apps": "^3.3.14",
+    "@galacticcouncil/apps": "^3.4.6",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
-    "@vaadin/router": "^1.7.4",
-    "graphql-request": "^6.1.0"
+    "@vaadin/router": "^1.7.4"
   }
 }

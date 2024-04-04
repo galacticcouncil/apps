@@ -38,7 +38,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://basilisk-explorer.play.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaUrl="https://grafana.hydradx.cloud/api/ds/query"
         grafanaDsn="5"></gc-trade>
     `;
   }
@@ -64,13 +64,13 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         twapOn
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://rpc.hydradx.cloud"
+        apiAddress="wss://hydradx-rpc.dwellir.com"
         stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://hydradx-explorer.play.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaUrl="https://grafana.hydradx.cloud/api/ds/query"
         grafanaDsn="10"></gc-trade>
     `;
   }
@@ -88,7 +88,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://archive.nice.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaUrl="https://grafana.hydradx.cloud/api/ds/query"
         grafanaDsn="11"></gc-trade>
     `;
   }

@@ -1,13 +1,5 @@
 import { ChartRange } from 'element/chart/types';
 
-function getPriceQuery(range: string) {
-  return `SELECT
-    $__timeGroupAlias("timestamp",'${range}'),
-    max(price) AS "price"
-    FROM pair_price
-    `;
-}
-
 function getRange(range: ChartRange) {
   switch (range) {
     case ChartRange['1h']:
@@ -57,12 +49,37 @@ export function buildPriceQuery(
         CASE 
           WHEN asset_in = ${assetIn} AND asset_out = ${assetOut} AND amount_in != 0 AND amount_out != 0 THEN amount_in / amount_out
           WHEN asset_in = ${assetOut} AND asset_out = ${assetIn} AND amount_in != 0 AND amount_out != 0 THEN amount_out / amount_in
-        END AS price
+        END AS price,
+        CASE
+          WHEN asset_in = ${assetIn} THEN amount_in
+          WHEN asset_in = ${assetOut} THEN amount_out
+        END AS volume
       FROM nor_trades
+    ),
+    prev_price AS (
+      SELECT
+        *,
+        lag(price) over (order by timestamp) as prev_price
+      from pair_price
+      WHERE price IS NOT NULL
+    ),
+    filtered_price AS (
+      select *
+      FROM prev_price
+      where prev_price IS NULL
+         or (prev_price < price * 2 and price < prev_price * 2)
+    ),
+    buckets AS (
+      SELECT
+          $__timeGroupAlias("timestamp",'${queryRange}'),
+        avg(price) AS price,
+        sum(volume) as volume
+      FROM filtered_price
+      GROUP BY 1
+      ORDER BY 1
     )
-    ${getPriceQuery(queryRange)}
-    WHERE price IS NOT NULL
-    GROUP BY 1
-    ORDER BY 1;
+    select time, price 
+    FROM buckets 
+    where volume * 1000 > (select avg(volume) from buckets);
     `;
 }

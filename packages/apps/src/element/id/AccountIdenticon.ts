@@ -26,7 +26,7 @@ export class AccountIdenticon extends LitElement {
     if (isH160Addr) {
       const avatarUrl = generateAvatarURL(this.address);
       return html`
-        <img class="avatar" src="${avatarUrl}" />
+        <img width="32" height="32" class="avatar" src="${avatarUrl}" />
       `;
     }
     const decoded = decodeAddress(this.address);

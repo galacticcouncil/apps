@@ -234,9 +234,6 @@ export class TradeApp extends PoolApp {
   ) {
     const trade = await this.safeSell(assetIn, assetOut, amountIn);
     const tradeHuman = trade.toHuman();
-    const spotPrice = scale(ONE, assetOut.decimals)
-      .div(trade.spotPrice)
-      .toFixed();
 
     const { slippage } = this.tradeConfig.state;
     const minAmountOut = getTradeMinAmountOut(trade, slippage);
@@ -249,7 +246,6 @@ export class TradeApp extends PoolApp {
       assetOut: assetOut,
       inProgress: false,
       minAmountOut: minAmountOut,
-      spotPrice: spotPrice,
       trade: trade,
       type: TradeType.Sell,
     };
@@ -316,7 +312,7 @@ export class TradeApp extends PoolApp {
     const { slippage } = this.tradeConfig.state;
     const maxAmountIn = getTradeMaxAmountIn(trade, slippage);
 
-    const { amountIn, spotPrice } = Object.assign({}, tradeHuman);
+    const { amountIn } = Object.assign({}, tradeHuman);
     this.trade = {
       ...this.trade,
       inProgress: false,
@@ -324,7 +320,6 @@ export class TradeApp extends PoolApp {
       assetIn: assetIn,
       assetOut: assetOut,
       maxAmountIn: maxAmountIn,
-      spotPrice: spotPrice,
       trade: trade,
       type: TradeType.Buy,
     };

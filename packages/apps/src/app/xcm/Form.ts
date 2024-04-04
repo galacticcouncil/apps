@@ -311,6 +311,7 @@ export class XcmForm extends LitElement {
         this.error['feeSrc'] ||
         this.error['feeDest'] ||
         this.error['hubEd'] ||
+        this.error['hubFrozen'] ||
         this.error['hdxEd'],
     };
     const cexWarnClasses = {
@@ -362,6 +363,7 @@ export class XcmForm extends LitElement {
           <span>${unsafeHTML(this.error['feeSrc'])}</span>
           <span>${unsafeHTML(this.error['feeDest'])}</span>
           <span>${unsafeHTML(this.error['hubEd'])}</span>
+          <span>${unsafeHTML(this.error['hubFrozen'])}</span>
           <span>${unsafeHTML(this.error['hdxEd'])}</span>
         </div>
       </div>

@@ -38,7 +38,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://basilisk-explorer.play.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaUrl="https://grafana.hydradx.cloud/api/ds/query"
         grafanaDsn="5"></gc-dca>
     `;
   }
@@ -55,7 +55,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://hydradx-explorer.play.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaUrl="https://grafana.hydradx.cloud/api/ds/query"
         grafanaDsn="10"></gc-dca>
     `;
   }
@@ -72,7 +72,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://archive.nice.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaUrl="https://grafana.hydradx.cloud/api/ds/query"
         grafanaDsn="11"></gc-dca>
     `;
   }
@@ -89,7 +89,7 @@ export class DcaScreen extends LitElement implements BeforeEnterObserver {
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
         indexerUrl="https://hydradx-rococo-explorer.play.hydration.cloud/graphql"
-        grafanaUrl="https://grafana-api.play.hydration.cloud/api/ds/query"
+        grafanaUrl="https://grafana.hydradx.cloud/api/ds/query"
         grafanaDsn="11"></gc-dca>
     `;
   }

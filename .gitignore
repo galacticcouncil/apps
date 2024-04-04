@@ -3,15 +3,18 @@ node_modules/
 
 # build folders
 packages/*/build
-packages/*/build-meta.json
+
+# build metadata
+build-meta.json
 
 # dist folders
 pages/*/dist
 dist
 
-# public folders (js)
+# public folders (js|wasm)
 pages/*/public/**/*.js
 pages/*/public/**/*.js.map
+pages/*/public/**/*.wasm
 
 # turbo files
 .turbo

@@ -481,10 +481,7 @@ export class DcaForm extends BaseElement {
   }
 
   render() {
-    const isValid =
-      this.amountIn &&
-      this.order?.amountIn &&
-      Object.keys(this.error).length == 0;
+    const isValid = this.amountIn && !!this.order?.amountIn;
     const infoClasses = {
       info: true,
       show: isValid,

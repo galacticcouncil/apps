@@ -1,6 +1,5 @@
 import esbuild from 'esbuild';
 import { minifyHTMLLiteralsPlugin } from 'esbuild-plugin-minify-html-literals';
-
 import { readdirSync, writeFileSync } from 'fs';
 import { esmConfig, getPackageJson } from '../../esbuild.config.mjs';
 
