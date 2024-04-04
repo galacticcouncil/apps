@@ -162,7 +162,10 @@ export class TradeChart extends Chart {
 
     this.chartVolumeSeries = this.chart.addHistogramSeries({
       visible: true,
-      color: theme === 'hdx' ? '#85D1FF' : '#4fffb0',
+      color:
+        theme === 'hdx'
+          ? 'rgba(79, 223, 255, 0.31)'
+          : 'rgba(79, 255, 176, 0.31)',
       lastValueVisible: false,
       priceLineVisible: false,
       priceFormat: {
