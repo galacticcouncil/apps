@@ -8,6 +8,7 @@ import { Asset } from '@galacticcouncil/sdk';
 
 import { Ecosystem } from 'db';
 import { getChainKey } from 'utils/chain';
+import { isExternalAssetWhitelisted } from 'utils/asset';
 
 @customElement('gc-asset-identicon')
 export class AssetIdenticon extends LitElement {
@@ -33,8 +34,9 @@ export class AssetIdenticon extends LitElement {
   iconTemplate(id: string, icon: string) {
     const asset = this.assets.get(id);
 
-    const warning =
-      asset.type === 'External' ? i18n.t('asset.warning.external') : undefined;
+    const warning = !isExternalAssetWhitelisted(asset)
+      ? i18n.t('asset.warning.external')
+      : undefined;
 
     if (asset.origin) {
       const originChain = getChainKey(asset.origin, this.ecosystem);

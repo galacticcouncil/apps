@@ -1,5 +1,22 @@
 import { Asset } from '@galacticcouncil/sdk';
 
+const EXTERNAL_ASSETS_WHITELIST = [
+  '1000019', // DED
+  '1000021', // PINK
+];
+
+/**
+ * Check if external asset is whitelisted
+ *
+ * @param asset - asset
+ * @returns true if asset whitelisted, otherwise false
+ */
+export const isExternalAssetWhitelisted = (asset: Asset) => {
+  return asset.type === 'External'
+    ? EXTERNAL_ASSETS_WHITELIST.includes(asset.id)
+    : true;
+};
+
 /**
  * Check if assetIn allowed.
  * Criteria: Have at least 1 pair with any tokenOut

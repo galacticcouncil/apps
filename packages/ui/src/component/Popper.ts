@@ -15,12 +15,14 @@ export class Popper extends UIGCElement {
       .tooltip {
         display: none;
         width: max-content;
+        max-width: 240px;
+        text-align: left;
         position: fixed;
         top: 0;
         left: 0;
         background: var(--hex-dark-blue-400);
         color: white;
-        padding: 5px;
+        padding: 10px 14px;
         border-radius: 4px;
         font-size: 90%;
         z-index: 1000;
