@@ -429,11 +429,8 @@ export class YieldForm extends BaseElement {
   }
 
   render() {
-    const isValid =
-      this.amountIn &&
-      this.order &&
-      this.rate &&
-      Object.keys(this.error).length == 0;
+    const isValid = this.amountIn && this.order && this.rate;
+
     const infoClasses = {
       info: true,
       show: isValid,
