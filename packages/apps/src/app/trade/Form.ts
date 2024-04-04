@@ -438,6 +438,13 @@ export class TradeForm extends BaseElement {
     return trade?.tradeFee;
   }
 
+  private getTradeSpotPrice(): string {
+    const trade = this.trade.toHuman();
+    return this.tradeType === TradeType.Sell
+      ? ONE.div(trade.spotPrice)
+      : trade.spotPrice;
+  }
+
   private getTradeFeePct(): number {
     const trade = this.trade?.toHuman();
     return trade?.tradeFeePct;
@@ -928,10 +935,7 @@ export class TradeForm extends BaseElement {
       show: this.spotPrice || this.inProgress,
     };
 
-    const spotPrice = this.trade
-      ? this.trade.toHuman().spotPrice
-      : this.spotPrice;
-
+    const spotPrice = this.trade ? this.getTradeSpotPrice() : this.spotPrice;
     const spotPriceFmt = this.isPriceReversed ? ONE.div(spotPrice) : spotPrice;
     const inputSymbol = this.isPriceReversed
       ? this.assetIn?.symbol
