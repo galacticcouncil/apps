@@ -9,8 +9,6 @@ import {
   Transaction,
   SYSTEM_ASSET_ID,
   SYSTEM_ASSET_DECIMALS,
-  BigNumber,
-  ONE,
 } from '@galacticcouncil/sdk';
 import { EvmClient, evmChains } from '@galacticcouncil/xcm-sdk';
 
@@ -58,36 +56,16 @@ export class PaymentApi {
         decimals: feeAsset.decimals,
       };
     }
-
-    const oraclePrice = await this._api.query.emaOracle.oracles(
-      'omnipool',
-      ['1', feeAsset.id],
-      'Short',
+    const spotPrice = await this._router.getBestSpotPrice(
+      SYSTEM_ASSET_ID,
+      feeAsset.id,
     );
 
-    let spotPrice: BigNumber;
-
-    if (oraclePrice.isNone) {
-      const currency =
-        await this._api.query.multiTransactionPayment.acceptedCurrencies(
-          feeAsset.id,
-        );
-      const fallbackPrice = currency.unwrap();
-
-      spotPrice = ONE.shiftedBy(SYSTEM_ASSET_DECIMALS)
-        .times(fallbackPrice.toString())
-        .shiftedBy(-18);
-    } else {
-      spotPrice = (
-        await this._router.getBestSpotPrice(SYSTEM_ASSET_ID, feeAsset.id)
-      ).amount;
-    }
-
     return {
-      decimals: feeAsset.decimals,
+      ...spotPrice,
       amount: bnum(feeNative)
         .shiftedBy(-SYSTEM_ASSET_DECIMALS)
-        .times(spotPrice),
+        .times(spotPrice.amount),
     };
   }
 
