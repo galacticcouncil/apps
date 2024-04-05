@@ -1,6 +1,6 @@
 import type {
   ExternalAsset,
-  IPoolService,
+  PoolService,
   TradeRouter,
 } from '@galacticcouncil/sdk';
 import type { ApiPromise } from '@polkadot/api';
@@ -15,7 +15,7 @@ export interface Account {
 export interface Chain {
   api: ApiPromise;
   ecosystem: Ecosystem;
-  poolService: IPoolService;
+  poolService: PoolService;
   router: TradeRouter;
 }
 

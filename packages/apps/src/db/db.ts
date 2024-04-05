@@ -101,20 +101,4 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
 addWatch(AccountCursor, ACCOUNT_KEY, 'account-update');
 addWatch(DcaConfigCursor, DCA_CONFIG_KEY, 'dca-settings-update');
 addWatch(TradeConfigCursor, TRADE_CONFIG_KEY, 'trade-settings-update');
-
-// setObj('external-tokens', {
-//   state: {
-//     tokens: [
-//       { decimals: 10, id: '30', name: 'DED', origin: 1000, symbol: 'DED' },
-//       { decimals: 10, id: '23', name: 'PINK', origin: 1000, symbol: 'PINK' },
-//       {
-//         decimals: 8,
-//         id: '666',
-//         name: 'Danger Coin',
-//         origin: 1000,
-//         symbol: 'DANGER',
-//       },
-//     ],
-//   },
-//   version: 0.2,
-// });
+addWatch(ExternalAssetCursor, EXT_ASSETS_CONFIG_KEY, 'external-assets-update');
