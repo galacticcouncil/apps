@@ -69,13 +69,20 @@ export const WalletCursor = defCursor(db, ['wallet']);
 const ACCOUNT_KEY = 'trade.account';
 const TRADE_CONFIG_KEY = 'trade.settings';
 const DCA_CONFIG_KEY = 'dca.settings';
-const EXT_ASSETS_CONFIG_KEY = 'external-tokens';
+const EXTERNAL_TOKENS_KEY = 'external-tokens';
+
+export const StorageKeys = {
+  ACCOUNT_KEY,
+  TRADE_CONFIG_KEY,
+  DCA_CONFIG_KEY,
+  EXTERNAL_TOKENS_KEY,
+};
 
 // Load current config
 const currentAccount = getObj<Account>(ACCOUNT_KEY);
 const currentTradeConfig = getObj<TradeConfig>(TRADE_CONFIG_KEY);
 const currentDcaConfig = getObj<DcaConfig>(DCA_CONFIG_KEY);
-const externalAssetConfig = getObj<ExternalAssetConfig>(EXT_ASSETS_CONFIG_KEY);
+const externalAssetConfig = getObj<ExternalAssetConfig>(EXTERNAL_TOKENS_KEY);
 
 // Initialize state from current config
 AccountCursor.reset(currentAccount);
@@ -92,8 +99,12 @@ TradeConfigCursor.reset({ ...DEFAULT_TRADE_CONFIG, ...currentTradeConfig });
  */
 function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
   cursor.addWatch(watchId, (id, prev, curr) => {
-    console.log(`${id}: ${JSON.stringify(prev)} -> ${JSON.stringify(curr)}`);
-    setObj(key, curr);
+    const prevJson = JSON.stringify(prev);
+    const currJson = JSON.stringify(curr);
+    if (prevJson !== currJson) {
+      console.log(`${id}: ${prevJson} -> ${currJson}`);
+      setObj(key, curr);
+    }
   });
 }
 
@@ -101,4 +112,4 @@ function addWatch<T>(cursor: Cursor<T>, key: string, watchId: string) {
 addWatch(AccountCursor, ACCOUNT_KEY, 'account-update');
 addWatch(DcaConfigCursor, DCA_CONFIG_KEY, 'dca-settings-update');
 addWatch(TradeConfigCursor, TRADE_CONFIG_KEY, 'trade-settings-update');
-addWatch(ExternalAssetCursor, EXT_ASSETS_CONFIG_KEY, 'external-assets-update');
+addWatch(ExternalAssetCursor, EXTERNAL_TOKENS_KEY, 'external-assets-update');

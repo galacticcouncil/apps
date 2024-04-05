@@ -37,4 +37,12 @@ export abstract class BaseElement extends LitElement {
   parseListArgs(list: string) {
     return list ? list.split(',') : [];
   }
+
+  parseJson<T>(json: string): T {
+    try {
+      return JSON.parse(json) as T;
+    } catch {
+      return null;
+    }
+  }
 }

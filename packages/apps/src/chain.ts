@@ -3,6 +3,10 @@ import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
 import { ApiPromise } from '@polkadot/api';
 import { Ecosystem, ChainCursor, ExternalAssetCursor } from './db';
 
+const logFmt = (log: string) => {
+  console.log('%c' + log, 'background: #222; color: #bada55');
+};
+
 async function info(api: ApiPromise): Promise<void> {
   const [systemChain, systemChainType, systemName, systemVersion] =
     await Promise.all([
@@ -11,7 +15,7 @@ async function info(api: ApiPromise): Promise<void> {
       api.rpc.system.name(),
       api.rpc.system.version(),
     ]);
-  console.log(`Chain: ${systemChain} (${systemChainType.toString()})`);
+  logFmt(`Chain: ${systemChain} (${systemChainType.toString()})`);
 }
 
 function initApi(
@@ -19,14 +23,18 @@ function initApi(
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, router: TradeRouter) => void,
 ) {
-  console.log('API ready ✅');
+  logFmt('API ready ✅');
   info(api);
   const poolService = new CachingPoolService(api);
   const router = new TradeRouter(poolService);
   // Get pools and cache the result
-  const external = ExternalAssetCursor.deref();
-  poolService.syncRegistry(external?.state.tokens).then(() => {
-    console.log('Router ready ✅');
+  const externalConfig = ExternalAssetCursor.deref();
+  const externalAssets = externalConfig
+    ? externalConfig.state.tokens
+    : undefined;
+
+  poolService.syncRegistry(externalAssets).then(() => {
+    logFmt('Router ready ✅');
     ChainCursor.reset({
       api: api,
       ecosystem: ecosystem,

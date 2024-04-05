@@ -7,8 +7,9 @@ import {
   TradeRouter,
 } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
-import { ExternalAssetCursor } from 'db';
+import { Cursor } from '@thi.ng/atom';
 
+import { ExternalAssetConfig } from 'db';
 import { pairs2Map } from 'utils/mapper';
 
 export class AssetApi {
@@ -16,18 +17,24 @@ export class AssetApi {
   private _router: TradeRouter;
   private _assetClient: AssetClient;
   private _balanceClient: BalanceClient;
+  private _config: Cursor<ExternalAssetConfig>;
 
-  public constructor(api: ApiPromise, router: TradeRouter) {
+  public constructor(
+    api: ApiPromise,
+    router: TradeRouter,
+    config: Cursor<ExternalAssetConfig>,
+  ) {
     this._api = api;
     this._router = router;
+    this._config = config;
     this._assetClient = new AssetClient(api);
     this._balanceClient = new BalanceClient(api);
   }
 
   async getAssets(): Promise<Map<string, Asset>> {
-    const external = ExternalAssetCursor.deref();
+    const config = this._config.deref();
     const assets = await this._assetClient.getOnChainAssets(
-      external?.state.tokens,
+      config?.state.tokens,
     );
     return new Map(assets.map((a) => [a.id, a]));
   }

@@ -11,6 +11,8 @@ import {
   ChainCursor,
   DatabaseController,
   ExternalAssetConfig,
+  ExternalAssetCursor,
+  StorageKeys,
 } from 'db';
 
 import {
@@ -78,16 +80,6 @@ export abstract class PoolApp extends BaseApp {
     super.update(changedProperties);
   }
 
-  private onStorageChange(evt: StorageEvent) {
-    console.log(this.chain);
-    const { poolService } = this.chain.state;
-    if (evt.key === 'external-tokens') {
-      const cfg = JSON.parse(evt.newValue) as ExternalAssetConfig;
-      console.log(cfg);
-      poolService.syncRegistry(cfg?.state.tokens);
-    }
-  }
-
   override connectedCallback() {
     super.connectedCallback();
     window.addEventListener('storage', this.onStorageChange.bind(this));
@@ -111,7 +103,7 @@ export abstract class PoolApp extends BaseApp {
 
   private async init() {
     const { router, api } = this.chain.state;
-    this.assetApi = new AssetApi(api, router);
+    this.assetApi = new AssetApi(api, router, ExternalAssetCursor);
     this.paymentApi = new PaymentApi(api, router);
     this.timeApi = new TimeApi(api);
     this.balanceClient = new BalanceClient(api);
@@ -159,6 +151,12 @@ export abstract class PoolApp extends BaseApp {
       const addrAbrev = this.getShortened(account.address);
       console.log(`Account [${addrAbrev}] balance subscribed`);
     }
+  }
+
+  protected async resubscribeBalance() {
+    const account = this.account.state;
+    this.unsubscribeBalance(account);
+    this.subscribeBalance();
   }
 
   protected unsubscribeBalance(account: Account) {
@@ -223,6 +221,18 @@ export abstract class PoolApp extends BaseApp {
     }
   }
 
+  protected async onStorageChange(evt: StorageEvent) {
+    const { poolService } = this.chain.state;
+    if (evt.key === StorageKeys.EXTERNAL_TOKENS_KEY && evt.newValue) {
+      const config = this.parseJson<ExternalAssetConfig>(evt.newValue);
+      const tokens = config.state.tokens;
+      ExternalAssetCursor.reset(config);
+      await poolService.syncRegistry(tokens);
+      await this.syncAssets();
+      await this.resubscribeBalance();
+    }
+  }
+
   protected async syncDolarPrice() {
     this.assets.usdPrice = await this.assetApi.getPrice(
       this.assets.tradeable,
@@ -238,10 +248,19 @@ export abstract class PoolApp extends BaseApp {
     );
   }
 
-  protected async syncExternals() {
-    this.assets.nativePrice = await this.assetApi.getPrice(
-      this.assets.tradeable,
-      SYSTEM_ASSET_ID,
-    );
+  protected async syncAssets() {
+    const { router } = this.chain.state;
+    const tradeable = await router.getAllAssets();
+    const [assets, assetsPairs] = await Promise.all([
+      this.assetApi.getAssets(),
+      this.assetApi.getPairs(tradeable),
+    ]);
+
+    this.assets = {
+      ...this.assets,
+      tradeable: tradeable,
+      registry: assets,
+      pairs: assetsPairs,
+    };
   }
 }
