@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.8
+
+### Patch Changes
+
+- Revert "Improve fee payment calculations"
+
 ## 3.4.7
 
 ### Patch Changes
