@@ -5,7 +5,13 @@ import { PaymentApi } from 'api/payment';
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
 import { createApi } from 'chain';
-import { Account, Chain, ChainCursor, DatabaseController } from 'db';
+import {
+  Account,
+  Chain,
+  ChainCursor,
+  DatabaseController,
+  ExternalAssetConfig,
+} from 'db';
 
 import {
   Amount,
@@ -72,11 +78,23 @@ export abstract class PoolApp extends BaseApp {
     super.update(changedProperties);
   }
 
+  private onStorageChange(evt: StorageEvent) {
+    console.log(this.chain);
+    const { poolService } = this.chain.state;
+    if (evt.key === 'external-tokens') {
+      const cfg = JSON.parse(evt.newValue) as ExternalAssetConfig;
+      console.log(cfg);
+      poolService.syncRegistry(cfg?.state.tokens);
+    }
+  }
+
   override connectedCallback() {
     super.connectedCallback();
+    window.addEventListener('storage', this.onStorageChange.bind(this));
   }
 
   override disconnectedCallback() {
+    window.removeEventListener('storage', this.onStorageChange);
     this.disconnectSubscribeNewHeads?.();
     if (this.disconnectSubscribeBalance.length > 0) {
       const account = this.account.state;
@@ -214,6 +232,13 @@ export abstract class PoolApp extends BaseApp {
   }
 
   protected async syncNativePrice() {
+    this.assets.nativePrice = await this.assetApi.getPrice(
+      this.assets.tradeable,
+      SYSTEM_ASSET_ID,
+    );
+  }
+
+  protected async syncExternals() {
     this.assets.nativePrice = await this.assetApi.getPrice(
       this.assets.tradeable,
       SYSTEM_ASSET_ID,

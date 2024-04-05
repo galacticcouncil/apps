@@ -9,7 +9,7 @@ const HighlightProcessor = (str: string) => {
 export const highlightProcessor: PostProcessorModule = {
   type: 'postProcessor',
   name: 'highlight',
-  process: function (value, key, options, translator) {
+  process: function (value, _key, _options, _translator) {
     return HighlightProcessor(value);
   },
 };
