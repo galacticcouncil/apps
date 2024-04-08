@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.5
+
+### Patch Changes
+
+- Added DOTA icon
+
 ## 3.1.4
 
 ### Patch Changes
