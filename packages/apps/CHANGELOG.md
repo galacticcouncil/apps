@@ -1,5 +1,12 @@
 # @galacticcouncil/apps
 
+## 3.4.9
+
+### Patch Changes
+
+- Sync external tokens on change
+- Disable DCA terminate until next execution block loaded
+
 ## 3.4.8
 
 ### Patch Changes
