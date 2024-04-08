@@ -171,6 +171,10 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
   }
 
   protected getNextExecution(order: Order) {
+    if (!order.nextExecutionBlock) {
+      return '-';
+    }
+
     if (order.hasPendingTx()) {
       const humanized = this._humanizer.humanize(0, {
         round: true,
@@ -210,6 +214,7 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
         <uigc-button
           variant="error"
           size="small"
+          ?disabled=${!order.nextExecutionBlock}
           @click=${() => this.terminate(order)}>
           Terminate
         </uigc-button>

@@ -172,10 +172,13 @@ export class TradeOrders extends BaseApp {
   private async syncSummary(scheduleId: number) {
     const dcaOrdersUpdated = this.orders.list.map(async (order) => {
       if (order.id == scheduleId) {
-        const transactions = await this.getTransactions(order.id);
-        const remaining = await this.getRemaining(order.id);
-        const received = await this.ordersApi.getReceived(order.id);
-        const nextExecutionBlock = await this.getNextExecutionBlock(order.id);
+        const [transactions, remaining, received, nextExecutionBlock] =
+          await Promise.all([
+            this.getTransactions(order.id),
+            this.getRemaining(order.id),
+            this.ordersApi.getReceived(order.id),
+            this.getNextExecutionBlock(order.id),
+          ]);
         const nextExecution = await this.timeApi.toTimestamp(
           this.blockTime,
           nextExecutionBlock,
