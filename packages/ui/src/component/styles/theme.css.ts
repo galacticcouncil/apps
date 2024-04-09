@@ -448,7 +448,7 @@ export const hdxThemeProperties = css`
       ),
       linear-gradient(180deg, #00579f 0%, #023b6a 25%, #060917 100%);
     --uigc-app-background-color: rgb(6, 9, 23);
-    --uigc-app-border-radius: 4px;
+    --uigc-app-border-radius: 8px;
     --uigc-app-border-radius-2: 2px;
 
     --uigc-app-bg-section: rgba(var(--rgb-primary-alpha), 0.06);
@@ -681,7 +681,7 @@ export const hdxThemeProperties = css`
     --uigc-list-item--secondary-desc-font-weight: 400;
     /** Paper */
     --uigc-paper-border-radius: 4px;
-    --uigc-paper-box-shadow: 3px 4px 0px rgba(102, 181, 255, 0.19);
+    --uigc-paper-box-shadow: none;
     --uigc-paper-background: var(--hex-dark-blue-700);
     --uigc-paper-content: '';
     --uigc-paper-mask: linear-gradient(

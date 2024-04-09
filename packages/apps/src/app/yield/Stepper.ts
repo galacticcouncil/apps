@@ -29,19 +29,23 @@ export class YieldStepper extends LitElement {
 
         .stepper:before {
           content: '';
+          border-radius: var(--uigc-app-border-radius);
           position: absolute;
           inset: 0px;
-          border-radius: 8px;
+
           padding: 1px;
+
           background: linear-gradient(
+            180deg,
             rgba(152, 176, 214, 0.27) 0%,
             rgba(163, 177, 199, 0.15) 66.67%,
             rgba(158, 167, 180, 0.2) 100%
           );
-          mask: var(--uigc-paper-mask);
-          mask-composite: xor;
+
           -webkit-mask: var(--uigc-paper-mask);
           -webkit-mask-composite: xor;
+          mask: var(--uigc-paper-mask);
+          mask-composite: exclude;
           pointer-events: none;
         }
       }

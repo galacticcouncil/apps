@@ -59,6 +59,7 @@ export abstract class Datagrid<T> extends BaseElement {
       td {
         padding: 12px 0;
         padding-right: 0;
+        font-size: 14px;
         text-align: start;
         vertical-align: middle;
       }

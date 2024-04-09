@@ -28,6 +28,7 @@
   "settings.slippage": "Slippage",
   "settings.slippageInfo1": "Tolerated price deviation from the last known price. Trade will be rescheduled if the price changes more than the specified percentage since previous block or 10 block average.",
   "settings.maxRetries": "Max retries",
+  "settings.custom": "Period",
 
   "orders.all": "All",
   "orders.open": "Open orders",

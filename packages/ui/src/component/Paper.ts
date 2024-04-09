@@ -17,26 +17,25 @@ export class Paper extends UIGCElement {
       }
 
       @media (min-width: 480px) {
-        :host {
-          border-radius: var(--uigc-app-border-radius);
-        }
-
         :host:before {
           content: var(--uigc-paper-content);
           border-radius: var(--uigc-app-border-radius);
           position: absolute;
           inset: 0px;
+
           padding: 1px;
+
           background: linear-gradient(
-            rgba(102, 151, 227, 0.35) 0%,
-            rgba(68, 109, 174, 0.3) 66.67%,
-            rgba(91, 151, 245, 0) 99.99%,
-            rgba(158, 167, 180, 0) 100%
+            180deg,
+            rgba(152, 176, 214, 0.27) 0%,
+            rgba(163, 177, 199, 0.15) 66.67%,
+            rgba(158, 167, 180, 0.2) 100%
           );
-          mask: var(--uigc-paper-mask);
-          mask-composite: xor;
+
           -webkit-mask: var(--uigc-paper-mask);
           -webkit-mask-composite: xor;
+          mask: var(--uigc-paper-mask);
+          mask-composite: exclude;
           pointer-events: none;
         }
       }
