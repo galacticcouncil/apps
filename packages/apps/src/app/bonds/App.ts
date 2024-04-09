@@ -167,6 +167,7 @@ export class BondsApp extends TradeApp {
     return html`
       <uigc-paper class=${classMap(classes)}>
         <gc-select-asset
+          .active=${this.tab == TradeTab.SelectAsset}
           .assetIn=${this.trade.assetIn}
           .assetOut=${this.trade.assetOut}
           .assets=${this.assets.tradeable}

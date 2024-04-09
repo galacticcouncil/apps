@@ -1157,6 +1157,7 @@ export class TradeApp extends PoolApp {
     return html`
       <uigc-paper class=${classMap(classes)}>
         <gc-select-asset
+          .active=${this.tab == TradeTab.SelectAsset}
           .assets=${this.assets.tradeable}
           .pairs=${this.assets.pairs}
           .balances=${this.assets.balance}

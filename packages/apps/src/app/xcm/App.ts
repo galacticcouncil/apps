@@ -1080,6 +1080,7 @@ export class XcmApp extends PoolApp {
     return html`
       <uigc-paper class=${classMap(classes)}>
         <gc-select-xchain
+          .active=${this.tab == TransferTab.SelectChain}
           .chains=${isDest
             ? this.xchain.dest.map((c) => c)
             : this.xchain.list.map((c) => c)}
@@ -1118,6 +1119,7 @@ export class XcmApp extends PoolApp {
     return html`
       <uigc-paper class=${classMap(classes)}>
         <gc-select-xasset
+          .active=${this.tab == TransferTab.SelectToken}
           .assets=${this.xchain.tokens}
           .balances=${this.xchain.balance}
           .asset=${this.transfer.asset}

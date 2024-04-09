@@ -585,6 +585,7 @@ export class DcaApp extends PoolApp {
     return html`
       <uigc-paper class=${classMap(classes)}>
         <gc-select-asset
+          .active=${this.tab == DcaTab.SelectAsset}
           .assets=${this.assets.tradeable.filter(
             (a) => a.type !== 'Bond' && a.isSufficient,
           )}
