@@ -56,6 +56,28 @@ const db = defAtom<State>({
   wallet: null,
 });
 
+export const Database = {
+  account: defCursor(db, ['account']),
+  chain: defCursor(db, ['chain']),
+  config: {
+    dca: defCursor(db, ['config', 'dca']),
+    external: defCursor(db, ['config', 'external']),
+    trade: defCursor(db, ['config', 'trade']),
+  },
+  data: {
+    trade: defCursor(db, ['data', 'trade']),
+  },
+};
+
+export const DatabaseStorageKey = {
+  account: 'trade.account',
+  config: {
+    dca: 'dca.settings',
+    trade: 'trade.settings',
+    external: 'external-tokens',
+  },
+};
+
 // Cursors (Direct & Immutable access to a nested value)
 export const AccountCursor = defCursor(db, ['account']);
 export const ChainCursor = defCursor(db, ['chain']);
