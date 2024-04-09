@@ -28,6 +28,7 @@
   "error.minAmount": "The minimum transferable amount is {{amount}} {{asset}}.",
 
   "error.transfer.fee": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for fees",
+  "error.transfer.feeDest": "You need to have at least <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1>",
   "error.transfer.frozen": "Your account on <1>{{chain}}</1> has frozen balance for <1>{{symbol}}</1>",
   "error.transfer.ed": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for existential deposit",
 

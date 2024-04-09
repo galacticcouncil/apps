@@ -34,7 +34,6 @@ import {
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
   Transaction,
-  findNestedKey,
   scale,
 } from '@galacticcouncil/sdk';
 
@@ -55,6 +54,12 @@ import {
 import { ConfigService } from '@moonbeam-network/xcm-config';
 import { AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
 import { toBigInt } from '@moonbeam-network/xcm-utils';
+
+import type {
+  PalletAssetsAssetDetails,
+  PalletAssetsAssetAccount,
+} from '@polkadot/types/lookup';
+import { Option } from '@polkadot/types';
 
 import 'element/selector';
 
@@ -408,17 +413,33 @@ export class XcmApp extends PoolApp {
     console.log('[validation] => Fee (DEST)');
     const { srcChain, destChainFee } = this.transfer;
     const destFeeBalance = this.xchain.balance.get(destChainFee.key);
-    if (destFeeBalance && destFeeBalance.amount < destChainFee.amount) {
+
+    let ed = 0n;
+    if (srcChain.key === 'assethub') {
+      const api = await SubstrateApis.getInstance().api(srcChain.ws);
+      const assetData = srcChain.assetsData.get(destChainFee.key);
+      const response = await api.query.assets.asset<
+        Option<PalletAssetsAssetDetails>
+      >(assetData.id);
+      const details = response.unwrap();
+      ed = details.minBalance.toBigInt();
+    }
+
+    const minBalance = destChainFee.copyWith({
+      amount: destChainFee.amount + ed,
+    });
+
+    if (destFeeBalance && destFeeBalance.amount < minBalance.amount) {
       const destFeeBalanceFmt = destFeeBalance.toDecimal(
         destFeeBalance.decimals,
       );
       console.log(' Balance: ' + destFeeBalanceFmt);
-      const amount = destChainFee.toDecimal(destChainFee.decimals);
-      const symbol = destChainFee.originSymbol;
+      const amount = minBalance.toDecimal(destChainFee.decimals);
+      const symbol = minBalance.originSymbol;
       const chain = srcChain.name;
       this.addError(
         'feeDest',
-        i18n.t('error.transfer.fee', {
+        i18n.t('error.transfer.feeDest', {
           amount,
           symbol,
           chain,
@@ -470,22 +491,19 @@ export class XcmApp extends PoolApp {
 
     const api = await SubstrateApis.getInstance().api(srcChain.ws);
     const assetData = srcChain.assetsData.get(asset.key);
-    const response = await api.query.assets.account(
-      assetData.id,
-      account.address,
-    );
+    const response = await api.query.assets.account<
+      Option<PalletAssetsAssetAccount>
+    >(assetData.id, account.address);
 
     if (response.isEmpty) {
       this.clearError('hubFrozen');
       return;
     }
 
-    const json = response.toHuman();
-    const entry = findNestedKey(json, 'status');
-    const status = entry['status'];
+    const details = response.unwrap();
     console.log(' Asset: ' + asset.originSymbol);
-    console.log(' Status: ' + status);
-    if (status === 'Frozen') {
+    console.log(' Status: ' + details.status.toHuman());
+    if (details.status.isFrozen) {
       this.addError(
         'hubFrozen',
         i18n.t('error.transfer.frozen', {
