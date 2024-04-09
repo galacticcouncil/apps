@@ -376,7 +376,7 @@ export class DcaForm extends BaseElement {
             type="number"
             value=${this.intervalMultiplier}
             min=${1}
-            placeholder="${i18n.t('dca.settings.custom')}"
+            placeholder="${i18n.t('settings.custom')}"
             @input-change=${(e: CustomEvent) =>
               this.onIntervalMultiplierChange(e)}></uigc-input>
           <uigc-toggle-button-group
