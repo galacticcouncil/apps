@@ -1,5 +1,12 @@
 # @galacticcouncil/apps
 
+## 3.4.10
+
+### Patch Changes
+
+- Assethub dest fee ED validator
+- Fix FF glitches
+
 ## 3.4.9
 
 ### Patch Changes
