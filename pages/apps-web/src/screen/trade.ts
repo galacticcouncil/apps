@@ -70,6 +70,13 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
             origin: 1000,
             symbol: 'PINK',
           },
+          {
+            decimals: 4,
+            id: '18',
+            name: 'DOTA',
+            origin: 1000,
+            symbol: 'DOTA',
+          },
         ],
       },
       version: 0.2,
