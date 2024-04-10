@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.4.11
+
+### Patch Changes
+
+- chart extending token metadata with custom assets
+
 ## 3.4.10
 
 ### Patch Changes
