@@ -1166,6 +1166,7 @@ export class TradeApp extends PoolApp {
           .assetOut=${this.trade.assetOut}
           .switchAllowed=${this.isSwitchEnabled()}
           .selector=${this.asset.selector}
+          .newAssetBtn
           @asset-click=${this.onAssetClick}>
           <div class="header section" slot="header">
             <uigc-icon-button
