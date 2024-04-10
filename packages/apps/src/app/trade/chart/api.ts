@@ -34,7 +34,7 @@ export class TradeChartApi {
         queries: [
           {
             refId: 'buckets',
-            rawSql: buildQuery(assetIn.id, assetOut.id, from, to, range),
+            rawSql: buildQuery(assetIn, assetOut, from, to, range),
             format: 'table',
             datasourceId: Number(this._grafanaDsn),
           },
