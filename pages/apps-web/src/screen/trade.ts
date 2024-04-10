@@ -132,7 +132,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
 
   render() {
     if (this.theme.state == 'hdx') {
-      return this.hdxTemplate();
+      return this.hdxTemplateRococo();
     } else {
       return this.bsxTemplate();
     }

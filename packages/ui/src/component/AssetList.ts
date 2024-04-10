@@ -49,8 +49,24 @@ export class AssetList extends UIGCElement {
         border-bottom: var(--uigc-list-border-bottom);
         display: block;
       }
+
+      .btn-text {
+        color: #85d1ff;
+        cursor: pointer;
+
+        padding: 10px 0;
+        margin: auto;
+      }
     `,
   ];
+
+  protected onNewAssetClick() {
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('gc:newAsset', options));
+  }
 
   render() {
     return html`
@@ -65,6 +81,9 @@ export class AssetList extends UIGCElement {
           <span>ASSETS WITHOUT PAIR/POOL</span>
         </div>
         <slot name="disabled"></slot>
+        <span class="btn-text" @click=${this.onNewAssetClick}>
+          Add new asset
+        </span>
       </div>
     `;
   }
