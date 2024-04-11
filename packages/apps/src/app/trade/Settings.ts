@@ -8,7 +8,7 @@ import {
   DatabaseController,
   TradeConfig,
   TradeConfigCursor,
-  DEFAULT_TRADE_CONFIG,
+  TRADE_CONFIG,
   Ecosystem,
 } from 'db';
 import { baseStyles } from 'styles/base.css';
@@ -136,7 +136,7 @@ export class TradeSettings extends LitElement {
     if (value) {
       TradeConfigCursor.resetIn([propName], value);
     } else {
-      const defaultValue = DEFAULT_TRADE_CONFIG[propName];
+      const defaultValue = TRADE_CONFIG[propName];
       this[propName] = defaultValue;
       TradeConfigCursor.resetIn([propName], defaultValue);
     }

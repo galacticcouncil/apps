@@ -1,10 +1,20 @@
-import { CachingPoolService, TradeRouter } from '@galacticcouncil/sdk';
+import {
+  CachingPoolService,
+  ExternalAsset,
+  PoolService,
+  TradeRouter,
+} from '@galacticcouncil/sdk';
 import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
 import { ApiPromise } from '@polkadot/api';
 import { Ecosystem, ChainCursor, ExternalAssetCursor } from './db';
 
 const logFmt = (log: string) => {
   console.log('%c' + log, 'background: #222; color: #bada55');
+};
+
+const readExternal = (): ExternalAsset[] | undefined => {
+  const externalConfig = ExternalAssetCursor.deref();
+  return externalConfig ? externalConfig.state.tokens : undefined;
 };
 
 async function info(api: ApiPromise): Promise<void> {
@@ -27,12 +37,9 @@ function initApi(
   info(api);
   const poolService = new CachingPoolService(api);
   const router = new TradeRouter(poolService);
+  // Get external assets
+  const externalAssets = readExternal();
   // Get pools and cache the result
-  const externalConfig = ExternalAssetCursor.deref();
-  const externalAssets = externalConfig
-    ? externalConfig.state.tokens
-    : undefined;
-
   poolService.syncRegistry(externalAssets).then(() => {
     logFmt('Router ready ✅');
     ChainCursor.reset({
@@ -68,6 +75,21 @@ export async function useApi(
 ) {
   try {
     initApi(api, ecosystem, onReady);
+  } catch (error) {
+    onError(error);
+  }
+}
+
+export async function syncRegistry(
+  poolService: PoolService,
+  onReady: () => void,
+  onError: (error: unknown) => void,
+) {
+  try {
+    const externalAssets = readExternal();
+    poolService.syncRegistry(externalAssets).then(() => {
+      onReady();
+    });
   } catch (error) {
     onError(error);
   }

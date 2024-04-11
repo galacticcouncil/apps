@@ -3,12 +3,7 @@ import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
-import {
-  DatabaseController,
-  DcaConfig,
-  DcaConfigCursor,
-  DEFAULT_DCA_CONFIG,
-} from 'db';
+import { DatabaseController, DcaConfig, DcaConfigCursor, DCA_CONFIG } from 'db';
 import { baseStyles } from 'styles/base.css';
 
 const SLIPPAGE_OPTS = ['1', '1.5', '3', '5'];
@@ -125,7 +120,7 @@ export class DcaSettings extends LitElement {
     if (value) {
       DcaConfigCursor.resetIn([propName], value);
     } else {
-      const defaultValue = DEFAULT_DCA_CONFIG[propName];
+      const defaultValue = DCA_CONFIG[propName];
       this[propName] = defaultValue;
       DcaConfigCursor.resetIn([propName], defaultValue);
     }

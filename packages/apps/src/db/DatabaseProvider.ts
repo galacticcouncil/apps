@@ -1,41 +1,87 @@
+import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { Cursor } from '@thi.ng/atom';
+import short from 'short-uuid';
 
-import { Database, DatabaseKey } from './db';
+import {
+  AccountCursor,
+  DcaConfigCursor,
+  ExternalAssetCursor,
+  StorageKey,
+  TradeConfigCursor,
+} from './db';
 import { getObj, setObj } from './storage';
-
-import { BaseElement } from 'element/BaseElement';
+import { ExternalAssetConfig } from './types';
 
 @customElement('gc-database-provider')
-export class DatabaseProvider extends BaseElement {
-  private cursors: Cursor<any>[] = [];
+export class DatabaseProvider extends LitElement {
+  private cursors: Map<string, Cursor<any>> = new Map([]);
 
-  private register<T>(cursor: Cursor<T>, key: string) {
-    const storedVal = getObj<T>(key);
+  private watchId<T>(cursor: Cursor<T>) {
+    return cursor.id + '-' + short.generate();
+  }
+
+  private register<T>(cursor: Cursor<T>, storageKey: string) {
+    const storedVal = getObj<T>(storageKey);
     const defaultVal = cursor.deref();
-    cursor.reset({ ...defaultVal, ...storedVal });
-    cursor.addWatch(key, (id, prev, curr) => {
+    if (defaultVal) {
+      cursor.reset({ ...defaultVal, ...storedVal });
+    } else {
+      cursor.reset(storedVal);
+    }
+  }
+
+  private registerAndSync<T>(cursor: Cursor<T>, storageKey: string) {
+    this.register(cursor, storageKey);
+    const watchId = this.watchId(cursor);
+    cursor.addWatch(watchId, (id, prev, curr) => {
       const prevJson = JSON.stringify(prev);
       const currJson = JSON.stringify(curr);
       if (prevJson !== currJson) {
         console.log(`${id}: ${prevJson} -> ${currJson}`);
-        setObj(key, curr);
+        setObj(storageKey, curr);
       }
     });
-    this.cursors.push(cursor);
+    this.cursors.set(watchId, cursor);
+    console.log(`💾 Sync [${cursor.id}] => ${storageKey} active.`);
+  }
+
+  private unregister() {
+    for (let [watchId, cursor] of this.cursors) {
+      cursor.removeWatch(watchId);
+    }
+  }
+
+  private syncExternal(evt: StorageEvent) {
+    if (evt.key === StorageKey.external && evt.newValue) {
+      console.log('🔄 Syncing external tokens...');
+      const config = getObj<ExternalAssetConfig>(StorageKey.external);
+      ExternalAssetCursor.reset(config);
+    }
+  }
+
+  private async onStorageChange(evt: StorageEvent) {
+    this.syncExternal(evt);
   }
 
   override connectedCallback() {
     super.connectedCallback();
-    this.register(Database.account, DatabaseKey.account);
-    this.register(Database.config.dca, DatabaseKey.config.dca);
-    this.register(Database.config.trade, DatabaseKey.config.trade);
-    this.register(Database.config.external, DatabaseKey.config.external);
-    this.cursors.forEach((c: Cursor<any>) => console.log(c.id));
+    this.registerAndSync(AccountCursor, StorageKey.account);
+    this.registerAndSync(DcaConfigCursor, StorageKey.config.dca);
+    this.registerAndSync(TradeConfigCursor, StorageKey.config.trade);
+    this.register(ExternalAssetCursor, StorageKey.external);
+    window.addEventListener('storage', this.onStorageChange.bind(this));
   }
 
   override disconnectedCallback() {
-    this.cursors.forEach((c: Cursor<any>) => c.removeWatch(c.id));
+    this.unregister();
+    window.removeEventListener('storage', this.onStorageChange);
     super.disconnectedCallback();
+  }
+
+  render() {
+    return html`
+      <slot></slot>
+    `;
   }
 }

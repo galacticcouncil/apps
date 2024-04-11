@@ -38,9 +38,6 @@ export class Popper extends UIGCElement {
     ) as HTMLElement;
 
     triggerElement.addEventListener('mouseover', () => {
-      console.log(triggerElement);
-      console.log(tooltipElement);
-
       computePosition(triggerElement, tooltipElement, {
         placement: 'right-start',
       }).then(({ x, y }) => {

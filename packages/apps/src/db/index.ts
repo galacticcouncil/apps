@@ -1,3 +1,5 @@
 export * from './db';
-export { DatabaseController } from './db.ctrl';
+export * from './db.ctrl';
+export * from './DatabaseProvider';
+export * from './storage';
 export * from './types';

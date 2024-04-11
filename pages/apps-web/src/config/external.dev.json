@@ -1,0 +1,14 @@
+{
+  "state": {
+    "tokens": [
+      {
+        "decimals": 8,
+        "id": "666",
+        "name": "Danger Coin",
+        "origin": 1000,
+        "symbol": "DANGER"
+      }
+    ]
+  },
+  "version": 0.2
+}

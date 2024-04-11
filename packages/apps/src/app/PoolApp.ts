@@ -4,16 +4,15 @@ import { AssetApi } from 'api/asset';
 import { PaymentApi } from 'api/payment';
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
-import { createApi } from 'chain';
+import { createApi, syncRegistry } from 'chain';
 import {
   Account,
   Chain,
   ChainCursor,
   DatabaseController,
-  ExternalAssetConfig,
   ExternalAssetCursor,
-  StorageKeys,
 } from 'db';
+import { SECOND_MS } from 'utils/time';
 
 import {
   Amount,
@@ -24,7 +23,6 @@ import {
   SYSTEM_ASSET_ID,
 } from '@galacticcouncil/sdk';
 import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
-import { SECOND_MS } from 'utils/time';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
@@ -65,7 +63,12 @@ export abstract class PoolApp extends BaseApp {
 
   override async firstUpdated() {
     if (this.isApiReady()) {
-      this._init();
+      const { poolService } = this.chain.state;
+      syncRegistry(
+        poolService,
+        () => this._init(),
+        () => {},
+      );
     } else {
       createApi(
         this.apiAddress,
@@ -82,16 +85,12 @@ export abstract class PoolApp extends BaseApp {
 
   override connectedCallback() {
     super.connectedCallback();
-    window.addEventListener('storage', this.onStorageChange.bind(this));
   }
 
   override disconnectedCallback() {
-    window.removeEventListener('storage', this.onStorageChange);
+    const account = this.account.state;
     this.disconnectSubscribeNewHeads?.();
-    if (this.disconnectSubscribeBalance.length > 0) {
-      const account = this.account.state;
-      this.unsubscribeBalance(account);
-    }
+    this.unsubscribeBalance(account);
     super.disconnectedCallback();
   }
 
@@ -151,12 +150,6 @@ export abstract class PoolApp extends BaseApp {
       const addrAbrev = this.getShortened(account.address);
       console.log(`Account [${addrAbrev}] balance subscribed`);
     }
-  }
-
-  protected async resubscribeBalance() {
-    const account = this.account.state;
-    this.unsubscribeBalance(account);
-    this.subscribeBalance();
   }
 
   protected unsubscribeBalance(account: Account) {
@@ -221,18 +214,6 @@ export abstract class PoolApp extends BaseApp {
     }
   }
 
-  protected async onStorageChange(evt: StorageEvent) {
-    const { poolService } = this.chain.state;
-    if (evt.key === StorageKeys.EXTERNAL_TOKENS_KEY && evt.newValue) {
-      const config = this.parseJson<ExternalAssetConfig>(evt.newValue);
-      const tokens = config.state.tokens;
-      ExternalAssetCursor.reset(config);
-      await poolService.syncRegistry(tokens);
-      await this.syncAssets();
-      await this.resubscribeBalance();
-    }
-  }
-
   protected async syncDolarPrice() {
     this.assets.usdPrice = await this.assetApi.getPrice(
       this.assets.tradeable,
@@ -246,21 +227,5 @@ export abstract class PoolApp extends BaseApp {
       this.assets.tradeable,
       SYSTEM_ASSET_ID,
     );
-  }
-
-  protected async syncAssets() {
-    const { router } = this.chain.state;
-    const tradeable = await router.getAllAssets();
-    const [assets, assetsPairs] = await Promise.all([
-      this.assetApi.getAssets(),
-      this.assetApi.getPairs(tradeable),
-    ]);
-
-    this.assets = {
-      ...this.assets,
-      tradeable: tradeable,
-      registry: assets,
-      pairs: assetsPairs,
-    };
   }
 }
