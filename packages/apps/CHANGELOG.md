@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.5.0
+
+### Minor Changes
+
+- Support external sync, DatabaseProvider wrapper cmp
+
 ## 3.4.11
 
 ### Patch Changes
