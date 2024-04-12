@@ -1,5 +1,12 @@
 # @galacticcouncil/ui
 
+## 3.1.6
+
+### Patch Changes
+
+- Added STINK logo
+- Remove Popper logging
+
 ## 3.1.5
 
 ### Patch Changes
