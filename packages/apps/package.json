@@ -49,7 +49,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/sdk": "^2.2.1",
-    "@galacticcouncil/ui": "^3.1.6",
+    "@galacticcouncil/ui": "^3.1.7",
     "@galacticcouncil/xcm-cfg": "^1.11.2",
     "@galacticcouncil/xcm-sdk": "^2.4.0",
     "@polkadot/api": "^10.9.1",
