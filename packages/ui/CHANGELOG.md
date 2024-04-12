@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.7
+
+### Patch Changes
+
+- Fix warning icon stop offsets
+
 ## 3.1.6
 
 ### Patch Changes
