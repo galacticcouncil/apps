@@ -52,16 +52,12 @@ export class DatabaseProvider extends LitElement {
     }
   }
 
-  private syncExternal(evt: StorageEvent) {
+  private async onStorageChange(evt: StorageEvent) {
     if (evt.key === StorageKey.external && evt.newValue) {
       console.log('🔄 Syncing external tokens...');
-      const config = getObj<ExternalAssetConfig>(StorageKey.external);
+      const config = JSON.parse(evt.newValue) as ExternalAssetConfig;
       ExternalAssetCursor.reset(config);
     }
-  }
-
-  private async onStorageChange(evt: StorageEvent) {
-    this.syncExternal(evt);
   }
 
   override connectedCallback() {
