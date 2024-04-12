@@ -38,9 +38,9 @@ function initApi(
   const poolService = new CachingPoolService(api);
   const router = new TradeRouter(poolService);
   // Get external assets
-  const externalAssets = readExternal();
+  const external = readExternal();
   // Get pools and cache the result
-  poolService.syncRegistry(externalAssets).then(() => {
+  poolService.syncRegistry(external).then(() => {
     logFmt('Router ready ✅');
     ChainCursor.reset({
       api: api,
@@ -86,10 +86,15 @@ export async function syncRegistry(
   onError: (error: unknown) => void,
 ) {
   try {
-    const externalAssets = readExternal();
-    poolService.syncRegistry(externalAssets).then(() => {
+    const external = readExternal();
+    const isSynced = external.every((ext) =>
+      poolService.assets.find((a) => a.symbol === ext.symbol),
+    );
+    if (isSynced) {
       onReady();
-    });
+    } else {
+      poolService.syncRegistry(external).then(() => onReady());
+    }
   } catch (error) {
     onError(error);
   }

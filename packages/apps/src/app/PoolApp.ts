@@ -61,6 +61,18 @@ export abstract class PoolApp extends BaseApp {
     return !!this.chain.state;
   }
 
+  // isExternalChange(): boolean {
+  //   const { poolService } = this.chain.state;
+  //   const externalConfig = ExternalAssetCursor.deref();
+  //   if (externalConfig) {
+  //     const external = externalConfig.state.tokens;
+  //     return external.every((ext) =>
+  //       poolService.assets.find((a) => (a.symbol = ext.symbol)),
+  //     );
+  //   }
+  //   return false;
+  // }
+
   override async firstUpdated() {
     if (this.isApiReady()) {
       const { poolService } = this.chain.state;
@@ -101,23 +113,20 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async init() {
-    const { router, api } = this.chain.state;
-    this.assetApi = new AssetApi(api, router, ExternalAssetCursor);
+    const { api, poolService, router } = this.chain.state;
+    this.assetApi = new AssetApi(api, router);
     this.paymentApi = new PaymentApi(api, router);
     this.timeApi = new TimeApi(api);
     this.balanceClient = new BalanceClient(api);
 
     const tradeable = await router.getAllAssets();
-    const [assets, assetsPairs] = await Promise.all([
-      this.assetApi.getAssets(),
-      this.assetApi.getPairs(tradeable),
-    ]);
+    const pairs = await this.assetApi.getPairs(tradeable);
 
     this.assets = {
       ...this.assets,
       tradeable: tradeable,
-      registry: assets,
-      pairs: assetsPairs,
+      registry: new Map(poolService.assets.map((a) => [a.id, a])),
+      pairs: pairs,
     };
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
