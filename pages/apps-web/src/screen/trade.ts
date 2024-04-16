@@ -7,7 +7,6 @@ import {
   AccountCursor,
   DatabaseController,
   Ecosystem,
-  ExternalAssetCursor,
 } from '@galacticcouncil/apps';
 
 import { ThemeController } from 'theme.ctrl';
@@ -59,28 +58,6 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
   }
 
   hdxTemplate() {
-    ExternalAssetCursor.reset({
-      state: {
-        tokens: [
-          { decimals: 10, id: '30', name: 'DED', origin: 1000, symbol: 'DED' },
-          {
-            decimals: 10,
-            id: '23',
-            name: 'PINK',
-            origin: 1000,
-            symbol: 'PINK',
-          },
-          {
-            decimals: 4,
-            id: '18',
-            name: 'DOTA',
-            origin: 1000,
-            symbol: 'DOTA',
-          },
-        ],
-      },
-      version: 0.2,
-    });
     return html`
       <gc-trade
         chart
@@ -99,20 +76,6 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
   }
 
   hdxTemplateRococo() {
-    ExternalAssetCursor.reset({
-      state: {
-        tokens: [
-          {
-            decimals: 8,
-            id: '666',
-            name: 'Danger Coin',
-            origin: 1000,
-            symbol: 'DANGER',
-          },
-        ],
-      },
-      version: 0.2,
-    });
     return html`
       <gc-trade
         chart

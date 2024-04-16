@@ -2,12 +2,7 @@ import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
-import {
-  EvmClient,
-  SubstrateApis,
-  Wallet,
-  evmChains,
-} from '@galacticcouncil/xcm-sdk';
+import { EvmClient, SubstrateApis, evmChains } from '@galacticcouncil/xcm-sdk';
 import '@galacticcouncil/ui';
 
 import type { ApiPromise } from '@polkadot/api';
@@ -17,7 +12,7 @@ import type { DispatchError } from '@polkadot/types/interfaces';
 import * as i18n from 'i18next';
 import short from 'short-uuid';
 
-import { Chain, ChainCursor, DatabaseController, WalletCursor } from 'db';
+import { Chain, ChainCursor, DatabaseController } from 'db';
 import { EVM_PROVIDERS } from 'utils/account';
 import { txRecord } from 'utils/event';
 
@@ -32,7 +27,6 @@ import {
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
-  protected wallet = new DatabaseController<Wallet>(this, WalletCursor);
 
   private txBroadcasted: Set<string> = new Set([]);
 
