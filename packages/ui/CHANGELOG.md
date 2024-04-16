@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.8
+
+### Patch Changes
+
+- Fix warning offset
+
 ## 3.1.7
 
 ### Patch Changes
