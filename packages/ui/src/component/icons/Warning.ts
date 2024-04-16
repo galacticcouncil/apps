@@ -46,7 +46,7 @@ export class WarningIcon extends BaseIcon {
             gradientUnits="userSpaceOnUse">
             <stop
               style="offset: var(--stop-first-offset); stop-color: var(--stop-first-color); " />
-            <stop style="stop-color: var(--stop-second-color); " />
+            <stop offset="1" style="stop-color: var(--stop-second-color); " />
           </linearGradient>
         </defs>
       </svg>
