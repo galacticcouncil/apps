@@ -28,7 +28,6 @@ export class SelectAsset extends LitElement {
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: Boolean }) switchAllowed = true;
-  @property({ type: Boolean }) newAssetBtn = false;
 
   @state() query = '';
 
@@ -168,7 +167,8 @@ export class SelectAsset extends LitElement {
       ${when(
         this.assets.length > 0,
         () => html`
-          <uigc-asset-list .newAssetBtn=${this.newAssetBtn}>
+          <uigc-asset-list>
+            <slot slot="btn" name="btn"></slot>
             ${map(this.filter(this.query), ({ asset, balance, balanceUsd }) => {
               const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
 

@@ -1,12 +1,10 @@
 import { html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
 @customElement('uigc-asset-list')
 export class AssetList extends UIGCElement {
-  @property({ type: Boolean }) newAssetBtn = false;
-
   static styles = [
     UIGCElement.styles,
     css`
@@ -51,65 +49,8 @@ export class AssetList extends UIGCElement {
         border-bottom: var(--uigc-list-border-bottom);
         display: block;
       }
-
-      .btn {
-        padding: 8px 0;
-        justify-content: center;
-      }
-
-      .text {
-        font-size: 14px;
-        color: #85d1ff;
-        cursor: pointer;
-        font-weight: 500;
-
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .text:hover {
-        color: #ecedef;
-        path {
-          stroke: #ecedef;
-        }
-      }
     `,
   ];
-
-  protected onNewAssetClick() {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('gc:newAsset', options));
-  }
-
-  renderNewAssetButton() {
-    if (this.newAssetBtn) {
-      return html`
-        <div class="list-header btn">
-          <div class="text" @click=${this.onNewAssetClick}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="11"
-              height="10"
-              viewBox="0 0 11 10"
-              fill="none">
-              <path
-                d="M5.49999 1.33398V5.00074M5.49999 8.66749V5.00074M5.49999 5.00074H1.83333M5.49999 5.00074H9.16666"
-                stroke="#85D1FF"
-                stroke-width="1.71429"
-                stroke-linecap="square" />
-            </svg>
-
-            Add new asset
-          </div>
-        </div>
-      `;
-    }
-  }
 
   render() {
     return html`
@@ -124,7 +65,7 @@ export class AssetList extends UIGCElement {
           <span>ASSETS WITHOUT PAIR/POOL</span>
         </div>
         <slot name="disabled"></slot>
-        ${this.renderNewAssetButton()}
+        <slot name="btn"></slot>
       </div>
     `;
   }
