@@ -16,6 +16,7 @@ export class SelectXChain extends LitElement {
   @property({ attribute: false }) destChain = null;
   @property({ type: String }) selector = null;
   @property({ type: String }) query = '';
+  @property({ type: Boolean }) active = false;
 
   static styles = [baseStyles, selectorStyles];
 
@@ -47,6 +48,14 @@ export class SelectXChain extends LitElement {
     }
   }
 
+  override update(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('active') && !this.active) {
+      this.query = '';
+    }
+
+    super.update(changedProperties);
+  }
+
   loadingTemplate() {
     return html`
       <div class="loading">
@@ -64,6 +73,7 @@ export class SelectXChain extends LitElement {
       <uigc-search-bar
         class="search"
         placeholder="Search by name"
+        .value=${this.query}
         @search-change=${(e: CustomEvent) =>
           this.updateSearch(e.detail)}></uigc-search-bar>
       ${when(
