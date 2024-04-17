@@ -216,6 +216,7 @@ export abstract class Chart extends BaseElement {
 
   override async firstUpdated() {
     this.chartContainer = this.shadowRoot.getElementById('chart');
+    this.chartContainer.style.height = `${CHART_HEIGHT}px`;
     this.chart = createChart(this.chartContainer, {
       layout: layoutOptions,
       rightPriceScale: rightPriceScale,
