@@ -18,7 +18,7 @@ export class AssetSwitch extends UIGCElement {
       }
 
       :host(:not([basic])) uigc-icon-switch {
-        display: block;
+        display: flex;
       }
 
       :host([disabled]) .switch-root:hover > uigc-icon-switch,
