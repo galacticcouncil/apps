@@ -1173,7 +1173,7 @@ export class TradeApp extends PoolApp {
   addAssetBtn() {
     if (this.newAssetBtn)
       return html`
-        <div class="btn" slot="newAssetBtn">
+        <div class="btn" slot="footer">
           <div class="text" @click=${this.onAddNewAssetClick}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
