@@ -65,7 +65,7 @@ export class AssetList extends UIGCElement {
           <span>ASSETS WITHOUT PAIR/POOL</span>
         </div>
         <slot name="disabled"></slot>
-        <slot name="btn"></slot>
+        <slot name="newAssetBtn"></slot>
       </div>
     `;
   }
