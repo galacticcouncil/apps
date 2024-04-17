@@ -1061,6 +1061,14 @@ export class TradeApp extends PoolApp {
     this.updateQuery();
   }
 
+  protected onAddNewAssetClick() {
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('gc:external:new', options));
+  }
+
   protected isFormDisabled() {
     return this.isSwapEmpty() || !this.isSwapSelected() || !this.hasAccount();
   }
@@ -1166,15 +1174,7 @@ export class TradeApp extends PoolApp {
     if (this.newAssetBtn)
       return html`
         <div class="btn" slot="btn">
-          <div
-            class="text"
-            @click=${() =>
-              this.dispatchEvent(
-                new CustomEvent('gc:external:new', {
-                  bubbles: true,
-                  composed: true,
-                }),
-              )}>
+          <div class="text" @click=${this.onAddNewAssetClick}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="11"
