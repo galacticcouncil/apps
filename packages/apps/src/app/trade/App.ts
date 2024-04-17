@@ -1061,14 +1061,6 @@ export class TradeApp extends PoolApp {
     this.updateQuery();
   }
 
-  protected onAddNewAssetClick() {
-    const options = {
-      bubbles: true,
-      composed: true,
-    };
-    this.dispatchEvent(new CustomEvent('gc:external:new', options));
-  }
-
   protected isFormDisabled() {
     return this.isSwapEmpty() || !this.isSwapSelected() || !this.hasAccount();
   }
@@ -1170,8 +1162,26 @@ export class TradeApp extends PoolApp {
     `;
   }
 
+  protected onAddNewAssetClick() {
+    const options = {
+      bubbles: true,
+      composed: true,
+    };
+    this.dispatchEvent(new CustomEvent('gc:external:new', options));
+  }
+
+  protected onAssetClick(e: CustomEvent) {
+    const { id, asset } = this.asset.selector;
+    id == 'assetIn' && this.changeAssetIn(asset, e.detail);
+    id == 'assetOut' && this.changeAssetOut(asset, e.detail);
+    this.updateBalances();
+    this.validatePool();
+    this.updateQuery();
+    this.changeTab(TradeTab.Form);
+  }
+
   addAssetBtn() {
-    if (this.newAssetBtn)
+    if (this.newAssetBtn) {
       return html`
         <div class="btn" slot="footer">
           <div class="text" @click=${this.onAddNewAssetClick}>
@@ -1191,16 +1201,7 @@ export class TradeApp extends PoolApp {
           </div>
         </div>
       `;
-  }
-
-  protected onAssetClick(e: CustomEvent) {
-    const { id, asset } = this.asset.selector;
-    id == 'assetIn' && this.changeAssetIn(asset, e.detail);
-    id == 'assetOut' && this.changeAssetOut(asset, e.detail);
-    this.updateBalances();
-    this.validatePool();
-    this.updateQuery();
-    this.changeTab(TradeTab.Form);
+    }
   }
 
   selectAssetTab() {
