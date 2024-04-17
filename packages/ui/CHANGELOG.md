@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.9
+
+### Patch Changes
+
+- Asset list footer slot
+
 ## 3.1.8
 
 ### Patch Changes

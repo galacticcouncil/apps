@@ -1,5 +1,13 @@
 # @galacticcouncil/apps
 
+## 3.5.1
+
+### Patch Changes
+
+- Fix chart glitches
+- Asset selector external button
+- Asset selector search reset
+
 ## 3.5.0
 
 ### Minor Changes
