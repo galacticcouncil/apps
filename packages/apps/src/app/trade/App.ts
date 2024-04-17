@@ -77,6 +77,7 @@ export class TradeApp extends PoolApp {
 
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) twapOn: Boolean = false;
+  @property({ type: Boolean }) newAssetBtn: Boolean = false;
 
   @state() tab: TradeTab = TradeTab.Form;
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
@@ -1166,7 +1167,7 @@ export class TradeApp extends PoolApp {
           .assetOut=${this.trade.assetOut}
           .switchAllowed=${this.isSwitchEnabled()}
           .selector=${this.asset.selector}
-          .newAssetBtn
+          .newAssetBtn=${this.newAssetBtn}
           @asset-click=${this.onAssetClick}>
           <div class="header section" slot="header">
             <uigc-icon-button

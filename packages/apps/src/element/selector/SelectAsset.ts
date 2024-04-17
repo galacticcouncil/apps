@@ -168,7 +168,7 @@ export class SelectAsset extends LitElement {
       ${when(
         this.assets.length > 0,
         () => html`
-          <uigc-asset-list newAssetBtn=${this.newAssetBtn}>
+          <uigc-asset-list .newAssetBtn=${this.newAssetBtn}>
             ${map(this.filter(this.query), ({ asset, balance, balanceUsd }) => {
               const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
 
