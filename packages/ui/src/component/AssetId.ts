@@ -64,10 +64,11 @@ export class AssetId extends UIGCElement {
       logoChain.removeAttribute('chain');
     }
 
+    const warningLogo = this.shadowRoot.querySelector('uigc-icon-warning');
     if (this.isDangerous) {
-      console.log(this.isDangerous);
-      const warningLogo = this.shadowRoot.querySelector('uigc-icon-warning');
-      warningLogo.setAttribute('red', '');
+      warningLogo?.setAttribute('red', '');
+    } else {
+      warningLogo?.removeAttribute('red');
     }
   }
 
