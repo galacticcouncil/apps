@@ -2,6 +2,7 @@ export { AddressInput } from './component/AddressInput';
 export { Alert } from './component/Alert';
 export { Asset } from './component/Asset';
 export { AssetBalance } from './component/AssetBalance';
+export { AssetBadge } from './component/AssetBadge';
 export { AssetId } from './component/AssetId';
 export { AssetInput } from './component/AssetInput';
 export { AssetInputComposite } from './component/AssetInputComposite';

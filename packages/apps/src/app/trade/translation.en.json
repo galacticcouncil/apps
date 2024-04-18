@@ -58,6 +58,6 @@
 
   "notify.twap": "{{noOfTrades}} trades × {{amountIn}} {{assetIn}} placed during next <1>{{timeframe}}</1> amounting to a total of <1>{{amountInBudget}} {{assetIn}}</1> {{status}}",
 
-  "asset.warning.external": "This asset is registered as an external token. Always conduct your own research before trading.",
-  "asset.danger.external": "The creator of this asset has not revoked their admin rights. This means the supply can be minted, burned or frozen at any point. Proceed at your own risk."
+  "asset.external.badge.warning": "This asset is registered as an external token. Always conduct your own research before trading.",
+  "asset.external.badge.danger": "The creator of this asset has not revoked their admin rights. This means the supply can be minted, burned or frozen at any point. Proceed at your own risk."
 }

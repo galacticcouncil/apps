@@ -31,34 +31,35 @@ export class AssetIdenticon extends LitElement {
     `,
   ];
 
+  iconBadgeTemplate(asset: Asset) {
+    if (asset.type !== 'External') return;
+
+    const variant = isExternalAssetWhitelisted(asset) ? 'warning' : 'danger';
+    const text = i18n.t(`asset.external.badge.${variant}`);
+
+    return html`
+      <uigc-asset-badge
+        slot="badge"
+        text=${text}
+        variant=${variant}></uigc-asset-badge>
+    `;
+  }
+
   iconTemplate(id: string, icon: string) {
     const asset = this.assets.get(id);
-
-    const warning =
-      asset.type === 'External'
-        ? isExternalAssetWhitelisted(asset)
-          ? i18n.t('asset.warning.external')
-          : i18n.t('asset.danger.external')
-        : undefined;
-
-    const isDangerous = !isExternalAssetWhitelisted(asset);
 
     if (asset.origin) {
       const originChain = getChainKey(asset.origin, this.ecosystem);
       return html`
-        <uigc-asset-id
-          slot="icon"
-          symbol=${icon}
-          warning=${warning}
-          .isDangerous=${isDangerous}
-          chain=${originChain}></uigc-asset-id>
+        <uigc-asset-id slot="icon" symbol=${icon} chain=${originChain}>
+          ${this.iconBadgeTemplate(asset)}
+        </uigc-asset-id>
       `;
     }
     return html`
-      <uigc-asset-id
-        slot="icon"
-        symbol=${icon}
-        warning=${warning}></uigc-asset-id>
+      <uigc-asset-id slot="icon" symbol=${icon}>
+        ${this.iconBadgeTemplate(asset)}
+      </uigc-asset-id>
     `;
   }
 
