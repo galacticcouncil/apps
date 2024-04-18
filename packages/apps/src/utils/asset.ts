@@ -1,7 +1,6 @@
 import { Asset } from '@galacticcouncil/sdk';
 
 const EXTERNAL_ASSETS_WHITELIST = [
-  '1000019', // DED
   '1000021', // PINK
 ];
 
