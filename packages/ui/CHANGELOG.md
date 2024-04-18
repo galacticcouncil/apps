@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.10
+
+### Patch Changes
+
+- Asset icon badge support
+
 ## 3.1.9
 
 ### Patch Changes

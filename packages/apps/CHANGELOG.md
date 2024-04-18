@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.5.2
+
+### Patch Changes
+
+- Asset icon badge support
+
 ## 3.5.1
 
 ### Patch Changes
