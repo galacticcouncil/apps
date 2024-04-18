@@ -34,9 +34,14 @@ export class AssetIdenticon extends LitElement {
   iconTemplate(id: string, icon: string) {
     const asset = this.assets.get(id);
 
-    const warning = !isExternalAssetWhitelisted(asset)
-      ? i18n.t('asset.warning.external')
-      : undefined;
+    const warning =
+      asset.type === 'External'
+        ? isExternalAssetWhitelisted(asset)
+          ? i18n.t('asset.warning.external')
+          : i18n.t('asset.danger.external')
+        : undefined;
+
+    const isDangerous = !isExternalAssetWhitelisted(asset);
 
     if (asset.origin) {
       const originChain = getChainKey(asset.origin, this.ecosystem);
@@ -45,6 +50,7 @@ export class AssetIdenticon extends LitElement {
           slot="icon"
           symbol=${icon}
           warning=${warning}
+          .isDangerous=${isDangerous}
           chain=${originChain}></uigc-asset-id>
       `;
     }

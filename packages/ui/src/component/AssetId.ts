@@ -13,6 +13,7 @@ export class AssetId extends UIGCElement {
   @property({ type: String }) symbol = null;
   @property({ type: String }) chain = null;
   @property({ type: String }) warning = null;
+  @property({ type: Boolean }) isDangerous = false;
 
   static styles = [
     css`
@@ -50,7 +51,7 @@ export class AssetId extends UIGCElement {
       uigc-icon-warning {
         right: -10%;
         bottom: -10%;
-        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.85));
       }
     `,
   ];
@@ -61,6 +62,12 @@ export class AssetId extends UIGCElement {
       logoChain.setAttribute('chain', this.chain);
     } else {
       logoChain.removeAttribute('chain');
+    }
+
+    if (this.isDangerous) {
+      console.log(this.isDangerous);
+      const warningLogo = this.shadowRoot.querySelector('uigc-icon-warning');
+      warningLogo.setAttribute('red', '');
     }
   }
 

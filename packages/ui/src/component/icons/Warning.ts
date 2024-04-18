@@ -15,9 +15,9 @@ export class WarningIcon extends BaseIcon {
       }
 
       :host([red]) {
-        --stop-first-color: #ff424d;
+        --stop-first-color: #ff4b4b;
         --stop-first-offset: 0.503788;
-        --stop-second-color: #ff5555;
+        --stop-second-color: #ff4b4b;
       }
     `,
   ];
