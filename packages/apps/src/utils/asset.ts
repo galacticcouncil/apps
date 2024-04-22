@@ -2,6 +2,7 @@ import { Asset } from '@galacticcouncil/sdk';
 
 const EXTERNAL_ASSETS_WHITELIST = [
   '1000021', // PINK
+  '1000034', // STINK
 ];
 
 /**
