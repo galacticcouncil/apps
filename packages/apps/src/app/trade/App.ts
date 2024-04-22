@@ -1206,6 +1206,17 @@ export class TradeApp extends PoolApp {
     }
   }
 
+  addAssetBtnTitle() {
+    if (this.newAssetBtn) {
+      return html`
+        <span slot="emptyTitle">
+          The asset your are looking for is missing, feel free to add custom
+          asset.
+        </span>
+      `;
+    }
+  }
+
   selectAssetTab() {
     const classes = {
       tab: true,
@@ -1226,16 +1237,7 @@ export class TradeApp extends PoolApp {
           .switchAllowed=${this.isSwitchEnabled()}
           .selector=${this.asset.selector}
           @asset-click=${this.onAssetClick}>
-          ${this.addAssetBtn()}
-          ${when(
-            this.newAssetBtn,
-            () => html`
-              <span slot="emptyTitle">
-                The asset your are looking for is missing, feel free to add
-                custom asset.
-              </span>
-            `,
-          )}
+          ${this.addAssetBtn()} ${this.addAssetBtnTitle()}
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"

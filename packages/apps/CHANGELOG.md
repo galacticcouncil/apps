@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.5.3
+
+### Patch Changes
+
+- STINK whitelist, custom empty token search notif
+
 ## 3.5.2
 
 ### Patch Changes
