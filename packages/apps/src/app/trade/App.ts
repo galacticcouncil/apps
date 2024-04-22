@@ -1227,10 +1227,15 @@ export class TradeApp extends PoolApp {
           .selector=${this.asset.selector}
           @asset-click=${this.onAssetClick}>
           ${this.addAssetBtn()}
-          <span slot="emptyTitle">
-            The asset your are looking for is missing, feel free to add custom
-            asset.
-          </span>
+          ${when(
+            this.newAssetBtn,
+            () => html`
+              <span slot="emptyTitle">
+                The asset your are looking for is missing, feel free to add
+                custom asset.
+              </span>
+            `,
+          )}
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
