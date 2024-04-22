@@ -1,4 +1,4 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
@@ -15,6 +15,7 @@ import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 import { AssetSelector } from './types';
 
 import 'element/id';
+import { emptySearchIcon } from './icons';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
@@ -32,7 +33,25 @@ export class SelectAsset extends LitElement {
 
   @state() query = '';
 
-  static styles = [baseStyles, selectorStyles];
+  static styles = [
+    baseStyles,
+    selectorStyles,
+    css`
+      .emptySection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin: 60px auto;
+      }
+
+      .emptyTitle {
+        max-width: 280px;
+        text-align: center;
+        color: var(--hex-basic-600);
+      }
+    `,
+  ];
 
   private getAssets() {
     return new Map(
@@ -165,7 +184,54 @@ export class SelectAsset extends LitElement {
     `;
   }
 
+  emptySearchState() {
+    return html`
+      <div class="emptySection">
+        ${emptySearchIcon}
+
+        <span class="emptyTitle">
+          <slot name="emptyTitle">
+            The asset your are looking for is missing.
+          </slot>
+        </span>
+
+        <slot slot="footer" name="footer"></slot>
+      </div>
+    `;
+  }
+
   render() {
+    const filteredAssets = this.filter(this.query);
+    const assets =
+      filteredAssets.length > 0
+        ? () => html`
+            <uigc-asset-list>
+              <slot slot="footer" name="footer"></slot>
+              ${map(filteredAssets, ({ asset, balance, balanceUsd }) => {
+                const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
+
+                return html`
+                  <uigc-asset-list-item
+                    slot=${this.getSlot(asset)}
+                    ?selected=${this.isSelected(asset)}
+                    ?disabled=${this.isDisabled(asset)}
+                    .asset=${asset}
+                    .unit=${icons.length === 1 ? asset.symbol : null}
+                    .balance=${humanizeAmount(balance)}
+                    .balanceUsd=${humanizeAmount(balanceUsd, 2)}>
+                    <gc-asset-identicon
+                      slot="asset"
+                      .showDesc=${true}
+                      .asset=${asset}
+                      .assets=${this.getAssets()}
+                      .ecosystem=${this.ecosystem}></gc-asset-identicon>
+                  </uigc-asset-list-item>
+                `;
+              })}
+            </uigc-asset-list>
+          `
+        : () => this.emptySearchState();
+
     return html`
       <slot name="header"></slot>
       <uigc-search-bar
@@ -176,32 +242,7 @@ export class SelectAsset extends LitElement {
           this.updateSearch(e.detail)}></uigc-search-bar>
       ${when(
         this.assets.length > 0,
-        () => html`
-          <uigc-asset-list>
-            <slot slot="footer" name="footer"></slot>
-            ${map(this.filter(this.query), ({ asset, balance, balanceUsd }) => {
-              const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
-
-              return html`
-                <uigc-asset-list-item
-                  slot=${this.getSlot(asset)}
-                  ?selected=${this.isSelected(asset)}
-                  ?disabled=${this.isDisabled(asset)}
-                  .asset=${asset}
-                  .unit=${icons.length === 1 ? asset.symbol : null}
-                  .balance=${humanizeAmount(balance)}
-                  .balanceUsd=${humanizeAmount(balanceUsd, 2)}>
-                  <gc-asset-identicon
-                    slot="asset"
-                    .showDesc=${true}
-                    .asset=${asset}
-                    .assets=${this.getAssets()}
-                    .ecosystem=${this.ecosystem}></gc-asset-identicon>
-                </uigc-asset-list-item>
-              `;
-            })}
-          </uigc-asset-list>
-        `,
+        assets,
         () =>
           html`
             <uigc-asset-list>

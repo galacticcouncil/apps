@@ -113,25 +113,21 @@ export class TradeApp extends PoolApp {
       .orders uigc-typography {
         font-size: 15px;
       }
-      .btn {
-        padding: 8px 0;
+      .container {
+        width: fit-content;
+        margin: 15px auto 30px;
         justify-content: center;
       }
 
-      .text {
-        font-size: 14px;
-        color: #85d1ff;
-        cursor: pointer;
-        font-weight: 500;
-
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 4px;
+      .icon {
+        margin-right: 4px;
+        margin-top: 1px;
+        path {
+          transition: stroke 0.2s ease-in-out;
+        }
       }
 
-      .text:hover {
-        color: #ecedef;
+      .btn:hover {
         path {
           stroke: #ecedef;
         }
@@ -1183,22 +1179,28 @@ export class TradeApp extends PoolApp {
   addAssetBtn() {
     if (this.newAssetBtn) {
       return html`
-        <div class="btn" slot="footer">
-          <div class="text" @click=${this.onAddNewAssetClick}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="11"
-              height="10"
-              viewBox="0 0 11 10"
-              fill="none">
-              <path
-                d="M5.49999 1.33398V5.00074M5.49999 8.66749V5.00074M5.49999 5.00074H1.83333M5.49999 5.00074H9.16666"
-                stroke="#85D1FF"
-                stroke-width="1.71429"
-                stroke-linecap="square" />
-            </svg>
-            Add new asset
-          </div>
+        <div class="container" slot="footer">
+          <uigc-button
+            variant="secondary"
+            size="micro"
+            class="btn"
+            @click=${this.onAddNewAssetClick}>
+            <span class="cta">Add new asset</span>
+            <div class="icon" slot="icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none">
+                <path
+                  d="M5.49999 1.33398V5.00074M5.49999 8.66749V5.00074M5.49999 5.00074H1.83333M5.49999 5.00074H9.16666"
+                  stroke="#85D1FF"
+                  stroke-width="1.71429"
+                  stroke-linecap="square" />
+              </svg>
+            </div>
+          </uigc-button>
         </div>
       `;
     }
@@ -1225,6 +1227,10 @@ export class TradeApp extends PoolApp {
           .selector=${this.asset.selector}
           @asset-click=${this.onAssetClick}>
           ${this.addAssetBtn()}
+          <span slot="emptyTitle">
+            The asset your are looking for is missing, feel free to add custom
+            asset.
+          </span>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
