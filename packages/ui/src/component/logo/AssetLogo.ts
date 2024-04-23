@@ -40,6 +40,7 @@ import {
   voucherKSM,
   wbtc,
   weth,
+  wud,
   zeitgeist,
 } from './assets';
 
@@ -91,6 +92,7 @@ export class AssetLogo extends BaseLogo {
           ['ZTG', () => zeitgeist],
           ['WBTC', () => wbtc],
           ['WETH', () => weth],
+          ['WUD', () => wud],
           ['WUSDT', () => usdt],
           ['XRT', () => robonomics],
         ],
