@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.12
+
+### Patch Changes
+
+- WUD asset support
+
 ## 3.1.11
 
 ### Patch Changes
