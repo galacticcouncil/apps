@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.11
+
+### Patch Changes
+
+- Add KILT & PEN icons
+
 ## 3.1.10
 
 ### Patch Changes
