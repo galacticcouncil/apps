@@ -457,3 +457,113 @@ export const zeitgeist = html`
       fill="white"></path>
   </svg>
 `;
+
+export const kilt = html`
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="48"
+    height="48"
+    viewBox="0 0 1000 1000">
+    <defs id="defs28">
+      <linearGradient
+        id="a3b77ee6-c1da-4aa5-8b86-70eb3de574ee"
+        x1="672.84"
+        x2="765.71"
+        y1="71.15"
+        y2="71.15"
+        gradientUnits="userSpaceOnUse">
+        <stop id="stop2" offset="0" stop-color="#f96943" />
+        <stop id="stop4" offset=".45" stop-color="#f46640" />
+        <stop id="stop6" offset="1" stop-color="#e55d38" />
+      </linearGradient>
+      <linearGradient
+        id="a3f947e7-a6f6-4e8d-bec4-d774d1fe4642"
+        x1="773.19"
+        x2="858.56"
+        y1="300.28"
+        y2="300.28"
+        gradientUnits="userSpaceOnUse">
+        <stop id="stop9" offset="0" stop-color="#ce4e2c" />
+        <stop id="stop11" offset="1" stop-color="#ce4e2c" />
+      </linearGradient>
+      <linearGradient
+        id="ad9638fe-24db-412e-9e2f-bc7efe8133e6"
+        x1="773.19"
+        x2="858.62"
+        y1="148.21"
+        y2="148.21"
+        gradientUnits="userSpaceOnUse">
+        <stop id="stop14" offset="0" stop-color="#e05935" />
+        <stop id="stop16" offset="1" stop-color="#ce4e2c" />
+      </linearGradient>
+      <linearGradient
+        id="b417dc1a-5052-432e-aecb-4767b2583e08"
+        x1="673.78"
+        x2="765.71"
+        y1="225.5"
+        y2="225.5"
+        gradientUnits="userSpaceOnUse">
+        <stop id="stop19" offset="0" stop-color="#f96943" />
+        <stop id="stop21" offset=".46" stop-color="#f46640" />
+        <stop id="stop23" offset="1" stop-color="#e55c38" />
+      </linearGradient>
+      <style id="style26">
+        .f57334f9-7ce2-455d-a74e-4c1f9bbc00aa {
+          fill: #8c175b;
+        }
+      </style>
+    </defs>
+    <circle
+      id="path1672"
+      cx="461.453"
+      cy="535.781"
+      r="500"
+      fill="#fff"
+      fill-opacity="1"
+      stroke="none"
+      stroke-width="5.333"
+      transform="rotate(-4.263)" />
+    <g id="g1618" transform="translate(49.98 300.065)">
+      <path
+        id="path30"
+        d="M293 41.47v285.76a6.11 6.11 0 0 1-1.77 4.34 5.44 5.44 0 0 1-1.72 1.2 5.67 5.67 0 0 1-2.53.58h-38.69a6.09 6.09 0 0 1-6-6.14V41.47a6.1 6.1 0 0 1 6-6.15h38.62a6.09 6.09 0 0 1 6.09 6.15z"
+        class="f57334f9-7ce2-455d-a74e-4c1f9bbc00aa" />
+      <path
+        id="path32"
+        d="M610.63 41.31v30.9a6 6 0 0 1-6 6h-74.82L553.55 95a3 3 0 0 1 1.27 2.45v230a6 6 0 0 1-6 6h-38a6 6 0 0 1-6-6V84.26a6 6 0 0 0-5.4-6H455a6 6 0 0 1-6-6V41.31a6 6 0 0 1 6-6h149.59a6 6 0 0 1 6.04 6z"
+        class="f57334f9-7ce2-455d-a74e-4c1f9bbc00aa" />
+      <path
+        id="path34"
+        d="M464.67 290.61h-74.48a6 6 0 0 1-5.29-4.85V41.33a6 6 0 0 0-6-6h-38.71a6 6 0 0 0-6 6v286.04a6 6 0 0 0 6 6l124.48.08a6 6 0 0 0 6-6v-30.8a6 6 0 0 0-6-6.04z"
+        class="f57334f9-7ce2-455d-a74e-4c1f9bbc00aa" />
+      <path
+        id="path36"
+        d="M211.49 324.51 133.25 182a6 6 0 0 1 0-5.78l72.6-132.12a6 6 0 0 0-5.29-8.85h-43.81a6.06 6.06 0 0 0-5.29 3.09L92.08 146.45V41.31a6 6 0 0 0-6-6H47.42a6 6 0 0 0-6 6v286.07a6 6 0 0 0 6 6H86a6 6 0 0 0 6-6v-65.95l-18-82.27 83 151.17a6 6 0 0 0 5.28 3.09h43.81a6 6 0 0 0 5.28-8.91z"
+        class="f57334f9-7ce2-455d-a74e-4c1f9bbc00aa" />
+      <path
+        id="path38"
+        fill="url(#a3b77ee6-c1da-4aa5-8b86-70eb3de574ee)"
+        d="m765.71 68.93-47.94-33.57h-37.51c-4.09 0-7.42 2.75-7.42 6.14v38.44l38.57 27z" />
+      <path
+        id="path40"
+        fill="url(#a3f947e7-a6f6-4e8d-bec4-d774d1fe4642)"
+        d="m773.19 304.77 41.47 29h36.48a8.26 8.26 0 0 0 3.1-.58 6.87 6.87 0 0 0 2.12-1.2 5.62 5.62 0 0 0 2.18-4.34v-39.14l-31.07-21.76z" />
+      <path
+        id="path42"
+        d="M858.62 40.22v39.71l-167.9 117.56a46.93 46.93 0 0 0-17.94 36.92V134l141-98.73h37.8c3.51.09 6.42 2.19 7.04 4.95z"
+        class="f57334f9-7ce2-455d-a74e-4c1f9bbc00aa" />
+      <path
+        id="path44"
+        fill="url(#ad9638fe-24db-412e-9e2f-bc7efe8133e6)"
+        d="m821.79 184.23 17.7-12.39.09-.07a47 47 0 0 0 19-37.79l-31.13-21.79-54.3 38 48.6 34z" />
+      <path
+        id="path46"
+        fill="url(#b417dc1a-5052-432e-aecb-4767b2583e08)"
+        d="m765.71 223.5-48.6-34-26.39 18.5a47.11 47.11 0 0 0-16.94 27.22l37.63 26.35z" />
+      <path
+        id="path48"
+        d="m839.58 171.77-.09.07-166.71 116.73v76.05l185.84-130.13V134a47 47 0 0 1-19.04 37.77z"
+        class="f57334f9-7ce2-455d-a74e-4c1f9bbc00aa" />
+    </g>
+  </svg>
+`;
