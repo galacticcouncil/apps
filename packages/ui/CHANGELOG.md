@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.14
+
+### Patch Changes
+
+- Upgrade KILT color scheme
+
 ## 3.1.13
 
 ### Patch Changes
