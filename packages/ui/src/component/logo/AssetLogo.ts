@@ -4,6 +4,7 @@ import { choose } from 'lit/directives/choose.js';
 
 import { BaseLogo } from './BaseLogo';
 import {
+  ausd,
   acala,
   apecoin,
   astar,
@@ -22,6 +23,7 @@ import {
   karura,
   kilt,
   kusama,
+  ldot,
   lrna,
   moonbeam,
   nodle,
@@ -53,7 +55,7 @@ export class AssetLogo extends BaseLogo {
       ${choose(
         this.asset && this.asset.toUpperCase(),
         [
-          ['AUSD', () => acala],
+          ['AUSD', () => ausd],
           ['ACA', () => acala],
           ['APE', () => apecoin],
           ['ASTR', () => astar],
@@ -74,6 +76,7 @@ export class AssetLogo extends BaseLogo {
           ['KAR', () => karura],
           ['KILT', () => kilt],
           ['KSM', () => kusama],
+          ['LDOT', () => ldot],
           ['LRNA', () => lrna],
           ['NODL', () => nodle],
           ['PEN', () => pen],

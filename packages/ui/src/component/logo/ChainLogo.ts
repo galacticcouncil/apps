@@ -4,7 +4,6 @@ import { choose } from 'lit/directives/choose.js';
 
 import { BaseLogo } from './BaseLogo';
 import {
-  acala,
   basilisk,
   bifrost,
   centrifuge,
@@ -21,6 +20,7 @@ import {
   subsocial,
 } from './chains';
 import {
+  acala,
   astar,
   crust,
   integritee,
