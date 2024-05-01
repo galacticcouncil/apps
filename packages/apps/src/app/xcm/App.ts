@@ -1,3 +1,5 @@
+import '@polkadot/api-augment';
+
 import { html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -43,16 +45,20 @@ import {
   chainsConfigMap,
 } from '@galacticcouncil/xcm-cfg';
 
-import {
-  SubstrateApis,
-  Wallet,
-  XCall,
-  XData,
-  isH160Address,
-} from '@galacticcouncil/xcm-sdk';
+import { Wallet, XCall, XTransfer } from '@galacticcouncil/xcm-sdk';
 
-import { ConfigService } from '@moonbeam-network/xcm-config';
-import { AnyChain, AssetAmount } from '@moonbeam-network/xcm-types';
+import {
+  AnyChain,
+  AnyParachain,
+  AssetAmount,
+  ChainType,
+  ConfigService,
+  EvmParachain,
+  Parachain,
+  SubstrateApis,
+  isH160Address,
+} from '@galacticcouncil/xcm-core';
+
 import { toBigInt } from '@moonbeam-network/xcm-utils';
 
 import type {
@@ -180,18 +186,19 @@ export class XcmApp extends PoolApp {
     return this._syncKey == update;
   }
 
+  private isParachain(chain: AnyChain) {
+    return chain.getType() === ChainType.Parachain;
+  }
+
   private isEvmCompatible(chain: AnyChain) {
-    if (chain.key === 'hydradx') {
-      return true;
-    }
-    return chain.isEvmParachain();
+    return chain.isEvmParachain() || chain.isEvmChain();
   }
 
   private isNativeCompatible(chain: AnyChain) {
     if (chain.key === 'hydradx') {
       return true;
     }
-    return chain.isParachain();
+    return this.isParachain(chain);
   }
 
   private isSupportedWallet(chain: AnyChain) {
@@ -416,7 +423,8 @@ export class XcmApp extends PoolApp {
 
     let ed = 0n;
     if (srcChain.key === 'assethub') {
-      const api = await SubstrateApis.getInstance().api(srcChain.ws);
+      const { ws } = srcChain as Parachain;
+      const api = await SubstrateApis.getInstance().api(ws);
       const assetData = srcChain.assetsData.get(destChainFee.key);
       const response = await api.query.assets.asset<
         Option<PalletAssetsAssetDetails>
@@ -489,7 +497,8 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const api = await SubstrateApis.getInstance().api(srcChain.ws);
+    const { ws } = srcChain as Parachain;
+    const api = await SubstrateApis.getInstance().api(ws);
     const assetData = srcChain.assetsData.get(asset.key);
     const response = await api.query.assets.account<
       Option<PalletAssetsAssetAccount>
@@ -526,12 +535,13 @@ export class XcmApp extends PoolApp {
       return;
     }
 
+    const { parachainId } = srcChain as Parachain;
     const destChainBalance = this.xchain.balanceDest.get(asset.key);
     const isExistingAccount = destChainBalance.amount > 0n;
     const onChainAsset = Array.from(this.assets.registry.values()).find(
       (a) =>
         a.symbol.toLowerCase() === asset.originSymbol.toLowerCase() &&
-        a.origin === srcChain.parachainId,
+        a.origin === parachainId,
     );
     const isSufficient = onChainAsset ? onChainAsset.isSufficient : true;
     console.log(' Is sufficient: ' + isSufficient);
@@ -690,9 +700,7 @@ export class XcmApp extends PoolApp {
   }
 
   private isSubstrateAddressError(dest: AnyChain, address: string) {
-    return (
-      dest.isParachain() && dest.key !== 'hydradx' && !isValidAddress(address)
-    );
+    return this.isParachain(dest) && !isValidAddress(address);
   }
 
   private isAddressError(address: string) {
@@ -720,9 +728,9 @@ export class XcmApp extends PoolApp {
   }
 
   private async calculateSourceFee(
-    data: XData,
+    data: XTransfer,
     feeAsset: Asset,
-    srcChain: AnyChain,
+    srcChain: AnyParachain,
   ) {
     const account = this.account.state;
     const { max, srcFee, buildCall } = data;
@@ -732,12 +740,12 @@ export class XcmApp extends PoolApp {
         : a.id.toString() === feeAsset.id;
     });
     if (isEvmAccount(account.address)) {
+      const { ws, client } = srcChain as EvmParachain;
       const apiPool = SubstrateApis.getInstance();
-      const api = await apiPool.api(srcChain.ws);
+      const api = await apiPool.api(ws);
       const evmAddress = convertToH160(account.address);
-      const evmClient = this.wallet.getEvmClient(srcChain.key);
-      const evmProvider = evmClient.getProvider();
-      const call = buildCall(max.toDecimal(max.decimals));
+      const evmProvider = client.getProvider();
+      const call = await buildCall(max.toDecimal(max.decimals));
       try {
         const extrinsic = api.tx(call.data);
         const data = extrinsic.inner.toHex();
@@ -879,7 +887,7 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const { balance, srcFee, destFee, max, min } = data;
+    const { balance, srcFee, dstFee, max, min } = data;
 
     let srcChainFee: AssetAmount;
     let srcChainMax: AssetAmount;
@@ -888,7 +896,11 @@ export class XcmApp extends PoolApp {
         account?.address,
       );
       const feeAsset = this.assets.registry.get(feeAssetId);
-      srcChainFee = await this.calculateSourceFee(data, feeAsset, srcChain);
+      srcChainFee = await this.calculateSourceFee(
+        data,
+        feeAsset,
+        srcChain as EvmParachain,
+      );
       const eb = calculateEffectiveBalance(
         new BigNumber(balance.amount.toString()),
         balance.originSymbol,
@@ -911,7 +923,7 @@ export class XcmApp extends PoolApp {
         max: srcChainMax,
         min: min,
         srcChainFee: srcChainFee,
-        destChainFee: destFee,
+        destChainFee: dstFee,
         xdata: data,
       };
       this.validateAmount();
@@ -984,7 +996,7 @@ export class XcmApp extends PoolApp {
       chainsConfig: chainsConfigMap,
     });
     this.wallet = new Wallet({
-      configService: this.configService,
+      config: this.configService,
     });
     this.changeChain();
   }
@@ -1199,7 +1211,7 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const call = xData.buildCall(amount);
+    const call = await xData.buildCall(amount);
     const transaction = {
       hex: call.data,
       name: 'xcm',

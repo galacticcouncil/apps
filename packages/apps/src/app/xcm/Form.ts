@@ -4,7 +4,12 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
-import { AnyChain, Asset, AssetAmount } from '@moonbeam-network/xcm-types';
+import {
+  AnyChain,
+  Asset,
+  AssetAmount,
+  Parachain,
+} from '@galacticcouncil/xcm-core';
 
 import * as i18n from 'i18next';
 
@@ -279,6 +284,8 @@ export class XcmForm extends LitElement {
 
   formAddressTemplate() {
     const error = this.error['address'];
+    const ss58prefix =
+      this.destChain instanceof Parachain ? this.destChain.ss58Format : null;
     return html`
       <uigc-address-input
         id="address"
@@ -294,7 +301,7 @@ export class XcmForm extends LitElement {
               <gc-account-identicon
                 slot="id"
                 .address=${this.address}
-                .ss58prefix=${this.destChain.ss58Format}></gc-account-identicon>
+                .ss58prefix=${ss58prefix}></gc-account-identicon>
             `,
         )}
       </uigc-address-input>

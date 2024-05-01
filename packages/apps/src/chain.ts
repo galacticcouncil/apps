@@ -4,7 +4,7 @@ import {
   PoolService,
   TradeRouter,
 } from '@galacticcouncil/sdk';
-import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
+import { SubstrateApis } from '@galacticcouncil/xcm-core';
 import { ApiPromise } from '@polkadot/api';
 import { Ecosystem, ChainCursor, ExternalAssetCursor } from './db';
 

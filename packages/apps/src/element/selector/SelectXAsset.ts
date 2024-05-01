@@ -4,7 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
-import { Asset, AssetAmount } from '@moonbeam-network/xcm-types';
+import { Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 
 import { baseStyles } from 'styles/base.css';
 import { selectorStyles } from 'styles/selector.css';

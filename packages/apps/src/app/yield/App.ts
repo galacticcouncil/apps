@@ -26,7 +26,6 @@ import {
   SYSTEM_ASSET_ID,
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
-import { SubstrateApis } from '@galacticcouncil/xcm-sdk';
 
 import './Form';
 import './Settings';
@@ -47,6 +46,7 @@ import {
   APY_DENOMINATOR,
   INTERVAL_DCA_MS,
 } from './types';
+import { Parachain } from '@galacticcouncil/xcm-core';
 
 @customElement('gc-yield')
 export class YieldApp extends PoolApp {
@@ -356,9 +356,8 @@ export class YieldApp extends PoolApp {
   }
 
   protected async syncRate() {
-    const bifrost = chainsMap.get('bifrost');
-    const apiPool = SubstrateApis.getInstance();
-    const bifrostApi = await apiPool.api(bifrost.ws);
+    const bifrost = chainsMap.get('bifrost') as Parachain;
+    const bifrostApi = await bifrost.api;
     const [totalIssuance, staked] = await Promise.all([
       bifrostApi.query.tokens.totalIssuance({
         vToken2: '0',

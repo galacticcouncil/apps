@@ -7,7 +7,7 @@ import { map } from 'lit/directives/map.js';
 import { baseStyles } from 'styles/base.css';
 import { selectorStyles } from 'styles/selector.css';
 
-import { AnyChain } from '@moonbeam-network/xcm-types';
+import { AnyChain } from '@galacticcouncil/xcm-core';
 
 @customElement('gc-select-xchain')
 export class SelectXChain extends LitElement {

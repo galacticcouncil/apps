@@ -1,4 +1,4 @@
-import { isH160Address } from '@galacticcouncil/xcm-sdk';
+import { isH160Address } from '@galacticcouncil/xcm-core';
 import { u8aToHex, hexToU8a, isHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 

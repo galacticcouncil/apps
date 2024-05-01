@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import { generateAvatarURL } from '@cfx-kit/wallet-avatar';
-import { isH160Address } from '@galacticcouncil/xcm-sdk';
+import { isH160Address } from '@galacticcouncil/xcm-core';
 import { u8aToHex } from '@polkadot/util';
 import { decodeAddress } from '@polkadot/util-crypto';
 import { toSvg } from 'jdenticon';

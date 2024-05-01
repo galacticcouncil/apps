@@ -10,10 +10,11 @@ import {
   SYSTEM_ASSET_ID,
   SYSTEM_ASSET_DECIMALS,
 } from '@galacticcouncil/sdk';
-import { EvmClient, evmChains } from '@galacticcouncil/xcm-sdk';
+import { chainsMap } from '@galacticcouncil/xcm-cfg';
 
 import { Account } from 'db';
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
+import { EvmParachain } from '@galacticcouncil/xcm-core';
 
 const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
 
@@ -72,28 +73,27 @@ export class PaymentApi {
   async getEvmPaymentFee(txHex: string, account: Account): Promise<Amount> {
     const extrinsic = this._api.tx(txHex);
     const evmAddress = convertToH160(account.address);
-    const evmChain = evmChains['hydradx'];
-    const evmClient = new EvmClient(evmChain);
-    const evmProvider = evmClient.getProvider();
+    const { client } = chainsMap.get('hydradx') as EvmParachain;
+    const provider = client.getProvider();
     try {
       const data = extrinsic.inner.toHex();
       const [gas, gasPrice] = await Promise.all([
-        evmProvider.estimateGas({
+        provider.estimateGas({
           account: evmAddress as `0x${string}`,
           data: data as `0x${string}`,
           to: DISPATCH_ADDRESS as `0x${string}`,
         }),
-        evmProvider.getGasPrice(),
+        provider.getGasPrice(),
       ]);
       const price = gas * gasPrice;
       return {
         amount: bnum(price.toString()),
-        decimals: evmChain.nativeCurrency.decimals,
+        decimals: client.chain.nativeCurrency.decimals,
       };
     } catch (error) {
       return {
         amount: ZERO,
-        decimals: evmChain.nativeCurrency.decimals,
+        decimals: client.chain.nativeCurrency.decimals,
       };
     }
   }

@@ -1,13 +1,17 @@
-import { EvmClient, XCall } from '@galacticcouncil/xcm-sdk';
+import {
+  AnyEvmChain,
+  EvmParachain,
+  Parachain,
+} from '@galacticcouncil/xcm-core';
+import { XCall, XCallEvm } from '@galacticcouncil/xcm-sdk';
 import type { ISubmittableResult } from '@polkadot/types/types';
-import { ApiPromise } from '@polkadot/api';
 import { getWalletBySource } from '@talismn/connect-wallets';
 
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
 import { TxInfo } from './types';
 
 export async function signAndSend(
-  api: ApiPromise,
+  chain: Parachain,
   tx: TxInfo,
   onStatusChange: (status: ISubmittableResult) => void,
   onError: (error: unknown) => void,
@@ -15,6 +19,7 @@ export async function signAndSend(
   const { account, transaction } = tx;
   const { address, provider } = account;
 
+  const api = await chain.api;
   const extrinsic = api.tx(transaction.hex);
 
   const wallet = getWalletBySource(provider);
@@ -33,8 +38,7 @@ export async function signAndSend(
 }
 
 export async function signAndSendEvm(
-  api: ApiPromise,
-  evmClient: EvmClient,
+  chain: AnyEvmChain,
   txInfo: TxInfo,
   onTransactionSend: (hash: string) => void,
   onTransactionReceipt: (receipt: any) => void,
@@ -42,24 +46,30 @@ export async function signAndSendEvm(
 ) {
   const { account, transaction } = txInfo;
   const { address } = account;
+  const { client } = chain;
 
   const evmAddress = convertToH160(address);
-  const provider = evmClient.getProvider();
-  const signer = evmClient.getSigner(evmAddress);
-  await signer.switchChain({ id: evmClient.chain.id });
+  const provider = client.getProvider();
+  const signer = client.getSigner(evmAddress);
+  await signer.switchChain({ id: client.chain.id });
 
   let data: `0x${string}` = null;
   let txHash: `0x${string}` = null;
-  try {
-    const extrinsic = api.tx(transaction.hex);
-    data = extrinsic.inner.toHex();
-  } catch (error) {}
+
+  if (chain instanceof EvmParachain) {
+    try {
+      const api = await chain.api;
+      const extrinsic = api.tx(transaction.hex);
+      data = extrinsic.inner.toHex();
+      console.log(extrinsic.inner.toHuman());
+    } catch (error) {}
+  }
 
   if (data) {
     const [gas, gasPrice] = await Promise.all([
       provider.estimateGas({
         account: evmAddress as `0x${string}`,
-        chain: evmClient.chain,
+        chain: client.chain,
         data: data,
         to: DISPATCH_ADDRESS as `0x${string}`,
       }),
@@ -71,8 +81,9 @@ export async function signAndSendEvm(
 
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
-      chain: evmClient.chain,
+      chain: client.chain,
       data: data,
+      kzg: undefined,
       maxPriorityFeePerGas: gasPricePlus,
       maxFeePerGas: gasPricePlus,
       gasLimit: (gas * 11n) / 10n,
@@ -80,11 +91,15 @@ export async function signAndSendEvm(
     });
   } else {
     const xcall = transaction.get<XCall>();
+    const { data, to, value } = xcall as XCallEvm;
+
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
-      chain: evmClient.chain,
-      data: xcall.data,
-      to: xcall.to as `0x${string}`,
+      chain: client.chain,
+      data: data,
+      kzg: undefined,
+      to: to as `0x${string}`,
+      value: value,
     });
   }
 
