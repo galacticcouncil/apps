@@ -20,7 +20,7 @@ export type TransferState = {
   srcChain: AnyChain;
   srcChainFee: AssetAmount;
   error: { [key: string]: string };
-  xdata: XTransfer;
+  xTransfer: XTransfer;
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
@@ -36,7 +36,7 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   srcChain: null,
   srcChainFee: null,
   error: {},
-  xdata: null,
+  xTransfer: null,
 };
 
 export type ChainState = {

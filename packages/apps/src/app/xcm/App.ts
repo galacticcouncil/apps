@@ -52,11 +52,9 @@ import {
   AnyParachain,
   AssetAmount,
   ChainEcosystem,
-  ChainType,
   ConfigService,
   EvmParachain,
   Parachain,
-  SubstrateApis,
   isH160Address,
 } from '@galacticcouncil/xcm-core';
 
@@ -153,7 +151,7 @@ export class XcmApp extends PoolApp {
   }
 
   hasTransferData() {
-    return !!this.transfer.xdata;
+    return !!this.transfer.xTransfer;
   }
 
   hasError(): boolean {
@@ -537,7 +535,7 @@ export class XcmApp extends PoolApp {
     const { router } = this.chain.state;
     const { asset, address, srcChain, destChain } = this.transfer;
 
-    if (destChain.key !== 'hydradx') {
+    if (destChain.key !== 'hydradx' || srcChain.isEvmChain()) {
       this.clearError('hdxEd');
       return;
     }
@@ -599,6 +597,33 @@ export class XcmApp extends PoolApp {
     }
   }
 
+  private async validateHydraMrlFee() {
+    console.log('[validation] => HydraDX MRL Fee');
+    const { srcChain, destChain } = this.transfer;
+    const glmrBalance = this.xchain.balance.get('glmr');
+
+    if (
+      srcChain.key === 'hydradx' &&
+      destChain.isEvmChain() &&
+      glmrBalance.amount < 1000000000000000000n
+    ) {
+      const glmrBalanceFmt = glmrBalance.toDecimal(glmrBalance.decimals);
+      const glmrFee = '1';
+      console.log(' GLMR fee: ' + glmrFee);
+      console.log(' GLMR balance: ' + glmrBalanceFmt);
+      this.addError(
+        'hdxMrlFee',
+        i18n.t('error.transfer.fee', {
+          amount: '1',
+          symbol: 'GLMR',
+          chain: 'HydraDX',
+        }),
+      );
+    } else {
+      this.clearError('hdxMrlFee');
+    }
+  }
+
   private addError(key: string, error: string) {
     this.transfer.error = {
       ...this.transfer.error,
@@ -621,11 +646,13 @@ export class XcmApp extends PoolApp {
     this.clearError('hubEd');
     this.clearError('hubFrozen');
     this.clearError('hdxEd');
+    this.clearError('hdxMrlFee');
   }
 
   private async validateTransfer() {
     const { asset, destChainFee } = this.transfer;
     await this.validateSrcFee();
+    await this.validateHydraMrlFee();
 
     // No need for additional checks, exit & clean
     const isSufficientPaymentAsset = asset.isEqual(destChainFee);
@@ -753,23 +780,22 @@ export class XcmApp extends PoolApp {
   }
 
   private async calculateSourceFee(
-    data: XTransfer,
+    xTransfer: XTransfer,
     feeAsset: Asset,
     srcChain: AnyParachain,
   ) {
     const account = this.account.state;
-    const { max, srcFee, buildCall } = data;
+    const { max, srcFee, buildCall } = xTransfer;
     const feeAssetData = Array.from(srcChain.assetsData.values()).find((a) => {
       return Object.hasOwn(a, 'metadataId')
         ? a.metadataId.toString() === feeAsset.id
         : a.id.toString() === feeAsset.id;
     });
     if (isEvmAccount(account.address)) {
-      const { ws, client } = srcChain as EvmParachain;
-      const apiPool = SubstrateApis.getInstance();
-      const api = await apiPool.api(ws);
+      const chain = srcChain as EvmParachain;
+      const api = await chain.api;
       const evmAddress = convertToH160(account.address);
-      const evmProvider = client.getProvider();
+      const evmProvider = chain.client.getProvider();
       const call = await buildCall(max.toDecimal(max.decimals));
       try {
         const extrinsic = api.tx(call.data);
@@ -842,7 +868,7 @@ export class XcmApp extends PoolApp {
       destChainFee: null,
       max: null,
       min: null,
-      xdata: null,
+      xTransfer: null,
     };
   }
 
@@ -904,7 +930,7 @@ export class XcmApp extends PoolApp {
     const srcAddr = this.formatAddress(account.address, srcChain);
     const destAddr = this.formatAddress(account.address, destChain);
 
-    const data = await this.wallet.transfer(
+    const xTransfer = await this.wallet.transfer(
       asset,
       srcAddr,
       srcChain,
@@ -912,7 +938,7 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const { balance, srcFee, dstFee, max, min } = data;
+    const { balance, srcFee, dstFee, max, min } = xTransfer;
 
     let srcChainFee: AssetAmount;
     let srcChainMax: AssetAmount;
@@ -922,7 +948,7 @@ export class XcmApp extends PoolApp {
       );
       const feeAsset = this.assets.registry.get(feeAssetId);
       srcChainFee = await this.calculateSourceFee(
-        data,
+        xTransfer,
         feeAsset,
         srcChain as EvmParachain,
       );
@@ -949,7 +975,7 @@ export class XcmApp extends PoolApp {
         min: min,
         srcChainFee: srcChainFee,
         destChainFee: dstFee,
-        xdata: data,
+        xTransfer: xTransfer,
       };
       this.validateAmount();
       this.validateTransfer();
@@ -1073,17 +1099,26 @@ export class XcmApp extends PoolApp {
     const chains = Array.from(chainsMap.values());
     this.xchain = {
       ...this.xchain,
-      list: chains.filter((c) => {
-        switch (this.ecosystem) {
-          case Ecosystem.Polkadot:
-            return c.ecosystem === ChainEcosystem.Polkadot;
-          //return c.ecosystem === ChainEcosystem.Polkadot || c.isEvmChain();
-          case Ecosystem.Kusama:
-            return c.ecosystem === ChainEcosystem.Kusama;
-          default:
-            throw new Error('Unknown ecosystem');
-        }
-      }),
+      list: chains
+        .filter((c) => {
+          switch (this.ecosystem) {
+            case Ecosystem.Polkadot:
+              return c.ecosystem === ChainEcosystem.Polkadot || c.isEvmChain();
+            case Ecosystem.Kusama:
+              return c.ecosystem === ChainEcosystem.Kusama;
+            default:
+              throw new Error('Unknown ecosystem');
+          }
+        })
+        .sort(function (a, b) {
+          if (a.name < b.name) {
+            return -1;
+          }
+          if (a.name > b.name) {
+            return 1;
+          }
+          return 0;
+        }),
     };
   }
 
@@ -1205,9 +1240,23 @@ export class XcmApp extends PoolApp {
     `;
   }
 
+  protected recalculateSourceFee(value: any) {
+    const { srcChain, xTransfer } = this.transfer;
+    if (srcChain.isEvm() && !this.isEmptyAmount(value)) {
+      xTransfer.estimateFee(value).then((fee) => {
+        this.transfer = {
+          ...this.transfer,
+          srcChainFee: fee,
+        };
+        this.validateSrcFee();
+      });
+    }
+  }
+
   protected onAssetInputChange({ detail: { value } }) {
     this.updateAmount(value);
     this.validateAmount();
+    this.recalculateSourceFee(value);
   }
 
   protected onAddressInputChange({ detail: { address } }) {

@@ -150,6 +150,15 @@ export class XcmForm extends LitElement {
     return !this.inProgress;
   }
 
+  /**
+   * Check whether we use relayer to redeem funds on dest chain.
+   *
+   * @returns true for every evm dest chains ATM
+   */
+  private isRelayerTransfer(): boolean {
+    return this.destChain.isEvmChain();
+  }
+
   private isValidAddress(): boolean {
     return this.address && !this.error['address'];
   }
@@ -319,7 +328,8 @@ export class XcmForm extends LitElement {
         this.error['feeDest'] ||
         this.error['hubEd'] ||
         this.error['hubFrozen'] ||
-        this.error['hdxEd'],
+        this.error['hdxEd'] ||
+        this.error['hdxMrlFee'],
     };
     const cexWarnClasses = {
       warning: true,
@@ -351,7 +361,9 @@ export class XcmForm extends LitElement {
         </div>
         <div class="row">
           ${this.transferFeeTemplate(
-            i18n.t('form.info.destFee'),
+            this.isRelayerTransfer()
+              ? i18n.t('form.info.relayerFee')
+              : i18n.t('form.info.destFee'),
             this.destChainFee,
           )}
         </div>
@@ -372,6 +384,7 @@ export class XcmForm extends LitElement {
           <span>${unsafeHTML(this.error['hubEd'])}</span>
           <span>${unsafeHTML(this.error['hubFrozen'])}</span>
           <span>${unsafeHTML(this.error['hdxEd'])}</span>
+          <span>${unsafeHTML(this.error['hdxMrlFee'])}</span>
         </div>
       </div>
       <div class="grow"></div>
