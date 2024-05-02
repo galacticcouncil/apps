@@ -89,9 +89,7 @@ export async function signAndSendEvm(
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
-    const xcall = transaction.get<XCall>();
-    const { data, to, value } = xcall as XCallEvm;
-
+    const { data, to, value } = transaction.get<XCallEvm>();
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
       chain: client.chain,

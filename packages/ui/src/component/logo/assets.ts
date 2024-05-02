@@ -1429,7 +1429,7 @@ export const wbtc = html`
   </svg>
 `;
 
-export const weth = html`
+export const eth = html`
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="48"
