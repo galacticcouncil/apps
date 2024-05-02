@@ -12,7 +12,7 @@ import { debounce } from 'ts-debounce';
 import { Subscription } from 'rxjs';
 
 import { PoolApp } from 'app/PoolApp';
-import { Account } from 'db';
+import { Account, Ecosystem } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
@@ -51,6 +51,7 @@ import {
   AnyChain,
   AnyParachain,
   AssetAmount,
+  ChainEcosystem,
   ChainType,
   ConfigService,
   EvmParachain,
@@ -186,19 +187,25 @@ export class XcmApp extends PoolApp {
     return this._syncKey == update;
   }
 
-  private isParachain(chain: AnyChain) {
-    return chain.getType() === ChainType.Parachain;
+  private hasH160AddrSupport(chain: AnyChain) {
+    if (chain instanceof EvmParachain) {
+      return chain.h160AccOnly;
+    }
+    return chain.isEvmChain();
   }
 
   private isEvmCompatible(chain: AnyChain) {
-    return chain.isEvmParachain() || chain.isEvmChain();
-  }
-
-  private isNativeCompatible(chain: AnyChain) {
     if (chain.key === 'hydradx') {
       return true;
     }
-    return this.isParachain(chain);
+    return this.hasH160AddrSupport(chain);
+  }
+
+  private isNativeCompatible(chain: AnyChain) {
+    if (chain instanceof EvmParachain) {
+      return !chain.h160AccOnly;
+    }
+    return chain.isParachain();
   }
 
   private isSupportedWallet(chain: AnyChain) {
@@ -423,12 +430,12 @@ export class XcmApp extends PoolApp {
 
     let ed = 0n;
     if (srcChain.key === 'assethub') {
-      const { ws } = srcChain as Parachain;
-      const api = await SubstrateApis.getInstance().api(ws);
-      const assetData = srcChain.assetsData.get(destChainFee.key);
+      const chain = srcChain as Parachain;
+      const api = await chain.api;
+      const assetId = chain.getAssetId(destChainFee);
       const response = await api.query.assets.asset<
         Option<PalletAssetsAssetDetails>
-      >(assetData.id);
+      >(assetId);
       const details = response.unwrap();
       ed = details.minBalance.toBigInt();
     }
@@ -497,12 +504,12 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const { ws } = srcChain as Parachain;
-    const api = await SubstrateApis.getInstance().api(ws);
-    const assetData = srcChain.assetsData.get(asset.key);
+    const chain = srcChain as Parachain;
+    const api = await chain.api;
+    const assetId = chain.getAssetId(asset);
     const response = await api.query.assets.account<
       Option<PalletAssetsAssetAccount>
-    >(assetData.id, account.address);
+    >(assetId, account.address);
 
     if (response.isEmpty) {
       this.clearError('hubFrozen');
@@ -535,13 +542,13 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const { parachainId } = srcChain as Parachain;
+    const chain = srcChain as Parachain;
     const destChainBalance = this.xchain.balanceDest.get(asset.key);
     const isExistingAccount = destChainBalance.amount > 0n;
     const onChainAsset = Array.from(this.assets.registry.values()).find(
       (a) =>
         a.symbol.toLowerCase() === asset.originSymbol.toLowerCase() &&
-        a.origin === parachainId,
+        a.origin === chain.parachainId,
     );
     const isSufficient = onChainAsset ? onChainAsset.isSufficient : true;
     console.log(' Is sufficient: ' + isSufficient);
@@ -632,14 +639,28 @@ export class XcmApp extends PoolApp {
     await this.validateHydraEd();
   }
 
+  /**
+   * Format account address to correct sdk input
+   *
+   * @param address - ss58 account address
+   * @param chain - chain
+   * @returns - valid account address for given chain
+   */
   private formatAddress(address: string, chain: AnyChain): string {
-    if (chain.isEvmParachain()) {
+    if (this.hasH160AddrSupport(chain)) {
       return convertToH160(address);
     } else {
       return convertAddressSS58(address);
     }
   }
 
+  /**
+   * Format destination address to correct sdk input
+   *
+   * @param address - ss58 or h160 dest address
+   * @param chain - chain
+   * @returns - valid dest address for given chain
+   */
   private formatDestAddress(address: string, chain: AnyChain): string {
     if (chain.key === 'hydradx' && isH160Address(address)) {
       return convertFromH160(address);
@@ -696,11 +717,15 @@ export class XcmApp extends PoolApp {
   }
 
   private isEvmAddressError(dest: AnyChain, address: string) {
-    return dest.isEvmParachain() && !isH160Address(address);
+    return this.hasH160AddrSupport(dest) && !isH160Address(address);
   }
 
   private isSubstrateAddressError(dest: AnyChain, address: string) {
-    return this.isParachain(dest) && !isValidAddress(address);
+    return (
+      dest instanceof Parachain &&
+      !['hydradx', 'moonbeam'].includes(dest.key) &&
+      !isValidAddress(address)
+    );
   }
 
   private isAddressError(address: string) {
@@ -835,7 +860,7 @@ export class XcmApp extends PoolApp {
     }
 
     const { address, destChain } = this.transfer;
-    const destAddr = this.formatAddress(address, destChain);
+    const destAddr = this.formatDestAddress(address, destChain);
     this.balanceDestSubscription = await this.wallet.subscribeBalance(
       destAddr,
       destChain,
@@ -852,9 +877,9 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const { address, srcChain, destChain } = this.transfer;
+    const { srcChain, destChain } = this.transfer;
     const srcAddress = this.formatAddress(account.address, srcChain);
-    const destAddr = this.formatAddress(address || account.address, destChain);
+    const destAddr = this.formatAddress(account.address, destChain);
 
     this.balanceSubscription = await this.wallet.subscribeBalance(
       srcAddress,
@@ -1048,7 +1073,17 @@ export class XcmApp extends PoolApp {
     const chains = Array.from(chainsMap.values());
     this.xchain = {
       ...this.xchain,
-      list: chains.filter((c) => c.ecosystem.toString() === this.ecosystem),
+      list: chains.filter((c) => {
+        switch (this.ecosystem) {
+          case Ecosystem.Polkadot:
+            return c.ecosystem === ChainEcosystem.Polkadot;
+          //return c.ecosystem === ChainEcosystem.Polkadot || c.isEvmChain();
+          case Ecosystem.Kusama:
+            return c.ecosystem === ChainEcosystem.Kusama;
+          default:
+            throw new Error('Unknown ecosystem');
+        }
+      }),
     };
   }
 

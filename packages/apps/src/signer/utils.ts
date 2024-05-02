@@ -61,7 +61,7 @@ export async function signAndSendEvm(
       const api = await chain.api;
       const extrinsic = api.tx(transaction.hex);
       data = extrinsic.inner.toHex();
-      console.log(extrinsic.inner.toHuman());
+      console.log(extrinsic.toHuman());
     } catch (error) {}
   }
 
@@ -77,7 +77,7 @@ export async function signAndSendEvm(
     ]);
 
     const onePrc = gasPrice / 100n;
-    const gasPricePlus = gasPrice + onePrc;
+    const gasPricePlus = gasPrice + onePrc * 10n;
 
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
@@ -86,7 +86,6 @@ export async function signAndSendEvm(
       kzg: undefined,
       maxPriorityFeePerGas: gasPricePlus,
       maxFeePerGas: gasPricePlus,
-      gasLimit: (gas * 11n) / 10n,
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
