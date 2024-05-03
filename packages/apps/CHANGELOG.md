@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.6.0
+
+### Minor Changes
+
+- Upgrade to MRL
+
 ## 3.5.4
 
 ### Patch Changes

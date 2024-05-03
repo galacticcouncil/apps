@@ -25,12 +25,12 @@
     "postdist": "cp ./dist/index.html ./dist/404.html"
   },
   "devDependencies": {
-    "@craftamap/esbuild-plugin-html": "^0.4.0",
+    "@craftamap/esbuild-plugin-html": "^0.6.1",
     "node-html-parser": "^5.4.2-0",
     "rimraf": "^3.0.2"
   },
   "dependencies": {
-    "@galacticcouncil/apps": "^3.5.4",
+    "@galacticcouncil/apps": "^3.6.0",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
     "@vaadin/router": "^1.7.4"

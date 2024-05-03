@@ -1,11 +1,10 @@
 import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import { AnyEvmChain, Parachain } from '@galacticcouncil/xcm-core';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
-import { EvmClient, SubstrateApis, evmChains } from '@galacticcouncil/xcm-sdk';
 import '@galacticcouncil/ui';
 
-import type { ApiPromise } from '@polkadot/api';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import type { DispatchError } from '@polkadot/types/interfaces';
 
@@ -80,32 +79,30 @@ export class TransactionCenter extends LitElement {
     console.log(`[${txId}] Completed at block hash #${hash}`);
   }
 
-  private logDispatchError(
-    api: ApiPromise,
+  private async logDispatchError(
+    chain: Parachain,
     dispatchError: DispatchError,
-  ): void {
+  ): Promise<void> {
+    const api = await chain.api;
     const decoded = api.registry.findMetaError(dispatchError.asModule);
     console.error(
       `${decoded.section}.${decoded.method}: ${decoded.docs.join(' ')}`,
     );
   }
 
-  private signWithEvm(
-    api: ApiPromise,
-    evmClient: EvmClient,
-    txId: string,
-    txInfo: TxInfo,
-  ) {
+  private signWithEvm(chain: AnyEvmChain, txId: string, txInfo: TxInfo) {
     signAndSendEvm(
-      api,
-      evmClient,
+      chain,
       txInfo,
       (_hash) => {
         this.handleBroadcasted(txId, txInfo.notification);
       },
       async ({ blockNumber, status }) => {
-        const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
-        this.logInBlockMessage(txId, blockHash.toString());
+        if (chain instanceof Parachain) {
+          const api = await chain.api;
+          const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+          this.logInBlockMessage(txId, blockHash.toString());
+        }
         const txError = 'success' !== status;
         this.handleInBlock(txId, txInfo.notification, txError, {});
       },
@@ -115,9 +112,9 @@ export class TransactionCenter extends LitElement {
     );
   }
 
-  private signWithSubstrate(api: ApiPromise, txId: string, txInfo: TxInfo) {
+  private signWithSubstrate(chain: Parachain, txId: string, txInfo: TxInfo) {
     signAndSend(
-      api,
+      chain,
       txInfo,
       (res) => {
         const { events, status, dispatchError } = res;
@@ -136,7 +133,7 @@ export class TransactionCenter extends LitElement {
             break;
           case 'finalized':
             if (dispatchError) {
-              this.logDispatchError(api, dispatchError);
+              this.logDispatchError(chain, dispatchError);
               this.handleError(txId, txInfo.notification);
             }
             break;
@@ -147,14 +144,13 @@ export class TransactionCenter extends LitElement {
   }
 
   private async processTx(txId: string, txInfo: TxInfo) {
-    const { api } = this.chain.state;
     const { provider } = txInfo.account;
+    const chain = chainsMap.get('hydradx');
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
     if (isEvmProvider) {
-      const chain = evmChains['hydradx'];
-      this.signWithEvm(api, new EvmClient(chain), txId, txInfo);
+      this.signWithEvm(chain as AnyEvmChain, txId, txInfo);
     } else {
-      this.signWithSubstrate(api, txId, txInfo);
+      this.signWithSubstrate(chain as Parachain, txId, txInfo);
     }
   }
 
@@ -162,17 +158,11 @@ export class TransactionCenter extends LitElement {
     const { srcChain } = txInfo.meta;
     const { provider } = txInfo.account;
     const chain = chainsMap.get(srcChain);
-    const apiPool = SubstrateApis.getInstance();
-    const api = await apiPool.api(chain.ws);
-    console.log(
-      `https://polkadot.js.org/apps/?rpc=${chain.ws}#/extrinsics/decode/${txInfo.transaction.hex}`,
-    );
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
     if (isEvmProvider) {
-      const chain = evmChains[srcChain];
-      this.signWithEvm(api, new EvmClient(chain), txId, txInfo);
+      this.signWithEvm(chain as AnyEvmChain, txId, txInfo);
     } else {
-      this.signWithSubstrate(api, txId, txInfo);
+      this.signWithSubstrate(chain as Parachain, txId, txInfo);
     }
   }
 
