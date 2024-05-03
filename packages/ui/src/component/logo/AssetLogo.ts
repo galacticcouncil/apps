@@ -44,6 +44,7 @@ import {
   weth,
   wud,
   zeitgeist,
+  wifd,
 } from './assets';
 
 @customElement('uigc-logo-asset')
@@ -95,6 +96,7 @@ export class AssetLogo extends BaseLogo {
           ['ZTG', () => zeitgeist],
           ['WBTC', () => wbtc],
           ['WETH', () => weth],
+          ['WIFD', () => wifd],
           ['WUD', () => wud],
           ['WUSDT', () => usdt],
           ['XRT', () => robonomics],

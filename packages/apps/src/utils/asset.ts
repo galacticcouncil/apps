@@ -4,6 +4,7 @@ const EXTERNAL_ASSETS_WHITELIST = [
   '1000021', // PINK
   '1000034', // STINK
   '1000085', // WUD
+  '1000082', //WIFD
 ];
 
 /**
