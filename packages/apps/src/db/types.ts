@@ -43,6 +43,8 @@ export interface ExternalAssetConfig {
   version: number;
 }
 
+export type XApproveStore = { [K: string]: string[] };
+
 export type TradeData = {
   primary: SingleValueData[];
   primaryOhlc: OhlcData[];

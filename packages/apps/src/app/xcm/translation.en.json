@@ -6,7 +6,10 @@
 
   "form.cta.connect": "Connect wallet",
   "form.cta.connecting": "Connecting...",
+  "form.cta.processing": "Processing...",
   "form.cta.transfer": "Transfer",
+  "form.cta.approve": "Approve",
+  "form.cta.approving": "Approving...",
 
   "form.section.chains": "Select chains",
   "form.section.asset": "Select asset and amount",
@@ -38,5 +41,9 @@
 
   "notify.processing": "Sending <1>{{amount}} {{asset}}</1> from <1>{{srcChain}}</1> to <1>{{destChain}}</1> submitted",
   "notify.success": "Sent <1>{{amount}} {{asset}}</1> from <1>{{srcChain}}</1> to <1>{{destChain}}</1>",
-  "notify.error": "Sending <1>{{amount}} {{asset}}</1> from <1>{{srcChain}}</1> to <1>{{destChain}}</1> failed"
+  "notify.error": "Sending <1>{{amount}} {{asset}}</1> from <1>{{srcChain}}</1> to <1>{{destChain}}</1> failed",
+
+  "approve.processing": "Approve <1>{{amount}} {{asset}}</1> spending cap submitted",
+  "approve.success": "Approved <1>{{amount}} {{asset}}</1> spending cap",
+  "approve.error": "Approval of <1>{{amount}} {{asset}}</1> spending cap failed"
 }

@@ -43,6 +43,7 @@ export class ChainLogo extends BaseLogo {
         this.chain,
         [
           ['acala', () => acala],
+          ['acala-evm', () => acala],
           ['astar', () => astar],
           ['assethub', () => assetHub],
           ['basilisk', () => basilisk],
@@ -54,7 +55,7 @@ export class ChainLogo extends BaseLogo {
           ['integritee', () => integritee],
           ['interlay', () => interlay],
           ['karura', () => karura],
-          ['kilt_chain', () => kilt],
+          ['kilt', () => kilt],
           ['kusama', () => kusama],
           ['kusama-assethub', () => assetHub],
           ['moonbeam', () => moonbeam],

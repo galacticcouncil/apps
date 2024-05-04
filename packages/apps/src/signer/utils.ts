@@ -3,10 +3,11 @@ import {
   EvmParachain,
   Parachain,
 } from '@galacticcouncil/xcm-core';
-import { XCall, XCallEvm } from '@galacticcouncil/xcm-sdk';
+import { XCallEvm } from '@galacticcouncil/xcm-sdk';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
 
+import { XApproveCursor } from 'db';
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
 import { TxInfo } from './types';
 
@@ -99,6 +100,12 @@ export async function signAndSendEvm(
       value: value,
     });
   }
+
+  provider.getTransaction({ hash: txHash }).then((tx) => {
+    if (tx.input.startsWith('0x095ea7b3')) {
+      XApproveCursor.reset(tx.hash);
+    }
+  });
 
   onTransactionSend(txHash);
   provider
