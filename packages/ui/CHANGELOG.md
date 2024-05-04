@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.15
+
+### Patch Changes
+
+- Ethereum & Acala EVM chain support
+
 ## 3.1.14
 
 ### Patch Changes
