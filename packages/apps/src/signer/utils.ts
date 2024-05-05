@@ -6,6 +6,7 @@ import {
 import { XCallEvm } from '@galacticcouncil/xcm-sdk';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
+import { decodeFunctionData } from 'viem';
 
 import { XApproveCursor } from 'db';
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
@@ -90,7 +91,12 @@ export async function signAndSendEvm(
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
-    const { data, to, value } = transaction.get<XCallEvm>();
+    const { abi, data, to, value } = transaction.get<XCallEvm>();
+    const payload = decodeFunctionData({
+      abi: JSON.parse(abi),
+      data: data,
+    });
+    console.log(payload);
     txHash = await signer.sendTransaction({
       account: evmAddress as `0x${string}`,
       chain: client.chain,

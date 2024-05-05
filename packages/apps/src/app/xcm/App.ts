@@ -87,6 +87,7 @@ import { isApproval } from './utils';
 export class XcmApp extends PoolApp {
   private configService: ConfigService = null;
   private wallet: Wallet = null;
+  private xStore: XStoreUtils = new XStoreUtils();
 
   private _syncData = null;
   private _syncKey = null;
@@ -1018,8 +1019,8 @@ export class XcmApp extends PoolApp {
     }
   }
 
-  private async syncApprovals() {
-    const { srcChain } = this.transfer;
+  private async syncXStore() {
+    const { asset, srcChain } = this.transfer;
     if (srcChain.isParachain() || !this.hasAccount()) {
       return;
     }
@@ -1027,9 +1028,8 @@ export class XcmApp extends PoolApp {
     const { client } = srcChain as AnyEvmChain;
     const provider = client.getProvider();
 
-    const storeTxs = XStoreUtils.transactions();
     const storeCtx = await Promise.allSettled(
-      storeTxs.map((tx: `0x${string}`) =>
+      this.xStore.transactions.map((tx: `0x${string}`) =>
         provider.getTransaction({ hash: tx }),
       ),
     );
@@ -1037,17 +1037,22 @@ export class XcmApp extends PoolApp {
     storeCtx
       .filter((res) => res.status === 'fulfilled')
       .map((res) => res['value'])
-      .forEach(({ hash }) => {
+      .forEach(({ hash, to }) => {
         provider
           .getTransactionReceipt({ hash })
-          .then(() => XStoreUtils.remove(hash))
-          .catch(() => this.onApprovePending(hash));
+          .then(() => this.xStore.remove(hash))
+          .catch(() => {
+            const id = srcChain.getAssetId(asset);
+            if (id.toString().toLowerCase() === to.toLowerCase()) {
+              this.onApprovePending(hash);
+            }
+          });
       });
   }
 
   private async syncData(syncBalance?: boolean) {
     const update = this.getUpdateKey();
-    const exec = [this.syncInput(update), this.syncApprovals()];
+    const exec = [this.syncInput(update), this.syncXStore()];
 
     if (syncBalance) {
       exec.push(this.syncBalances());
@@ -1249,18 +1254,18 @@ export class XcmApp extends PoolApp {
         hash: txHash as `0x${string}`,
       })
       .then((receipt) => {
-        XStoreUtils.remove(receipt.transactionHash);
+        this.xStore.remove(receipt.transactionHash);
         this.onApproveFinalized(receipt);
       })
       .catch(() => {
-        XStoreUtils.remove(txHash);
+        this.xStore.remove(txHash);
       });
   }
 
   override connectedCallback() {
     super.connectedCallback();
     XApproveCursor.addWatch(this._xKey, (_id, _prev, curr) => {
-      XStoreUtils.add(curr);
+      this.xStore.add(curr);
       this.onApprovePending(curr);
     });
     this.ro.observe(this);
