@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.7.1
+
+### Patch Changes
+
+- XCM: sync only tx for same context
+
 ## 3.7.0
 
 ### Minor Changes
