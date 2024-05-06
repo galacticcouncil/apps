@@ -9,6 +9,7 @@ import {
   ExternalAssetConfig,
   TradeConfig,
   TradeData,
+  XApproveStore,
 } from './types';
 
 const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
@@ -33,6 +34,10 @@ interface Schema {
   };
   data: TLRUCache<string, TradeData>;
   external: ExternalAssetConfig;
+  xApprove: {
+    store: XApproveStore;
+    tx: string;
+  };
 }
 
 const db = defAtom<Schema>({
@@ -44,6 +49,10 @@ const db = defAtom<Schema>({
   },
   data: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
   external: null,
+  xApprove: {
+    store: {},
+    tx: null,
+  },
 });
 
 function initCursor<T>(path: string) {
@@ -57,6 +66,8 @@ export const DcaConfigCursor = initCursor<DcaConfig>('config.dca');
 export const TradeConfigCursor = initCursor<TradeConfig>('config.trade');
 export const TradeDataCursor = initCursor<TLRUCache<string, TradeData>>('data');
 export const ExternalAssetCursor = initCursor<ExternalAssetConfig>('external');
+export const XApproveStoreCursor = initCursor<XApproveStore>('xApprove.store');
+export const XApproveCursor = initCursor<string>('xApprove.tx');
 
 // Local storage keys
 export const StorageKey = {
@@ -64,6 +75,9 @@ export const StorageKey = {
   config: {
     trade: 'trade.settings',
     dca: 'dca.settings',
+  },
+  xApprove: {
+    store: 'xApprove.store',
   },
   external: 'external-tokens',
 };

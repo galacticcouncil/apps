@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "Galactic Apps",
   "author": "GalacticCouncil",
   "repository": {
@@ -50,9 +50,9 @@
   "peerDependencies": {
     "@galacticcouncil/sdk": "^2.2.1",
     "@galacticcouncil/ui": "^3.1.10",
-    "@galacticcouncil/xcm-cfg": "^2.0.0-beta.1",
-    "@galacticcouncil/xcm-core": "^1.0.0-beta.2",
-    "@galacticcouncil/xcm-sdk": "^3.0.0-beta.2",
+    "@galacticcouncil/xcm-cfg": "^2.0.2",
+    "@galacticcouncil/xcm-core": "^1.0.0",
+    "@galacticcouncil/xcm-sdk": "^3.0.0",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-inject": "^0.44.6",
     "@talismn/connect-wallets": "^1.2.1",

@@ -8,12 +8,15 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { i18n } from 'localization';
 import { translation } from './locales';
 
+import short from 'short-uuid';
+
 import { debounce } from 'ts-debounce';
 import { Subscription } from 'rxjs';
+import { TransactionReceipt } from 'viem';
 
 import { PoolApp } from 'app/PoolApp';
-import { Account, Ecosystem } from 'db';
-import { TxInfo, TxMessage } from 'signer/types';
+import { Account, Ecosystem, XStoreUtils, XApproveCursor } from 'db';
+import { TxInfo, TxMessage, TxNotification } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
@@ -45,18 +48,17 @@ import {
   chainsConfigMap,
 } from '@galacticcouncil/xcm-cfg';
 
-import { Wallet, XCall, XTransfer } from '@galacticcouncil/xcm-sdk';
+import { Wallet, XCall, XCallEvm, XTransfer } from '@galacticcouncil/xcm-sdk';
 
 import {
   AnyChain,
+  AnyEvmChain,
   AnyParachain,
   AssetAmount,
   ChainEcosystem,
-  ChainType,
   ConfigService,
   EvmParachain,
   Parachain,
-  SubstrateApis,
   isH160Address,
 } from '@galacticcouncil/xcm-core';
 
@@ -79,14 +81,17 @@ import {
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
 } from './types';
+import { isApproval } from './utils';
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
   private configService: ConfigService = null;
   private wallet: Wallet = null;
+  private xStore: XStoreUtils = new XStoreUtils();
 
   private _syncData = null;
   private _syncKey = null;
+  private _xKey = short.generate();
 
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {
@@ -153,7 +158,7 @@ export class XcmApp extends PoolApp {
   }
 
   hasTransferData() {
-    return !!this.transfer.xdata;
+    return !!this.transfer.xTransfer;
   }
 
   hasError(): boolean {
@@ -173,6 +178,20 @@ export class XcmApp extends PoolApp {
     this.transfer = {
       ...this.transfer,
       inProgress: progress,
+    };
+  }
+
+  setProcessing(processing: boolean) {
+    this.transfer = {
+      ...this.transfer,
+      isProcessing: processing,
+    };
+  }
+
+  setApproving(approving: boolean) {
+    this.transfer = {
+      ...this.transfer,
+      isApproving: approving,
     };
   }
 
@@ -253,7 +272,6 @@ export class XcmApp extends PoolApp {
       return;
     }
     this.resetTransfer({
-      inProgress: true,
       balance: null,
       destChain: srcChain,
       srcChain: destChain,
@@ -269,7 +287,6 @@ export class XcmApp extends PoolApp {
       return;
     }
     this.resetTransfer({
-      inProgress: true,
       balance: null,
       srcChain: srcChain,
     });
@@ -279,7 +296,6 @@ export class XcmApp extends PoolApp {
   private async changeDestinationChain(chain: string) {
     const destChain = chainsMap.get(chain);
     this.resetTransfer({
-      inProgress: true,
       balance: null,
       destChain: destChain,
     });
@@ -290,7 +306,6 @@ export class XcmApp extends PoolApp {
     const balance = this.xchain.balance.get(asset);
     this.clearErrors();
     this.resetTransfer({
-      inProgress: true,
       balance: balance,
       asset: assetsMap.get(asset),
     });
@@ -299,7 +314,11 @@ export class XcmApp extends PoolApp {
 
   updateAmount(amount: string) {
     if (this.isEmptyAmount(amount)) {
-      this.transfer.amount = null;
+      this.transfer = {
+        ...this.transfer,
+        amount: null,
+        isApprove: false,
+      };
     } else {
       this.transfer.amount = amount;
     }
@@ -357,16 +376,31 @@ export class XcmApp extends PoolApp {
     } as TxMessage;
   }
 
+  notificationApproveTemplate(transfer: TransferState): TxNotification {
+    return {
+      processing: this.notificationTemplate(transfer, 'approve.processing'),
+      success: this.notificationTemplate(transfer, 'approve.success'),
+      failure: this.notificationTemplate(transfer, 'approve.error'),
+    } as TxNotification;
+  }
+
+  notificationTransferTemplate(transfer: TransferState): TxNotification {
+    return {
+      processing: this.notificationTemplate(transfer, 'notify.processing'),
+      success: this.notificationTemplate(transfer, 'notify.success'),
+      failure: this.notificationTemplate(transfer, 'notify.error'),
+    } as TxNotification;
+  }
+
   processTx(
     account: Account,
     transaction: Transaction,
     transfer: TransferState,
   ) {
-    const notification = {
-      processing: this.notificationTemplate(transfer, 'notify.processing'),
-      success: this.notificationTemplate(transfer, 'notify.success'),
-      failure: this.notificationTemplate(transfer, 'notify.error'),
-    };
+    const call = transaction.get<XCall>();
+    const notification = isApproval(call)
+      ? this.notificationApproveTemplate(transfer)
+      : this.notificationTransferTemplate(transfer);
 
     const { srcChain, srcChainFee, destChain, destChainFee } = transfer;
     const srcChainFeeBalance = this.xchain.balance.get(srcChainFee.key);
@@ -380,7 +414,7 @@ export class XcmApp extends PoolApp {
         meta: {
           srcChain: srcChain.key,
           srcChainFee: srcChainFee.toDecimal(srcChainFee.decimals),
-          srcChainFeeBalance: srcChainFeeBalance.toDecimal(
+          srcChainFeeBalance: srcChainFeeBalance?.toDecimal(
             srcChainFee.decimals,
           ),
           srcChainFeeSymbol: srcChainFee.originSymbol,
@@ -537,7 +571,7 @@ export class XcmApp extends PoolApp {
     const { router } = this.chain.state;
     const { asset, address, srcChain, destChain } = this.transfer;
 
-    if (destChain.key !== 'hydradx') {
+    if (destChain.key !== 'hydradx' || srcChain.isEvmChain()) {
       this.clearError('hdxEd');
       return;
     }
@@ -599,6 +633,33 @@ export class XcmApp extends PoolApp {
     }
   }
 
+  private async validateHydraMrlFee() {
+    console.log('[validation] => HydraDX MRL Fee');
+    const { srcChain, destChain } = this.transfer;
+    const glmrBalance = this.xchain.balance.get('glmr');
+
+    if (
+      srcChain.key === 'hydradx' &&
+      destChain.isEvmChain() &&
+      glmrBalance.amount < 1000000000000000000n
+    ) {
+      const glmrBalanceFmt = glmrBalance.toDecimal(glmrBalance.decimals);
+      const glmrFee = '1';
+      console.log(' GLMR fee: ' + glmrFee);
+      console.log(' GLMR balance: ' + glmrBalanceFmt);
+      this.addError(
+        'hdxMrlFee',
+        i18n.t('error.transfer.fee', {
+          amount: '1',
+          symbol: 'GLMR',
+          chain: 'HydraDX',
+        }),
+      );
+    } else {
+      this.clearError('hdxMrlFee');
+    }
+  }
+
   private addError(key: string, error: string) {
     this.transfer.error = {
       ...this.transfer.error,
@@ -621,11 +682,13 @@ export class XcmApp extends PoolApp {
     this.clearError('hubEd');
     this.clearError('hubFrozen');
     this.clearError('hdxEd');
+    this.clearError('hdxMrlFee');
   }
 
   private async validateTransfer() {
     const { asset, destChainFee } = this.transfer;
     await this.validateSrcFee();
+    await this.validateHydraMrlFee();
 
     // No need for additional checks, exit & clean
     const isSufficientPaymentAsset = asset.isEqual(destChainFee);
@@ -723,7 +786,7 @@ export class XcmApp extends PoolApp {
   private isSubstrateAddressError(dest: AnyChain, address: string) {
     return (
       dest instanceof Parachain &&
-      !['hydradx', 'moonbeam'].includes(dest.key) &&
+      !['hydradx', 'moonbeam', 'acala-evm'].includes(dest.key) &&
       !isValidAddress(address)
     );
   }
@@ -753,24 +816,23 @@ export class XcmApp extends PoolApp {
   }
 
   private async calculateSourceFee(
-    data: XTransfer,
+    xTransfer: XTransfer,
     feeAsset: Asset,
     srcChain: AnyParachain,
   ) {
     const account = this.account.state;
-    const { max, srcFee, buildCall } = data;
+    const { max, srcFee } = xTransfer;
     const feeAssetData = Array.from(srcChain.assetsData.values()).find((a) => {
       return Object.hasOwn(a, 'metadataId')
         ? a.metadataId.toString() === feeAsset.id
         : a.id.toString() === feeAsset.id;
     });
     if (isEvmAccount(account.address)) {
-      const { ws, client } = srcChain as EvmParachain;
-      const apiPool = SubstrateApis.getInstance();
-      const api = await apiPool.api(ws);
+      const chain = srcChain as EvmParachain;
+      const api = await chain.api;
       const evmAddress = convertToH160(account.address);
-      const evmProvider = client.getProvider();
-      const call = await buildCall(max.toDecimal(max.decimals));
+      const evmProvider = chain.client.getProvider();
+      const call = await xTransfer.buildCall(max.toDecimal(max.decimals));
       try {
         const extrinsic = api.tx(call.data);
         const data = extrinsic.inner.toHex();
@@ -838,11 +900,15 @@ export class XcmApp extends PoolApp {
     this.transfer = {
       ...this.transfer,
       ...delta,
+      inProgress: true,
+      isProcessing: false,
+      isApproving: false,
+      isApprove: false,
       srcChainFee: null,
       destChainFee: null,
       max: null,
       min: null,
-      xdata: null,
+      xTransfer: null,
     };
   }
 
@@ -894,17 +960,16 @@ export class XcmApp extends PoolApp {
   }
 
   private async syncInput(update: string) {
-    const account = this.account.state;
-
-    if (!account) {
+    if (!this.hasAccount()) {
       return;
     }
 
+    const { address } = this.account.state;
     const { asset, destChain, srcChain } = this.transfer;
-    const srcAddr = this.formatAddress(account.address, srcChain);
-    const destAddr = this.formatAddress(account.address, destChain);
+    const srcAddr = this.formatAddress(address, srcChain);
+    const destAddr = this.formatAddress(address, destChain);
 
-    const data = await this.wallet.transfer(
+    const xTransfer = await this.wallet.transfer(
       asset,
       srcAddr,
       srcChain,
@@ -912,17 +977,15 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const { balance, srcFee, dstFee, max, min } = data;
+    const { balance, srcFee, dstFee, max, min } = xTransfer;
 
     let srcChainFee: AssetAmount;
     let srcChainMax: AssetAmount;
     if (srcChain.key == 'hydradx') {
-      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(
-        account?.address,
-      );
+      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(address);
       const feeAsset = this.assets.registry.get(feeAssetId);
       srcChainFee = await this.calculateSourceFee(
-        data,
+        xTransfer,
         feeAsset,
         srcChain as EvmParachain,
       );
@@ -949,19 +1012,53 @@ export class XcmApp extends PoolApp {
         min: min,
         srcChainFee: srcChainFee,
         destChainFee: dstFee,
-        xdata: data,
+        xTransfer: xTransfer,
       };
       this.validateAmount();
       this.validateTransfer();
     }
   }
 
+  private async syncXStore() {
+    const { asset, srcChain } = this.transfer;
+    if (srcChain.isParachain() || !this.hasAccount()) {
+      return;
+    }
+
+    const { client } = srcChain as AnyEvmChain;
+    const provider = client.getProvider();
+
+    const storeCtx = await Promise.allSettled(
+      this.xStore.transactions.map((tx: `0x${string}`) =>
+        provider.getTransaction({ hash: tx }),
+      ),
+    );
+
+    storeCtx
+      .filter((res) => res.status === 'fulfilled')
+      .map((res) => res['value'])
+      .forEach(({ hash, to }) => {
+        provider
+          .getTransactionReceipt({ hash })
+          .then(() => this.xStore.remove(hash))
+          .catch(() => {
+            const id = srcChain.getAssetId(asset);
+            if (id.toString().toLowerCase() === to.toLowerCase()) {
+              this.onApprovePending(hash);
+            }
+          });
+      });
+  }
+
   private async syncData(syncBalance?: boolean) {
     const update = this.getUpdateKey();
-    Promise.all([
-      syncBalance ? this.syncBalances() : Promise.resolve(undefined),
-      this.syncInput(update),
-    ])
+    const exec = [this.syncInput(update), this.syncXStore()];
+
+    if (syncBalance) {
+      exec.push(this.syncBalances());
+    }
+
+    Promise.all(exec)
       .then(() => {
         if (this.isLastUpdate(update)) {
           this.setLoading(false);
@@ -1073,17 +1170,26 @@ export class XcmApp extends PoolApp {
     const chains = Array.from(chainsMap.values());
     this.xchain = {
       ...this.xchain,
-      list: chains.filter((c) => {
-        switch (this.ecosystem) {
-          case Ecosystem.Polkadot:
-            return c.ecosystem === ChainEcosystem.Polkadot;
-          //return c.ecosystem === ChainEcosystem.Polkadot || c.isEvmChain();
-          case Ecosystem.Kusama:
-            return c.ecosystem === ChainEcosystem.Kusama;
-          default:
-            throw new Error('Unknown ecosystem');
-        }
-      }),
+      list: chains
+        .filter((c) => {
+          switch (this.ecosystem) {
+            case Ecosystem.Polkadot:
+              return c.ecosystem === ChainEcosystem.Polkadot || c.isEvmChain();
+            case Ecosystem.Kusama:
+              return c.ecosystem === ChainEcosystem.Kusama;
+            default:
+              throw new Error('Unknown ecosystem');
+          }
+        })
+        .sort(function (a, b) {
+          if (a.name < b.name) {
+            return -1;
+          }
+          if (a.name > b.name) {
+            return 1;
+          }
+          return 0;
+        }),
     };
   }
 
@@ -1112,8 +1218,56 @@ export class XcmApp extends PoolApp {
     }
   }
 
+  async onApproveFinalized(receipt: TransactionReceipt) {
+    if (!this.hasTransferData()) {
+      return;
+    }
+
+    const { amount, xTransfer } = this.transfer;
+    const call = await xTransfer.buildCall(amount);
+    const contract = call as XCallEvm;
+    if (contract.from !== receipt.from || isApproval(contract)) {
+      return;
+    }
+
+    xTransfer
+      .estimateFee(amount)
+      .then((fee) => {
+        this.transfer = {
+          ...this.transfer,
+          srcChainFee: fee,
+          isApproving: false,
+          isApprove: false,
+        };
+        this.validateSrcFee();
+      })
+      .catch(() => this.setApproving(false));
+  }
+
+  async onApprovePending(txHash: string) {
+    this.setApproving(true);
+    const { srcChain } = this.transfer;
+    const chain = srcChain as AnyEvmChain;
+    const provider = chain.client.getProvider();
+    provider
+      .waitForTransactionReceipt({
+        hash: txHash as `0x${string}`,
+      })
+      .then((receipt) => {
+        this.xStore.remove(receipt.transactionHash);
+        this.onApproveFinalized(receipt);
+      })
+      .catch(() => {
+        this.xStore.remove(txHash);
+      });
+  }
+
   override connectedCallback() {
     super.connectedCallback();
+    XApproveCursor.addWatch(this._xKey, (_id, _prev, curr) => {
+      this.xStore.add(curr);
+      this.onApprovePending(curr);
+    });
     this.ro.observe(this);
   }
 
@@ -1124,6 +1278,7 @@ export class XcmApp extends PoolApp {
   }
 
   override disconnectedCallback() {
+    XApproveCursor.removeWatch(this._xKey);
     this.ro.unobserve(this);
     this.disconnectSubscriptions();
     super.disconnectedCallback();
@@ -1205,9 +1360,40 @@ export class XcmApp extends PoolApp {
     `;
   }
 
+  protected syncEvmContext(value: any) {
+    if (
+      !this.hasAccount() ||
+      !this.hasTransferData() ||
+      this.isEmptyAmount(value)
+    ) {
+      return;
+    }
+
+    const { address } = this.account.state;
+    const { xTransfer } = this.transfer;
+
+    if (isEvmAccount(address)) {
+      xTransfer.estimateFee(value).then((fee) => {
+        this.transfer = {
+          ...this.transfer,
+          srcChainFee: fee,
+        };
+        this.validateSrcFee();
+      });
+      xTransfer.buildCall(value).then((call) => {
+        const isApprove = isApproval(call);
+        this.transfer = {
+          ...this.transfer,
+          isApprove: isApprove,
+        };
+      });
+    }
+  }
+
   protected onAssetInputChange({ detail: { value } }) {
     this.updateAmount(value);
     this.validateAmount();
+    this.syncEvmContext(value);
   }
 
   protected onAddressInputChange({ detail: { address } }) {
@@ -1238,7 +1424,7 @@ export class XcmApp extends PoolApp {
     const srcAddr = this.formatAddress(account.address, srcChain);
     const destAddr = this.formatDestAddress(address, destChain);
 
-    const xData = await this.wallet.transfer(
+    const xTransfer = await this.wallet.transfer(
       asset,
       srcAddr,
       srcChain,
@@ -1246,7 +1432,7 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const call = await xData.buildCall(amount);
+    const call = await xTransfer.buildCall(amount);
     const transaction = {
       hex: call.data,
       name: 'xcm',
@@ -1270,6 +1456,9 @@ export class XcmApp extends PoolApp {
       <uigc-paper class=${classMap(classes)} id="default-tab">
         <gc-xcm-form
           .inProgress=${this.transfer.inProgress}
+          .isProcessing=${this.transfer.isProcessing}
+          .isApproving=${this.transfer.isApproving}
+          .isApprove=${this.transfer.isApprove}
           .disabled=${this.isFormDisabled()}
           .address=${this.transfer.address}
           .amount=${this.transfer.amount}
@@ -1286,7 +1475,15 @@ export class XcmApp extends PoolApp {
           @asset-switch-click=${this.onChainSwitchClick}
           @asset-selector-click=${() => this.changeTab(TransferTab.SelectToken)}
           @chain-selector-click=${this.onChainSelectorClick}
-          @transfer-click=${() => this.onTransferClick()}>
+          @transfer-click=${() => {
+            this.setProcessing(true);
+            this.onTransferClick()
+              .then(() => this.setProcessing(false))
+              .catch((err) => {
+                console.error(err);
+                this.setProcessing(false);
+              });
+          }}>
           <div class="header" slot="header">
             <uigc-typography gradient variant="title">
               ${i18n.t('header.form')}

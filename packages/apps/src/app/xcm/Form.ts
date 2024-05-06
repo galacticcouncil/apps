@@ -27,6 +27,9 @@ export class XcmForm extends LitElement {
 
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) inProgress = false;
+  @property({ type: Boolean }) isProcessing = false;
+  @property({ type: Boolean }) isApproving = false;
+  @property({ type: Boolean }) isApprove = false;
   @property({ type: String }) address = null;
   @property({ type: String }) amount = null;
   @property({ type: Object }) asset: Asset = null;
@@ -143,11 +146,26 @@ export class XcmForm extends LitElement {
 
   private isDisabled(): boolean {
     const account = this.account.state;
-    return !account || !this.isChainConnected() || !this.isValidAddress();
+    return (
+      !account ||
+      !this.isChainConnected() ||
+      !this.isValidAddress() ||
+      this.isProcessing ||
+      this.isApproving
+    );
   }
 
   private isChainConnected(): boolean {
     return !this.inProgress;
+  }
+
+  /**
+   * Check whether we use relayer to redeem funds on dest chain.
+   *
+   * @returns true for every evm dest chains ATM
+   */
+  private isRelayerTransfer(): boolean {
+    return this.destChain.isEvmChain();
   }
 
   private isValidAddress(): boolean {
@@ -174,7 +192,7 @@ export class XcmForm extends LitElement {
     };
   }
 
-  transferFeeTemplate(label: string, fee: AssetAmount) {
+  transferFeeTemplate(label: string, fee: AssetAmount, free = false) {
     if (this.inProgress) {
       return html`
         <span class="label">${label}</span>
@@ -184,6 +202,14 @@ export class XcmForm extends LitElement {
           rectangle
           width="80px"
           height="12px"></uigc-skeleton>
+      `;
+    }
+
+    if (free) {
+      return html`
+        <span class="label">${label}</span>
+        <span class="grow"></span>
+        <span class="value">FREE</span>
       `;
     }
 
@@ -220,9 +246,31 @@ export class XcmForm extends LitElement {
       `;
     }
 
+    if (this.isProcessing) {
+      return html`
+        <uigc-circular-progress
+          slot="icon"
+          class="spinner"></uigc-circular-progress>
+        <span class="cta">${i18n.t('form.cta.processing')}</span>
+      `;
+    }
+
+    if (this.isApproving) {
+      return html`
+        <uigc-circular-progress
+          slot="icon"
+          class="spinner"></uigc-circular-progress>
+        <span class="cta">${i18n.t('form.cta.approving')}</span>
+      `;
+    }
+
     if (this.isChainConnected()) {
       return html`
-        <span class="cta">${i18n.t('form.cta.transfer')}</span>
+        <span class="cta">
+          ${this.isApprove
+            ? i18n.t('form.cta.approve')
+            : i18n.t('form.cta.transfer')}
+        </span>
       `;
     } else {
       return html`
@@ -319,7 +367,8 @@ export class XcmForm extends LitElement {
         this.error['feeDest'] ||
         this.error['hubEd'] ||
         this.error['hubFrozen'] ||
-        this.error['hdxEd'],
+        this.error['hdxEd'] ||
+        this.error['hdxMrlFee'],
     };
     const cexWarnClasses = {
       warning: true,
@@ -351,8 +400,12 @@ export class XcmForm extends LitElement {
         </div>
         <div class="row">
           ${this.transferFeeTemplate(
-            i18n.t('form.info.destFee'),
+            this.isRelayerTransfer()
+              ? i18n.t('form.info.relayerFee')
+              : i18n.t('form.info.destFee'),
             this.destChainFee,
+            ['ethereum', 'acala-evm'].includes(this.srcChain.key) &&
+              this.destChain.key === 'hydradx',
           )}
         </div>
       </div>
@@ -372,6 +425,7 @@ export class XcmForm extends LitElement {
           <span>${unsafeHTML(this.error['hubEd'])}</span>
           <span>${unsafeHTML(this.error['hubFrozen'])}</span>
           <span>${unsafeHTML(this.error['hdxEd'])}</span>
+          <span>${unsafeHTML(this.error['hdxMrlFee'])}</span>
         </div>
       </div>
       <div class="grow"></div>
