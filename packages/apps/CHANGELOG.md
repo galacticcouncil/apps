@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.7.2
+
+### Patch Changes
+
+- Store preimage
+
 ## 3.7.1
 
 ### Patch Changes
