@@ -9,7 +9,8 @@ import {
   ExternalAssetConfig,
   TradeConfig,
   TradeData,
-  XApproveStore,
+  XStore,
+  XItem,
 } from './types';
 
 const TRADE_DATA_OPTS = { ttl: 1000 * 60 * 60 };
@@ -34,9 +35,9 @@ interface Schema {
   };
   data: TLRUCache<string, TradeData>;
   external: ExternalAssetConfig;
-  xApprove: {
-    store: XApproveStore;
-    tx: string;
+  tx: {
+    store: XStore;
+    curr: XItem;
   };
 }
 
@@ -49,9 +50,9 @@ const db = defAtom<Schema>({
   },
   data: new TLRUCache<string, TradeData>(null, TRADE_DATA_OPTS),
   external: null,
-  xApprove: {
+  tx: {
     store: {},
-    tx: null,
+    curr: null,
   },
 });
 
@@ -66,8 +67,8 @@ export const DcaConfigCursor = initCursor<DcaConfig>('config.dca');
 export const TradeConfigCursor = initCursor<TradeConfig>('config.trade');
 export const TradeDataCursor = initCursor<TLRUCache<string, TradeData>>('data');
 export const ExternalAssetCursor = initCursor<ExternalAssetConfig>('external');
-export const XApproveStoreCursor = initCursor<XApproveStore>('xApprove.store');
-export const XApproveCursor = initCursor<string>('xApprove.tx');
+export const XStoreCursor = initCursor<XStore>('tx.store');
+export const XItemCursor = initCursor<XItem>('tx.curr');
 
 // Local storage keys
 export const StorageKey = {
@@ -76,8 +77,8 @@ export const StorageKey = {
     trade: 'trade.settings',
     dca: 'dca.settings',
   },
-  xApprove: {
-    store: 'xApprove.store',
+  tx: {
+    store: 'tx.store',
   },
   external: 'external-tokens',
 };

@@ -43,7 +43,14 @@ export interface ExternalAssetConfig {
   version: number;
 }
 
-export type XApproveStore = { [K: string]: string[] };
+export type XStore = { [K: string]: XItem[] };
+
+export type XItem = {
+  data: `0x${string}`;
+  hash: `0x${string}`;
+  nonce: number;
+  to: `0x${string}`;
+};
 
 export type TradeData = {
   primary: SingleValueData[];

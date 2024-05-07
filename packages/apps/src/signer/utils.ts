@@ -8,7 +8,7 @@ import type { ISubmittableResult } from '@polkadot/types/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
 import { decodeFunctionData } from 'viem';
 
-import { XApproveCursor } from 'db';
+import { XItemCursor } from 'db';
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
 import { TxInfo } from './types';
 
@@ -108,8 +108,14 @@ export async function signAndSendEvm(
   }
 
   provider.getTransaction({ hash: txHash }).then((tx) => {
-    if (tx.input.startsWith('0x095ea7b3')) {
-      XApproveCursor.reset(tx.hash);
+    const { input, hash, nonce, to } = tx;
+    if (input.startsWith('0x095ea7b3')) {
+      XItemCursor.reset({
+        data: input,
+        hash: hash,
+        nonce: nonce,
+        to: to,
+      });
     }
   });
 

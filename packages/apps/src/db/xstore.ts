@@ -1,4 +1,5 @@
-import { AccountCursor, XApproveStoreCursor } from './db';
+import { AccountCursor, XStoreCursor } from './db';
+import { XItem } from './types';
 
 export class XStoreUtils {
   get account() {
@@ -6,28 +7,28 @@ export class XStoreUtils {
   }
 
   get store() {
-    return XApproveStoreCursor.deref();
+    return XStoreCursor.deref();
   }
 
-  get transactions(): string[] {
+  get transactions(): XItem[] {
     const { address } = this.account;
     return this.store[address] || [];
   }
 
-  add(hash: string): void {
-    console.log('Storing approve TX: ' + hash);
+  add(tx: XItem): void {
+    console.log('Storing approve TX: ' + tx.hash);
     const { address } = this.account;
-    XApproveStoreCursor.resetIn([address], this.transactions.concat(hash));
+    XStoreCursor.resetIn([address], this.transactions.concat(tx));
   }
 
   remove(hash: string): void {
     console.log('Removing approve TX: ' + hash);
     const { address } = this.account;
     const txClone = [...this.transactions];
-    const txIndex = txClone.indexOf(hash, 0);
+    const txIndex = txClone.findIndex((tx) => tx.hash === hash);
     if (txIndex > -1) {
       txClone.splice(txIndex, 1);
-      XApproveStoreCursor.resetIn([address], txClone);
+      XStoreCursor.resetIn([address], txClone);
     }
   }
 }

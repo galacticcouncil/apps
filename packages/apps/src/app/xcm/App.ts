@@ -15,7 +15,7 @@ import { Subscription } from 'rxjs';
 import { TransactionReceipt } from 'viem';
 
 import { PoolApp } from 'app/PoolApp';
-import { Account, Ecosystem, XStoreUtils, XApproveCursor } from 'db';
+import { Account, Ecosystem, XStoreUtils, XItemCursor, XItem } from 'db';
 import { TxInfo, TxMessage, TxNotification } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
@@ -1029,8 +1029,8 @@ export class XcmApp extends PoolApp {
     const provider = client.getProvider();
 
     const storeCtx = await Promise.allSettled(
-      this.xStore.transactions.map((tx: `0x${string}`) =>
-        provider.getTransaction({ hash: tx }),
+      this.xStore.transactions.map((tx: XItem) =>
+        provider.getTransaction({ hash: tx.hash }),
       ),
     );
 
@@ -1264,9 +1264,9 @@ export class XcmApp extends PoolApp {
 
   override connectedCallback() {
     super.connectedCallback();
-    XApproveCursor.addWatch(this._xKey, (_id, _prev, curr) => {
+    XItemCursor.addWatch(this._xKey, (_id, _prev, curr) => {
       this.xStore.add(curr);
-      this.onApprovePending(curr);
+      this.onApprovePending(curr.hash);
     });
     this.ro.observe(this);
   }
@@ -1278,7 +1278,7 @@ export class XcmApp extends PoolApp {
   }
 
   override disconnectedCallback() {
-    XApproveCursor.removeWatch(this._xKey);
+    XItemCursor.removeWatch(this._xKey);
     this.ro.unobserve(this);
     this.disconnectSubscriptions();
     super.disconnectedCallback();

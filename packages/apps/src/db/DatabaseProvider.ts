@@ -9,7 +9,7 @@ import {
   ExternalAssetCursor,
   StorageKey,
   TradeConfigCursor,
-  XApproveStoreCursor,
+  XStoreCursor,
 } from './db';
 import { getObj, setObj } from './storage';
 import { ExternalAssetConfig } from './types';
@@ -66,7 +66,7 @@ export class DatabaseProvider extends LitElement {
     this.registerAndSync(AccountCursor, StorageKey.account);
     this.registerAndSync(DcaConfigCursor, StorageKey.config.dca);
     this.registerAndSync(TradeConfigCursor, StorageKey.config.trade);
-    this.registerAndSync(XApproveStoreCursor, StorageKey.xApprove.store);
+    this.registerAndSync(XStoreCursor, StorageKey.tx.store);
     this.register(ExternalAssetCursor, StorageKey.external);
     window.addEventListener('storage', this.onStorageChange.bind(this));
   }
