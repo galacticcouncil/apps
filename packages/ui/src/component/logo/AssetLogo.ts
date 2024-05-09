@@ -4,12 +4,14 @@ import { choose } from 'lit/directives/choose.js';
 
 import { BaseLogo } from './BaseLogo';
 import {
+  ausd,
   acala,
   apecoin,
   astar,
   basilisk,
   bifrost,
   bitcoin,
+  bndt,
   centrifuge,
   crust,
   dai,
@@ -22,6 +24,7 @@ import {
   karura,
   kilt,
   kusama,
+  ldot,
   lrna,
   moonbeam,
   nodle,
@@ -42,6 +45,7 @@ import {
   eth,
   wud,
   zeitgeist,
+  wifd,
 } from './assets';
 
 @customElement('uigc-logo-asset')
@@ -53,11 +57,12 @@ export class AssetLogo extends BaseLogo {
       ${choose(
         this.asset && this.asset.toUpperCase(),
         [
-          ['AUSD', () => acala],
+          ['AUSD', () => ausd],
           ['ACA', () => acala],
           ['APE', () => apecoin],
           ['ASTR', () => astar],
           ['BNC', () => bifrost],
+          ['BNDT', () => bndt],
           ['BSX', () => basilisk],
           ['BTC', () => bitcoin],
           ['CFG', () => centrifuge],
@@ -74,6 +79,7 @@ export class AssetLogo extends BaseLogo {
           ['KAR', () => karura],
           ['KILT', () => kilt],
           ['KSM', () => kusama],
+          ['LDOT', () => ldot],
           ['LRNA', () => lrna],
           ['NODL', () => nodle],
           ['PEN', () => pen],
@@ -92,6 +98,7 @@ export class AssetLogo extends BaseLogo {
           ['ZTG', () => zeitgeist],
           ['WBTC', () => wbtc],
           ['WETH', () => eth],
+          ['WIFD', () => wifd],
           ['WUD', () => wud],
           ['WUSDT', () => usdt],
           ['XRT', () => robonomics],
