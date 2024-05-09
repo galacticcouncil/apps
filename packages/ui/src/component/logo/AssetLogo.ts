@@ -11,7 +11,7 @@ import {
   basilisk,
   bifrost,
   bitcoin,
-  bndt,
+  //bndt,
   centrifuge,
   crust,
   dai,
@@ -45,7 +45,7 @@ import {
   eth,
   wud,
   zeitgeist,
-  wifd,
+  //wifd,
 } from './assets';
 
 @customElement('uigc-logo-asset')
@@ -62,7 +62,7 @@ export class AssetLogo extends BaseLogo {
           ['APE', () => apecoin],
           ['ASTR', () => astar],
           ['BNC', () => bifrost],
-          ['BNDT', () => bndt],
+          //['BNDT', () => bndt],
           ['BSX', () => basilisk],
           ['BTC', () => bitcoin],
           ['CFG', () => centrifuge],
@@ -98,7 +98,7 @@ export class AssetLogo extends BaseLogo {
           ['ZTG', () => zeitgeist],
           ['WBTC', () => wbtc],
           ['WETH', () => eth],
-          ['WIFD', () => wifd],
+          //['WIFD', () => wifd],
           ['WUD', () => wud],
           ['WUSDT', () => usdt],
           ['XRT', () => robonomics],
