@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.16
+
+### Patch Changes
+
+- Add ACA, LDOT icons
+
 ## 3.1.15
 
 ### Patch Changes
