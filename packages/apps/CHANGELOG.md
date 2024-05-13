@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.7.3
+
+### Patch Changes
+
+- Approval flow nonce support
+
 ## 3.7.2
 
 ### Patch Changes
