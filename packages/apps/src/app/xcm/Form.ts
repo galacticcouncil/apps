@@ -398,16 +398,21 @@ export class XcmForm extends LitElement {
             this.srcChainFee,
           )}
         </div>
-        <div class="row">
-          ${this.transferFeeTemplate(
-            this.isRelayerTransfer()
-              ? i18n.t('form.info.relayerFee')
-              : i18n.t('form.info.destFee'),
-            this.destChainFee,
-            ['ethereum', 'acala-evm'].includes(this.srcChain.key) &&
-              this.destChain.key === 'hydradx',
-          )}
-        </div>
+        ${when(
+          !this.isApprove,
+          () =>
+            html`
+              <div class="row">
+                ${this.transferFeeTemplate(
+                  this.isRelayerTransfer()
+                    ? i18n.t('form.info.relayerFee')
+                    : i18n.t('form.info.destFee'),
+                  this.destChainFee,
+                  this.srcChain.isEvmChain(),
+                )}
+              </div>
+            `,
+        )}
       </div>
       <div class=${classMap(cexWarnClasses)}>
         <uigc-icon-warning></uigc-icon-warning>

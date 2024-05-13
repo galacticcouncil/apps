@@ -3,6 +3,7 @@ import { property } from 'lit/decorators.js';
 import short from 'short-uuid';
 
 import { Account, AccountCursor, DatabaseController, Ecosystem } from 'db';
+import { isEvmAccount } from 'utils/evm';
 import { BaseElement } from 'element/BaseElement';
 
 export abstract class BaseApp extends BaseElement {
@@ -31,6 +32,14 @@ export abstract class BaseApp extends BaseElement {
 
   hasAccount(): boolean {
     return !!this.account.state;
+  }
+
+  hasEvmAccount(): boolean {
+    if (this.hasAccount()) {
+      const { address } = this.account.state;
+      return isEvmAccount(address);
+    }
+    return false;
   }
 
   getShortened(address: string): string {

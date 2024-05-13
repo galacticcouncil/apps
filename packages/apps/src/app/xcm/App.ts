@@ -2,6 +2,7 @@ import '@polkadot/api-augment';
 
 import { html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
@@ -12,7 +13,7 @@ import short from 'short-uuid';
 
 import { debounce } from 'ts-debounce';
 import { Subscription } from 'rxjs';
-import { TransactionReceipt } from 'viem';
+import { WatchBlockNumberReturnType } from 'viem';
 
 import { PoolApp } from 'app/PoolApp';
 import { Account, Ecosystem, XStoreUtils, XItemCursor, XItem } from 'db';
@@ -23,6 +24,7 @@ import { basicLayoutStyles } from 'styles/layout/basic.css';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
 import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 import { getXcmKey } from 'utils/asset';
+import { isApprove, parseSpender, parseAmount } from 'utils/erc20';
 import { calculateEffectiveBalance } from 'utils/balance';
 import {
   convertFromH160,
@@ -74,6 +76,7 @@ import 'element/selector';
 
 import './Form';
 
+import { wormhole } from './logo';
 import {
   TransferTab,
   ChainState,
@@ -81,7 +84,6 @@ import {
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
 } from './types';
-import { isApproval } from './utils';
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
@@ -108,6 +110,7 @@ export class XcmApp extends PoolApp {
   private shouldPrefill: boolean = true;
   private balanceSubscription: Subscription = null;
   private balanceDestSubscription: Subscription = null;
+  private evmBlockSubscription: WatchBlockNumberReturnType = null;
 
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) destChain: string = null;
@@ -142,6 +145,27 @@ export class XcmApp extends PoolApp {
       :host {
         max-width: 570px;
       }
+
+      .logo {
+        padding: 16px 0;
+        display: flex;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo svg {
+        margin-left: 8px;
+      }
+
+      .logo span {
+        font-family: var(--uigc-app-font);
+        color: var(--hex-background-gray-500);
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 100%;
+      }
     `,
   ];
 
@@ -154,7 +178,7 @@ export class XcmApp extends PoolApp {
   }
 
   isEmptyAmount(amount: string): boolean {
-    return amount == '' || amount == '0';
+    return amount === null || amount === '' || amount === '0';
   }
 
   hasTransferData() {
@@ -325,6 +349,14 @@ export class XcmApp extends PoolApp {
     this.requestUpdate();
   }
 
+  updateSrcFee(fee: bigint) {
+    const { srcChainFee } = this.transfer;
+    this.transfer = {
+      ...this.transfer,
+      srcChainFee: srcChainFee.copyWith({ amount: fee }),
+    };
+  }
+
   validateAmount() {
     const amount = this.transfer.amount;
 
@@ -398,7 +430,7 @@ export class XcmApp extends PoolApp {
     transfer: TransferState,
   ) {
     const call = transaction.get<XCall>();
-    const notification = isApproval(call)
+    const notification = isApprove(call)
       ? this.notificationApproveTemplate(transfer)
       : this.notificationTransferTemplate(transfer);
 
@@ -1019,40 +1051,25 @@ export class XcmApp extends PoolApp {
     }
   }
 
-  private async syncXStore() {
-    const { asset, srcChain } = this.transfer;
-    if (srcChain.isParachain() || !this.hasAccount()) {
+  private async syncEvmContext() {
+    const { srcChain } = this.transfer;
+    if (!this.hasEvmAccount()) {
       return;
     }
 
     const { client } = srcChain as AnyEvmChain;
     const provider = client.getProvider();
-
-    const storeCtx = await Promise.allSettled(
-      this.xStore.transactions.map((tx: XItem) =>
-        provider.getTransaction({ hash: tx.hash }),
-      ),
-    );
-
-    storeCtx
-      .filter((res) => res.status === 'fulfilled')
-      .map((res) => res['value'])
-      .forEach(({ hash, to }) => {
-        provider
-          .getTransactionReceipt({ hash })
-          .then(() => this.xStore.remove(hash))
-          .catch(() => {
-            const id = srcChain.getAssetId(asset);
-            if (id.toString().toLowerCase() === to.toLowerCase()) {
-              this.onApprovePending(hash);
-            }
-          });
-      });
+    this.evmBlockSubscription = provider.watchBlockNumber({
+      onBlockNumber: (blockNumber) => {
+        console.log(`${srcChain.name} block: ${blockNumber}`);
+        this.updateEvmContext(blockNumber);
+      },
+    });
   }
 
   private async syncData(syncBalance?: boolean) {
     const update = this.getUpdateKey();
-    const exec = [this.syncInput(update), this.syncXStore()];
+    const exec = [this.syncInput(update), this.syncEvmContext()];
 
     if (syncBalance) {
       exec.push(this.syncBalances());
@@ -1218,55 +1235,11 @@ export class XcmApp extends PoolApp {
     }
   }
 
-  async onApproveFinalized(receipt: TransactionReceipt) {
-    if (!this.hasTransferData()) {
-      return;
-    }
-
-    const { amount, xTransfer } = this.transfer;
-    const call = await xTransfer.buildCall(amount);
-    const contract = call as XCallEvm;
-    if (contract.from !== receipt.from || isApproval(contract)) {
-      return;
-    }
-
-    xTransfer
-      .estimateFee(amount)
-      .then((fee) => {
-        this.transfer = {
-          ...this.transfer,
-          srcChainFee: fee,
-          isApproving: false,
-          isApprove: false,
-        };
-        this.validateSrcFee();
-      })
-      .catch(() => this.setApproving(false));
-  }
-
-  async onApprovePending(txHash: string) {
-    this.setApproving(true);
-    const { srcChain } = this.transfer;
-    const chain = srcChain as AnyEvmChain;
-    const provider = chain.client.getProvider();
-    provider
-      .waitForTransactionReceipt({
-        hash: txHash as `0x${string}`,
-      })
-      .then((receipt) => {
-        this.xStore.remove(receipt.transactionHash);
-        this.onApproveFinalized(receipt);
-      })
-      .catch(() => {
-        this.xStore.remove(txHash);
-      });
-  }
-
   override connectedCallback() {
     super.connectedCallback();
     XItemCursor.addWatch(this._xKey, (_id, _prev, curr) => {
+      this.setApproving(true);
       this.xStore.add(curr);
-      this.onApprovePending(curr.hash);
     });
     this.ro.observe(this);
   }
@@ -1275,6 +1248,7 @@ export class XcmApp extends PoolApp {
     this.resetBalances();
     this.balanceSubscription?.unsubscribe();
     this.balanceDestSubscription?.unsubscribe();
+    this.evmBlockSubscription?.();
   }
 
   override disconnectedCallback() {
@@ -1360,40 +1334,88 @@ export class XcmApp extends PoolApp {
     `;
   }
 
-  protected syncEvmContext(value: any) {
+  private updateApprovalCtx(call: XCallEvm, nonce: number) {
+    const approvingTx = this.xStore.transactions.find(
+      (tx: XItem) => tx.nonce === nonce && tx.to === call.to,
+    );
+
+    const isApproving = approvingTx && call.allowance < parseAmount(call.data);
+    this.transfer = {
+      ...this.transfer,
+      isApproving: isApproving,
+      isApprove: true,
+    };
+  }
+
+  private updateTransferCtx(call: XCallEvm, nonce: number) {
+    const { asset, srcChain } = this.transfer;
+    this.transfer = {
+      ...this.transfer,
+      isApproving: false,
+      isApprove: false,
+    };
+
+    const assetId = srcChain.getBalanceAssetId(asset);
+    const approvedTx = this.xStore.transactions.filter(
+      (tx: XItem) =>
+        tx.nonce < nonce &&
+        tx.to === assetId &&
+        parseSpender(tx.data) === call.to,
+    );
+
+    approvedTx.forEach((tx: XItem) => this.xStore.remove(tx.hash));
+  }
+
+  private updateEvmContext(blockNumber?: bigint) {
+    const { amount, srcChain, xTransfer } = this.transfer;
+
     if (
-      !this.hasAccount() ||
+      !this.hasEvmAccount() ||
       !this.hasTransferData() ||
-      this.isEmptyAmount(value)
+      this.isEmptyAmount(amount)
     ) {
       return;
     }
 
     const { address } = this.account.state;
-    const { xTransfer } = this.transfer;
+    const h160Addr = convertToH160(address) as `0x${string}`;
 
-    if (isEvmAccount(address)) {
-      xTransfer.estimateFee(value).then((fee) => {
-        this.transfer = {
-          ...this.transfer,
-          srcChainFee: fee,
-        };
-        this.validateSrcFee();
+    const { client } = srcChain as AnyEvmChain;
+    const provider = client.getProvider();
+    provider
+      .getTransactionCount({
+        address: h160Addr,
+        blockNumber: blockNumber,
+      })
+      .then((nonce) => {
+        xTransfer.buildCall(amount).then((call: XCallEvm) => {
+          const isApproveCall = isApprove(call);
+          if (isApproveCall) {
+            this.updateApprovalCtx(call, nonce);
+          } else {
+            this.updateTransferCtx(call, nonce);
+          }
+
+          Promise.all([
+            provider.estimateGas({
+              account: h160Addr,
+              data: call.data,
+              to: call.to,
+            }),
+            provider.getGasPrice(),
+          ]).then(([gas, gasPrice]) => {
+            const fee = gas * gasPrice;
+            this.updateSrcFee(fee);
+            this.validateSrcFee();
+          });
+        });
       });
-      xTransfer.buildCall(value).then((call) => {
-        const isApprove = isApproval(call);
-        this.transfer = {
-          ...this.transfer,
-          isApprove: isApprove,
-        };
-      });
-    }
   }
 
   protected onAssetInputChange({ detail: { value } }) {
     this.updateAmount(value);
     this.validateAmount();
-    this.syncEvmContext(value);
+    this.updateEvmContext();
   }
 
   protected onAddressInputChange({ detail: { address } }) {
@@ -1452,6 +1474,7 @@ export class XcmApp extends PoolApp {
       tab: true,
       active: this.tab == TransferTab.Form,
     };
+    const { srcChain, destChain } = this.transfer;
     return html`
       <uigc-paper class=${classMap(classes)} id="default-tab">
         <gc-xcm-form
@@ -1492,6 +1515,15 @@ export class XcmApp extends PoolApp {
           </div>
         </gc-xcm-form>
       </uigc-paper>
+      ${when(
+        srcChain?.isEvmChain() || destChain?.isEvmChain(),
+        () => html`
+          <div class="logo">
+            <span>Powered by</span>
+            ${wormhole}
+          </div>
+        `,
+      )}
     `;
   }
 

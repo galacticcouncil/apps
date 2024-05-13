@@ -3,13 +3,15 @@ import {
   EvmParachain,
   Parachain,
 } from '@galacticcouncil/xcm-core';
-import { XCallEvm } from '@galacticcouncil/xcm-sdk';
+import type { XCallEvm } from '@galacticcouncil/xcm-sdk';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
 import { decodeFunctionData } from 'viem';
 
 import { XItemCursor } from 'db';
+import { isApprove } from 'utils/erc20';
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
+
 import { TxInfo } from './types';
 
 export async function signAndSend(
@@ -91,7 +93,8 @@ export async function signAndSendEvm(
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
-    const { abi, data, to, value } = transaction.get<XCallEvm>();
+    const call = transaction.get<XCallEvm>();
+    const { abi, data, from, to, value } = call;
     const payload = decodeFunctionData({
       abi: JSON.parse(abi),
       data: data,
@@ -105,19 +108,19 @@ export async function signAndSendEvm(
       to: to as `0x${string}`,
       value: value,
     });
-  }
-
-  provider.getTransaction({ hash: txHash }).then((tx) => {
-    const { input, hash, nonce, to } = tx;
-    if (input.startsWith('0x095ea7b3')) {
-      XItemCursor.reset({
-        data: input,
-        hash: hash,
-        nonce: nonce,
-        to: to,
+    provider
+      .getTransactionCount({ address: from as `0x${string}` })
+      .then((nonce) => {
+        if (isApprove(call)) {
+          XItemCursor.reset({
+            data: data,
+            hash: txHash,
+            nonce: nonce,
+            to: to,
+          });
+        }
       });
-    }
-  });
+  }
 
   onTransactionSend(txHash);
   provider
