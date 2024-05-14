@@ -358,9 +358,9 @@ export class XcmApp extends PoolApp {
   }
 
   validateAmount() {
-    const amount = this.transfer.amount;
+    const { amount, destChain } = this.transfer;
 
-    if (!amount) {
+    if (this.isEmptyAmount(amount)) {
       delete this.transfer.error['amount'];
       return;
     }
@@ -370,20 +370,24 @@ export class XcmApp extends PoolApp {
     }
 
     const { asset, balance, max, min } = this.transfer;
-    const amountBN = toBigInt(amount, balance.decimals);
-    const maxBN = toBigInt(max.amount, max.decimals);
-    const minBN = toBigInt(min.amount, max.decimals);
+    const minWithRelay = min.copyWith({
+      amount: destChain.isEvmChain() ? min.amount * 2n : min.amount,
+    });
+
+    const amountBn = toBigInt(amount, balance.decimals);
+    const maxBn = toBigInt(max.amount, max.decimals);
+    const minBn = toBigInt(minWithRelay.amount, max.decimals);
 
     if (balance.amount == 0n) {
       this.transfer.error['amount'] = i18n.t('error.balance');
-    } else if (amountBN > maxBN) {
+    } else if (amountBn > maxBn) {
       this.transfer.error['amount'] = i18n.t('error.maxAmount', {
         amount: max.toDecimal(),
         asset: asset.originSymbol,
       });
-    } else if (amountBN < minBN) {
+    } else if (amountBn < minBn) {
       this.transfer.error['amount'] = i18n.t('error.minAmount', {
-        amount: min.toDecimal(),
+        amount: minWithRelay.toDecimal(),
         asset: asset.originSymbol,
       });
     } else {
@@ -1370,7 +1374,7 @@ export class XcmApp extends PoolApp {
     const { amount, srcChain, xTransfer } = this.transfer;
 
     if (
-      !this.hasEvmAccount() ||
+      !srcChain.isEvmChain() ||
       !this.hasTransferData() ||
       this.isEmptyAmount(amount)
     ) {
