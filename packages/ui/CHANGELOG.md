@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.17
+
+### Patch Changes
+
+- Bndt logo
+
 ## 3.1.16
 
 ### Patch Changes

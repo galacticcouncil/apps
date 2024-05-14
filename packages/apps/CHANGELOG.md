@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.7.4
+
+### Patch Changes
+
+- Relayer min fix
+
 ## 3.7.3
 
 ### Patch Changes
