@@ -28,6 +28,13 @@
         "name": "STINK",
         "origin": 1000,
         "symbol": "STINK"
+      },
+      {
+        "decimals": 2,
+        "id": "420",
+        "name": "BEEFY",
+        "origin": 1000,
+        "symbol": "BEEFY"
       }
     ]
   },
