@@ -5,13 +5,7 @@ import { PaymentApi } from 'api/payment';
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
 import { createApi, syncRegistry } from 'chain';
-import {
-  Account,
-  Chain,
-  ChainCursor,
-  DatabaseController,
-  ExternalAssetCursor,
-} from 'db';
+import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 import { SECOND_MS } from 'utils/time';
 
 import {
@@ -61,26 +55,14 @@ export abstract class PoolApp extends BaseApp {
     return !!this.chain.state;
   }
 
-  // isExternalChange(): boolean {
-  //   const { poolService } = this.chain.state;
-  //   const externalConfig = ExternalAssetCursor.deref();
-  //   if (externalConfig) {
-  //     const external = externalConfig.state.tokens;
-  //     return external.every((ext) =>
-  //       poolService.assets.find((a) => (a.symbol = ext.symbol)),
-  //     );
-  //   }
-  //   return false;
-  // }
-
   override async firstUpdated() {
     if (this.isApiReady()) {
       const { poolService } = this.chain.state;
       syncRegistry(
         poolService,
-        this.isTestnet,
         () => this._init(),
         () => {},
+        this.isTestnet,
       );
     } else {
       createApi(
@@ -88,6 +70,7 @@ export abstract class PoolApp extends BaseApp {
         this.ecosystem,
         () => this._init(),
         () => {},
+        this.isTestnet,
       );
     }
   }

@@ -34,14 +34,14 @@ function initApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, router: TradeRouter) => void,
-  isTestnet?: boolean,
+  isTestnet = false,
 ) {
   logFmt('API ready ✅');
   info(api);
   const poolService = new CachingPoolService(api);
   const router = new TradeRouter(poolService);
   // Get external assets
-  const external = readExternal(!!isTestnet);
+  const external = readExternal(isTestnet);
   // Get pools and cache the result
   poolService.syncRegistry(external).then(() => {
     logFmt('Router ready ✅');
@@ -60,12 +60,11 @@ export async function createApi(
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void,
+  isTestnet = false,
 ) {
   try {
     const apiPool = SubstrateApis.getInstance();
     const api = await apiPool.api(apiUrl);
-    const isTestnet = apiUrl === 'wss://rpc.nice.hydration.cloud';
-
     initApi(api, ecosystem, onReady, isTestnet);
   } catch (error) {
     onError(error);
@@ -77,9 +76,10 @@ export async function useApi(
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void,
+  isTestnet = false,
 ) {
   try {
-    initApi(api, ecosystem, onReady);
+    initApi(api, ecosystem, onReady, isTestnet);
   } catch (error) {
     onError(error);
   }
@@ -87,9 +87,9 @@ export async function useApi(
 
 export async function syncRegistry(
   poolService: PoolService,
-  isTestnet: boolean,
   onReady: () => void,
   onError: (error: unknown) => void,
+  isTestnet = false,
 ) {
   try {
     const external = readExternal(isTestnet);
