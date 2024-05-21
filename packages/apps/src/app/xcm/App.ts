@@ -21,7 +21,11 @@ import { TxInfo, TxMessage, TxNotification } from 'signer/types';
 import { baseStyles } from 'styles/base.css';
 import { headerStyles } from 'styles/header.css';
 import { basicLayoutStyles } from 'styles/layout/basic.css';
-import { convertAddressSS58, isValidAddress } from 'utils/account';
+import {
+  EVM_NATIVE_ASSET_ID,
+  convertAddressSS58,
+  isValidAddress,
+} from 'utils/account';
 import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 import { getXcmKey } from 'utils/asset';
 import { isApprove, parseSpender, parseAmount } from 'utils/erc20';
@@ -863,7 +867,7 @@ export class XcmApp extends PoolApp {
         ? a.metadataId.toString() === feeAsset.id
         : a.id.toString() === feeAsset.id;
     });
-    if (isEvmAccount(account.address)) {
+    if (isEvmAccount(account.address) && feeAsset.id === EVM_NATIVE_ASSET_ID) {
       const chain = srcChain as EvmParachain;
       const api = await chain.api;
       const evmAddress = convertToH160(account.address);

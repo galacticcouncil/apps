@@ -30,6 +30,7 @@ import { calculateEffectiveBalance } from 'utils/balance';
 import { isEvmAccount } from 'utils/evm';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
 import { updateQueryParams } from 'utils/url';
+import { EVM_NATIVE_ASSET_ID } from 'utils/account';
 
 import '@galacticcouncil/ui';
 import {
@@ -735,9 +736,10 @@ export class TradeApp extends PoolApp {
     const account = this.account.state;
     const feeAsset = this.assets.registry.get(feeAssetId);
 
-    const { amount } = isEvmAccount(account?.address)
-      ? await this.paymentApi.getEvmPaymentFee(transaction.hex, account)
-      : await this.paymentApi.getPaymentFee(feeAsset, feeNative);
+    const { amount } =
+      isEvmAccount(account?.address) && feeAssetId === EVM_NATIVE_ASSET_ID
+        ? await this.paymentApi.getEvmPaymentFee(transaction.hex, account)
+        : await this.paymentApi.getPaymentFee(feeAsset, feeNative);
 
     return {
       asset: feeAsset,
