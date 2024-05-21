@@ -76,10 +76,9 @@ export abstract class PoolApp extends BaseApp {
   override async firstUpdated() {
     if (this.isApiReady()) {
       const { poolService } = this.chain.state;
-      const isTestnet = this.apiAddress === 'wss://rpc.nice.hydration.cloud';
       syncRegistry(
         poolService,
-        isTestnet,
+        this.isTestnet,
         () => this._init(),
         () => {},
       );
