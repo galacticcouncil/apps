@@ -1,6 +1,5 @@
 import {
   CachingPoolService,
-  ExternalAsset,
   PoolService,
   TradeRouter,
 } from '@galacticcouncil/sdk';
@@ -12,9 +11,12 @@ const logFmt = (log: string) => {
   console.log('%c' + log, 'background: #222; color: #bada55');
 };
 
-const readExternal = (): ExternalAsset[] | undefined => {
+const readExternal = (isTestnet: boolean) => {
   const externalConfig = ExternalAssetCursor.deref();
-  return externalConfig ? externalConfig.state.tokens : undefined;
+
+  return externalConfig
+    ? externalConfig.state.tokens[isTestnet ? 'testnet' : 'mainnet']
+    : undefined;
 };
 
 async function info(api: ApiPromise): Promise<void> {
@@ -32,13 +34,14 @@ function initApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, router: TradeRouter) => void,
+  isTestnet?: boolean,
 ) {
   logFmt('API ready ✅');
   info(api);
   const poolService = new CachingPoolService(api);
   const router = new TradeRouter(poolService);
   // Get external assets
-  const external = readExternal();
+  const external = readExternal(!!isTestnet);
   // Get pools and cache the result
   poolService.syncRegistry(external).then(() => {
     logFmt('Router ready ✅');
@@ -61,7 +64,9 @@ export async function createApi(
   try {
     const apiPool = SubstrateApis.getInstance();
     const api = await apiPool.api(apiUrl);
-    initApi(api, ecosystem, onReady);
+    const isTestnet = apiUrl === 'wss://rpc.nice.hydration.cloud';
+
+    initApi(api, ecosystem, onReady, isTestnet);
   } catch (error) {
     onError(error);
   }
@@ -82,11 +87,12 @@ export async function useApi(
 
 export async function syncRegistry(
   poolService: PoolService,
+  isTestnet: boolean,
   onReady: () => void,
   onError: (error: unknown) => void,
 ) {
   try {
-    const external = readExternal();
+    const external = readExternal(isTestnet);
     const isSynced = external.every((ext) =>
       poolService.assets.find((a) => a.symbol === ext.symbol),
     );

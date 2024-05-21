@@ -78,6 +78,7 @@ export abstract class PoolApp extends BaseApp {
       const { poolService } = this.chain.state;
       syncRegistry(
         poolService,
+        this.isTestnet,
         () => this._init(),
         () => {},
       );
