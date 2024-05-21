@@ -1409,6 +1409,7 @@ export class XcmApp extends PoolApp {
               account: h160Addr,
               data: call.data,
               to: call.to,
+              value: call.value,
             }),
             provider.getGasPrice(),
           ]).then(([gas, gasPrice]) => {
