@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.8.1
+
+### Patch Changes
+
+- Fix eth gas estimation
+
 ## 3.8.0
 
 ### Minor Changes
