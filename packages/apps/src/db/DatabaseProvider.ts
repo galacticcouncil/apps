@@ -68,7 +68,6 @@ export class DatabaseProvider extends LitElement {
     this.registerAndSync(TradeConfigCursor, StorageKey.config.trade);
     this.registerAndSync(XStoreCursor, StorageKey.tx.store);
     this.register(ExternalAssetCursor, StorageKey.external);
-    window.addEventListener('storage', this.onStorageChange.bind(this));
   }
 
   override disconnectedCallback() {

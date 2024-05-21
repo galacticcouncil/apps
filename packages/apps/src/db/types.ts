@@ -38,7 +38,10 @@ export interface DcaConfig {
 
 export interface ExternalAssetConfig {
   state: {
-    tokens: ExternalAsset[];
+    tokens: {
+      testnet: ExternalAsset[];
+      mainnet: ExternalAsset[];
+    };
   };
   version: number;
 }
