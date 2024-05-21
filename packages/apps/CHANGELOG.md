@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.8.2
+
+### Patch Changes
+
+- BaseApp testnet flag support, testnet external assets support
+
 ## 3.8.1
 
 ### Patch Changes
