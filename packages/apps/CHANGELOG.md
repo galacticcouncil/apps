@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.8.0
+
+### Minor Changes
+
+- Upgrade sdk to v3, EVM Fee fix
+
 ## 3.7.4
 
 ### Patch Changes
