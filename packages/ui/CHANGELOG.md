@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.1.18
+
+### Patch Changes
+
+- Wifd icon support
+
 ## 3.1.17
 
 ### Patch Changes
