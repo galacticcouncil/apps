@@ -79,6 +79,7 @@ import { Option } from '@polkadot/types';
 import 'element/selector';
 
 import './Form';
+import './transactions';
 
 import { wormhole } from './logo';
 import {
@@ -1543,10 +1544,26 @@ export class XcmApp extends PoolApp {
     `;
   }
 
+  transfersSummary() {
+    const account = this.account.state;
+    return html`
+      <gc-transfers
+        class="orders"
+        .accountAddress=${account?.address}
+        .accountProvider=${account?.provider}
+        .accountName=${account?.name}>
+        <uigc-typography slot="header" variant="title">
+          ${i18n.t('header.orders')}
+        </uigc-typography>
+      </gc-transfers>
+    `;
+  }
+
   render() {
     return html`
       <div class="layout-root">
         ${this.formTab()} ${this.selectChainTab()} ${this.selectTokenTab()}
+        ${this.transfersSummary()}
       </div>
     `;
   }
