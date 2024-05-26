@@ -79,7 +79,7 @@ import { Option } from '@polkadot/types';
 import 'element/selector';
 
 import './Form';
-import './transactions';
+import './transfer';
 
 import { wormhole } from './logo';
 import {

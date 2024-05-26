@@ -39,17 +39,19 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
   }
 
   protected pairTemplate(transfer: Transfer) {
-    const { sourceChain } = transfer;
+    const { sourceChain, content } = transfer;
     const srcChain = this.getWormholeChains().find(
       (c) => c.getWormholeId() === sourceChain.chainId,
     );
-    const dstChain = chainsMap.get('hydradx');
+    const dstChain = this.getWormholeChains().find(
+      (c) => c.getWormholeId() === content.payload.toChain,
+    );
 
     return html`
       <div class="pair">
         ${this.chainTemplate(srcChain as AnyChain)}
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        ${this.chainTemplate(dstChain)}
+        ${this.chainTemplate(dstChain as AnyChain)}
       </div>
     `;
   }

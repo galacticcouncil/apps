@@ -90,6 +90,7 @@ export async function signAndSendEvm(
       kzg: undefined,
       maxPriorityFeePerGas: gasPricePlus,
       maxFeePerGas: gasPricePlus,
+      gas: (gas * 11n) / 10n,
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {

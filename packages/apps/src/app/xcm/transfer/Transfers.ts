@@ -1,29 +1,25 @@
 import { html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { WatchContractEventReturnType } from 'viem';
 
 import * as i18n from 'i18next';
 
 import { BaseApp } from 'app/BaseApp';
 import { Account } from 'db';
-import { convertToH160 } from 'utils/evm';
 
-import { WormholeApi } from './api';
+import { TransferApi } from './api';
 import { Transfer } from './types';
 
 import '@galacticcouncil/ui';
-import './TransfersDatagrid';
-import { Precompile } from '@galacticcouncil/xcm-core';
 
-import { Buffer } from 'buffer';
+import './TransfersDatagrid';
 
 @customElement('gc-transfers')
 export class Transfers extends BaseApp {
-  private disconnectSubscribeNewHeads: () => void = null;
+  private transferApi: TransferApi = null;
+  private transferSubs: WatchContractEventReturnType[] = [];
 
-  private wormholeApi: WormholeApi = null;
-
-  @state() transfers = [];
-
+  @state() transfers: Transfer[] = [];
   @state() width: number = window.innerWidth;
 
   static styles = [
@@ -93,45 +89,49 @@ export class Transfers extends BaseApp {
     `,
   ];
 
-  private async getOperations(account: string): Promise<Transfer[]> {
-    const a = Buffer.from(
-      'AAEBAgDJHwEARVRIACb1wjcOVj6fTdpDXwOmPXwQnY0EAAAAAAAAAAA=',
-      'hex',
-    );
-    console.log(a.toJSON());
+  // private async getOperations(account: string): Promise<Transfer[]> {
+  //   const a = Buffer.from(
+  //     'AAEBAgDJHwEARVRIACb1wjcOVj6fTdpDXwOmPXwQnY0EAAAAAAAAAAA=',
+  //     'hex',
+  //   );
+  //   console.log(a.toJSON());
 
-    const from = await this.wormholeApi.getOperations(account);
-    return from.filter((t) => {
-      const { fromAddress, toAddress, toChain } =
-        t.content.standarizedProperties;
-      return (
-        fromAddress === account &&
-        toAddress === Precompile.Bridge &&
-        toChain === 16
-      );
-    });
-  }
+  //   const from = await this.transferApi.getOperations(account);
+  //   return from.filter((t) => {
+  //     const { fromAddress, toAddress, toChain } =
+  //       t.content.standarizedProperties;
+  //     return (
+  //       fromAddress === account &&
+  //       toAddress === Precompile.Bridge &&
+  //       toChain === 16
+  //     );
+  //   });
+  // }
 
   private resetTransfers() {
     this.transfers = [];
   }
 
   private async syncTransfers() {
-    console.log('sync');
-
     if (!this.hasAccount()) {
       return;
     }
 
     const account = this.account.state;
-    const addr = convertToH160(account.address);
-    const operations = await this.getOperations(addr);
-    console.log(operations);
-    this.transfers = operations;
+    this.transferSubs.forEach((s) => s());
+    this.transferSubs = await this.transferApi.subscribeTransfers(
+      account.address,
+      (t) => {
+        this.transfers = [t, ...transfers];
+      },
+    );
+    const transfers = await this.transferApi.getTransfers(account.address);
+    this.transfers = [...this.transfers, ...transfers];
+    console.log(transfers);
   }
 
   private async init() {
-    this.wormholeApi = new WormholeApi('https://api.wormholescan.io');
+    this.transferApi = new TransferApi('https://api.wormholescan.io');
   }
 
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
@@ -154,8 +154,8 @@ export class Transfers extends BaseApp {
   }
 
   override disconnectedCallback() {
+    this.transferSubs.forEach((s) => s());
     window.removeEventListener('resize', this.onResize);
-    this.disconnectSubscribeNewHeads?.();
     super.disconnectedCallback();
   }
 
@@ -184,6 +184,7 @@ export class Transfers extends BaseApp {
 
   render() {
     const filteredData = this.transfers;
+    console.log(filteredData);
     return html`
       <gc-transfers-grid class="orders" .defaultData=${filteredData}>
         <slot slot="header" name="header"></slot>
