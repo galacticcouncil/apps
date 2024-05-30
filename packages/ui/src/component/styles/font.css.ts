@@ -21,15 +21,15 @@ export const fontFace = css`
   }
 
   @font-face {
-    font-family: 'ChakraPetch';
-    src: url('assets/font/Chakra-Petch.ttf') format('truetype');
+    font-family: 'Geist';
+    src: url('assets/font/Geist-Regular.ttf') format('truetype');
     font-display: auto;
     font-weight: 500;
   }
 
   @font-face {
-    font-family: 'FontOver';
-    src: url('assets/font/Font-Over.ttf') format('truetype');
+    font-family: 'GeistMono';
+    src: url('assets/font/GeistMono-Regular.otf') format('truetype');
     font-display: auto;
     font-weight: 500;
   }

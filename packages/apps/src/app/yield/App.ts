@@ -88,7 +88,7 @@ export class YieldApp extends PoolApp {
       }
 
       .orders uigc-typography {
-        font-size: 15px;
+        font-size: 17px;
       }
 
       gc-yield-stepper.active {
@@ -487,7 +487,7 @@ export class YieldApp extends PoolApp {
             @interval-change=${this.onIntervalChange}
             @schedule-click=${() => this.onSchedule()}>
             <div class="header" slot="header">
-              <uigc-typography variant="title" gradient>
+              <uigc-typography variant="title">
                 ${i18n.t('header.form')}
               </uigc-typography>
               <span class="grow"></span>
@@ -596,7 +596,7 @@ export class YieldApp extends PoolApp {
         .accountAddress=${account?.address}
         .accountProvider=${account?.provider}
         .accountName=${account?.name}>
-        <uigc-typography slot="header" variant="title">
+        <uigc-typography slot="header" variant="section">
           ${i18n.t('header.orders')}
         </uigc-typography>
       </gc-trade-orders>

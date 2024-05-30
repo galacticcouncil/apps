@@ -125,7 +125,7 @@ export class TradeOrders extends BaseApp {
         cursor: pointer;
         padding: 10px 15px;
         color: #cccdd3;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
         font-size: 16px;
         font-style: normal;
         font-weight: 500;
@@ -143,7 +143,7 @@ export class TradeOrders extends BaseApp {
 
       .empty span {
         text-align: center;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
         font-size: 16px;
         font-style: normal;
         font-weight: 400;

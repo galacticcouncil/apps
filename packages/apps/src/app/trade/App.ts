@@ -112,7 +112,7 @@ export class TradeApp extends PoolApp {
       }
 
       .orders uigc-typography {
-        font-size: 15px;
+        font-size: 17px;
       }
       .container {
         width: fit-content;
@@ -1112,7 +1112,7 @@ export class TradeApp extends PoolApp {
           @twap-click=${() => this.onTwapClick()}
           @slippage-click=${() => this.changeTab(TradeTab.Settings)}>
           <div class="header" slot="header">
-            <uigc-typography variant="title" gradient>
+            <uigc-typography variant="title">
               ${i18n.t('header.form')}
             </uigc-typography>
             <span class="grow"></span>
@@ -1306,7 +1306,7 @@ export class TradeApp extends PoolApp {
           .accountAddress=${account?.address}
           .accountProvider=${account?.provider}
           .accountName=${account?.name}>
-          <uigc-typography slot="header" variant="title">
+          <uigc-typography slot="header" variant="section">
             ${i18n.t('header.orders')}
           </uigc-typography>
         </gc-trade-orders>

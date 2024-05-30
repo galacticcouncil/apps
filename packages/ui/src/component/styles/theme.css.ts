@@ -68,11 +68,11 @@ export const paletteProperties = css`
     --hex-pink-400: #ff8bba;
     --hex-pink-500: #ff67a4;
     --hex-pink-600: #fc408c;
-    --hex-pink-700: #f6297c;
+    --hex-pink-700: #e53e76;
 
     --hex-bright-blue-100: #a6ddff;
     --hex-bright-blue-200: #9cddff;
-    --hex-bright-blue-300: #85d1ff;
+    --hex-bright-blue-300: #aaeefc;
     --hex-bright-blue-400: #3192cd;
     --hex-bright-blue-500: #1a7ab4;
     --hex-bright-blue-600: #57b3eb;
@@ -439,8 +439,8 @@ export const hdxThemeProperties = css`
     --uigc-bsx-display: none;
     --uigc-hdx-display: block;
     /** GENERAL */
-    --uigc-app-font: 'ChakraPetch';
-    --uigc-app-font-secondary: 'FontOver';
+    --uigc-app-font: 'Geist';
+    --uigc-app-font-secondary: 'GeistMono';
     --uigc-app-background: radial-gradient(
         73.65% 123% at 57% -38.76%,
         rgba(93, 177, 255, 0.59) 0%,
@@ -742,13 +742,13 @@ export const hdxThemeProperties = css`
     );
     --uigc-toggle-button-group--root-border-radius: 4px;
     /** Typography */
-    --uigc-typography__title-background: #fff;
+    --uigc-typography__title-background: var(--hex-bright-blue-300);
     --uigc-typography__title-error-background: rgb(255, 75, 75);
     --uigc-typography__title-gradient-background: var(
       --uigc-app-font-color__gradient
     );
     --uigc-typography__title-font-weight: 500;
-    --uigc-typography__title-font-size: 19px;
+    --uigc-typography__title-font-size: 24px;
     --uigc-typography__section-font-weight: 500;
     --uigc-typography__section-font-size: 15px;
     --uigc-typography__section-line-height: 130%;

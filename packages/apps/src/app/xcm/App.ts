@@ -1517,7 +1517,7 @@ export class XcmApp extends PoolApp {
               });
           }}>
           <div class="header" slot="header">
-            <uigc-typography gradient variant="title">
+            <uigc-typography variant="title">
               ${i18n.t('header.form')}
             </uigc-typography>
             <span class="grow"></span>
