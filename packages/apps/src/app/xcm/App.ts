@@ -57,6 +57,7 @@ import {
 import { Wallet, XCall, XCallEvm, XTransfer } from '@galacticcouncil/xcm-sdk';
 
 import {
+  addr,
   AnyChain,
   AnyEvmChain,
   AnyParachain,
@@ -65,7 +66,6 @@ import {
   ConfigService,
   EvmParachain,
   Parachain,
-  isH160Address,
 } from '@galacticcouncil/xcm-core';
 
 import { toBigInt } from '@moonbeam-network/xcm-utils';
@@ -79,7 +79,7 @@ import { Option } from '@polkadot/types';
 import 'element/selector';
 
 import './Form';
-import './transfer';
+import './transfers';
 
 import { wormhole } from './logo';
 import {
@@ -766,7 +766,7 @@ export class XcmApp extends PoolApp {
    * @returns - valid dest address for given chain
    */
   private formatDestAddress(address: string, chain: AnyChain): string {
-    if (chain.key === 'hydradx' && isH160Address(address)) {
+    if (chain.key === 'hydradx' && addr.isH160(address)) {
       return convertFromH160(address);
     }
     return address;
@@ -821,7 +821,7 @@ export class XcmApp extends PoolApp {
   }
 
   private isEvmAddressError(dest: AnyChain, address: string) {
-    return this.hasH160AddrSupport(dest) && !isH160Address(address);
+    return this.hasH160AddrSupport(dest) && !addr.isH160(address);
   }
 
   private isSubstrateAddressError(dest: AnyChain, address: string) {
@@ -833,7 +833,7 @@ export class XcmApp extends PoolApp {
   }
 
   private isAddressError(address: string) {
-    return !isValidAddress(address) && !isH160Address(address);
+    return !isValidAddress(address) && !addr.isH160(address);
   }
 
   private validateAddress() {
@@ -1386,7 +1386,8 @@ export class XcmApp extends PoolApp {
     const { amount, srcChain, xTransfer } = this.transfer;
 
     if (
-      !srcChain.isEvmChain() ||
+      ['hydradx', 'acala'].includes(srcChain.key) ||
+      !srcChain.isEvm() ||
       !this.hasTransferData() ||
       this.isEmptyAmount(amount)
     ) {
@@ -1553,7 +1554,7 @@ export class XcmApp extends PoolApp {
         .accountProvider=${account?.provider}
         .accountName=${account?.name}>
         <uigc-typography slot="header" variant="title">
-          ${i18n.t('header.orders')}
+          ${i18n.t('header.transfers')}
         </uigc-typography>
       </gc-transfers>
     `;

@@ -1,6 +1,7 @@
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
-import { Ecosystem } from '../db';
 import { AnyParachain } from '@galacticcouncil/xcm-core';
+
+import { Ecosystem } from '../db';
 
 const chains = Array.from(chainsMap.values());
 

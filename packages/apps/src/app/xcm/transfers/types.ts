@@ -1,3 +1,4 @@
+import { AnyChain } from '@galacticcouncil/xcm-core';
 import { Log } from 'viem';
 
 export type Transfer = {
@@ -8,6 +9,9 @@ export type Transfer = {
   sequence: string;
   sourceChain: TransferChain;
   content: TransferContent;
+  vaa: {
+    raw: string;
+  };
 };
 
 export type TransferEmmiter = {
@@ -33,7 +37,22 @@ export type TransferTx = {
 
 export type TransferContent = {
   payload: TransferPayload;
+  info?: TransferInfo;
 };
+
+export type TransferInfo = {
+  from: string;
+  fromChain: AnyChain;
+  to: string;
+  toChain: AnyChain;
+  status?: TransferStatus;
+};
+
+export enum TransferStatus {
+  WaitingForVaa,
+  VaaEmitted,
+  Completed,
+}
 
 export type TransferPayload = {
   amount: bigint;

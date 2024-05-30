@@ -1,4 +1,4 @@
-import { isH160Address } from '@galacticcouncil/xcm-core';
+import { addr } from '@galacticcouncil/xcm-core';
 import { u8aToHex, hexToU8a, isHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
@@ -25,8 +25,8 @@ export function convertToHex(address: string): string {
 
 export function isSameAddress(address1: string, address2: string): boolean {
   try {
-    const sub1 = isH160Address(address1) ? convertFromH160(address1) : address1;
-    const sub2 = isH160Address(address2) ? convertFromH160(address2) : address2;
+    const sub1 = addr.isH160(address1) ? convertFromH160(address1) : address1;
+    const sub2 = addr.isH160(address2) ? convertFromH160(address2) : address2;
     const decodedAddress1 = decodeAddress(sub1)?.toString();
     const decodedAddress2 = decodeAddress(sub2)?.toString();
     return decodedAddress1 === decodedAddress2;

@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import { generateAvatarURL } from '@cfx-kit/wallet-avatar';
-import { isH160Address } from '@galacticcouncil/xcm-core';
+import { addr } from '@galacticcouncil/xcm-core';
 import { u8aToHex } from '@polkadot/util';
 import { decodeAddress } from '@polkadot/util-crypto';
 import { toSvg } from 'jdenticon';
@@ -22,7 +22,7 @@ export class AccountIdenticon extends LitElement {
   ];
 
   render() {
-    const isH160Addr = isH160Address(this.address);
+    const isH160Addr = addr.isH160(this.address);
     if (isH160Addr) {
       const avatarUrl = generateAvatarURL(this.address);
       return html`

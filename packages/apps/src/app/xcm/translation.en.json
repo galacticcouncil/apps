@@ -3,6 +3,7 @@
   "header.select": "Select asset",
   "header.select.chainSrc": "Source chain",
   "header.select.chainDst": "Destination chain",
+  "header.transfers": "Transfers",
 
   "form.cta.connect": "Connect wallet",
   "form.cta.connecting": "Connecting...",
@@ -45,5 +46,7 @@
 
   "approve.processing": "Approve <1>{{amount}} {{asset}}</1> spending cap submitted",
   "approve.success": "Approved <1>{{amount}} {{asset}}</1> spending cap",
-  "approve.error": "Approval of <1>{{amount}} {{asset}}</1> spending cap failed"
+  "approve.error": "Approval of <1>{{amount}} {{asset}}</1> spending cap failed",
+
+  "transfers.noActivity": "No recent activity"
 }
