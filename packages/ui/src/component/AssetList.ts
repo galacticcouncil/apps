@@ -1,10 +1,12 @@
 import { html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
-
+import { customElement, property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { UIGCElement } from './base/UIGCElement';
 
 @customElement('uigc-asset-list')
 export class AssetList extends UIGCElement {
+  @property({ type: Boolean }) isDisabledAssets = false;
+
   static styles = [
     UIGCElement.styles,
     css`
@@ -61,9 +63,14 @@ export class AssetList extends UIGCElement {
         </div>
         <slot name="selected"></slot>
         <slot></slot>
-        <div class="list-header subheader">
-          <span>ASSETS WITHOUT PAIR/POOL</span>
-        </div>
+        ${when(
+          this.isDisabledAssets,
+          () => html`
+            <div class="list-header subheader">
+              <span>ASSETS WITHOUT PAIR/POOL</span>
+            </div>
+          `,
+        )}
         <slot name="disabled"></slot>
         <slot name="footer"></slot>
       </div>
