@@ -749,8 +749,8 @@ export const hdxThemeProperties = css`
     );
     --uigc-typography__title-font-weight: 500;
     --uigc-typography__title-font-size: 24px;
-    --uigc-typography__section-font-weight: 500;
-    --uigc-typography__section-font-size: 15px;
+    --uigc-typography__section-font-weight: 600;
+    --uigc-typography__section-font-size: 18px;
     --uigc-typography__section-line-height: 130%;
     --uigc-typography__section-color: var(--hex-basic-100);
     --uigc-typography__subsection-font-weight: 500;

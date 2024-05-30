@@ -86,7 +86,7 @@ export abstract class Datagrid<T> extends BaseElement {
       @media (min-width: 768px) {
         th {
           padding: 10px 0;
-          font-size: 12px;
+          font-size: 11px;
           line-height: 16px;
           font-weight: 600;
         }
@@ -112,7 +112,8 @@ export abstract class Datagrid<T> extends BaseElement {
 
       @media (min-width: 1024px) {
         th {
-          padding: 10px 0;
+          padding: 12px 0;
+          vertical-align: bottom;
         }
 
         td {
@@ -121,11 +122,12 @@ export abstract class Datagrid<T> extends BaseElement {
 
         th:first-of-type,
         td:first-of-type {
-          padding-left: 32px;
+          padding-left: 28px;
         }
       }
 
       tr {
+        height: 52px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       }
 
