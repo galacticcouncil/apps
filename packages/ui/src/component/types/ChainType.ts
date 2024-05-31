@@ -7,7 +7,7 @@ export const ChainTypes = {
   bifrost: 'Bifrost',
   centrifuge: 'Centrifuge',
   crust: 'Crust',
-  hydradx: 'HydraDX',
+  hydradx: 'Hydration',
   interlay: 'Interlay',
   karura: 'Karura',
   kusama: 'Kusama',
