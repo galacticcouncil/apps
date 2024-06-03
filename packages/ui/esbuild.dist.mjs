@@ -2,17 +2,14 @@ import esbuild from 'esbuild';
 import { minifyHTMLLiteralsPlugin } from 'esbuild-plugin-minify-html-literals';
 
 import { writeFileSync } from 'fs';
-import { esmConfig, getPackageJson } from '../../esbuild.config.mjs';
-
-const packageJson = getPackageJson(import.meta.url);
-const peerDependencies = packageJson.peerDependencies || {};
+import { esmConfig } from '../../esbuild.config.mjs';
 
 esbuild
   .build({
     ...esmConfig,
     bundle: true,
     plugins: [minifyHTMLLiteralsPlugin()],
-    external: Object.keys(peerDependencies),
+    packages: 'external',
   })
   .then(({ metafile }) => {
     writeFileSync('build-meta.json', JSON.stringify(metafile));

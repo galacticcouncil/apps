@@ -4,6 +4,7 @@ import { esmConfig, getPackageJson } from '../../esbuild.config.mjs';
 
 const packageJson = getPackageJson(import.meta.url);
 const peerDependencies = packageJson.peerDependencies || {};
+const dependencies = packageJson.dependencies || {};
 
 const polkadotDeps = [];
 readdirSync('../../node_modules/@polkadot').forEach((pckg) => {
@@ -16,7 +17,11 @@ const options = {
   ...esmConfig,
   bundle: true,
   sourcemap: true,
-  external: Object.keys(peerDependencies).concat(polkadotDeps),
+  external: [
+    ...Object.keys(dependencies),
+    ...Object.keys(peerDependencies),
+    ...polkadotDeps,
+  ],
 };
 
 const ctx = await esbuild.context({ ...options, plugins });

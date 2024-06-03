@@ -5,6 +5,7 @@ import { esmConfig, getPackageJson } from '../../esbuild.config.mjs';
 
 const packageJson = getPackageJson(import.meta.url);
 const peerDependencies = packageJson.peerDependencies || {};
+const dependencies = packageJson.dependencies || {};
 
 const polkadotDeps = [];
 readdirSync('../../node_modules/@polkadot').forEach((pckg) => {
@@ -21,9 +22,12 @@ esbuild
     ...esmConfig,
     bundle: true,
     plugins: [minifyHTMLLiteralsPlugin()],
-    external: Object.keys(peerDependencies)
-      .concat(polkadotDeps)
-      .concat(moonbeamDeps),
+    external: [
+      ...Object.keys(dependencies),
+      ...Object.keys(peerDependencies),
+      ...polkadotDeps,
+      ...moonbeamDeps,
+    ],
   })
   .then(({ metafile }) => {
     writeFileSync('build-meta.json', JSON.stringify(metafile));
