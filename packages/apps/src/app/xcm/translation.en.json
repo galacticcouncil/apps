@@ -46,7 +46,5 @@
 
   "approve.processing": "Approve <1>{{amount}} {{asset}}</1> spending cap submitted",
   "approve.success": "Approved <1>{{amount}} {{asset}}</1> spending cap",
-  "approve.error": "Approval of <1>{{amount}} {{asset}}</1> spending cap failed",
-
-  "transfers.noActivity": "No recent activity"
+  "approve.error": "Approval of <1>{{amount}} {{asset}}</1> spending cap failed"
 }
