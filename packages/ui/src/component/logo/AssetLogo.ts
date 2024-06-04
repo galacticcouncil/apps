@@ -48,6 +48,7 @@ import {
   wud,
   zeitgeist,
   wifd,
+  bork,
 } from './assets';
 
 @customElement('uigc-logo-asset')
@@ -63,6 +64,7 @@ export class AssetLogo extends BaseLogo {
           ['ACA', () => acala],
           ['APE', () => apecoin],
           ['ASTR', () => astar],
+          ['BORK', () => bork],
           ['BNC', () => bifrost],
           ['BNDT', () => bndt],
           ['BSX', () => basilisk],

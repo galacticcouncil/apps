@@ -6,6 +6,7 @@ const EXTERNAL_ASSETS_WHITELIST = [
   '1000085', // WUD
   '1000082', // WIFD
   '1000091', // BNDT
+  '1000148', // BORK
 ];
 
 /**
