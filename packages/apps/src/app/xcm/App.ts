@@ -1115,8 +1115,15 @@ export class XcmApp extends PoolApp {
       .filter((a) => a.destination === validDestChain)
       .map((a) => a.asset);
 
+    const isEthereumSelected =
+      srcChain.key === 'ethereum' || destChain.key === 'ethereum';
+
     const selectedAsset = supportedAssets.includes(asset)
       ? asset
+      : isEthereumSelected
+      ? supportedAssets.find(
+          (asset) => asset.key === 'eth' || asset.key === 'weth_mwh',
+        ) ?? supportedAssets[0]
       : supportedAssets[0];
 
     this.xchain = {
