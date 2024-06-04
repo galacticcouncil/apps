@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.2.1
+
+### Patch Changes
+
+- Change LRNA icon
+
 ## 3.2.0
 
 ### Minor Changes
