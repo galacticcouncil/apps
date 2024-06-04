@@ -30,11 +30,12 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.8",
     "@changesets/cli": "^2.26.2",
-    "esbuild": "^0.17.11",
+    "@detra-lab/esbuild-plugin-lit-css": "^1.2.0",
+    "esbuild": "^0.21.0",
     "esbuild-plugin-compress": "^1.0.1",
     "esbuild-plugin-copy": "^2.1.1",
-    "esbuild-plugin-minify-html-literals": "^2.0.0",
     "esbuild-plugin-wasm": "^1.0.0",
+    "html-minifier-terser": "^7.2.0",
     "node-html-parser": "^5.4.2-0",
     "patch-package": "^7.0.0",
     "prettier": "^2.3.2",
@@ -42,5 +43,6 @@
     "tsc-alias": "^1.8.8",
     "turbo": "^1.12.4",
     "typescript": "^5.0.4"
-  }
+  },
+  "dependencies": {}
 }

@@ -24,11 +24,6 @@
     "predist": "rimraf dist",
     "postdist": "cp ./dist/index.html ./dist/404.html"
   },
-  "devDependencies": {
-    "@craftamap/esbuild-plugin-html": "^0.6.1",
-    "node-html-parser": "^5.4.2-0",
-    "rimraf": "^3.0.2"
-  },
   "dependencies": {
     "@galacticcouncil/apps": "^3.9.1",
     "@polkadot/api": "^10.9.1",

@@ -48,7 +48,7 @@ const plugins = [
 const common = {
   preserveSymlinks: true,
   treeShaking: true,
-  metafile: true,
+  sourcemap: false,
   minify: true,
   metafile: true,
   bundle: true,
