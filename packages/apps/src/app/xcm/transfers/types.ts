@@ -37,7 +37,7 @@ export type TransferTx = {
 
 export type TransferContent = {
   payload: TransferPayload;
-  info?: TransferInfo;
+  info: TransferInfo;
 };
 
 export type TransferInfo = {

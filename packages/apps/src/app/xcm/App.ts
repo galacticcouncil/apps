@@ -126,6 +126,7 @@ export class XcmApp extends PoolApp {
   @state() tab: TransferTab = TransferTab.Form;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
   @state() xchain: ChainState = DEFAULT_CHAIN_STATE;
+  @state() blockNo: Number = null;
 
   constructor() {
     super();
@@ -1072,6 +1073,7 @@ export class XcmApp extends PoolApp {
       onBlockNumber: (blockNumber) => {
         console.log(`${srcChain.name} block: ${blockNumber}`);
         this.updateEvmContext(blockNumber);
+        this.blockNo = Number(blockNumber);
       },
     });
   }
@@ -1487,12 +1489,21 @@ export class XcmApp extends PoolApp {
     return this.isTransferEmpty() || this.hasError() || !this.hasTransferData();
   }
 
+  private isWormholeTransfer() {
+    const { srcChain, destChain } = this.transfer;
+    return (
+      srcChain?.isEvmChain() ||
+      srcChain?.key === 'acala-evm' ||
+      destChain?.isEvmChain() ||
+      destChain?.key === 'acala-evm'
+    );
+  }
+
   formTab() {
     const classes = {
       tab: true,
       active: this.tab == TransferTab.Form,
     };
-    const { srcChain, destChain } = this.transfer;
     return html`
       <uigc-paper class=${classMap(classes)} id="default-tab">
         <gc-xcm-form
@@ -1534,7 +1545,7 @@ export class XcmApp extends PoolApp {
         </gc-xcm-form>
       </uigc-paper>
       ${when(
-        srcChain?.isEvmChain() || destChain?.isEvmChain(),
+        this.isWormholeTransfer(),
         () => html`
           <div class="logo">
             <span>Powered by</span>
@@ -1545,26 +1556,27 @@ export class XcmApp extends PoolApp {
     `;
   }
 
-  transfersSummary() {
+  /*   transfersSummary() {
     const account = this.account.state;
+    const blockNo = this.blockNo;
     return html`
       <gc-transfers
         class="orders"
         .accountAddress=${account?.address}
         .accountProvider=${account?.provider}
-        .accountName=${account?.name}>
+        .accountName=${account?.name}
+        .blockNo=${blockNo}>
         <uigc-typography slot="header" variant="title">
           ${i18n.t('header.transfers')}
         </uigc-typography>
       </gc-transfers>
     `;
-  }
+  } */
 
   render() {
     return html`
       <div class="layout-root">
         ${this.formTab()} ${this.selectChainTab()} ${this.selectTokenTab()}
-        ${this.transfersSummary()}
       </div>
     `;
   }

@@ -13,18 +13,14 @@ import {
 import { toDecimal } from '@moonbeam-network/xcm-utils';
 import { TypeRegistry } from '@polkadot/types';
 import { XcmVersionedMultiLocation } from '@polkadot/types/lookup';
-import { encoding } from '@wormhole-foundation/sdk-base';
-import { keccak256 } from '@wormhole-foundation/sdk-connect';
-import { deserialize } from '@wormhole-foundation/sdk-definitions';
 
 import {
   createPublicClient,
   decodeEventLog,
-  encodeFunctionData,
+  webSocket,
   GetContractEventsParameters,
   TransactionReceipt,
   WatchContractEventReturnType,
-  webSocket,
 } from 'viem';
 
 import { convertToH160 } from 'utils/evm';
@@ -37,59 +33,31 @@ import {
   TransferPayload,
 } from './types';
 import { getChainById } from './utils';
+import {
+  Operation,
+  WormholeClient,
+  WormholeScan,
+} from '@galacticcouncil/xcm-sdk';
 
 export class TransferApi {
-  private _wormholeApi: string;
+  private whScan: WormholeScan = null;
+  private whClient: WormholeClient = null;
 
-  public constructor(wormholeApi: string) {
-    this._wormholeApi = wormholeApi;
+  constructor() {
+    this.whScan = new WormholeScan();
+    this.whClient = new WormholeClient();
   }
 
   get chains(): AnyChain[] {
-    return Array.from(chainsMap.values()).filter((c) => {
-      const ctxWh = c as EvmChain;
-      return ctxWh.defWormhole && ctxWh.key !== 'acala-evm';
-    });
-  }
-
-  private buildUrl(params: Record<string, string>): string {
-    return (
-      [this._wormholeApi, '/api/v1/operations', '?'].join('') +
-      new URLSearchParams({
-        ...params,
-        page: '0',
-        pageSize: '50',
-        sortOrder: 'DESC',
-      }).toString()
+    return Array.from(chainsMap.values()).filter(
+      (c) => c.isWormholeChain() && c.key !== 'acala-evm',
     );
   }
 
-  async getOperations(address: string): Promise<Map<string, Transfer>> {
-    const fromHydraDX = this.buildUrl({
-      address: mda.calculateMDA(address, '2034', 1),
-    });
-
-    const toHydraDX = this.buildUrl({
-      address: convertToH160(address),
-    });
-
-    const operations = await Promise.all([
-      fetch(fromHydraDX),
-      fetch(toHydraDX),
-    ]);
-
-    const jsons = operations.map(async (o) => await o.json());
-    const data = await Promise.all(jsons);
-    const transfers = data.map((d) => d.operations as Transfer[]).flat();
-    return new Map(transfers.map((item) => [item.id, item]));
-  }
-
-  async getTransfers(account: string): Promise<Transfer[]> {
-    const transfersPerChain = this.chains.map((c) =>
-      this.getTransfer(account, c),
+  chainById(wormholeId: number): AnyChain {
+    return Array.from(chainsMap.values()).find(
+      (c) => c.isWormholeChain() && c.getWormholeId() === wormholeId,
     );
-    const transfers = await Promise.all(transfersPerChain);
-    return transfers.flat();
   }
 
   async isTransferComplete(
@@ -98,44 +66,34 @@ export class TransferApi {
   ): Promise<boolean> {
     const { toChain } = transfer.content.payload;
     const ctx = getChainById(toChain);
-    const ctxWh = ctx as WormholeChain;
-    const provider = ctx.client.getProvider();
-    const tokenBridge = ctxWh.getTokenBridge();
-
-    const vaaArray = encoding.b64.decode(vaaBytes);
-    const vaaArrayDes = deserialize('Uint8Array', vaaArray);
-    const vaaDigestArray = keccak256(vaaArrayDes.hash);
-    const vaaDigest = encoding.hex.encode(vaaDigestArray);
-
-    const payload = await provider.readContract({
-      address: tokenBridge as `0x${string}`,
-      abi: Abi.Bridge,
-      functionName: 'isTransferCompleted',
-      args: ['0x' + vaaDigest],
-    });
-    return payload as boolean;
+    return this.whClient.isTransferCompleted(ctx, vaaBytes);
   }
 
-  redeemTransfer(transfer: Transfer, vaaBytes: string): string {
-    const { toChain, to } = transfer.content.payload;
-    const ctx = getChainById(toChain);
+  async getOperations(address: string): Promise<Map<string, Operation>> {
+    const fromAddress = mda.calculateMDA(address, '2034', 1);
+    const toAddress = convertToH160(address);
 
-    const vaaArray = encoding.b64.decode(vaaBytes);
-    const vaaHex = encoding.hex.encode(vaaArray);
+    const operations = await Promise.all([
+      this.whScan.getOperations({
+        address: fromAddress,
+        page: '0',
+        pageSize: '50',
+      }),
+      this.whScan.getOperations({
+        address: toAddress,
+        page: '0',
+        pageSize: '50',
+      }),
+    ]);
+    return new Map(operations.flat().map((item) => [item.id, item]));
+  }
 
-    if (ctx.key === 'moonbeam' && addr.toNative(to) === Precompile.Bridge) {
-      return encodeFunctionData({
-        abi: Abi.Gmp,
-        functionName: 'wormholeTransferERC20',
-        args: ['0x' + vaaHex],
-      });
-    }
-
-    return encodeFunctionData({
-      abi: Abi.TokenBridge,
-      functionName: 'completeTransfer',
-      args: ['0x' + vaaHex],
-    });
+  async getTransfers(account: string): Promise<Transfer[]> {
+    const transfersPerChain = this.chains.map((c) =>
+      this.getTransfer(account, c),
+    );
+    const transfers = await Promise.all(transfersPerChain);
+    return transfers.flat();
   }
 
   async getTransfer(
@@ -178,9 +136,31 @@ export class TransferApi {
       const bEvt = bridgeEvents.find(
         (bEvt) => bEvt.transactionHash === tEvt.transactionHash,
       );
+      console.log(tEvt);
+      console.log(bEvt);
+
       return this.parseLogs(chain, tEvt, bEvt);
     });
     return Promise.all(events);
+  }
+
+  async subscribeTransfersPull(
+    account: string,
+    onTransfer: (transfer: Transfer) => void,
+  ): Promise<WatchContractEventReturnType[]> {
+    return this.chains.map((c: EvmChain) => {
+      const provider = c.client.getProvider();
+      const client = c.isEvmParachain() ? c.client.getWsProvider() : provider;
+      return client.watchBlockNumber({
+        onBlockNumber: () => {
+          this.getTransfer(account, c, 0n).then((t) => {
+            t.forEach((t) => {
+              onTransfer(t);
+            });
+          });
+        },
+      });
+    });
   }
 
   async subscribeTransfers(
@@ -193,12 +173,16 @@ export class TransferApi {
       const tokenBridge = ctxWh.getTokenBridge();
       const address = this.formatAddress(c, account);
 
-      const client = c.isEvmParachain()
-        ? createPublicClient({
-            chain: c.client.chain,
-            transport: webSocket(),
-          })
-        : provider;
+      const client = c.isEvmParachain() ? c.client.getWsProvider() : provider;
+
+      // const client = c.isEvmParachain()
+      //   ? c.client.getWsProvider()
+      //   : createPublicClient({
+      //       chain: c.client.chain,
+      //       transport: webSocket(
+      //         'wss://eth-mainnet.g.alchemy.com/v2/r3zNys83u7ShzRu9FRq18eXmipqwhFEQ',
+      //       ),
+      //     });
 
       return client.watchContractEvent({
         abi: Abi.Erc20,
@@ -208,9 +192,10 @@ export class TransferApi {
           to: tokenBridge as `0x${string}`,
         },
         onError: (error) => console.log(error),
-        onLogs: (transferEvents) =>
+        onLogs: (transferEvents) => {
+          console.log(transferEvents);
           transferEvents.forEach((tEvt: TransferLog) => {
-            provider
+            client
               .waitForTransactionReceipt({
                 hash: tEvt.transactionHash,
               })
@@ -228,7 +213,8 @@ export class TransferApi {
               })
               .then((bEvt: TransferLog) => this.parseLogs(c, tEvt, bEvt))
               .then((t) => onTransfer(t));
-          }),
+          });
+        },
       });
     });
   }
@@ -262,7 +248,7 @@ export class TransferApi {
     const bArgsPayload = bArgs.args['payload'] as string;
     const bPayload = await provider.readContract({
       address: tokenBridge as `0x${string}`,
-      abi: Abi.Bridge,
+      abi: Abi.TokenBridge,
       functionName: bArgsPayload.startsWith('0x03')
         ? 'parseTransferWithPayload'
         : 'parseTransfer',
@@ -325,14 +311,9 @@ export class TransferApi {
     const isMrl = this.isMrlPayload(payload);
     if (isMrl) {
       const multilocation = this.decodeMrlPayload(payload);
-      const parachain = this.parseMultilocation(
-        'parachain',
-        multilocation.toJSON(),
-      );
-      const account = this.parseMultilocation(
-        'accountId32',
-        multilocation.toJSON(),
-      );
+      const json = multilocation.toJSON();
+      const parachain = this.parseMultilocation('parachain', json);
+      const account = this.parseMultilocation('accountId32', json);
 
       return {
         from: from,

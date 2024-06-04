@@ -27,7 +27,7 @@ export type TransferState = {
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
-  inProgress: false,
+  inProgress: true,
   isProcessing: false,
   isApproving: false,
   isApprove: false,

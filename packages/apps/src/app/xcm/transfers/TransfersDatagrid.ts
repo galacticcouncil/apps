@@ -1,5 +1,5 @@
 import { html, css, TemplateResult } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
 import { Datagrid } from 'element/datagrid';
@@ -16,6 +16,18 @@ import { Transfer, TransferStatus } from './types';
 
 @customElement('gc-transfers-grid')
 export class TransfersDatagrid extends Datagrid<Transfer> {
+  @property({ type: Boolean }) isMobile = false;
+
+  constructor() {
+    super();
+    this.onRowClick = (row: Row<Transfer>) => {
+      const url =
+        'https://wormholescan.io/#/tx/' +
+        row.original.sourceChain.transaction.txHash;
+      window.open(url);
+    };
+  }
+
   static styles = [
     Datagrid.styles,
     transferStyles,
@@ -24,9 +36,45 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
         width: 24px;
       }
 
+      tr td:first-child {
+        width: 75px;
+      }
+
+      tr td:last-child {
+        text-align: right;
+      }
+
+      td:first-of-type,
+      td:last-of-type {
+        padding: 12px 14px;
+      }
+
+      @media (min-width: 768px) {
+        td:first-of-type,
+        td:last-of-type {
+          padding: 12px 28px;
+        }
+      }
+
       div.status {
-        display: flex;
+        display: inline-flex;
         align-items: center;
+      }
+
+      div.alt {
+        color: #999ba7;
+      }
+
+      div.status.pending > span {
+        color: #85d1ff;
+      }
+
+      div.status.emitted > span {
+        color: #53a4f3;
+      }
+
+      div.status.complete > span {
+        color: #00ffa0;
       }
 
       div.status > span {
@@ -81,6 +129,14 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
     `;
   }
 
+  protected getStatusSm(transfer: Transfer) {
+    return html`
+      <div>${this.getAmount(transfer)}</div>
+      <div class="alt">${this.getTime(transfer)}</div>
+      <div>${this.getStatus(transfer)}</div>
+    `;
+  }
+
   protected getStatus(transfer: Transfer) {
     const info = transfer.content.info;
     switch (info.status) {
@@ -97,7 +153,7 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
 
   private pendingTemplate() {
     return html`
-      <div class="status">
+      <div class="status pending">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -118,7 +174,7 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
 
   private emittedTemplate() {
     return html`
-      <div class="status">
+      <div class="status emitted">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -173,7 +229,7 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
 
   private completedTemplate() {
     return html`
-      <div class="status">
+      <div class="status complete">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -227,6 +283,20 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
   }
 
   protected defaultColumns(): ColumnDef<Transfer>[] {
+    if (this.isMobile) {
+      return [
+        {
+          id: 'pair',
+          header: () => 'From / To',
+          cell: ({ row }) => this.pairTemplate(row.original),
+        },
+        {
+          id: 'status',
+          header: () => 'Status',
+          cell: ({ row }) => this.getStatusSm(row.original),
+        },
+      ];
+    }
     return [
       {
         id: 'pair',
@@ -257,15 +327,7 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
 
   render() {
     return html`
-      <slot name="header"></slot>
       ${super.render()}
-      ${when(
-        this.defaultData.length === 0,
-        () =>
-          html`
-            <slot name="empty"></slot>
-          `,
-      )}
     `;
   }
 }

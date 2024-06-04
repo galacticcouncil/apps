@@ -25,6 +25,7 @@ export abstract class Datagrid<T> extends BaseElement {
   @state() tableState: TableState | {} = {};
 
   @property({ attribute: false }) defaultData: T[] = [];
+  @property({ type: Boolean }) showHeader = true;
 
   private ro = new ResizeObserver((entries) => {
     entries.forEach((_entry) => {});
@@ -190,17 +191,22 @@ export abstract class Datagrid<T> extends BaseElement {
   }
 
   headerTemplate(headerGroup: HeaderGroup<T>) {
-    return html`
-      <tr>
-        ${headerGroup.headers.map((header: Header<T, unknown>) => {
-          return html`
-            <th>
-              ${flexRender(header.column.columnDef.header, header.getContext())}
-            </th>
-          `;
-        })}
-      </tr>
-    `;
+    if (this.showHeader) {
+      return html`
+        <tr>
+          ${headerGroup.headers.map((header: Header<T, unknown>) => {
+            return html`
+              <th>
+                ${flexRender(
+                  header.column.columnDef.header,
+                  header.getContext(),
+                )}
+              </th>
+            `;
+          })}
+        </tr>
+      `;
+    }
   }
 
   rowExpandTemplate(row: Row<T>) {
