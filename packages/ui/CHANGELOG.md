@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.2.0
+
+### Minor Changes
+
+- Hydration revamp
+
 ## 3.1.18
 
 ### Patch Changes
