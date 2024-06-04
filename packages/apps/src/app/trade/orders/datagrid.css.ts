@@ -9,7 +9,7 @@ export const positionsStyles = css`
 
   @media (min-width: 768px) {
     slot[name='header'] {
-      padding: 24px 32px;
+      padding: 20px;
     }
   }
 

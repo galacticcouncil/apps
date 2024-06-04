@@ -88,15 +88,16 @@ export class TradeOrders extends BaseApp {
       }
 
       .tabs {
+        height: 30px;
         display: flex;
-        align-items: center;
+        gap: 34px;
         padding: 0 4px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       }
 
       @media (min-width: 768px) {
         .tabs {
-          padding: 0 17px;
+          padding: 0 20px;
         }
       }
 
@@ -106,26 +107,25 @@ export class TradeOrders extends BaseApp {
       }
 
       .tabs input:checked + label {
-        color: #85d1ff;
+        color: #aaeefc;
         opacity: 1;
       }
 
       .tabs input:checked + label::after {
         content: '';
         position: absolute;
-        left: 15px;
+        left: 0;
         bottom: 0;
         width: 22px;
         height: 2px;
-        background: #85d1ff;
+        background: #aaeefc;
       }
 
       .tabs label {
         position: relative;
         cursor: pointer;
-        padding: 10px 15px;
         color: #cccdd3;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
         font-size: 16px;
         font-style: normal;
         font-weight: 500;
@@ -143,7 +143,7 @@ export class TradeOrders extends BaseApp {
 
       .empty span {
         text-align: center;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
         font-size: 16px;
         font-style: normal;
         font-weight: 400;

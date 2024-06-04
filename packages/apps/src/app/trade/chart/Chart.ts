@@ -131,7 +131,7 @@ export class TradeChart extends Chart {
     this.chartPriceSeries = this.chart.addBaselineSeries({
       visible: true,
       lineWidth: 2,
-      topLineColor: theme === 'hdx' ? '#85D1FF' : '#4fffb0',
+      topLineColor: theme === 'hdx' ? '#aaeefc' : '#4fffb0',
       topFillColor1:
         theme === 'hdx'
           ? 'rgba(79, 223, 255, 0.31)'

@@ -25,7 +25,7 @@ export class AssetXRate extends UIGCElement {
         font-weight: 600;
         font-size: 14px;
         color: #ffffff;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
       }
 
       uigc-icon-crosshair {

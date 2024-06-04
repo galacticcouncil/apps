@@ -132,7 +132,7 @@ export class BondsChart extends Chart {
   initSeries(): void {
     this.chartPriceSeries = this.chart.addBaselineSeries({
       lineWidth: 2,
-      topLineColor: '#85D1FF',
+      topLineColor: '#aaeefc',
       topFillColor1: 'transparent',
       topFillColor2: 'transparent',
       bottomLineColor: 'transparent',

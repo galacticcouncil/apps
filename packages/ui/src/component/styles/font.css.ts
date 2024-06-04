@@ -21,16 +21,42 @@ export const fontFace = css`
   }
 
   @font-face {
-    font-family: 'ChakraPetch';
-    src: url('assets/font/Chakra-Petch.ttf') format('truetype');
+    font-family: 'Geist';
+    src: url('assets/font/Geist-Regular.ttf') format('truetype');
     font-display: auto;
-    font-weight: 500;
+    font-weight: 400;
   }
 
   @font-face {
-    font-family: 'FontOver';
-    src: url('assets/font/Font-Over.ttf') format('truetype');
+    font-family: 'Geist';
+    src: url('assets/font/Geist-Medium.ttf') format('truetype');
+    font-display: auto;
+    font-weight: 600;
+  }
+
+  @font-face {
+    font-family: 'Geist';
+    src: url('assets/font/Geist-SemiBold.ttf') format('truetype');
+    font-display: auto;
+    font-weight: 700;
+  }
+
+  @font-face {
+    font-family: 'GeistMono';
+    src: url('assets/font/GeistMono-Regular.otf') format('truetype');
+    font-display: auto;
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'GeistMono';
+    src: url('assets/font/GeistMono-Medium.otf') format('truetype');
     font-display: auto;
     font-weight: 500;
+  }
+  @font-face {
+    font-family: 'GeistMono';
+    src: url('assets/font/GeistMono-SemiBold.otf') format('truetype');
+    font-display: auto;
+    font-weight: 600;
   }
 `;

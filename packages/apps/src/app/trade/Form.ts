@@ -262,7 +262,7 @@ export class TradeForm extends BaseElement {
 
       .options > .label {
         color: #999ba7;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
         font-size: 14px;
         font-style: normal;
         font-weight: 500;
@@ -313,7 +313,7 @@ export class TradeForm extends BaseElement {
         border-radius: 4px;
         background: #333750;
         color: #fff;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
         font-size: 11px;
         font-style: normal;
         font-weight: 500;
@@ -342,7 +342,7 @@ export class TradeForm extends BaseElement {
 
       .form-option .price {
         color: #fff;
-        font-family: 'ChakraPetch';
+        font-family: 'Geist';
         font-style: normal;
         font-weight: 600;
         line-height: 130%;

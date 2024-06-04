@@ -607,7 +607,7 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateHydraEd() {
-    console.log('[validation] => HydraDX ED');
+    console.log('[validation] => Hydration ED');
     const { router } = this.chain.state;
     const { asset, address, srcChain, destChain } = this.transfer;
 
@@ -665,7 +665,7 @@ export class XcmApp extends PoolApp {
         i18n.t('error.transfer.ed', {
           amount: humanizeAmount(feeAssetEdFmt),
           symbol: feeAsset.symbol,
-          chain: 'HydraDX',
+          chain: 'Hydration',
         }),
       );
     } else {
@@ -674,7 +674,7 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateHydraMrlFee() {
-    console.log('[validation] => HydraDX MRL Fee');
+    console.log('[validation] => Hydration MRL Fee');
     const { srcChain, destChain } = this.transfer;
     const glmrBalance = this.xchain.balance.get('glmr');
 
@@ -692,7 +692,7 @@ export class XcmApp extends PoolApp {
         i18n.t('error.transfer.fee', {
           amount: '1',
           symbol: 'GLMR',
-          chain: 'HydraDX',
+          chain: 'Hydration',
         }),
       );
     } else {
@@ -1524,7 +1524,7 @@ export class XcmApp extends PoolApp {
               });
           }}>
           <div class="header" slot="header">
-            <uigc-typography gradient variant="title">
+            <uigc-typography variant="title">
               ${i18n.t('header.form')}
             </uigc-typography>
             <span class="grow"></span>

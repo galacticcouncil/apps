@@ -68,7 +68,7 @@ export const chartStyles = css`
   }
 
   .summary .pair {
-    font-family: var(--uigc-app-font);
+    font-family: var(--uigc-app-font-secondary);
     font-style: normal;
     font-weight: 700;
     font-size: 24px;
