@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.9.0
+
+### Minor Changes
+
+- Hydration revamp
+
 ## 3.8.2
 
 ### Patch Changes
