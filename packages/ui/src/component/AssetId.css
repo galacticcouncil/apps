@@ -1,0 +1,26 @@
+:host {
+  position: relative;
+}
+
+uigc-logo-chain {
+  display: none;
+}
+
+:host([chain]) uigc-logo-asset {
+  mask: radial-gradient(112% 112% at 84% 16%, transparent 25%, white 25%);
+  -webkit-mask: radial-gradient(
+    112% 112% at 84% 16%,
+    transparent 25%,
+    white 25%
+  );
+}
+
+:host([chain]) uigc-logo-chain {
+  display: flex;
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  z-index: 1;
+  right: -10%;
+  top: -10%;
+}

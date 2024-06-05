@@ -1,0 +1,22 @@
+.balance {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: end;
+}
+
+.balance > span {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--hex-white);
+}
+
+.balance > span.label {
+  color: rgba(var(--rgb-white), 0.7);
+}
+
+.max {
+  margin-left: 5px;
+  margin-top: -2px;
+}

@@ -1,4 +1,4 @@
-import { CSSResult } from 'lit';
+import { unsafeCSS, CSSResult } from 'lit';
 
 /**
  * Creates a <style> tag in the <head> tag
@@ -46,7 +46,7 @@ export function createStyle(
 ): HTMLStyleElement {
   const attributes = new Map<string, any>();
   attributes[name] = value;
-  return createStyleInHead(cssText, attributes);
+  return createStyleInHead(unsafeCSS(cssText), attributes);
 }
 
 /**

@@ -4,5 +4,5 @@
     "baseUrl": "src",
     "outDir": "./build/types"
   },
-  "include": ["src/**/*.ts", "esbuild.env.d.ts"]
+  "include": ["src/**/*.ts"]
 }

@@ -1,9 +1,11 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { asyncReplace } from 'lit/directives/async-replace.js';
 import { when } from 'lit/directives/when.js';
 
 import { UIGCElement } from './base/UIGCElement';
+
+import styles from './DialogCountdown.css';
 
 async function* countDown(count: number) {
   while (count >= 0) {
@@ -17,27 +19,7 @@ export class DialogCountdown extends UIGCElement {
   @property({ type: Number }) timeout = null;
   @state() private timer = null;
 
-  static styles = css`
-    :host {
-      font-weight: var(--uigc-dialog-cnt-font-weight);
-      font-size: var(--uigc-dialog-cnt-font-size);
-      line-height: var(--uigc-dialog-cnt-line-height);
-      text-align: center;
-      color: var(--uigc-dialog-cnt-color);
-    }
-
-    :host .countdown-root {
-      height: 22px;
-      min-width: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .countdown-root span {
-      color: var(--uigc-app-font-color__primary);
-    }
-  `;
+  static styles = unsafeCSS(styles);
 
   override async firstUpdated() {
     this.timer = countDown(this.timeout / 1000);

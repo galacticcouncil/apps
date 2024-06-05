@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -6,26 +6,14 @@ import { UIGCElement } from './base/UIGCElement';
 import './Popper';
 import './icons/Warning';
 
+import styles from './AssetBadge.css';
+
 @customElement('uigc-asset-badge')
 export class AssetBadge extends UIGCElement {
   @property({ type: String }) text = null;
   @property({ type: String }) variant = null;
 
-  static styles = [
-    UIGCElement.styles,
-    css`
-      uigc-icon-warning {
-        display: flex;
-        position: absolute;
-        width: 50%;
-        height: 50%;
-        z-index: 1;
-        right: -10%;
-        bottom: -10%;
-        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.85));
-      }
-    `,
-  ];
+  static styles = [UIGCElement.styles, unsafeCSS(styles)];
 
   override async updated() {
     const warningLogo = this.shadowRoot.querySelector('uigc-icon-warning');

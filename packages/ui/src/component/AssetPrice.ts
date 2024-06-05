@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -6,6 +6,8 @@ import { UIGCElement } from './base/UIGCElement';
 
 import './CircularProgress';
 import { amountFormatter } from './utils/formatters';
+
+import styles from './AssetPrice.css';
 
 @customElement('uigc-asset-price')
 export class AssetPrice extends UIGCElement {
@@ -15,45 +17,7 @@ export class AssetPrice extends UIGCElement {
   @property({ type: Boolean }) loading = false;
   @property({ attribute: false }) formatter = null;
 
-  static styles = [
-    UIGCElement.styles,
-    css`
-      .chip-root {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        padding: 0 14px;
-        gap: 5px;
-        height: 28px;
-        background: var(--uigc-asset-price-background);
-        border-radius: var(--uigc-asset-price-border-radius);
-        border: var(--uigc-asset-price-border);
-      }
-
-      span {
-        font-weight: 500;
-        font-size: 11px;
-        line-height: 15px;
-      }
-
-      span:not(.highlight) {
-        color: var(--hex-white);
-      }
-
-      .highlight {
-        color: var(--uigc-asset-price__highlight-color);
-      }
-
-      .progress {
-        position: relative;
-      }
-
-      .progress-text {
-        margin-left: 6px;
-      }
-    `,
-  ];
+  static styles = [UIGCElement.styles, unsafeCSS(styles)];
 
   render() {
     const formatterFn = this.formatter ? this.formatter : amountFormatter;

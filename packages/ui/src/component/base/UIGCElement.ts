@@ -1,17 +1,34 @@
-import { LitElement, CSSResultGroup } from 'lit';
+import { LitElement, unsafeCSS, CSSResultGroup } from 'lit';
 
-import { baseStyles, baseProperties } from '../styles/base.css';
-import { fontStyles, fontFace } from '../styles/font.css';
 import {
-  paletteProperties,
-  bsxThemeProperties,
-  hdxThemeProperties,
-} from '../styles/theme.css';
+  baseProps,
+  baseStyles,
+  fontFace,
+  fontStyles,
+  paletteProps,
+  bsxThemeProps,
+  hdxThemeProps,
+} from '../styles';
 
 import { createStyle, hasStyle } from '../utils/styles';
 
 export class UIGCElement extends LitElement {
-  static styles = [baseStyles, fontStyles] as CSSResultGroup;
+  static styles = [
+    unsafeCSS(baseStyles),
+    unsafeCSS(fontStyles),
+  ] as CSSResultGroup;
+
+  createBaseStylesheet() {
+    if (!hasStyle('uigc-base', '')) {
+      createStyle(baseProps, 'uigc-base', '');
+    }
+  }
+
+  createPaletteStylesheet() {
+    if (!hasStyle('uigc-palette', '')) {
+      createStyle(paletteProps, 'uigc-palette', '');
+    }
+  }
 
   createFontFaceStylesheet() {
     if (!hasStyle('uigc-font-face', '')) {
@@ -19,27 +36,15 @@ export class UIGCElement extends LitElement {
     }
   }
 
-  createBaseStylesheet() {
-    if (!hasStyle('uigc-base', '')) {
-      createStyle(baseProperties, 'uigc-base', '');
-    }
-  }
-
-  createPaletteStylesheet() {
-    if (!hasStyle('uigc-palette', '')) {
-      createStyle(paletteProperties, 'uigc-palette', '');
-    }
-  }
-
   createBsxThemeStylesheet() {
     if (!hasStyle('uigc-bsx-theme', '')) {
-      createStyle(bsxThemeProperties, 'uigc-bsx-theme', '');
+      createStyle(bsxThemeProps, 'uigc-bsx-theme', '');
     }
   }
 
   createHdxThemeStylesheet() {
     if (!hasStyle('uigc-hdx-theme', '')) {
-      createStyle(hdxThemeProperties, 'uigc-hdx-theme', '');
+      createStyle(hdxThemeProps, 'uigc-hdx-theme', '');
     }
   }
 

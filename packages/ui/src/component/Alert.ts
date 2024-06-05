@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { choose } from 'lit/directives/choose.js';
@@ -8,6 +8,8 @@ import { UIGCElement } from './base/UIGCElement';
 import './icons/Success';
 import './icons/Error';
 import './CircularProgress';
+
+import styles from './Alert.css';
 
 export enum AlertVariant {
   success = 'success',
@@ -24,58 +26,7 @@ const VARIANTS: AlertVariant[] = [
 
 @customElement('uigc-alert')
 export class Alert extends UIGCElement {
-  static styles = [
-    UIGCElement.styles,
-    css`
-      :host {
-        background: var(--uigc-alert-background);
-        border-radius: var(--uigc-alert-border-radius);
-        display: flex;
-        align-items: center;
-        padding: 8px 14px;
-        color: rgb(255, 255, 255);
-        box-sizing: border-box;
-      }
-
-      :host([variant='success']) {
-        background: var(--uigc-alert__success-background);
-      }
-
-      :host([variant='error']) {
-        background: var(--uigc-alert__error-background);
-      }
-
-      :host([variant='progress']) {
-        background: var(--uigc-alert__progress-background);
-      }
-
-      :host([drawer]) {
-        background: var(--uigc-alert__drawer-background);
-      }
-
-      .icon {
-        margin-right: 12px;
-        width: 30px;
-      }
-
-      uigc-circular-progress {
-        width: 30px;
-        height: 29px;
-      }
-
-      div.message {
-        width: 100%;
-        padding: 8px 0;
-        display: flex;
-        flex-direction: column;
-
-        font-weight: 500;
-        font-size: 12px;
-        line-height: 16px;
-        color: var(--hex-neutral-gray-100);
-      }
-    `,
-  ];
+  static styles = [UIGCElement.styles, unsafeCSS(styles)];
 
   /**
    * The variant applies specific styling when set to `success`, `error`, or `progress`.

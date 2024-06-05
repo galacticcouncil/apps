@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -7,6 +7,8 @@ import { priceMaskSettings } from './types/InputConfig';
 import { debounce } from 'ts-debounce';
 
 import IMask from 'imask';
+
+import styles from './AssetInput.css';
 
 @customElement('uigc-asset-input')
 export class AssetInput extends UIGCElement {
@@ -26,172 +28,7 @@ export class AssetInput extends UIGCElement {
     this._inputHandler = debounce(this.onInputChange, 300);
   }
 
-  static styles = [
-    UIGCElement.styles,
-    css`
-      :host {
-        width: 100%;
-      }
-
-      /* Remove arrows - Chrome, Safari, Edge, Opera */
-      input::-webkit-outer-spin-button,
-      input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-
-      /* Remove arrows - Firefox */
-      input[type='number'] {
-        -moz-appearance: textfield;
-      }
-
-      input:placeholder-shown + .asset-unit {
-        color: #c7c7cd;
-      }
-
-      /* Placeholder color */
-      ::-webkit-input-placeholder {
-        color: #c7c7cd;
-      }
-
-      ::-moz-placeholder {
-        color: #c7c7cd;
-      }
-
-      ::-ms-placeholder {
-        color: #c7c7cd;
-      }
-
-      ::placeholder {
-        color: #c7c7cd;
-      }
-
-      .asset-root {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        height: var(--uigc-input-height);
-        border-radius: var(--uigc-input-border-radius);
-        border-width: var(--uigc-input-border-width);
-        border-color: var(--uigc-input-border-color);
-      }
-
-      :host([error]) .asset-root {
-        border: var(--uigc-field__error-border);
-        border-width: var(--uigc-field__error-border-width);
-        outline: var(--uigc-field__error-outline);
-        outline-offset: -1px;
-        border-bottom: var(--uigc-field__error-border) !important;
-      }
-
-      :host([field]) .asset-root {
-        flex-direction: row;
-        background: var(--uigc-textfield__field-background);
-        border-width: var(--uigc-textfield__field-border-width);
-        border-color: var(--uigc-textfield__field-border-color);
-        border-style: solid;
-        box-sizing: border-box;
-        padding: var(--uigc-field-padding);
-      }
-
-      :host([disabled]) .asset-root {
-        border-width: 0;
-      }
-
-      :host(:not([disabled]):not([field])) .asset-root {
-        padding: var(--uigc-textfield-padding);
-        background: var(--uigc-textfield-background);
-        border-style: var(--uigc-textfield-border-style);
-      }
-
-      :host(:not([disabled]):not([field])) .asset-root:focus-within {
-        border-color: var(--uigc-input-border-color__focus);
-      }
-
-      :host(:not([disabled]):not([field])) .asset-root:hover {
-        background: var(--uigc-textfield-background__hover);
-      }
-
-      :host([field]:not([disabled])) .asset-root:focus,
-      :host([field]:not([disabled])) .asset-root:focus-visible,
-      :host([field]:not([disabled])) .asset-root:focus-within,
-      :host([field]:not([disabled])) .asset-root:hover {
-        border-color: var(--uigc-textfield__field-border-color__hover);
-        background: var(--uigc-textfield__field-background__hover);
-        transition: 0.2s ease-in-out;
-      }
-
-      :host([error]:not([disabled])) .asset-root:focus,
-      :host([error]:not([disabled])) .asset-root:focus-visible,
-      :host([error]:not([disabled])) .asset-root:focus-within,
-      :host([error]:not([disabled])) .asset-root:hover {
-        background: rgba(255, 75, 75, 0.1);
-        transition: 0.2s ease-in-out;
-      }
-
-      .asset-wrapper {
-        width: 100%;
-      }
-
-      .asset-field {
-        width: 100%;
-        display: flex;
-        position: relative;
-        -webkit-box-align: center;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .asset-input {
-        width: 100%;
-        background: none;
-        border: none;
-        color: var(--hex-white);
-        font-size: var(--uigc-textfield-font-size__sm);
-        line-height: 24px;
-        text-align: right;
-        font-weight: 700;
-        padding: 0px;
-      }
-
-      .asset-error {
-        color: var(--uigc-field__error-color);
-        line-height: 16px;
-        margin-top: 2px;
-        font-size: 12px;
-      }
-
-      .asset-unit {
-        color: var(--hex-white);
-        font-weight: 700;
-        font-size: var(--uigc-textfield-font-size__sm);
-        line-height: 24px;
-      }
-
-      @media (min-width: 520px) {
-        .asset-input {
-          font-size: var(--uigc-textfield-font-size);
-        }
-
-        .asset-unit {
-          font-size: var(--uigc-textfield-font-size);
-        }
-      }
-
-      .usd {
-        display: flex;
-        flex-direction: row-reverse;
-        font-size: 10px;
-        line-height: 14px;
-        color: var(--hex-neutral-gray-400);
-        font-weight: 600;
-      }
-
-      #asset-value {
-        display: none;
-      }
-    `,
-  ];
+  static styles = [UIGCElement.styles, unsafeCSS(styles)];
 
   _onInputChange(e) {}
 

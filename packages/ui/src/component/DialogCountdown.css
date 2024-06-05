@@ -1,0 +1,19 @@
+:host {
+  font-weight: var(--uigc-dialog-cnt-font-weight);
+  font-size: var(--uigc-dialog-cnt-font-size);
+  line-height: var(--uigc-dialog-cnt-line-height);
+  text-align: center;
+  color: var(--uigc-dialog-cnt-color);
+}
+
+:host .countdown-root {
+  height: 22px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-root span {
+  color: var(--uigc-app-font-color__primary);
+}

@@ -1,0 +1,14 @@
+div.title {
+  display: flex;
+  flex-direction: row;
+  white-space: nowrap;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #ffffff;
+  font-family: 'Geist';
+}
+
+uigc-icon-crosshair {
+  margin-right: 5px;
+}

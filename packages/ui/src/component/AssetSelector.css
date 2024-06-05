@@ -1,0 +1,39 @@
+:host {
+  border-radius: 12px;
+}
+
+button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 5px;
+  gap: 6px;
+  background-color: transparent;
+  border-radius: var(--uigc-asset-selector-border-radius);
+  height: 42px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: rgba(var(--rgb-white), 0.06);
+  transition: 0.2s ease-in-out;
+}
+
+.select {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  gap: 6px;
+}
+
+.select span {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 100%;
+  color: var(--hex-white);
+  white-space: nowrap;
+}
+
+.select uigc-icon-dropdown {
+  margin-top: 3px;
+}

@@ -1,20 +1,13 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
+import styles from './Divider.css';
+
 @customElement('uigc-divider')
 export class Divider extends UIGCElement {
-  static styles = [
-    UIGCElement.styles,
-    css`
-      .divider-root {
-        background: var(--uigc-divider-background);
-        height: 1px;
-        width: 100%;
-      }
-    `,
-  ];
+  static styles = [UIGCElement.styles, unsafeCSS(styles)];
 
   render() {
     return html`

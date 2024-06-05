@@ -1,0 +1,133 @@
+:root {
+  --hex-white: #ffffff;
+  --rgb-white: 255, 255, 255;
+  --hex-black: #000000;
+  --rgb-black: 0, 0, 0;
+
+  --hex-primary-500: #49e49f;
+  --rgb-primary-500: 73, 228, 159;
+  --hex-primary-450: #4cf3a8;
+  --rgb-primary-450: 76, 243, 168;
+  --hex-primary-400: #4fffb0;
+  --rgb-primary-400: 79, 255, 176;
+  --hex-primary-300: #8affcb;
+  --rgb-primary-300: 138, 255, 203;
+  --hex-primary-200: #b8ffdf;
+  --rgb-primary-200: 184, 255, 223;
+  --hex-primary-100: #daffee;
+  --rgb-primary-100: 218, 255, 238;
+
+  --hex-primary-alpha: #9ea7ba;
+  --rgb-primary-alpha: 158, 167, 186;
+  --hex-primary-alpha15: #4cd5f3;
+  --rgb-primary-alpha15: 76, 213, 243;
+  --hex-primary-alpha20: #25cbff;
+  --rgb-primary-alpha20: 37, 203, 255;
+
+  --hex-yellow-100: #f5f0de;
+  --rgb-yellow-100: 245, 240, 222;
+  --hex-yellow-200: #f4e7b0;
+  --rgb-yellow-200: 244, 231, 176;
+  --hex-yellow-300: #f0da73;
+  --rgb-yellow-300: 240, 218, 115;
+  --hex-yellow-400: #f7bf06;
+  --rgb-yellow-400: 247, 191, 6;
+  --hex-yellow-500: #e5b30b;
+  --rgb-yellow-500: 229, 179, 11;
+
+  --hex-orange-100: #ffe2c3;
+  --rgb-orange-100: 255, 226, 195;
+  --hex-orange-200: #fbcd9c;
+  --rgb-orange-200: 251, 205, 156;
+  --hex-orange-300: #f5a855;
+  --rgb-orange-300: 245, 168, 85;
+  --hex-orange-400: #ff931e;
+  --rgb-orange-400: 255, 147, 30;
+  --hex-orange-450: #f38d1d;
+  --rgb-orange-450: 243, 141, 29;
+  --hex-orange-500: #e18521;
+  --rgb-orange-500: 225, 133, 33;
+
+  --hex-red-100: #ffd7d7;
+  --rgb-red-100: 255, 215, 215;
+  --hex-red-200: #ffaeae;
+  --rgb-red-200: 255, 174, 174;
+  --hex-red-300: #ff8a8a;
+  --rgb-red-300: 255, 138, 138;
+  --hex-red-400: #ff6868;
+  --rgb-red-400: 255, 104, 104;
+  --hex-red-500: #da5d5d;
+  --rgb-red-500: 218, 93, 93;
+
+  --hex-pink-100: #ffbbd6;
+  --hex-pink-200: #fea6ca;
+  --hex-pink-300: #ff99c2;
+  --hex-pink-400: #ff8bba;
+  --hex-pink-500: #ff67a4;
+  --hex-pink-600: #fc408c;
+  --hex-pink-700: #e53e76;
+
+  --hex-bright-blue-100: #a6ddff;
+  --hex-bright-blue-200: #9cddff;
+  --hex-bright-blue-300: #aaeefc;
+  --hex-bright-blue-400: #3192cd;
+  --hex-bright-blue-500: #1a7ab4;
+  --hex-bright-blue-600: #57b3eb;
+  --hex-bright-blue-700: #009fff;
+
+  --hex-vibrant-blue-100: #7889ff;
+  --hex-vibrant-blue-200: #5f73fe;
+  --hex-vibrant-blue300: #485ef8;
+  --hex-vibrant-blue400: #2b40c8;
+  --hex-vibrant-blue500: #152dc7;
+  --hex-vibrant-blue600: #0a1fa7;
+  --hex-vibrant-blue700: #031586;
+
+  --hex-dark-blue-200: #999ba7;
+  --hex-dark-blue-300: #66697c;
+  --hex-dark-blue-400: #333750;
+  --rgb-dark-blue-400: 51, 55, 80;
+  --hex-dark-blue-401: #1c2038;
+  --hex-dark-blue-500: #000524;
+  --hex-dark-blue-600: #00041d;
+  --hex-dark-blue-700: #111320;
+  --hex-dark-blue-800: #00020e;
+  --hex-dark-blue-900: #000107;
+  --hex-dark-blue-1000: #000524;
+
+  --hex-background-gray-1000: #1c1a1f;
+  --rgb-background-gray-1000: 28, 26, 31;
+  --hex-background-gray-900: #211f24;
+  --rgb-background-gray-900: 33, 31, 36;
+  --hex-background-gray-800: #29292d;
+  --rgb-background-gray-800: 41, 41, 45;
+  --hex-background-gray-700: #3e3e4b;
+  --rgb-background-gray-700: 62, 62, 75;
+  --hex-background-gray-600: #51515f;
+  --rgb-background-gray-600: 81, 81, 95;
+  --hex-background-gray-500: #686876;
+  --rgb-background-gray-500: 104, 104, 118;
+
+  --hex-neutral-gray-500: #787e82;
+  --rgb-neutral-gray-500: 120, 126, 130;
+  --hex-neutral-gray-400: #a2b0b8;
+  --rgb-neutral-gray-400: 162, 176, 184;
+  --hex-neutral-gray-300: #9ea9b1;
+  --rgb-neutral-gray-300: 158, 169, 177;
+  --hex-neutral-gray-200: #d1dee8;
+  --rgb-neutral-gray-200: 209, 222, 232;
+  --hex-neutral-gray-100: #e5ecf1;
+  --rgb-neutral-gray-100: 229, 236, 241;
+
+  --hex-dark-gray: #1a171b;
+
+  --hex-basic-100: #ecedef;
+  --hex-basic-200: #8f90a6;
+  --hex-basic-300: #bbbec9;
+  --hex-basic-400: #b2b6c5;
+  --hex-basic-500: #878c9e;
+  --hex-basic-600: #676c80;
+  --hex-basic-700: #5d6175;
+  --hex-basic-800: #26282f;
+  --hex-basic-900: #00041d;
+}

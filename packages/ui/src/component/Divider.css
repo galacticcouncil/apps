@@ -1,0 +1,5 @@
+.divider-root {
+  background: var(--uigc-divider-background);
+  height: 1px;
+  width: 100%;
+}

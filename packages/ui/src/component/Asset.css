@@ -1,0 +1,51 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: transparent;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+span.code {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 100%;
+  color: var(--hex-white);
+}
+
+span.desc {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--hex-neutral-gray-400);
+  white-space: nowrap;
+}
+
+span.title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 5px 0px;
+  margin-left: 6px;
+}
+
+::slotted(*) {
+  width: 30px;
+  height: 30px;
+}
+
+::slotted(*:not(:first-child)) {
+  margin-left: -3px;
+}
+
+:host([multi]) ::slotted(*) {
+  width: 26px;
+  height: 26px;
+}
+
+:host([icon]) span.title {
+  display: none;
+}

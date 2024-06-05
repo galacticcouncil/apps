@@ -1,7 +1,8 @@
 import esbuild from 'esbuild';
+import { litCssPlugin } from '@detra-lab/esbuild-plugin-lit-css';
 import { esmConfig } from '../../esbuild.config.mjs';
 
-const plugins = [];
+const plugins = [litCssPlugin({ debug: false, sourceMap: false })];
 
 const options = {
   ...esmConfig,

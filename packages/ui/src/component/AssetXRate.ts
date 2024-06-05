@@ -1,10 +1,12 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
 import './AssetInputComposite';
 import './icons/Crosshair';
+
+import styles from './AssetXRate.css';
 
 @customElement('uigc-asset-x-rate')
 export class AssetXRate extends UIGCElement {
@@ -14,25 +16,7 @@ export class AssetXRate extends UIGCElement {
   @property({ type: String }) asset = null;
   @property({ type: String }) unit = null;
 
-  static styles = [
-    UIGCElement.styles,
-    css`
-      div.title {
-        display: flex;
-        flex-direction: row;
-        white-space: nowrap;
-        align-items: center;
-        font-weight: 600;
-        font-size: 14px;
-        color: #ffffff;
-        font-family: 'Geist';
-      }
-
-      uigc-icon-crosshair {
-        margin-right: 5px;
-      }
-    `,
-  ];
+  static styles = [UIGCElement.styles, unsafeCSS(styles)];
 
   render() {
     return html`

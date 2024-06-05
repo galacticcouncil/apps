@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -9,6 +9,8 @@ import './icons/Paste';
 import './icons/Close';
 import './IconButton';
 
+import styles from './AddressInput.css';
+
 @customElement('uigc-address-input')
 export class AddressInput extends UIGCElement {
   @property({ type: String }) title = null;
@@ -16,131 +18,7 @@ export class AddressInput extends UIGCElement {
   @property({ type: String }) id = null;
   @property({ type: String }) error = null;
 
-  static styles = [
-    UIGCElement.styles,
-    css`
-      .address-root {
-        display: grid;
-        background: var(--uigc-field-background);
-        border-radius: var(--uigc-field-border-radius);
-        border-bottom: var(--uigc-field-border-bottom);
-        box-sizing: border-box;
-        padding: var(--uigc-field-padding);
-        row-gap: var(--uigc-field-row-gap);
-      }
-
-      :host([error]) .address-root {
-        border: var(--uigc-field__error-border);
-        border-width: var(--uigc-field__error-border-width);
-        outline: var(--uigc-field__error-outline);
-        outline-offset: -1px;
-      }
-
-      .address-root:focus,
-      .address-root:focus-visible,
-      .address-root:focus-within,
-      .address-root:hover {
-        border-bottom: var(--uigc-field-border-bottom__hover);
-        background: var(--uigc-address-input-background__hover);
-        transition: 0.2s ease-in-out;
-      }
-
-      :host([error]) .address-root:focus,
-      :host([error]) .address-root:focus-visible,
-      :host([error]) .address-root:focus-within,
-      :host([error]) .address-root:hover {
-        background: rgba(255, 75, 75, 0.1);
-        transition: 0.2s ease-in-out;
-      }
-
-      /* Placeholder color */
-      ::-webkit-input-placeholder {
-        color: var(--uigc-address-input__placeholder-color);
-      }
-
-      ::-moz-placeholder {
-        color: var(--uigc-address-input__placeholder-color);
-      }
-
-      ::-ms-placeholder {
-        color: var(--uigc-address-input__placeholder-colorr);
-      }
-
-      ::placeholder {
-        color: var(--uigc-address-input__placeholder-color);
-      }
-
-      .title {
-        display: flex;
-        align-items: center;
-        color: var(--uigc-chain-selector--title-color);
-        font-weight: var(--uigc-chain-selector--title-font-weight);
-        font-size: var(--uigc-field--title-font-size);
-        line-height: var(--uigc-field--title-line-height);
-        text-transform: var(--uigc-field--title-text-transform);
-      }
-
-      .address {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-      }
-
-      .address-error {
-        color: var(--uigc-field__error-color);
-        line-height: 16px;
-        margin-top: 2px;
-        font-size: 12px;
-      }
-
-      .input-root {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        -webkit-box-pack: center;
-        justify-content: center;
-        box-sizing: border-box;
-        padding: 0 14px;
-        min-height: 50px;
-      }
-
-      .input-root p {
-        font-weight: 500;
-        color: rgb(133, 209, 255);
-        font-size: 12px;
-        line-height: 16px;
-        text-align: left;
-        overflow-wrap: break-word;
-        word-break: break-word;
-      }
-
-      input {
-        width: 100%;
-        background: none;
-        border: none;
-        color: var(--hex-white);
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 100%;
-        padding: 0px;
-        box-sizing: border-box;
-      }
-
-      uigc-icon-paste {
-        cursor: pointer;
-      }
-
-      ::slotted([slot='id']) {
-        min-width: 32px;
-        height: 32px;
-        border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--uigc-app-bg-id);
-      }
-    `,
-  ];
+  static styles = [UIGCElement.styles, unsafeCSS(styles)];
 
   onInputClear() {
     this.address = null;

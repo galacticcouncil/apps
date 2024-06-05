@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+span.title {
+  font-weight: 700;
+  font-size: 16px;
+  padding: 5px 0px;
+  color: var(--hex-white);
+}
+
+uigc-logo-chain,
+uigc-logo-placeholder {
+  width: 34px;
+  height: 34px;
+}

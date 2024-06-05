@@ -1,0 +1,47 @@
+:host {
+  background: var(--uigc-alert-background);
+  border-radius: var(--uigc-alert-border-radius);
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  color: rgb(255, 255, 255);
+  box-sizing: border-box;
+}
+
+:host([variant='success']) {
+  background: var(--uigc-alert__success-background);
+}
+
+:host([variant='error']) {
+  background: var(--uigc-alert__error-background);
+}
+
+:host([variant='progress']) {
+  background: var(--uigc-alert__progress-background);
+}
+
+:host([drawer]) {
+  background: var(--uigc-alert__drawer-background);
+}
+
+.icon {
+  margin-right: 12px;
+  width: 30px;
+}
+
+uigc-circular-progress {
+  width: 30px;
+  height: 29px;
+}
+
+div.message {
+  width: 100%;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--hex-neutral-gray-100);
+}
