@@ -206,7 +206,7 @@ export const chartStyles = css`
     display: none;
     position: absolute;
     right: 0;
-    font-family: 'SatoshiVariable';
+    font-family: var(--uigc-app-font);
     font-style: normal;
     font-weight: 500;
     font-size: 12px;

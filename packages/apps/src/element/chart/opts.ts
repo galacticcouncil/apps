@@ -13,7 +13,7 @@ export const layoutOptions = {
     color: 'transparent',
   },
   textColor: '#ffffff',
-  fontFamily: 'SatoshiVariable',
+  fontFamily: 'var(--uigc-app-font);',
   fontSize: 12,
 } as LayoutOptions;
 
