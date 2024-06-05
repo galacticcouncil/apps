@@ -84,6 +84,7 @@ export class AssetLogo extends BaseLogo {
           ['KSM', () => kusama],
           ['LDOT', () => ldot],
           ['LRNA', () => lrna],
+          ['H2O', () => lrna],
           ['MYTH', () => myth],
           ['NODL', () => nodle],
           ['PEN', () => pen],
