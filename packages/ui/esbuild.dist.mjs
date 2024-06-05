@@ -1,4 +1,5 @@
 import esbuild from 'esbuild';
+import minifyHtml from 'esbuild-plugin-lit-minify-html';
 
 import { writeFileSync } from 'fs';
 import { esmConfig } from '../../esbuild.config.mjs';
@@ -7,7 +8,7 @@ esbuild
   .build({
     ...esmConfig,
     bundle: true,
-    //plugins: [minifyHTMLLiteralsPlugin()],
+    plugins: [minifyHtml()],
     packages: 'external',
   })
   .then(({ metafile }) => {
