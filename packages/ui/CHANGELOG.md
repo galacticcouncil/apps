@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 3.2.3
+
+### Patch Changes
+
+- Fix H2O icon
+
 ## 3.2.2
 
 ### Patch Changes
