@@ -1,0 +1,8 @@
+:host([size='small']) uigc-asset {
+  height: 24px;
+}
+
+:host([size='small']) uigc-asset-id {
+  width: 24px;
+  height: 24px;
+}

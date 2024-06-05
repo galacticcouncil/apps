@@ -1,0 +1,24 @@
+:host {
+  max-width: 570px;
+}
+
+.logo {
+  padding: 16px 0;
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo svg {
+  margin-left: 8px;
+}
+
+.logo span {
+  font-family: var(--uigc-app-font);
+  color: var(--hex-background-gray-500);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 100%;
+}

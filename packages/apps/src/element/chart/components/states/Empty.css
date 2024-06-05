@@ -1,0 +1,28 @@
+:host {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 90px;
+  padding: 0px;
+  width: 300px;
+  margin-top: -45px;
+  margin-left: -150px;
+  text-align: center;
+}
+
+svg rect {
+  fill: var(--uigc-chart-state__secondary);
+}
+
+svg path {
+  fill: var(--uigc-chart-state__primary);
+}
+
+p {
+  font-family: var(--uigc-app-font);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 100%;
+  color: var(--uigc-chart-state__primary);
+}

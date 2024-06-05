@@ -1,4 +1,4 @@
-import { css, html, TemplateResult } from 'lit';
+import { html, unsafeCSS, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
@@ -9,63 +9,13 @@ import { formatAmount, humanizeAmount } from 'utils/amount';
 
 import { Order, OrderTransaction } from '../types';
 
+import styles from './transactions.css';
+
 @customElement('gc-orders-grid-tx')
 export class OrdersGridTx extends Datagrid<OrderTransaction> {
   @property({ attribute: false }) order: Order = null;
 
-  static styles = [
-    Datagrid.styles,
-    css`
-      tbody tr {
-        color: #b2b6c5;
-      }
-
-      tbody tr:last-child {
-        border-bottom: none;
-      }
-
-      tr {
-        cursor: default;
-      }
-
-      .status {
-        font-weight: 500;
-        font-size: 13px;
-        line-height: 100%;
-        display: flex;
-        align-items: center;
-        height: 20px;
-      }
-
-      .error span {
-        color: #ffec8a;
-      }
-
-      .success span {
-        color: #30ffb1;
-      }
-
-      .pending span {
-        color: #85d1ff;
-      }
-
-      uigc-icon-success {
-        width: 30px;
-        margin-left: -3px;
-      }
-
-      uigc-icon-warning {
-        margin-right: 3px;
-      }
-
-      uigc-circular-progress {
-        width: 18px;
-        height: 18px;
-        margin-right: 6px;
-        margin-left: 3px;
-      }
-    `,
-  ];
+  static styles = [Datagrid.styles, unsafeCSS(styles)];
 
   protected formatDate(row: Row<OrderTransaction>) {
     const dateStr = row.original.date;

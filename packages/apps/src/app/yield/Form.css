@@ -1,0 +1,96 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.invest {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  padding: 0 14px;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+.interval {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  align-items: flex-start;
+}
+
+@media (max-width: 480px) {
+  .interval {
+    padding: 0 14px;
+  }
+}
+
+.interval div.section {
+  color: var(--hex-white);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 100%;
+  margin-bottom: 10px;
+}
+
+uigc-toggle-button {
+  white-space: nowrap;
+}
+
+.interval uigc-toggle-button {
+  display: flex;
+}
+
+.interval uigc-toggle-button.sm {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .interval uigc-toggle-button.sm {
+    display: flex;
+  }
+
+  .interval uigc-toggle-button {
+    display: none;
+  }
+}
+
+.interval uigc-toggle-button-group {
+  width: 100%;
+}
+
+.adornment {
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 14px;
+  color: #ffffff;
+}
+
+@media (max-width: 480px) {
+  .invest {
+    padding: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .invest {
+    padding: 0 28px;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+.apy {
+  margin-top: -10px;
+  margin-bottom: -10px;
+  padding: unset;
+}
+
+uigc-asset {
+  padding: 5px;
+}

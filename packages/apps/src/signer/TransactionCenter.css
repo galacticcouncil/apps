@@ -1,0 +1,23 @@
+uigc-typography {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+span {
+  color: var(--uigc-app-font-color__alternative);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 22px;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.icon {
+  padding-top: 50px;
+  width: 135px;
+  height: 135px;
+}

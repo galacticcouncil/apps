@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
@@ -9,7 +9,9 @@ import {
   TradeConfigCursor,
   TRADE_CONFIG,
 } from 'db';
-import { baseStyles } from 'styles/base.css';
+import { baseStyles } from 'styles';
+
+import styles from './Settings.css';
 
 const SLIPPAGE_OPTS = ['0.1', '0.5', '1', '3'];
 
@@ -20,106 +22,7 @@ export class BondsSettings extends LitElement {
     TradeConfigCursor,
   );
 
-  static styles = [
-    baseStyles,
-    css`
-      :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-
-      .content {
-        overflow-y: auto;
-      }
-
-      .section {
-        height: 40px;
-        background: var(--uigc-app-bg-section);
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 19px;
-        color: #acb2b5;
-        padding: 0 14px;
-        box-sizing: border-box;
-        align-items: center;
-        display: flex;
-        top: 0px;
-        position: sticky;
-      }
-
-      @media (min-width: 768px) {
-        .section {
-          padding: 0 28px;
-        }
-      }
-
-      .settings {
-        display: flex;
-        flex-direction: column;
-        padding: 14px;
-        gap: 14px;
-        box-sizing: border-box;
-      }
-
-      @media (min-width: 768px) {
-        .settings {
-          padding: 14px 28px 28px 28px;
-        }
-      }
-
-      .settings .row {
-        display: flex;
-        align-items: center;
-        height: 30px;
-        position: relative;
-        justify-content: space-between;
-      }
-
-      .settings .label {
-        font-weight: 500;
-        font-size: 16px;
-        line-height: 22px;
-        color: var(--hex-white);
-      }
-
-      .settings .desc {
-        font-style: normal;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 150%;
-        color: var(--uigc-app-font-color__alternative);
-      }
-
-      .settings .slippage-input {
-        margin-left: 8px;
-        text-align: right;
-      }
-
-      .actions {
-        display: flex;
-        padding: 22px 28px;
-        box-sizing: border-box;
-        justify-content: space-between;
-      }
-
-      .adornment {
-        white-space: nowrap;
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 14px;
-        color: #ffffff;
-      }
-
-      .endAdornment {
-        white-space: nowrap;
-        font-weight: 500;
-        font-size: 18px;
-        line-height: 14px;
-        color: #ffffff;
-      }
-    `,
-  ];
+  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
 
   private onChange(value: any, propName: any) {
     const config = this.tradeConfig.state;

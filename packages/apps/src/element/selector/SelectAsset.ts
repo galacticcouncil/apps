@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
@@ -7,8 +7,7 @@ import { map } from 'lit/directives/map.js';
 import { Amount, Asset } from '@galacticcouncil/sdk';
 
 import { Ecosystem } from 'db';
-import { baseStyles } from 'styles/base.css';
-import { selectorStyles } from 'styles/selector.css';
+import { baseStyles, selectorStyles } from 'styles';
 import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
 import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 
@@ -16,6 +15,8 @@ import { AssetSelector } from './types';
 
 import 'element/id';
 import { emptySearchIcon } from './icons';
+
+import styles from './SelectAsset.css';
 
 @customElement('gc-select-asset')
 export class SelectAsset extends LitElement {
@@ -34,23 +35,9 @@ export class SelectAsset extends LitElement {
   @state() query = '';
 
   static styles = [
-    baseStyles,
-    selectorStyles,
-    css`
-      .emptySection {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        margin: 60px auto;
-      }
-
-      .emptyTitle {
-        max-width: 280px;
-        text-align: center;
-        color: var(--hex-basic-600);
-      }
-    `,
+    unsafeCSS(baseStyles),
+    unsafeCSS(selectorStyles),
+    unsafeCSS(styles),
   ];
 
   private getAssets() {

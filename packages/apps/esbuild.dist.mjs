@@ -1,6 +1,6 @@
 import esbuild from 'esbuild';
 import { litCssPlugin } from '@detra-lab/esbuild-plugin-lit-css';
-
+import minifyHtml from 'esbuild-plugin-lit-minify-html';
 import { readdirSync, writeFileSync } from 'fs';
 import { esmConfig, getPackageJson } from '../../esbuild.config.mjs';
 
@@ -22,7 +22,8 @@ esbuild
   .build({
     ...esmConfig,
     bundle: true,
-    plugins: [litCssPlugin()],
+    minify: true,
+    plugins: [litCssPlugin(), minifyHtml()],
     external: [
       ...Object.keys(dependencies),
       ...Object.keys(peerDependencies),

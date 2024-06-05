@@ -1,16 +1,18 @@
-import { css, html, TemplateResult } from 'lit';
+import { html, unsafeCSS, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
 
-import { headerStyles } from 'styles/header.css';
+import { headerStyles } from 'styles';
 
 import { OrdersDatagrid } from '../OrdersDatagrid';
 import { Order } from '../types';
 
 import './transactions';
+
+import styles from './index.css';
 
 @customElement('gc-orders-list')
 export class OrdersList extends OrdersDatagrid {
@@ -18,58 +20,8 @@ export class OrdersList extends OrdersDatagrid {
 
   static styles = [
     OrdersDatagrid.styles,
-    headerStyles,
-    css`
-      .modal {
-        position: fixed;
-        background: var(--uigc-paper-background);
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        z-index: 10;
-        overflow: hidden;
-      }
-
-      .row {
-        display: flex;
-        flex-direction: column;
-        height: calc(100% - 64px);
-        overflow-y: auto;
-        position: relative;
-      }
-
-      .summary {
-        background-color: rgba(255, 255, 255, 0.03);
-      }
-
-      .info {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .status {
-        font-size: 14px;
-      }
-
-      .overview {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
-        row-gap: 20px;
-      }
-
-      .overview .label {
-        text-transform: uppercase;
-      }
-
-      .transactions {
-        position: sticky;
-        z-index: 1;
-        top: 0;
-        background-color: var(--uigc-paper-background);
-      }
-    `,
+    unsafeCSS(headerStyles),
+    unsafeCSS(styles),
   ];
 
   constructor() {

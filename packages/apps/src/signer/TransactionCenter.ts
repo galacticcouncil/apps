@@ -1,4 +1,4 @@
-import { css, html, LitElement, TemplateResult } from 'lit';
+import { html, unsafeCSS, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { AnyEvmChain, Parachain } from '@galacticcouncil/xcm-core';
@@ -23,6 +23,8 @@ import {
   TxNotification,
 } from './types';
 
+import styles from './TransactionCenter.css';
+
 @customElement('gc-transaction-center')
 export class TransactionCenter extends LitElement {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
@@ -37,33 +39,7 @@ export class TransactionCenter extends LitElement {
   private _handleCrossChainTx = (e: CustomEvent<TxInfo>) =>
     this.processXcm(short.generate(), e.detail);
 
-  static styles = [
-    css`
-      uigc-typography {
-        margin-top: 20px;
-        margin-bottom: 10px;
-        text-align: center;
-      }
-
-      span {
-        color: var(--uigc-app-font-color__alternative);
-        font-weight: 400;
-        font-size: 16px;
-        line-height: 22px;
-        text-align: center;
-        margin-top: 20px;
-        margin-bottom: 40px;
-        padding-left: 20px;
-        padding-right: 20px;
-      }
-
-      .icon {
-        padding-top: 50px;
-        width: 135px;
-        height: 135px;
-      }
-    `,
-  ];
+  static styles = unsafeCSS(styles);
 
   private blockMeta(
     result: ISubmittableResult,

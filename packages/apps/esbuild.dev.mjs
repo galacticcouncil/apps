@@ -1,4 +1,5 @@
 import esbuild from 'esbuild';
+import { litCssPlugin } from '@detra-lab/esbuild-plugin-lit-css';
 import { readdirSync } from 'fs';
 import { esmConfig, getPackageJson } from '../../esbuild.config.mjs';
 
@@ -11,7 +12,7 @@ readdirSync('../../node_modules/@polkadot').forEach((pckg) => {
   polkadotDeps.push('@polkadot/' + pckg);
 });
 
-const plugins = [];
+const plugins = [litCssPlugin({ debug: false })];
 
 const options = {
   ...esmConfig,

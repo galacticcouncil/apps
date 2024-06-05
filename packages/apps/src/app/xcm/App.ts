@@ -1,6 +1,6 @@
 import '@polkadot/api-augment';
 
-import { html, css, PropertyValues } from 'lit';
+import { html, unsafeCSS, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -18,9 +18,7 @@ import { WatchBlockNumberReturnType } from 'viem';
 import { PoolApp } from 'app/PoolApp';
 import { Account, Ecosystem, XStoreUtils, XItemCursor, XItem } from 'db';
 import { TxInfo, TxMessage, TxNotification } from 'signer/types';
-import { baseStyles } from 'styles/base.css';
-import { headerStyles } from 'styles/header.css';
-import { basicLayoutStyles } from 'styles/layout/basic.css';
+import { baseStyles, headerStyles, basicLayoutStyles } from 'styles';
 import {
   EVM_NATIVE_ASSET_ID,
   convertAddressSS58,
@@ -90,6 +88,8 @@ import {
   DEFAULT_TRANSFER_STATE,
 } from './types';
 
+import styles from './App.css';
+
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
   private configService: ConfigService = null;
@@ -144,35 +144,10 @@ export class XcmApp extends PoolApp {
   }
 
   static styles = [
-    baseStyles,
-    headerStyles,
-    basicLayoutStyles,
-    css`
-      :host {
-        max-width: 570px;
-      }
-
-      .logo {
-        padding: 16px 0;
-        display: flex;
-        text-align: center;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .logo svg {
-        margin-left: 8px;
-      }
-
-      .logo span {
-        font-family: var(--uigc-app-font);
-        color: var(--hex-background-gray-500);
-        font-size: 14px;
-        font-style: normal;
-        font-weight: 600;
-        line-height: 100%;
-      }
-    `,
+    unsafeCSS(baseStyles),
+    unsafeCSS(headerStyles),
+    unsafeCSS(basicLayoutStyles),
+    unsafeCSS(styles),
   ];
 
   isDestChainSelection(): boolean {

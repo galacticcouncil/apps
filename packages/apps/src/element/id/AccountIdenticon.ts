@@ -1,4 +1,4 @@
-import { LitElement, css, html } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
@@ -8,18 +8,14 @@ import { u8aToHex } from '@polkadot/util';
 import { decodeAddress } from '@polkadot/util-crypto';
 import { toSvg } from 'jdenticon';
 
+import styles from './AccountIdenticon.css';
+
 @customElement('gc-account-identicon')
 export class AccountIdenticon extends LitElement {
   @property({ type: String }) address: string = null;
   @property({ type: Number }) ss58prefix: number = null;
 
-  static styles = [
-    css`
-      .avatar {
-        border-radius: 50%;
-      }
-    `,
-  ];
+  static styles = unsafeCSS(styles);
 
   render() {
     const isH160Addr = addr.isH160(this.address);

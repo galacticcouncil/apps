@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
@@ -10,6 +10,8 @@ import { Ecosystem } from 'db';
 import { getChainKey } from 'utils/chain';
 import { isExternalAssetWhitelisted } from 'utils/asset';
 
+import styles from './AssetIdenticon.css';
+
 @customElement('gc-asset-identicon')
 export class AssetIdenticon extends LitElement {
   @property({ type: Boolean }) showDesc: boolean = false;
@@ -18,18 +20,7 @@ export class AssetIdenticon extends LitElement {
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
-  static styles = [
-    css`
-      :host([size='small']) uigc-asset {
-        height: 24px;
-      }
-
-      :host([size='small']) uigc-asset-id {
-        width: 24px;
-        height: 24px;
-      }
-    `,
-  ];
+  static styles = unsafeCSS(styles);
 
   iconBadgeTemplate(asset: Asset) {
     if (asset.type !== 'External') return;

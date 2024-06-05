@@ -1,43 +1,13 @@
-import { html, css, LitElement } from 'lit';
+import { html, LitElement, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { baseStyles } from 'styles/base.css';
+import { baseStyles } from 'styles';
+
+import styles from './Empty.css';
 
 @customElement('gc-chart-empty')
 export class ChartEmpty extends LitElement {
-  static styles = [
-    baseStyles,
-    css`
-      :host {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        height: 90px;
-        padding: 0px;
-        width: 300px;
-        margin-top: -45px;
-        margin-left: -150px;
-        text-align: center;
-      }
-
-      svg rect {
-        fill: var(--uigc-chart-state__secondary);
-      }
-
-      svg path {
-        fill: var(--uigc-chart-state__primary);
-      }
-
-      p {
-        font-family: var(--uigc-app-font);
-        font-style: normal;
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 100%;
-        color: var(--uigc-chart-state__primary);
-      }
-    `,
-  ];
+  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
 
   render() {
     return html`

@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -14,12 +14,13 @@ import {
 import * as i18n from 'i18next';
 
 import { Account, AccountCursor, DatabaseController } from 'db';
-import { baseStyles } from 'styles/base.css';
-import { formStyles } from 'styles/form.css';
+import { baseStyles, formStyles } from 'styles';
 import { isSameAddress } from 'utils/account';
 import { humanizeAmount } from 'utils/amount';
 
 import 'element/id';
+
+import styles from './Form.css';
 
 @customElement('gc-xcm-form')
 export class XcmForm extends LitElement {
@@ -42,106 +43,9 @@ export class XcmForm extends LitElement {
   @property({ attribute: false }) error = {};
 
   static styles = [
-    baseStyles,
-    formStyles,
-    css`
-      :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-
-      .transfer {
-        display: flex;
-        flex-direction: column;
-        padding: 0 14px;
-        box-sizing: border-box;
-        row-gap: 11px;
-        position: relative;
-      }
-
-      .transfer .chain {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        grid-gap: 11px;
-      }
-
-      .transfer .label {
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 100%;
-        color: rgba(255, 255, 255, 0.7);
-      }
-
-      .transfer .divider {
-        background: var(--uigc-divider-background);
-        height: 1px;
-        width: 100%;
-        left: 0;
-        position: absolute;
-      }
-
-      .transfer .switch__desktop {
-        display: none;
-      }
-
-      .transfer .switch__mobile {
-        display: block;
-        align-items: center;
-        display: flex;
-        height: 43px;
-        justify-content: center;
-        width: 100%;
-      }
-
-      .transfer uigc-asset-switch.switch {
-        background: var(--uigc-asset-switch-background);
-        position: absolute;
-      }
-
-      .errors {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .errors .highlight {
-        font-weight: 600;
-        color: var(--hex-white);
-      }
-
-      @media (min-width: 480px) {
-        .transfer .chain {
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: center;
-          grid-gap: 11px;
-        }
-
-        .transfer .switch__desktop {
-          display: block;
-          transform: rotate(270deg);
-        }
-
-        .transfer .switch__mobile {
-          display: none;
-        }
-      }
-
-      @media (min-width: 768px) {
-        .transfer {
-          padding: 0 28px;
-        }
-      }
-
-      .spinner {
-        width: 16px;
-        height: 16px;
-        margin-right: 10px;
-      }
-    `,
+    unsafeCSS(baseStyles),
+    unsafeCSS(formStyles),
+    unsafeCSS(styles),
   ];
 
   private isDisabled(): boolean {

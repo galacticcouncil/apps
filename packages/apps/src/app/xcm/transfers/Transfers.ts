@@ -1,4 +1,4 @@
-import { html, css, PropertyValues } from 'lit';
+import { html, unsafeCSS, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { WatchContractEventReturnType } from 'viem';
 
@@ -13,6 +13,8 @@ import { Operation } from '@galacticcouncil/xcm-sdk';
 
 import './TransfersDatagrid';
 
+import styles from './Transfers.css';
+
 @customElement('gc-transfers')
 export class Transfers extends BaseApp {
   private transferApi: TransferApi = null;
@@ -23,50 +25,7 @@ export class Transfers extends BaseApp {
   @state() transfers: Transfer[] = [];
   @state() width: number = window.innerWidth;
 
-  static styles = [
-    css`
-      @media (min-width: 1024px) {
-        :host {
-          min-height: 350px;
-        }
-      }
-
-      .transfers {
-        background: var(--uigc-app-background-color);
-        overflow: hidden;
-        position: relative;
-        display: block;
-      }
-
-      @media (min-width: 480px) {
-        .transfers {
-          border-radius: var(--uigc-app-border-radius);
-        }
-
-        .transfers:before {
-          content: '';
-          border-radius: var(--uigc-app-border-radius);
-          position: absolute;
-          inset: 0px;
-
-          padding: 1px;
-
-          background: linear-gradient(
-            180deg,
-            rgba(152, 176, 214, 0.27) 0%,
-            rgba(163, 177, 199, 0.15) 66.67%,
-            rgba(158, 167, 180, 0.2) 100%
-          );
-
-          -webkit-mask: var(--uigc-paper-mask);
-          -webkit-mask-composite: xor;
-          mask: var(--uigc-paper-mask);
-          mask-composite: exclude;
-          pointer-events: none;
-        }
-      }
-    `,
-  ];
+  static styles = unsafeCSS(styles);
 
   private resetTransfers() {
     this.transfers = [];

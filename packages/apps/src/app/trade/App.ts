@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -15,9 +15,7 @@ import {
   TradeConfigCursor,
 } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
-import { baseStyles } from 'styles/base.css';
-import { headerStyles } from 'styles/header.css';
-import { tradeLayoutStyles } from 'styles/layout/trade.css';
+import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
 import {
   exchangeNative,
   formatAmount,
@@ -67,6 +65,8 @@ import {
   TransactionFee,
 } from './types';
 
+import styles from './App.css';
+
 @customElement('gc-trade')
 export class TradeApp extends PoolApp {
   protected tradeConfig = new DatabaseController<TradeConfig>(
@@ -103,37 +103,10 @@ export class TradeApp extends PoolApp {
   }
 
   static styles = [
-    baseStyles,
-    headerStyles,
-    tradeLayoutStyles,
-    css`
-      :host {
-        max-width: 480px;
-      }
-
-      .orders uigc-typography {
-        font-size: 17px;
-      }
-      .container {
-        width: fit-content;
-        margin: 15px auto 30px;
-        justify-content: center;
-      }
-
-      .icon {
-        margin-right: 4px;
-        margin-top: 1px;
-        path {
-          transition: stroke 0.2s ease-in-out;
-        }
-      }
-
-      .btn:hover {
-        path {
-          stroke: #ecedef;
-        }
-      }
-    `,
+    unsafeCSS(baseStyles),
+    unsafeCSS(headerStyles),
+    unsafeCSS(tradeLayoutStyles),
+    unsafeCSS(styles),
   ];
 
   isSwapSelected(): boolean {

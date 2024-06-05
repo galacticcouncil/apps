@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -10,10 +10,8 @@ import { translation } from './locales';
 import { PoolApp } from 'app/PoolApp';
 import { Account, DatabaseController, DcaConfig, DcaConfigCursor } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
-import { baseStyles } from 'styles/base.css';
-import { headerStyles } from 'styles/header.css';
-import { tradeLayoutStyles } from 'styles/layout/trade.css';
-import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
+import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
+import { exchangeNative, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
 import '@galacticcouncil/ui';
@@ -39,6 +37,8 @@ import { AssetSelector } from 'element/selector/types';
 
 import { DcaApi } from './api';
 import { DcaTab, DcaState, DEFAULT_DCA_STATE, INTERVAL_DCA_MS } from './types';
+
+import styles from './App.css';
 
 @customElement('gc-dca')
 export class DcaApp extends PoolApp {
@@ -71,18 +71,10 @@ export class DcaApp extends PoolApp {
   }
 
   static styles = [
-    baseStyles,
-    headerStyles,
-    tradeLayoutStyles,
-    css`
-      :host {
-        max-width: 480px;
-      }
-
-      .orders uigc-typography {
-        font-size: 17px;
-      }
-    `,
+    unsafeCSS(baseStyles),
+    unsafeCSS(headerStyles),
+    unsafeCSS(tradeLayoutStyles),
+    unsafeCSS(styles),
   ];
 
   isEmptyAmount(amount: string): boolean {

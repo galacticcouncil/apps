@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
@@ -15,6 +15,8 @@ import './list';
 
 import { Order, OrderTransaction } from './types';
 import { OrdersApi } from './api';
+
+import styles from './Orders.css';
 
 @customElement('gc-trade-orders')
 export class TradeOrders extends BaseApp {
@@ -44,118 +46,7 @@ export class TradeOrders extends BaseApp {
 
   @state() width: number = window.innerWidth;
 
-  static styles = [
-    css`
-      @media (min-width: 1024px) {
-        :host {
-          min-height: 350px;
-        }
-      }
-
-      .orders {
-        background: var(--uigc-app-background-color);
-        overflow: hidden;
-        position: relative;
-        display: block;
-      }
-
-      @media (min-width: 480px) {
-        .orders {
-          border-radius: var(--uigc-app-border-radius);
-        }
-
-        .orders:before {
-          content: '';
-          border-radius: var(--uigc-app-border-radius);
-          position: absolute;
-          inset: 0px;
-
-          padding: 1px;
-
-          background: linear-gradient(
-            180deg,
-            rgba(152, 176, 214, 0.27) 0%,
-            rgba(163, 177, 199, 0.15) 66.67%,
-            rgba(158, 167, 180, 0.2) 100%
-          );
-
-          -webkit-mask: var(--uigc-paper-mask);
-          -webkit-mask-composite: xor;
-          mask: var(--uigc-paper-mask);
-          mask-composite: exclude;
-          pointer-events: none;
-        }
-      }
-
-      .tabs {
-        height: 30px;
-        display: flex;
-        gap: 34px;
-        padding: 0 4px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      }
-
-      @media (min-width: 768px) {
-        .tabs {
-          padding: 0 20px;
-        }
-      }
-
-      .tabs input[type='radio'] {
-        position: absolute;
-        left: -200vw;
-      }
-
-      .tabs input:checked + label {
-        color: #aaeefc;
-        opacity: 1;
-      }
-
-      .tabs input:checked + label::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 22px;
-        height: 2px;
-        background: #aaeefc;
-      }
-
-      .tabs label {
-        position: relative;
-        cursor: pointer;
-        color: #cccdd3;
-        font-family: 'Geist';
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 500;
-        line-height: 100%;
-        opacity: 0.6;
-      }
-
-      .empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: 150px;
-        justify-content: center;
-      }
-
-      .empty span {
-        text-align: center;
-        font-family: 'Geist';
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 400;
-        line-height: 120%;
-        color: #5d6175;
-      }
-
-      .empty span:first-of-type {
-        padding-top: 16px;
-      }
-    `,
-  ];
+  static styles = unsafeCSS(styles);
 
   private async getNextExecutionBlock(scheduleId: number): Promise<number> {
     return await this.ordersApi.getPlanned(scheduleId);

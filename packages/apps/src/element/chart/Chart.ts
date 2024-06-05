@@ -1,4 +1,4 @@
-import { html, css, TemplateResult } from 'lit';
+import { html, unsafeCSS, TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -11,11 +11,10 @@ import {
 
 import { BaseElement } from 'element/BaseElement';
 import { TradeData, TradeDataCursor } from 'db';
-import { baseStyles } from 'styles/base.css';
+import { baseStyles } from 'styles';
 import { ThemeController } from 'theme.ctrl';
 import { humanizeAmount } from 'utils/amount';
 
-import { chartStyles } from './chart.css';
 import {
   crosshair,
   grid,
@@ -35,6 +34,8 @@ import './components/states/Empty';
 import './components/states/Loading';
 
 import { Asset, ONE } from '@galacticcouncil/sdk';
+
+import styles from './Chart.css';
 
 const CHART_HEIGHT = 325;
 const CHART_TIME_SCALE_HEIGHT = 26;
@@ -73,18 +74,7 @@ export abstract class Chart extends BaseElement {
   @state() chartRange: ChartRange = ChartRange['1w'];
   @state() chartState: ChartState = ChartState.Loading;
 
-  static styles = [
-    baseStyles,
-    chartStyles,
-    css`
-      :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        position: relative;
-      }
-    `,
-  ];
+  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
 
   abstract onPriceSelection(price: string): string;
 

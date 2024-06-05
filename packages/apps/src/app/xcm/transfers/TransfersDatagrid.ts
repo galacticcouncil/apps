@@ -1,11 +1,8 @@
-import { html, css, TemplateResult } from 'lit';
+import { html, unsafeCSS, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { when } from 'lit/directives/when.js';
 
 import { Datagrid } from 'element/datagrid';
 import { humanizeAmount } from 'utils/amount';
-
-import { transferStyles } from './datagrid.css';
 
 import { AnyChain } from '@galacticcouncil/xcm-core';
 import { ColumnDef, Row } from '@tanstack/table-core';
@@ -13,6 +10,8 @@ import { ColumnDef, Row } from '@tanstack/table-core';
 import 'element/id/AssetIdenticon';
 
 import { Transfer, TransferStatus } from './types';
+
+import styles from './TransfersDatagrid.css';
 
 @customElement('gc-transfers-grid')
 export class TransfersDatagrid extends Datagrid<Transfer> {
@@ -28,60 +27,7 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
     };
   }
 
-  static styles = [
-    Datagrid.styles,
-    transferStyles,
-    css`
-      uigc-logo-chain {
-        width: 24px;
-      }
-
-      tr td:first-child {
-        width: 75px;
-      }
-
-      tr td:last-child {
-        text-align: right;
-      }
-
-      td:first-of-type,
-      td:last-of-type {
-        padding: 12px 14px;
-      }
-
-      @media (min-width: 768px) {
-        td:first-of-type,
-        td:last-of-type {
-          padding: 12px 28px;
-        }
-      }
-
-      div.status {
-        display: inline-flex;
-        align-items: center;
-      }
-
-      div.alt {
-        color: #999ba7;
-      }
-
-      div.status.pending > span {
-        color: #85d1ff;
-      }
-
-      div.status.emitted > span {
-        color: #53a4f3;
-      }
-
-      div.status.complete > span {
-        color: #00ffa0;
-      }
-
-      div.status > span {
-        margin-left: 3px;
-      }
-    `,
-  ];
+  static styles = [Datagrid.styles, unsafeCSS(styles)];
 
   protected pairTemplate(transfer: Transfer) {
     const { content } = transfer;

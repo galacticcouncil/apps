@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -17,49 +17,17 @@ import { getRenderString } from 'utils/dom';
 import { Asset, Transaction } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { positionsStyles } from './datagrid.css';
 import { Order } from './types';
 
 import 'element/id/AssetIdenticon';
+
+import styles from './OrdersDatagrid.css';
 
 export abstract class OrdersDatagrid extends Datagrid<Order> {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
   protected account = new DatabaseController<Account>(this, AccountCursor);
 
-  static styles = [
-    Datagrid.styles,
-    positionsStyles,
-    css`
-      uigc-button path {
-        stroke: var(--uigc-app-font-color__primary);
-        transition: 0.2s ease-in-out;
-      }
-
-      uigc-button:hover path {
-        stroke: #fff;
-        transition: 0.2s ease-in-out;
-      }
-
-      .pulsate {
-        animation: pulsate 3s ease-out;
-        animation-iteration-count: infinite;
-        opacity: 0.5;
-        color: rgb(166, 221, 255);
-      }
-
-      @keyframes pulsate {
-        0% {
-          opacity: 0.5;
-        }
-        50% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0.5;
-        }
-      }
-    `,
-  ];
+  static styles = [Datagrid.styles, unsafeCSS(styles)];
 
   notificationTemplate(mssg: string): TxMessage {
     const template = html`

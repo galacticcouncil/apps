@@ -1,4 +1,4 @@
-import { html, css } from 'lit';
+import { html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -14,8 +14,7 @@ import {
   DcaConfigCursor,
 } from 'db';
 import { BaseElement } from 'element/BaseElement';
-import { baseStyles } from 'styles/base.css';
-import { formStyles } from 'styles/form.css';
+import { baseStyles, formStyles } from 'styles';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 
 import {
@@ -27,6 +26,8 @@ import {
 } from './types';
 
 import { Asset } from '@galacticcouncil/sdk';
+
+import styles from './Form.css';
 
 @customElement('gc-yield-form')
 export class YieldForm extends BaseElement {
@@ -47,106 +48,9 @@ export class YieldForm extends BaseElement {
   @property({ attribute: false }) error = {};
 
   static styles = [
-    baseStyles,
-    formStyles,
-    css`
-      :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-
-      .invest {
-        display: flex;
-        position: relative;
-        flex-direction: column;
-        padding: 0 14px;
-        gap: 14px;
-        box-sizing: border-box;
-      }
-
-      .interval {
-        display: flex;
-        flex-direction: column;
-        white-space: nowrap;
-        align-items: flex-start;
-      }
-
-      @media (max-width: 480px) {
-        .interval {
-          padding: 0 14px;
-        }
-      }
-
-      .interval div.section {
-        color: var(--hex-white);
-        font-style: normal;
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 100%;
-        margin-bottom: 10px;
-      }
-
-      uigc-toggle-button {
-        white-space: nowrap;
-      }
-
-      .interval uigc-toggle-button {
-        display: flex;
-      }
-
-      .interval uigc-toggle-button.sm {
-        display: none;
-      }
-
-      @media (max-width: 480px) {
-        .interval uigc-toggle-button.sm {
-          display: flex;
-        }
-
-        .interval uigc-toggle-button {
-          display: none;
-        }
-      }
-
-      .interval uigc-toggle-button-group {
-        width: 100%;
-      }
-
-      .adornment {
-        white-space: nowrap;
-        font-weight: 500;
-        font-size: 14px;
-        line-height: 14px;
-        color: #ffffff;
-      }
-
-      @media (max-width: 480px) {
-        .invest {
-          padding: 0;
-        }
-      }
-
-      @media (min-width: 768px) {
-        .invest {
-          padding: 0 28px;
-        }
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      .apy {
-        margin-top: -10px;
-        margin-bottom: -10px;
-        padding: unset;
-      }
-
-      uigc-asset {
-        padding: 5px;
-      }
-    `,
+    unsafeCSS(baseStyles),
+    unsafeCSS(formStyles),
+    unsafeCSS(styles),
   ];
 
   private getEstDate(): string {

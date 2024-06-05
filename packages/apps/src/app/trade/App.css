@@ -1,0 +1,27 @@
+:host {
+  max-width: 480px;
+}
+
+.orders uigc-typography {
+  font-size: 17px;
+}
+
+.container {
+  width: fit-content;
+  margin: 15px auto 30px;
+  justify-content: center;
+}
+
+.icon {
+  margin-right: 4px;
+  margin-top: 1px;
+  path {
+    transition: stroke 0.2s ease-in-out;
+  }
+}
+
+.btn:hover {
+  path {
+    stroke: #ecedef;
+  }
+}

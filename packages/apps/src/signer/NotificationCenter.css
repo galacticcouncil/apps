@@ -1,0 +1,23 @@
+.notification {
+  margin-bottom: 10px;
+}
+
+.secondary {
+  display: flex;
+  color: #acb2b5;
+}
+
+.message {
+  color: var(--hex-neutral-gray-100);
+}
+
+.message .highlight {
+  font-weight: 600;
+  color: var(--hex-white);
+}
+
+@media (min-width: 768px) {
+  uigc-toast {
+    width: 380px;
+  }
+}

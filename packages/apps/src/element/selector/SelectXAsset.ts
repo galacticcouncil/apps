@@ -1,4 +1,4 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
@@ -6,8 +6,7 @@ import { map } from 'lit/directives/map.js';
 
 import { Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 
-import { baseStyles } from 'styles/base.css';
-import { selectorStyles } from 'styles/selector.css';
+import { baseStyles, selectorStyles } from 'styles';
 import { humanizeAmount } from 'utils/amount';
 
 @customElement('gc-select-xasset')
@@ -20,7 +19,7 @@ export class SelectXAsset extends LitElement {
   @property({ type: String }) query = '';
   @property({ type: Boolean }) active = false;
 
-  static styles = [baseStyles, selectorStyles];
+  static styles = [unsafeCSS(baseStyles), unsafeCSS(selectorStyles)];
 
   updateSearch(searchDetail: any) {
     this.query = searchDetail.value;

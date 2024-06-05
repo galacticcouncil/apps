@@ -1,12 +1,14 @@
-import { html, css, TemplateResult } from 'lit';
+import { html, unsafeCSS, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
 
 import { BaseElement } from 'element/BaseElement';
-import { baseStyles } from 'styles/base.css';
+import { baseStyles } from 'styles';
 
 import { Notification, NotificationType } from './types';
+
+import styles from './NotificationCenter.css';
 
 @customElement('gc-notification-center')
 export class NotificationCenter extends BaseElement {
@@ -16,34 +18,7 @@ export class NotificationCenter extends BaseElement {
   private _handleNotification = (e: CustomEvent<Notification>) =>
     this.appendNewNotification(e.detail);
 
-  static styles = [
-    baseStyles,
-    css`
-      .notification {
-        margin-bottom: 10px;
-      }
-
-      .secondary {
-        display: flex;
-        color: #acb2b5;
-      }
-
-      .message {
-        color: var(--hex-neutral-gray-100);
-      }
-
-      .message .highlight {
-        font-weight: 600;
-        color: var(--hex-white);
-      }
-
-      @media (min-width: 768px) {
-        uigc-toast {
-          width: 380px;
-        }
-      }
-    `,
-  ];
+  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
 
   openDrawer() {
     const drawer = this.shadowRoot.querySelector('uigc-drawer');
