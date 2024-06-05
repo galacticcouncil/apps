@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 3.9.1
+
+### Patch Changes
+
+- Fix chart fonts
+
 ## 3.9.0
 
 ### Minor Changes
