@@ -14,8 +14,7 @@
     "skipLibCheck": true,
     "noImplicitAny": false,
     "importHelpers": false,
-    "resolveJsonModule": true,
-    "types": ["@detra-lab/esbuild-plugin-lit-css/declarations"]
+    "resolveJsonModule": true
   },
   "exclude": ["node_modules", "dist", "build"]
 }
