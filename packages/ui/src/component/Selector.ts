@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -13,7 +13,7 @@ export class Selector extends UIGCElement {
   @property({ type: String }) title = null;
   @property({ type: Boolean }) readonly = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onSelectorClick(e: any) {
     const options = {

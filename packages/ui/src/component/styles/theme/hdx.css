@@ -8,12 +8,10 @@ html[theme='hdx'] {
   /** GENERAL */
   --uigc-app-font: 'Geist';
   --uigc-app-font-secondary: 'GeistMono';
-  --uigc-app-background: radial-gradient(
-      73.65% 123% at 57% -38.76%,
-      rgba(93, 177, 255, 0.59) 0%,
-      rgba(0, 194, 255, 0) 100%
-    ),
-    linear-gradient(180deg, #00579f 0%, #023b6a 25%, #060917 100%);
+  --uigc-app-background: linear-gradient(
+    rgb(0, 69, 150) 0%,
+    rgba(4, 56, 117, 0) 100%
+  );
   --uigc-app-background-color: rgb(6, 9, 23);
   --uigc-app-border-radius: 8px;
   --uigc-app-border-radius-2: 2px;

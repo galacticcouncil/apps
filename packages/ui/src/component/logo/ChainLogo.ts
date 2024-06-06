@@ -1,83 +1,34 @@
 import { html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { choose } from 'lit/directives/choose.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { BaseLogo } from './BaseLogo';
-import {
-  basilisk,
-  bifrost,
-  centrifuge,
-  hydradx,
-  karura,
-  moonbeam,
-  phala,
-  polkadot,
-  interlay,
-  kilt,
-  zeitgeist,
-  assetHub,
-  assetHubKusama,
-  subsocial,
-} from './chains';
-import {
-  acala,
-  astar,
-  crust,
-  eth,
-  integritee,
-  kusama,
-  myth,
-  nodle,
-  pen,
-  robonomics,
-  tinkernet,
-  unique,
-} from './assets';
+
+const REPO = 'https://raw.githubusercontent.com/galacticcouncil/assets/master';
 
 @customElement('uigc-logo-chain')
 export class ChainLogo extends BaseLogo {
-  @property({ type: String }) chain = null;
+  @property({ type: String }) chain: string = null;
+
+  @state() error = false;
+
+  protected firstUpdated() {
+    const img = this.shadowRoot.querySelector('img');
+    if (img) {
+      img.addEventListener('error', () => {
+        this.error = true;
+      });
+    }
+  }
 
   render() {
+    if (this.error || !this.chain) {
+      return html`
+        <slot name="placeholder"></slot>
+      `;
+    }
+
     return html`
-      ${choose(
-        this.chain,
-        [
-          ['acala', () => acala],
-          ['acala-evm', () => acala],
-          ['astar', () => astar],
-          ['assethub', () => assetHub],
-          ['basilisk', () => basilisk],
-          ['bifrost', () => bifrost],
-          ['centrifuge', () => centrifuge],
-          ['crust', () => crust],
-          ['ethereum', () => eth],
-          ['hydradx', () => hydradx],
-          ['integritee', () => integritee],
-          ['interlay', () => interlay],
-          ['karura', () => karura],
-          ['kilt', () => kilt],
-          ['kusama', () => kusama],
-          ['kusama-assethub', () => assetHub],
-          ['moonbeam', () => moonbeam],
-          ['mythos', () => myth],
-          ['nodle', () => nodle],
-          ['pendulum', () => pen],
-          ['phala', () => phala],
-          ['polkadot', () => polkadot],
-          ['robonomics', () => robonomics],
-          ['statemine', () => assetHubKusama],
-          ['statemint', () => assetHub],
-          ['subsocial', () => subsocial],
-          ['tinkernet', () => tinkernet],
-          ['unique', () => unique],
-          ['zeitgeist', () => zeitgeist],
-        ],
-        () =>
-          html`
-            <slot name="placeholder"></slot>
-          `,
-      )}
+      <img src="${REPO}/chains/${this.chain.toLowerCase()}.svg" />
     `;
   }
 }

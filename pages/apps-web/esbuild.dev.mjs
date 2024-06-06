@@ -1,5 +1,6 @@
 import esbuild from 'esbuild';
 import { wasmLoader } from 'esbuild-plugin-wasm';
+
 import { createProxyServer } from '../../esbuild.proxy.mjs';
 
 const plugins = [wasmLoader({ mode: 'deferred' })];
