@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import styles from './ButtonGroup.css';
@@ -7,7 +7,7 @@ import styles from './ButtonGroup.css';
 export class RangeButtonGroup extends LitElement {
   @property({ type: String }) selected = null;
 
-  static styles = [unsafeCSS(styles)];
+  static styles = styles;
 
   override async updated() {
     const slot = this.shadowRoot.querySelector('slot');

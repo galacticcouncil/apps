@@ -1,38 +1,13 @@
-import { html, css } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+
 import { BaseIcon } from './BaseIcon';
+
+import styles from './Info.css';
 
 @customElement('uigc-icon-info')
 export class InfoIcon extends BaseIcon {
-  static styles = [
-    BaseIcon.styles,
-    css`
-      :host svg[bsx] path {
-        stroke: #fff;
-      }
-
-      :host svg[hdx] path:nth-of-type(1) {
-        fill: url(#linear0);
-      }
-
-      :host svg[hdx] path:nth-of-type(2) {
-        fill: rgb(133, 209, 255);
-      }
-
-      :host svg[hdx]:hover {
-        cursor: pointer;
-      }
-
-      :host svg[hdx]:hover path:nth-of-type(1) {
-        fill: #57b3eb;
-        fill-opacity: 1;
-      }
-
-      :host svg[hdx]:hover path:nth-of-type(2) {
-        fill: #00041d;
-      }
-    `,
-  ];
+  static styles = [BaseIcon.styles, styles];
 
   bsxTemplate() {
     return html`

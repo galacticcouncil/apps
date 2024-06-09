@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -9,7 +9,7 @@ import styles from './Progress.css';
 export class Progress extends UIGCElement {
   @property({ type: Number }) duration = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   override async firstUpdated() {
     const progress = this.shadowRoot.querySelector('.progress-root');

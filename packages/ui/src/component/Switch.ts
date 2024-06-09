@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -10,7 +10,7 @@ export class Switch extends UIGCElement {
   @property({ type: Boolean, reflect: true }) checked = false;
   @property({ type: Boolean, reflect: true }) highlight = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   override async updated() {
     const switchRoot = this.shadowRoot.querySelector('.switch-root');

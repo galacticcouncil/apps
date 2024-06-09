@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS, TemplateResult } from 'lit';
+import { LitElement, html, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import * as i18n from 'i18next';
@@ -9,7 +9,7 @@ import styles from './Stepper.css';
 
 @customElement('gc-yield-stepper')
 export class YieldStepper extends LitElement {
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
+  static styles = [baseStyles, styles];
 
   stepTemplate(no: number, title: string, desc: string, link: TemplateResult) {
     return html`

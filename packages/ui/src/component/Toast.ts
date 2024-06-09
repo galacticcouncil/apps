@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -12,7 +12,7 @@ import styles from './Toast.css';
 
 @customElement('uigc-toast')
 export class Toast extends CloseableElement {
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onClose(e: Event) {
     e.stopPropagation();

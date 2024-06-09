@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -9,7 +9,7 @@ import styles from './ToggleButton.css';
 export class ToggleButton extends UIGCElement {
   @property({ type: String }) value = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onClick(e: CustomEvent) {
     const options = {

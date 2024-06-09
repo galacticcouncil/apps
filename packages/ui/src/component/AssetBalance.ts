@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -15,7 +15,7 @@ export class AssetBalance extends UIGCElement {
   @property({ attribute: false }) formatter = null;
   @property({ attribute: false }) onMaxClick = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   isEmptyBalance() {
     return this.balance == null || this.balance == '' || this.balance == '0';

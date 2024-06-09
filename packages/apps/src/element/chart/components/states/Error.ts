@@ -1,4 +1,4 @@
-import { html, unsafeCSS, LitElement } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { baseStyles } from 'styles';
@@ -7,7 +7,7 @@ import styles from './Error.css';
 
 @customElement('gc-chart-error')
 export class ChartError extends LitElement {
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
+  static styles = [baseStyles, styles];
 
   render() {
     return html`

@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -16,7 +16,7 @@ export class AssetXRate extends UIGCElement {
   @property({ type: String }) asset = null;
   @property({ type: String }) unit = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   render() {
     return html`

@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -12,7 +12,7 @@ import styles from './Drawer.css';
 export class Drawer extends UIGCElement {
   @property({ type: Boolean, reflect: true }) open = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   private shouldClose(): void {
     const applyDefault = this.dispatchEvent(

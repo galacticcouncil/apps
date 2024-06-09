@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -28,7 +28,7 @@ export class AssetInput extends UIGCElement {
     this._inputHandler = debounce(this.onInputChange, 300);
   }
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   _onInputChange(e) {}
 

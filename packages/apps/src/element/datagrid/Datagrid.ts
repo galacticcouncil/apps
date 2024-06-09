@@ -1,4 +1,4 @@
-import { html, unsafeCSS, CSSResultGroup, TemplateResult } from 'lit';
+import { html, CSSResultGroup, TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -33,7 +33,7 @@ export abstract class Datagrid<T> extends BaseElement {
     entries.forEach((_entry) => {});
   });
 
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)] as CSSResultGroup;
+  static styles = [baseStyles, styles] as CSSResultGroup;
 
   protected abstract defaultColumns(): ColumnDef<T>[];
   protected abstract expandedRowTemplate(row: Row<T>): TemplateResult;

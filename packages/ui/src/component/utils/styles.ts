@@ -46,7 +46,7 @@ export function createStyle(
 ): HTMLStyleElement {
   const attributes = new Map<string, any>();
   attributes[name] = value;
-  return createStyleInHead(unsafeCSS(cssText), attributes);
+  return createStyleInHead(cssText, attributes);
 }
 
 /**

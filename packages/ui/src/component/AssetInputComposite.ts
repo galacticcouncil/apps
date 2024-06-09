@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -15,7 +15,7 @@ export class AssetInputComposite extends UIGCElement {
   @property({ type: String }) unit = null;
   @property({ type: Boolean }) disabled = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   render() {
     return html`

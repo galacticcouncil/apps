@@ -1,25 +1,14 @@
-import { css, LitElement } from 'lit';
+import { LitElement } from 'lit';
+
+import styles from './BaseLogo.css';
 
 export class BaseLogo extends LitElement {
-  static styles = [
-    css`
-      :host {
-        display: flex;
-      }
+  static styles = styles;
 
-      :host([fit]) svg,
-      :host([fit]) img {
-        width: 100%;
-        height: 100%;
-      }
-
-      :host svg[bsx] {
-        display: var(--uigc-bsx-flex-display);
-      }
-
-      :host svg[hdx] {
-        display: var(--uigc-hdx-flex-display);
-      }
-    `,
-  ];
+  normalizeKey(key: string): string {
+    if (key) {
+      return key.toLowerCase();
+    }
+    return null;
+  }
 }

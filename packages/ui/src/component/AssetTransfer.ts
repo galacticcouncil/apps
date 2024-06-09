@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -21,7 +21,7 @@ export class AssetTransfer extends UIGCElement {
   @property({ type: Boolean }) selectable = true;
   @property({ type: Boolean }) readonly = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   render() {
     return html`

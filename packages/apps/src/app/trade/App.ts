@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -102,12 +102,7 @@ export class TradeApp extends PoolApp {
     });
   }
 
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(headerStyles),
-    unsafeCSS(tradeLayoutStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [baseStyles, headerStyles, tradeLayoutStyles, styles];
 
   isSwapSelected(): boolean {
     return this.trade.assetIn != null && this.trade.assetOut != null;

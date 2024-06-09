@@ -1,4 +1,4 @@
-import { html, unsafeCSS, TemplateResult } from 'lit';
+import { html, TemplateResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -74,7 +74,7 @@ export abstract class Chart extends BaseElement {
   @state() chartRange: ChartRange = ChartRange['1w'];
   @state() chartState: ChartState = ChartState.Loading;
 
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
+  static styles = [baseStyles, styles];
 
   abstract onPriceSelection(price: string): string;
 

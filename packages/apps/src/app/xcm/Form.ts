@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -42,11 +42,7 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) destChainFee: AssetAmount = null;
   @property({ attribute: false }) error = {};
 
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(formStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [baseStyles, formStyles, styles];
 
   private isDisabled(): boolean {
     const account = this.account.state;

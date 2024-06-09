@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
@@ -20,7 +20,7 @@ export class AssetIdenticon extends LitElement {
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   iconBadgeTemplate(asset: Asset) {
     if (asset.type !== 'External') return;

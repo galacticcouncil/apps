@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -14,7 +14,7 @@ export class Input extends UIGCElement {
   @property({ type: String }) min = null;
   @property({ type: String }) max = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onInputChange(e: any) {
     const input = this.shadowRoot.querySelector('input');

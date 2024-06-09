@@ -1,32 +1,26 @@
 import { html } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 
 import { BaseLogo } from './BaseLogo';
-
-const REPO = 'https://raw.githubusercontent.com/galacticcouncil/assets/master';
+import { LogoMeta } from './LogoMeta';
 
 @customElement('uigc-logo-asset')
 export class AssetLogo extends BaseLogo {
   @property({ type: String }) asset: string = null;
 
-  @state() error = false;
-
-  protected firstUpdated() {
-    const img = this.shadowRoot.querySelector('img');
-    img.addEventListener('error', () => {
-      this.error = true;
-    });
-  }
-
   render() {
-    if (this.error || !this.asset) {
+    const key = this.normalizeKey(this.asset);
+    const asset = LogoMeta.getInstance().asset(key);
+
+    if (asset) {
       return html`
-        <slot name="placeholder"></slot>
+        <div>
+          <img loading="lazy" src="${asset}" />
+        </div>
       `;
     }
-
     return html`
-      <img src="${REPO}/assets/${this.asset.toLowerCase()}.svg" />
+      <slot name="placeholder"></slot>
     `;
   }
 }

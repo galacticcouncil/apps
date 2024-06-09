@@ -1,0 +1,7 @@
+:host([alt]) svg[bsx] path {
+  stroke: #fff;
+}
+
+:host([alt]) svg[hdx] rect {
+  fill: #fff;
+}

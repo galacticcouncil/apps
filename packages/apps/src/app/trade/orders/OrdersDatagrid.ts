@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -27,7 +27,7 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
   protected account = new DatabaseController<Account>(this, AccountCursor);
 
-  static styles = [Datagrid.styles, unsafeCSS(styles)];
+  static styles = [Datagrid.styles, styles];
 
   notificationTemplate(mssg: string): TxMessage {
     const template = html`

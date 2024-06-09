@@ -3,20 +3,11 @@ import { customElement } from 'lit/decorators.js';
 
 import { BaseIcon } from './BaseIcon';
 
+import styles from './Dropdown.css';
+
 @customElement('uigc-icon-dropdown')
 export class DropdownIcon extends BaseIcon {
-  static styles = [
-    BaseIcon.styles,
-    css`
-      :host([alt]) svg[bsx] path {
-        stroke: rgb(120, 126, 130);
-      }
-
-      :host([alt]) svg[hdx] path {
-        stroke: rgba(114, 131, 165, 0.6);
-      }
-    `,
-  ];
+  static styles = [BaseIcon.styles, styles];
 
   bsxTemplate() {
     return html`

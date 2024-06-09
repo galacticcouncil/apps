@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -47,11 +47,7 @@ export class YieldForm extends BaseElement {
   @property({ attribute: false }) order: DcaYieldOrder = null;
   @property({ attribute: false }) error = {};
 
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(formStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [baseStyles, formStyles, styles];
 
   private getEstDate(): string {
     if (!this.interval) {

@@ -1,4 +1,4 @@
-import { html, unsafeCSS, TemplateResult } from 'lit';
+import { html, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { when } from 'lit/directives/when.js';
@@ -70,11 +70,7 @@ export class TradeForm extends BaseElement {
   @state() twapEnabled: boolean = false;
   @state() isPriceReversed: boolean = false;
 
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(formStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [baseStyles, formStyles, styles];
 
   private isTwapError(): boolean {
     return this.twap && !!this.twap?.error;

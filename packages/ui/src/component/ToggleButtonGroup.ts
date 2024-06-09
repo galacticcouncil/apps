@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -11,7 +11,7 @@ export class ToggleButtonGroup extends UIGCElement {
   @property({ type: String }) value = null;
   @property({ type: String }) label = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   override async updated() {
     const slot = this.shadowRoot.querySelector('slot');

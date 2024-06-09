@@ -1,0 +1,11 @@
+:host {
+  --stop-first-color: #ffea9b;
+  --stop-first-offset: 0;
+  --stop-second-color: #ffdd2a;
+}
+
+:host([red]) {
+  --stop-first-color: #ff4b4b;
+  --stop-first-offset: 0.503788;
+  --stop-second-color: #ff4b4b;
+}

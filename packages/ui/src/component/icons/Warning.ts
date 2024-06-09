@@ -1,26 +1,13 @@
-import { css, html } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { BaseIcon } from './BaseIcon';
 
+import styles from './Warning.css';
+
 @customElement('uigc-icon-warning')
 export class WarningIcon extends BaseIcon {
-  static styles = [
-    BaseIcon.styles,
-    css`
-      :host {
-        --stop-first-color: #ffea9b;
-        --stop-first-offset: 0;
-        --stop-second-color: #ffdd2a;
-      }
-
-      :host([red]) {
-        --stop-first-color: #ff4b4b;
-        --stop-first-offset: 0.503788;
-        --stop-second-color: #ff4b4b;
-      }
-    `,
-  ];
+  static styles = [BaseIcon.styles, styles];
 
   render() {
     return html`

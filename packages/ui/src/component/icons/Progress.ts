@@ -1,35 +1,13 @@
-import { html, css } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import { BaseIcon } from './BaseIcon';
 
+import styles from './Progress.css';
+
 @customElement('uigc-icon-progress')
 export class ProgressIcon extends BaseIcon {
-  static styles = [
-    css`
-      .progress {
-        display: inline-block;
-        color: var(--hex-primary-300);
-        -webkit-animation: animation-rotate 1.4s linear infinite;
-        animation: animation-rotate 1.4s linear infinite;
-      }
-
-      @keyframes animation-rotate {
-        0% {
-          -webkit-transform: rotate(0deg);
-          -moz-transform: rotate(0deg);
-          -ms-transform: rotate(0deg);
-          transform: rotate(0deg);
-        }
-        100% {
-          -webkit-transform: rotate(360deg);
-          -moz-transform: rotate(360deg);
-          -ms-transform: rotate(360deg);
-          transform: rotate(360deg);
-        }
-      }
-    `,
-  ];
+  static styles = styles;
 
   render() {
     return html`

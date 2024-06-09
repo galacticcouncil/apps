@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -45,11 +45,7 @@ export class DcaForm extends BaseElement {
 
   @state() advanced: boolean = false;
 
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(formStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [baseStyles, formStyles, styles];
 
   private getEstDate(): string {
     const order = this.order;

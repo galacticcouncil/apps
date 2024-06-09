@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -12,7 +12,7 @@ export class SearchBar extends UIGCElement {
   @property({ type: String }) value = null;
   @property({ type: String }) placeholder = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onInputChange(e: any) {
     this.value = e.target.value;

@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -10,7 +10,7 @@ export class ListItem extends UIGCElement {
   @property({ attribute: false }) item = null;
   @property({ type: Boolean }) disabled = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onItemClick(e: any) {
     const options = {

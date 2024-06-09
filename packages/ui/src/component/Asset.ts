@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -14,7 +14,7 @@ export class Asset extends UIGCElement {
   @property({ type: String }) desc = null;
   @property({ type: Boolean, reflect: true }) multi = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   override async updated() {
     const iconSlot: HTMLSlotElement =

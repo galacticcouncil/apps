@@ -1,4 +1,4 @@
-import { html, unsafeCSS, TemplateResult } from 'lit';
+import { html, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { when } from 'lit/directives/when.js';
@@ -18,11 +18,7 @@ import styles from './index.css';
 export class OrdersList extends OrdersDatagrid {
   @state() active: Order = null;
 
-  static styles = [
-    OrdersDatagrid.styles,
-    unsafeCSS(headerStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [OrdersDatagrid.styles, headerStyles, styles];
 
   constructor() {
     super();

@@ -1,6 +1,6 @@
 import '@polkadot/api-augment';
 
-import { html, unsafeCSS, PropertyValues } from 'lit';
+import { html, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -143,12 +143,7 @@ export class XcmApp extends PoolApp {
     });
   }
 
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(headerStyles),
-    unsafeCSS(basicLayoutStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [baseStyles, headerStyles, basicLayoutStyles, styles];
 
   isDestChainSelection(): boolean {
     return this.xchain.selector === this.transfer.destChain.key;

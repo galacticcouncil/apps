@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
@@ -46,7 +46,7 @@ export class TradeOrders extends BaseApp {
 
   @state() width: number = window.innerWidth;
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   private async getNextExecutionBlock(scheduleId: number): Promise<number> {
     return await this.ordersApi.getPlanned(scheduleId);

@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -27,7 +27,7 @@ export class TradeSettings extends LitElement {
 
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
+  static styles = [baseStyles, styles];
 
   private onChange(value: any, propName: any) {
     const config = this.tradeConfig.state;

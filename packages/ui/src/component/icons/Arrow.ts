@@ -1,21 +1,13 @@
-import { html, css } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+
 import { BaseIcon } from './BaseIcon';
+
+import styles from './Arrow.css';
 
 @customElement('uigc-icon-arrow')
 export class ArrowIcon extends BaseIcon {
-  static styles = [
-    BaseIcon.styles,
-    css`
-      :host([alt]) svg[bsx] path {
-        stroke: #fff;
-      }
-
-      :host([alt]) svg[hdx] rect {
-        fill: #fff;
-      }
-    `,
-  ];
+  static styles = [BaseIcon.styles, styles];
 
   bsxTemplate() {
     return html`

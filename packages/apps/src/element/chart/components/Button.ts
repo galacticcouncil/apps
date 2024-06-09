@@ -1,4 +1,4 @@
-import { html, unsafeCSS, LitElement } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { baseStyles } from 'styles';
@@ -8,7 +8,7 @@ import styles from './Button.css';
 export class RangeButton extends LitElement {
   @property({ type: String }) value = null;
 
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
+  static styles = [baseStyles, styles];
 
   onClick(e: CustomEvent) {
     const options = {

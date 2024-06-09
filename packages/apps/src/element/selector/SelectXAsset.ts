@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
@@ -19,7 +19,7 @@ export class SelectXAsset extends LitElement {
   @property({ type: String }) query = '';
   @property({ type: Boolean }) active = false;
 
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(selectorStyles)];
+  static styles = [baseStyles, selectorStyles];
 
   updateSearch(searchDetail: any) {
     this.query = searchDetail.value;

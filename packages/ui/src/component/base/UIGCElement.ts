@@ -1,4 +1,4 @@
-import { LitElement, unsafeCSS, CSSResultGroup } from 'lit';
+import { LitElement, CSSResultGroup } from 'lit';
 
 import {
   baseProps,
@@ -13,10 +13,7 @@ import {
 import { createStyle, hasStyle } from '../utils/styles';
 
 export class UIGCElement extends LitElement {
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(fontStyles),
-  ] as CSSResultGroup;
+  static styles = [baseStyles, fontStyles] as CSSResultGroup;
 
   createBaseStylesheet() {
     if (!hasStyle('uigc-base', '')) {

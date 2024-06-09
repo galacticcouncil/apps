@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { choose } from 'lit/directives/choose.js';
@@ -26,7 +26,7 @@ const VARIANTS: AlertVariant[] = [
 
 @customElement('uigc-alert')
 export class Alert extends UIGCElement {
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   /**
    * The variant applies specific styling when set to `success`, `error`, or `progress`.

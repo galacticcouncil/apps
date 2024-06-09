@@ -1,4 +1,4 @@
-import { html, unsafeCSS, TemplateResult } from 'lit';
+import { html, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { Datagrid } from 'element/datagrid';
@@ -27,7 +27,7 @@ export class TransfersDatagrid extends Datagrid<Transfer> {
     };
   }
 
-  static styles = [Datagrid.styles, unsafeCSS(styles)];
+  static styles = [Datagrid.styles, styles];
 
   protected pairTemplate(transfer: Transfer) {
     const { content } = transfer;

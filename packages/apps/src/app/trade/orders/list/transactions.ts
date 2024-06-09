@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { when } from 'lit/directives/when.js';
@@ -16,7 +16,7 @@ import styles from './transactions.css';
 export class OrdersListTx extends BaseElement {
   @property({ attribute: false }) order: Order = null;
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   protected formatDate(transaction: OrderTransaction) {
     const dateStr = transaction.date;

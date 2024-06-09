@@ -1,4 +1,4 @@
-import { html, unsafeCSS, TemplateResult } from 'lit';
+import { html, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { ColumnDef, Row } from '@tanstack/table-core';
@@ -15,7 +15,7 @@ import styles from './transactions.css';
 export class OrdersGridTx extends Datagrid<OrderTransaction> {
   @property({ attribute: false }) order: Order = null;
 
-  static styles = [Datagrid.styles, unsafeCSS(styles)];
+  static styles = [Datagrid.styles, styles];
 
   protected formatDate(row: Row<OrderTransaction>) {
     const dateStr = row.original.date;

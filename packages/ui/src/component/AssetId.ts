@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { UIGCElement } from './base/UIGCElement';
 
@@ -13,7 +13,7 @@ export class AssetId extends UIGCElement {
   @property({ type: String }) symbol = null;
   @property({ type: String }) chain = null;
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   override async updated() {
     const logoChain = this.shadowRoot.querySelector('uigc-logo-chain');

@@ -1,4 +1,4 @@
-import { html, unsafeCSS, LitElement, TemplateResult } from 'lit';
+import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { AnyEvmChain, Parachain } from '@galacticcouncil/xcm-core';
@@ -39,7 +39,7 @@ export class TransactionCenter extends LitElement {
   private _handleCrossChainTx = (e: CustomEvent<TxInfo>) =>
     this.processXcm(short.generate(), e.detail);
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   private blockMeta(
     result: ISubmittableResult,

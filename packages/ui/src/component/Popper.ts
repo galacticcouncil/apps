@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
@@ -11,7 +11,7 @@ import styles from './Popper.css';
 export class Popper extends UIGCElement {
   @property({ type: String }) text = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   override async firstUpdated() {
     const slotted = this.shadowRoot.querySelector('slot');

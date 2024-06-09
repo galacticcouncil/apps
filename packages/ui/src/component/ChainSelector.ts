@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -14,7 +14,7 @@ export class ChainSelector extends UIGCElement {
   @property({ type: String }) chain = null;
   @property({ type: String }) chainKey = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onSelectorClick(e: any) {
     const options = {

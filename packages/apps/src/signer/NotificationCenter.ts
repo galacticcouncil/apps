@@ -1,4 +1,4 @@
-import { html, unsafeCSS, TemplateResult } from 'lit';
+import { html, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
@@ -18,7 +18,7 @@ export class NotificationCenter extends BaseElement {
   private _handleNotification = (e: CustomEvent<Notification>) =>
     this.appendNewNotification(e.detail);
 
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
+  static styles = [baseStyles, styles];
 
   openDrawer() {
     const drawer = this.shadowRoot.querySelector('uigc-drawer');

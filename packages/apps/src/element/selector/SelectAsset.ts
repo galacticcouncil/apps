@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
@@ -34,11 +34,7 @@ export class SelectAsset extends LitElement {
 
   @state() query = '';
 
-  static styles = [
-    unsafeCSS(baseStyles),
-    unsafeCSS(selectorStyles),
-    unsafeCSS(styles),
-  ];
+  static styles = [baseStyles, selectorStyles, styles];
 
   private getAssets() {
     return new Map(

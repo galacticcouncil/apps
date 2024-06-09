@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
@@ -15,7 +15,7 @@ export class AccountIdenticon extends LitElement {
   @property({ type: String }) address: string = null;
   @property({ type: Number }) ss58prefix: number = null;
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   render() {
     const isH160Addr = addr.isH160(this.address);

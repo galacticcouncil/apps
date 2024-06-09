@@ -1,4 +1,4 @@
-import { html, unsafeCSS, PropertyValues } from 'lit';
+import { html, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { WatchContractEventReturnType } from 'viem';
 
@@ -25,7 +25,7 @@ export class Transfers extends BaseApp {
   @state() transfers: Transfer[] = [];
   @state() width: number = window.innerWidth;
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   private resetTransfers() {
     this.transfers = [];

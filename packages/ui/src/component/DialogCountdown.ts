@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { asyncReplace } from 'lit/directives/async-replace.js';
 import { when } from 'lit/directives/when.js';
@@ -19,7 +19,7 @@ export class DialogCountdown extends UIGCElement {
   @property({ type: Number }) timeout = null;
   @state() private timer = null;
 
-  static styles = unsafeCSS(styles);
+  static styles = styles;
 
   override async firstUpdated() {
     this.timer = countDown(this.timeout / 1000);

@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -17,7 +17,7 @@ export class AssetPrice extends UIGCElement {
   @property({ type: Boolean }) loading = false;
   @property({ attribute: false }) formatter = null;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   render() {
     const formatterFn = this.formatter ? this.formatter : amountFormatter;

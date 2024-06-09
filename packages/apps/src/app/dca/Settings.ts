@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 import * as i18n from 'i18next';
@@ -17,7 +17,7 @@ export class DcaSettings extends LitElement {
     DcaConfigCursor,
   );
 
-  static styles = [unsafeCSS(baseStyles), unsafeCSS(styles)];
+  static styles = [baseStyles, styles];
 
   private onChange(value: any, propName: any) {
     const config = this.dcaConfig.state;

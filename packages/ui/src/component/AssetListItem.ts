@@ -1,4 +1,4 @@
-import { html, unsafeCSS } from 'lit';
+import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
@@ -16,7 +16,7 @@ export class AssetListItem extends UIGCElement {
   @property({ type: String }) balanceUsd = null;
   @property({ type: Boolean }) disabled = false;
 
-  static styles = [UIGCElement.styles, unsafeCSS(styles)];
+  static styles = [UIGCElement.styles, styles];
 
   onAssetClick(e: any) {
     const options = {
