@@ -1,12 +1,5 @@
 import { Asset } from '@galacticcouncil/sdk';
-
-const EXTERNAL_ASSETS_WHITELIST = [
-  '1000021', // PINK
-  '1000034', // STINK
-  '1000085', // WUD
-  '1000082', // WIFD
-  '1000091', // BNDT
-];
+import { MetadataStore } from '@galacticcouncil/ui';
 
 /**
  * Check if external asset is whitelisted
@@ -15,9 +8,8 @@ const EXTERNAL_ASSETS_WHITELIST = [
  * @returns true if asset whitelisted, otherwise false
  */
 export const isExternalAssetWhitelisted = (asset: Asset) => {
-  return asset.type === 'External'
-    ? EXTERNAL_ASSETS_WHITELIST.includes(asset.id)
-    : true;
+  const whitelist = MetadataStore.getInstance().externalWhitelist();
+  return asset.type === 'External' ? whitelist.includes(asset.id) : true;
 };
 
 /**

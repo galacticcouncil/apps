@@ -1,4 +1,4 @@
-import { unsafeCSS, CSSResult } from 'lit';
+import { CSSResult } from 'lit';
 
 /**
  * Creates a <style> tag in the <head> tag

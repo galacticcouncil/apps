@@ -2,7 +2,7 @@ import { html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { BaseLogo } from './BaseLogo';
-import { LogoMeta } from './LogoMeta';
+import { MetadataStore } from '../utils';
 
 @customElement('uigc-logo-asset')
 export class AssetLogo extends BaseLogo {
@@ -10,7 +10,7 @@ export class AssetLogo extends BaseLogo {
 
   render() {
     const key = this.normalizeKey(this.asset);
-    const asset = LogoMeta.getInstance().asset(key);
+    const asset = MetadataStore.getInstance().asset(key);
 
     if (asset) {
       return html`

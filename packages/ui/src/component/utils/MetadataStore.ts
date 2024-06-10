@@ -1,35 +1,39 @@
 const BASE_URL =
   'https://raw.githubusercontent.com/galacticcouncil/intergalactic-asset-metadata/master';
 
-export class LogoMeta {
-  private static _instance: LogoMeta = new LogoMeta();
-  private _assets: LogoData = null;
-  private _chains: LogoData = null;
+export class MetadataStore {
+  private static _instance: MetadataStore = new MetadataStore();
+  private _assets: AssetResouce = null;
+  private _chains: AssetResouce = null;
+  private _metadata: AssetMetadata = null;
 
   constructor() {
-    if (LogoMeta._instance) {
-      throw new Error('Use LogoMeta.getInstance() instead of new.');
+    if (MetadataStore._instance) {
+      throw new Error('Use MetadataStore.getInstance() instead of new.');
     }
-    LogoMeta._instance = this;
+    MetadataStore._instance = this;
     this.getData('/assets.json', (data) => {
       this._assets = data;
     });
     this.getData('/chains.json', (data) => {
       this._chains = data;
     });
+    this.getData('/metadata.json', (data) => {
+      this._metadata = data;
+    });
   }
 
-  public static getInstance(): LogoMeta {
-    return LogoMeta._instance;
+  public static getInstance(): MetadataStore {
+    return MetadataStore._instance;
   }
 
-  private getData(path: string, cb: (data: LogoData) => void) {
+  private getData(path: string, cb: (data: any) => void) {
     fetch(BASE_URL + path)
       .then((a) => a.json())
       .then((j) => cb(j));
   }
 
-  private getUrl(data: LogoData, key: string): string {
+  private getUrl(data: AssetResouce, key: string): string {
     const { branch, cdn, path, repository, items } = data;
     const item = items[key];
     if (item) {
@@ -47,9 +51,14 @@ export class LogoMeta {
   public chain(key: string): string {
     return this.getUrl(this._chains, key);
   }
+
+  public externalWhitelist(): string[] {
+    const whitelist = this._metadata.assets.external.whitelist;
+    return Object.values(whitelist);
+  }
 }
 
-export interface LogoData {
+interface AssetResouce {
   baseUrl: string;
   branch: string;
   cdn: {
@@ -60,6 +69,16 @@ export interface LogoData {
   items: {
     [key: string]: {
       path: string;
+    };
+  };
+}
+
+interface AssetMetadata {
+  assets: {
+    external: {
+      whitelist: {
+        [key: string]: string;
+      };
     };
   };
 }

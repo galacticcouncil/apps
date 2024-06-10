@@ -65,3 +65,6 @@ export { SuccessIcon } from './component/icons/Success';
 export { SuccessIconAlt } from './component/icons/SuccessAlt';
 export { SwitchIcon } from './component/icons/Switch';
 export { WarningIcon } from './component/icons/Warning';
+
+/* Utils */
+export { MetadataStore } from './component/utils';
