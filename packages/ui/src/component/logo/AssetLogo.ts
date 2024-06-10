@@ -15,7 +15,7 @@ export class AssetLogo extends BaseLogo {
     if (asset) {
       return html`
         <div>
-          <img loading="lazy" src="${asset}" />
+          <img loading="lazy" src="${asset}" alt="${this.asset}" />
         </div>
       `;
     }
