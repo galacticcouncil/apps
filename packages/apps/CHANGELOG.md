@@ -1,5 +1,16 @@
 # @galacticcouncil/apps
 
+## 4.0.0
+
+### Major Changes
+
+- Use lightning css processor, css module, externalize assets
+
+### Patch Changes
+
+- Updated dependencies
+  - @galacticcouncil/ui@4.0.0
+
 ## 3.9.1
 
 ### Patch Changes

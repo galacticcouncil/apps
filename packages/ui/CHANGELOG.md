@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 4.0.0
+
+### Major Changes
+
+- Use lightning css processor, css module, externalize assets
+
 ## 3.2.3
 
 ### Patch Changes
