@@ -4,7 +4,7 @@ import { AssetApi } from 'api/asset';
 import { PaymentApi } from 'api/payment';
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
-import { createApi, syncRegistry } from 'chain';
+import { createApi } from 'chain';
 import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 import { SECOND_MS } from 'utils/time';
 
@@ -57,13 +57,7 @@ export abstract class PoolApp extends BaseApp {
 
   override async firstUpdated() {
     if (this.isApiReady()) {
-      const { poolService } = this.chain.state;
-      syncRegistry(
-        poolService,
-        () => this._init(),
-        () => {},
-        this.isTestnet,
-      );
+      this._init();
     } else {
       createApi(
         this.apiAddress,
@@ -81,6 +75,12 @@ export abstract class PoolApp extends BaseApp {
 
   override connectedCallback() {
     super.connectedCallback();
+    this.channel.addEventListener('message', (event) => {
+      if (event.data === 'external-sync') {
+        this.syncAssets();
+        this.resubscribeBalance();
+      }
+    });
   }
 
   override disconnectedCallback() {
@@ -136,10 +136,10 @@ export abstract class PoolApp extends BaseApp {
   protected async subscribeBalance() {
     const account = this.account.state;
     if (account) {
-      this.disconnectSubscribeBalance = [
-        await this.subscribeTokensAccountBalance(),
-        await this.subscribeSystemAccountBalance(),
-      ];
+      this.disconnectSubscribeBalance = await Promise.all([
+        this.subscribeTokensAccountBalance(),
+        this.subscribeSystemAccountBalance(),
+      ]);
       const addrAbrev = this.getShortened(account.address);
       console.log(`Account [${addrAbrev}] balance subscribed`);
     }
@@ -153,6 +153,12 @@ export abstract class PoolApp extends BaseApp {
       const addrAbrev = this.getShortened(account.address);
       console.log(`Account [${addrAbrev}] balance unsubscribed`);
     }
+  }
+
+  protected async resubscribeBalance() {
+    const account = this.account.state;
+    this.unsubscribeBalance(account);
+    this.subscribeBalance();
   }
 
   private subscribeTokensAccountBalance(): UnsubscribePromise {
@@ -205,6 +211,19 @@ export abstract class PoolApp extends BaseApp {
       this.unsubscribeBalance(prev);
       this.subscribeBalance();
     }
+  }
+
+  protected async syncAssets() {
+    const { poolService, router } = this.chain.state;
+    const tradeable = await router.getAllAssets();
+    const pairs = await this.assetApi.getPairs(tradeable);
+
+    this.assets = {
+      ...this.assets,
+      tradeable: tradeable,
+      registry: new Map(poolService.assets.map((a) => [a.id, a])),
+      pairs: pairs,
+    };
   }
 
   protected async syncDolarPrice() {

@@ -15,6 +15,7 @@ export interface Account {
 export interface Chain {
   api: ApiPromise;
   ecosystem: Ecosystem;
+  isTestnet: boolean;
   poolService: PoolService;
   router: TradeRouter;
 }
@@ -22,7 +23,6 @@ export interface Chain {
 export enum Ecosystem {
   Kusama = 'kusama',
   Polkadot = 'polkadot',
-  Testnet = 'testnet',
 }
 
 export interface TradeConfig {

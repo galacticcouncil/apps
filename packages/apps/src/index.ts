@@ -1,3 +1,6 @@
+export { ContextProvider } from './app/ContextProvider';
+
+/* Apps */
 export { TradeApp } from './app/trade';
 export { DcaApp } from './app/dca';
 export { YieldApp } from './app/yield';

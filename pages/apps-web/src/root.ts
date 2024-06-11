@@ -28,9 +28,9 @@ export class Root extends LitElement {
     return html`
       <gc-notification-center>
         <gc-transaction-center>
-          <gc-database-provider>
+          <gc-context-provider>
             <slot></slot>
-          </gc-database-provider>
+          </gc-context-provider>
         </gc-transaction-center>
       </gc-notification-center>
     `;

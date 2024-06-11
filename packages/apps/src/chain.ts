@@ -1,8 +1,4 @@
-import {
-  CachingPoolService,
-  PoolService,
-  TradeRouter,
-} from '@galacticcouncil/sdk';
+import { CachingPoolService, TradeRouter } from '@galacticcouncil/sdk';
 import { SubstrateApis } from '@galacticcouncil/xcm-core';
 import { ApiPromise } from '@polkadot/api';
 import { Ecosystem, ChainCursor, ExternalAssetCursor } from './db';
@@ -12,21 +8,22 @@ const logFmt = (log: string) => {
 };
 
 const readExternal = (isTestnet: boolean) => {
-  const externalConfig = ExternalAssetCursor.deref();
+  const config = ExternalAssetCursor.deref();
 
-  return externalConfig
-    ? externalConfig.state.tokens[isTestnet ? 'testnet' : 'mainnet']
-    : undefined;
+  if (config) {
+    const key = isTestnet ? 'testnet' : 'mainnet';
+    return config.state.tokens[key];
+  }
+  return undefined;
 };
 
 async function info(api: ApiPromise): Promise<void> {
-  const [systemChain, systemChainType, systemName, systemVersion] =
-    await Promise.all([
-      api.rpc.system.chain(),
-      api.rpc.system.chainType(),
-      api.rpc.system.name(),
-      api.rpc.system.version(),
-    ]);
+  const [systemChain, systemChainType] = await Promise.all([
+    api.rpc.system.chain(),
+    api.rpc.system.chainType(),
+    api.rpc.system.name(),
+    api.rpc.system.version(),
+  ]);
   logFmt(`Chain: ${systemChain} (${systemChainType.toString()})`);
 }
 
@@ -48,6 +45,7 @@ function initApi(
     ChainCursor.reset({
       api: api,
       ecosystem: ecosystem,
+      isTestnet: isTestnet,
       poolService: poolService,
       router: router,
     });
@@ -80,27 +78,6 @@ export async function useApi(
 ) {
   try {
     initApi(api, ecosystem, onReady, isTestnet);
-  } catch (error) {
-    onError(error);
-  }
-}
-
-export async function syncRegistry(
-  poolService: PoolService,
-  onReady: () => void,
-  onError: (error: unknown) => void,
-  isTestnet = false,
-) {
-  try {
-    const external = readExternal(isTestnet);
-    const isSynced = external.every((ext) =>
-      poolService.assets.find((a) => a.symbol === ext.symbol),
-    );
-    if (isSynced) {
-      onReady();
-    } else {
-      poolService.syncRegistry(external).then(() => onReady());
-    }
   } catch (error) {
     onError(error);
   }

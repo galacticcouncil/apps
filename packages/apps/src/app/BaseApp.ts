@@ -8,6 +8,7 @@ import { BaseElement } from 'element/BaseElement';
 
 export abstract class BaseApp extends BaseElement {
   protected account = new DatabaseController<Account>(this, AccountCursor);
+  protected channel = new BroadcastChannel('ctx-channel');
 
   private watchId: string;
 
@@ -80,6 +81,7 @@ export abstract class BaseApp extends BaseElement {
 
   override disconnectedCallback() {
     AccountCursor.removeWatch(this.watchId);
+    this.channel.close();
     super.disconnectedCallback();
   }
 }
