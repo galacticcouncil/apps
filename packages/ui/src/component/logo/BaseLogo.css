@@ -10,9 +10,7 @@
   height: 100%;
 }
 
-:host div {
-  width: 100%;
-  height: 100%;
+:host img {
   background-size: cover;
   background-image: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjEwMCIgd2lkdGg9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjUwIiBmaWxsPSJ0cmFuc3BhcmVudCIgLz4KPC9zdmc+');
 }
