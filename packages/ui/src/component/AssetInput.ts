@@ -78,7 +78,7 @@ export class AssetInput extends UIGCElement {
 
   render() {
     return html`
-      <div class="asset-root" @click="${this.onWrapperClick}}">
+      <div class="asset-root" @click=${this.onWrapperClick}>
         <slot name="inputAdornment"></slot>
         <div class="asset-wrapper">
           <span class="asset-field">

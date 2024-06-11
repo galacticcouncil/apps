@@ -83,7 +83,7 @@ export class Textfield extends UIGCElement {
 
   render() {
     return html`
-      <div class="textfield-root" @click="${this.onWrapperClick}}">
+      <div class="textfield-root" @click=${this.onWrapperClick}>
         <slot name="inputAdornment"></slot>
         <div class="textfield-wrapper">
           <span class="textfield-field">
