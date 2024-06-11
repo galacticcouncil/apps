@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 4.1.0
+
+### Minor Changes
+
+- Context provider & broadcast apps support
+
 ## 4.0.0
 
 ### Major Changes

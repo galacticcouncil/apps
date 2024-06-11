@@ -15,10 +15,6 @@ export class ChainLogo extends BaseLogo {
     if (chain) {
       return html`
         <img loading="lazy" src="${chain}" alt="${this.chain}" />
-
-        <!--   <div>
-          <img loading="lazy" src="${chain}" alt="${this.chain}" />
-        </div> -->
       `;
     }
     return html`

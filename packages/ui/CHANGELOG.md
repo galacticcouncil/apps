@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 4.0.1
+
+### Patch Changes
+
+- Fix icons rendering
+
 ## 4.0.0
 
 ### Major Changes
