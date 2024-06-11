@@ -1,10 +1,16 @@
 # @galacticcouncil/ui
 
+## 4.0.3
+
+### Patch Changes
+
+- Fix event callabacks in textfield/input
+
 ## 4.0.2
 
 ### Patch Changes
 
-- fix logo host display
+- Fix logo host display
 
 ## 4.0.1
 
