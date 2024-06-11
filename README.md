@@ -1,6 +1,6 @@
 # Galactic Apps
 
-Collection of views & components for seamless interaction with HydraDX & Basilisk chains.
+Collection of views & components for seamless interaction with Hydration & Basilisk chains.
 
 ## Project Structure
 
