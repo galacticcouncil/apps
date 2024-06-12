@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 4.1.0
+
+### Minor Changes
+
+- Use @latest with jsDelivr (purge support)
+
 ## 4.0.3
 
 ### Patch Changes
