@@ -34,10 +34,10 @@ export class MetadataStore {
   }
 
   private getUrl(data: AssetResouce, key: string): string {
-    const { branch, cdn, path, repository, items } = data;
+    const { cdn, path, repository, items } = data;
     const item = items[key];
     if (item) {
-      return [cdn['jsDelivr'], repository + '@' + branch, path, item.path].join(
+      return [cdn['jsDelivr'], repository + '@latest', path, item.path].join(
         '/',
       );
     }
