@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 4.1.1
+
+### Patch Changes
+
+- Fix: skip external sync if chain not initialized
+
 ## 4.1.0
 
 ### Minor Changes
