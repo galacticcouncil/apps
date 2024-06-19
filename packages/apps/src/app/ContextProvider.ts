@@ -53,14 +53,17 @@ export class ContextProvider extends LitElement {
     this.reset(cursor, key);
     const watchId = this.watchId(cursor);
     cursor.addWatch(watchId, (_id, _prev, curr) => {
-      console.log('🔄 Syncing external tokens...');
-      const { isTestnet, poolService } = ChainCursor.deref();
-      const config = isTestnet
-        ? curr.state.tokens['testnet']
-        : curr.state.tokens['mainnet'];
-      poolService.syncRegistry(config).then(() => {
-        this.channel.postMessage('external-sync');
-      });
+      const chain = ChainCursor.deref();
+      if (chain) {
+        console.log('🔄 Syncing external tokens...');
+        const { isTestnet, poolService } = chain;
+        const config = isTestnet
+          ? curr.state.tokens['testnet']
+          : curr.state.tokens['mainnet'];
+        poolService.syncRegistry(config).then(() => {
+          this.channel.postMessage('external-sync');
+        });
+      }
     });
     this.cursors.set(watchId, cursor);
   }
