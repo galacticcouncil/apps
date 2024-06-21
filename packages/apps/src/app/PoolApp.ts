@@ -50,6 +50,7 @@ export abstract class PoolApp extends BaseApp {
   protected abstract onInit(): void;
   protected abstract onBlockChange(blockNumber: number): void;
   protected abstract onBalanceUpdate(): void;
+  protected abstract onBroadcastMessage(event: MessageEvent): void;
 
   isApiReady(): boolean {
     return !!this.chain.state;
@@ -76,6 +77,7 @@ export abstract class PoolApp extends BaseApp {
   override connectedCallback() {
     super.connectedCallback();
     this.channel.addEventListener('message', (event) => {
+      this.onBroadcastMessage(event);
       if (event.data === 'external-sync') {
         this.syncAssets();
         this.resubscribeBalance();

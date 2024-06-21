@@ -1,20 +1,12 @@
 import { CachingPoolService, TradeRouter } from '@galacticcouncil/sdk';
 import { SubstrateApis } from '@galacticcouncil/xcm-core';
 import { ApiPromise } from '@polkadot/api';
-import { Ecosystem, ChainCursor, ExternalAssetCursor } from './db';
+
+import { Ecosystem, ChainCursor } from './db';
+import { readExternal } from './utils/external';
 
 const logFmt = (log: string) => {
   console.log('%c' + log, 'background: #222; color: #bada55');
-};
-
-const readExternal = (isTestnet: boolean) => {
-  const config = ExternalAssetCursor.deref();
-
-  if (config) {
-    const key = isTestnet ? 'testnet' : 'mainnet';
-    return config.state.tokens[key];
-  }
-  return undefined;
 };
 
 async function info(api: ApiPromise): Promise<void> {

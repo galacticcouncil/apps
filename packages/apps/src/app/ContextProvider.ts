@@ -14,6 +14,7 @@ import {
 } from 'db';
 import { getObj, setObj } from 'db/storage';
 import { ExternalAssetConfig } from 'db/types';
+import { readExternal } from 'utils/external';
 
 @customElement('gc-context-provider')
 export class ContextProvider extends LitElement {
@@ -57,10 +58,8 @@ export class ContextProvider extends LitElement {
       if (chain) {
         console.log('🔄 Syncing external tokens...');
         const { isTestnet, poolService } = chain;
-        const config = isTestnet
-          ? curr.state.tokens['testnet']
-          : curr.state.tokens['mainnet'];
-        poolService.syncRegistry(config).then(() => {
+        const external = readExternal(isTestnet);
+        poolService.syncRegistry(external).then(() => {
           this.channel.postMessage('external-sync');
         });
       }

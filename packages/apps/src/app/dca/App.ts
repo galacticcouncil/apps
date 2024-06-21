@@ -403,6 +403,8 @@ export class DcaApp extends PoolApp {
     this.syncBalance();
   }
 
+  protected onBroadcastMessage(): void {}
+
   protected async onAccountChange(prev: Account, curr: Account): Promise<void> {
     await super.onAccountChange(prev, curr);
     if (curr) {

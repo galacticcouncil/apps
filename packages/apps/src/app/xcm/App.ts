@@ -27,6 +27,7 @@ import {
 import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 import { getXcmKey } from 'utils/asset';
 import { isApprove, parseSpender, parseAmount } from 'utils/erc20';
+import { configureExternal } from 'utils/external';
 import { calculateEffectiveBalance } from 'utils/balance';
 import {
   convertFromH160,
@@ -280,7 +281,8 @@ export class XcmApp extends PoolApp {
   }
 
   private async changeSourceChain(chain: string) {
-    const srcChain = chainsMap.get(chain);
+    const { chains } = this.configService;
+    const srcChain = chains.get(chain);
     const supportedWallet = this.isSupportedWallet(srcChain);
     if (!supportedWallet) {
       this.onChangeWallet(srcChain);
@@ -294,7 +296,8 @@ export class XcmApp extends PoolApp {
   }
 
   private async changeDestinationChain(chain: string) {
-    const destChain = chainsMap.get(chain);
+    const { chains } = this.configService;
+    const destChain = chains.get(chain);
     this.resetTransfer({
       balance: null,
       destChain: destChain,
@@ -303,11 +306,12 @@ export class XcmApp extends PoolApp {
   }
 
   private async changeAsset(asset: string) {
+    const { assets } = this.configService;
     const balance = this.xchain.balance.get(asset);
     this.clearErrors();
     this.resetTransfer({
       balance: balance,
-      asset: assetsMap.get(asset),
+      asset: assets.get(asset),
     });
     this._syncData();
   }
@@ -1072,8 +1076,9 @@ export class XcmApp extends PoolApp {
 
   private syncChains() {
     const { srcChain, destChain, asset } = this.transfer;
+    const { chainsConfig } = this.configService;
 
-    const srcChainCfg = chainsConfigMap.get(srcChain.key);
+    const srcChainCfg = chainsConfig.get(srcChain.key);
     const srcChainAssetsCfg = srcChainCfg.getAssetsConfigs();
 
     const destChains = srcChainAssetsCfg.map((a) => a.destination);
@@ -1117,23 +1122,19 @@ export class XcmApp extends PoolApp {
   }
 
   protected onInit(): void {
-    this.configService = new ConfigService({
-      assets: assetsMap,
-      chains: chainsMap,
-      chainsConfig: chainsConfigMap,
-    });
-    this.wallet = new Wallet({
-      config: this.configService,
-    });
     this.changeChain();
   }
 
   protected onBlockChange(): void {}
 
-  /**
-   * Do nothing, asset balance is synced by wallet
-   */
   protected onBalanceUpdate(): void {}
+
+  protected onBroadcastMessage(event: MessageEvent): void {
+    if (event.data === 'external-sync') {
+      this.initConfig();
+      this.changeChain();
+    }
+  }
 
   private onAccountChangeSync() {
     const current = this.transfer.srcChain;
@@ -1160,22 +1161,33 @@ export class XcmApp extends PoolApp {
       chainsMap.delete(c);
       chainsConfigMap.delete(c);
     });
+    this.configService = new ConfigService({
+      assets: assetsMap,
+      chains: chainsMap,
+      chainsConfig: chainsConfigMap,
+    });
+    this.wallet = new Wallet({
+      config: this.configService,
+    });
+    configureExternal(this.isTestnet, this.configService);
   }
 
   private initTransferState() {
+    const { assets, chains } = this.configService;
     this.transfer = {
       ...this.transfer,
-      srcChain: chainsMap.get(this.srcChain),
-      destChain: chainsMap.get(this.destChain),
-      asset: assetsMap.get(this.asset),
+      srcChain: chains.get(this.srcChain),
+      destChain: chains.get(this.destChain),
+      asset: assets.get(this.asset),
     };
   }
 
   private initXChainState() {
-    const chains = Array.from(chainsMap.values());
+    const { chains } = this.configService;
+    const chainList = Array.from(chains.values());
     this.xchain = {
       ...this.xchain,
-      list: chains
+      list: chainList
         .filter((c) => {
           switch (this.ecosystem) {
             case Ecosystem.Polkadot:
