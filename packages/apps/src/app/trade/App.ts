@@ -974,6 +974,8 @@ export class TradeApp extends PoolApp {
     this.syncBalances();
   }
 
+  protected onBroadcastMessage(): void {}
+
   protected override async onAccountChange(
     prev: Account,
     curr: Account,
