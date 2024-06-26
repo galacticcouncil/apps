@@ -71,10 +71,37 @@ export class SelectAsset extends LitElement {
   }
 
   private filterAssets(query: string, assets: Asset[]) {
+    const tickerOrder = [
+      'HDX',
+      'DOT',
+      'USDC',
+      'USDT',
+      'IBTC',
+      'VDOT',
+      'WETH',
+      'WBTC',
+    ];
+
+    const getTickerIndex = (ticker: string) => {
+      const index = tickerOrder.indexOf(ticker.toUpperCase());
+      return index === -1 ? Infinity : index;
+    };
+
     return assets
       .filter((a) => this.filterAsset(query, a))
       .map((a) => this.getAssetBalance(a))
-      .sort((a, b) => Number(b.balanceUsd) - Number(a.balanceUsd));
+      .sort((a, b) => {
+        if (Number(b.balanceUsd) === 0 && Number(a.balanceUsd) === 0) {
+          if (a.asset.type === 'External') return 1;
+          if (b.asset.type === 'External') return -1;
+
+          return (
+            getTickerIndex(a.asset.symbol) - getTickerIndex(b.asset.symbol)
+          );
+        }
+
+        return Number(b.balanceUsd) - Number(a.balanceUsd);
+      });
   }
 
   private filter(query: string) {
