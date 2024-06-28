@@ -802,7 +802,7 @@ export class XcmApp extends PoolApp {
   private isSubstrateAddressError(dest: AnyChain, address: string) {
     return (
       dest instanceof Parachain &&
-      !['hydradx', 'moonbeam', 'acala-evm'].includes(dest.key) &&
+      !['hydradx', 'moonbeam', 'darwinia', 'acala-evm'].includes(dest.key) &&
       !isValidAddress(address)
     );
   }
