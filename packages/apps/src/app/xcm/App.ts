@@ -362,12 +362,12 @@ export class XcmApp extends PoolApp {
       this.transfer.error['amount'] = i18n.t('error.balance');
     } else if (amountBn > maxBn) {
       this.transfer.error['amount'] = i18n.t('error.maxAmount', {
-        amount: max.toDecimal(),
+        amount: max.toDecimal(max.decimals),
         asset: asset.originSymbol,
       });
     } else if (amountBn < minBn) {
       this.transfer.error['amount'] = i18n.t('error.minAmount', {
-        amount: minWithRelay.toDecimal(),
+        amount: minWithRelay.toDecimal(minWithRelay.decimals),
         asset: asset.originSymbol,
       });
     } else {
