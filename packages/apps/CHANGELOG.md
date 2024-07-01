@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 4.3.0
+
+### Minor Changes
+
+- Upgrade to pjs 11.2.1
+
 ## 4.2.0
 
 ### Minor Changes
