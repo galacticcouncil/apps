@@ -12,7 +12,7 @@ import {
 } from '@galacticcouncil/xcm-core';
 import { toDecimal } from '@moonbeam-network/xcm-utils';
 import { TypeRegistry } from '@polkadot/types';
-import { XcmVersionedMultiLocation } from '@polkadot/types/lookup';
+import { XcmVersionedLocation } from '@polkadot/types/lookup';
 
 import {
   createPublicClient,
@@ -355,14 +355,12 @@ export class TransferApi {
    * @param payload - transfer payload
    * @returns xcm versioned multilocation
    */
-  private decodeMrlPayload(
-    payload: TransferPayload,
-  ): XcmVersionedMultiLocation {
+  private decodeMrlPayload(payload: TransferPayload): XcmVersionedLocation {
     const registry = new TypeRegistry();
     return registry.createType(
       'VersionedMultiLocation',
       payload.payload.replace('0x00', '0x'),
-    ) as unknown as XcmVersionedMultiLocation;
+    ) as unknown as XcmVersionedLocation;
   }
 
   /**
