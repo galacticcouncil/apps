@@ -4,6 +4,7 @@ import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
+import { Asset as RegAsset } from '@galacticcouncil/sdk';
 import {
   AnyChain,
   Asset,
@@ -41,6 +42,9 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) srcChainFee: AssetAmount = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destChainFee: AssetAmount = null;
+  @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
+  @property({ attribute: false }) registryChain: AnyChain = null;
+
   @property({ attribute: false }) error = {};
 
   static styles = [baseStyles, formStyles, styles];
@@ -183,6 +187,56 @@ export class XcmForm extends LitElement {
     }
   }
 
+  formAssetLoadingTemplate() {
+    return html`
+      <div class="loading" slot="asset">
+        <uigc-skeleton
+          circle
+          progress
+          width="32px"
+          height="32px"></uigc-skeleton>
+        <span class="title">
+          <uigc-skeleton
+            progress
+            rectangle
+            width="40px"
+            height="16px"></uigc-skeleton>
+          <uigc-skeleton
+            progress
+            rectangle
+            width="50px"
+            height="8px"></uigc-skeleton>
+        </span>
+      </div>
+    `;
+  }
+
+  formAssetTemplate(asset: Asset) {
+    if (this.registry.size > 0) {
+      const registryId = this.registryChain.getBalanceAssetId(asset);
+      const registryAsset = this.registry.get(registryId.toString());
+
+      if (this.srcChain.isEvmChain()) {
+        return html`
+          <uigc-asset slot="asset" symbol=${asset.originSymbol}>
+            <uigc-asset-id
+              slot="icon"
+              symbol=${asset.originSymbol}
+              chain=${this.srcChain.key}></uigc-asset-id>
+          </uigc-asset>
+        `;
+      }
+
+      return html`
+        <gc-asset-identicon
+          slot="asset"
+          .asset=${registryAsset}
+          .assets=${this.registry}></gc-asset-identicon>
+      `;
+    }
+    return this.formAssetLoadingTemplate();
+  }
+
   formSelectAssetTemplate() {
     const balance = this.balance?.toDecimal(this.balance.decimals);
     const max = this.max?.toDecimal(this.max.decimals);
@@ -193,6 +247,8 @@ export class XcmForm extends LitElement {
         .asset=${this.asset?.originSymbol}
         .amount=${this.amount}
         .unit=${this.asset?.originSymbol}
+        ?selectable=${this.registry.size > 0}
+        .selectable=${this.registry.size > 0}
         ?error=${this.error['amount']}
         .error=${this.error['amount']}>
         <uigc-asset slot="asset" symbol=${this.asset?.originSymbol}>

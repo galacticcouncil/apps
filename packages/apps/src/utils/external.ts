@@ -20,7 +20,7 @@ export function configureExternal(
 ) {
   readExternal(isTestnet)?.forEach((ext) => {
     if (ext.origin === 1000 && !defaultExternals.includes(ext.id)) {
-      const assetData = buildAssetData(ext, '_ah_');
+      const assetData = buildAssetData(ext);
       console.log('💀 Registering ' + assetData.asset.key);
       buildAssethubConfig(assetData, configService);
     }
@@ -37,15 +37,12 @@ export function readExternal(isTestnet: boolean) {
   return undefined;
 }
 
-export function buildAssetData(
-  external: ExternalAsset,
-  suffix: string,
-): ChainAssetData {
+function buildAssetData(external: ExternalAsset): ChainAssetData {
   const { decimals, id, symbol, internalId } = external;
 
   const key = symbol.toLowerCase();
   const asset = new Asset({
-    key: key + suffix + id,
+    key: [key, external.origin, id].join('_'),
     originSymbol: symbol,
   });
 

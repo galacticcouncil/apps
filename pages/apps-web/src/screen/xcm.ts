@@ -44,7 +44,7 @@ export class XcmScreen extends LitElement implements BeforeEnterObserver {
   hdxTemplate() {
     return html`
       <gc-xcm
-        srcChain=${this.srcChain || 'assethub'}
+        srcChain=${this.srcChain || 'ethereum'}
         destChain=${this.destChain || 'hydradx'}
         asset=${this.asset}
         accountAddress=${this.account.state?.address}

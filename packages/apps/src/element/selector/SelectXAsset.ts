@@ -8,6 +8,7 @@ import {
   virtualizerRef,
 } from '@lit-labs/virtualizer/virtualize.js';
 
+import { Asset as RegAsset } from '@galacticcouncil/sdk';
 import { AnyChain, Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 
 import { baseStyles, selectorStyles } from 'styles';
@@ -15,8 +16,13 @@ import { baseStyles, selectorStyles } from 'styles';
 import { humanizeAmount } from 'utils/amount';
 import { getChainAssetId, getChainEcosystem, getChainId } from 'utils/chain';
 
+import 'element/id';
+
 @customElement('gc-select-xasset')
 export class SelectXAsset extends LitElement {
+  @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
+  @property({ attribute: false }) registryChain: AnyChain = null;
+
   @property({ attribute: false }) assets: Asset[] = [];
   @property({ attribute: false }) balances: Map<string, AssetAmount> = new Map(
     [],
@@ -104,6 +110,30 @@ export class SelectXAsset extends LitElement {
     super.update(changedProperties);
   }
 
+  formAssetTemplate(asset: Asset) {
+    const registryId = this.registryChain.getBalanceAssetId(asset);
+    const registryAsset = this.registry.get(registryId.toString());
+
+    if (this.chain.isEvmChain()) {
+      return html`
+        <uigc-asset slot="asset" symbol=${asset.originSymbol}>
+          <uigc-asset-id
+            slot="icon"
+            symbol=${asset.originSymbol}
+            chain=${this.chain.key}></uigc-asset-id>
+        </uigc-asset>
+      `;
+    }
+
+    return html`
+      <gc-asset-identicon
+        slot="asset"
+        .showDesc=${true}
+        .asset=${registryAsset}
+        .assets=${this.registry}></gc-asset-identicon>
+    `;
+  }
+
   render() {
     const filtered = this.filterAssets(this.query);
     const selected = filtered.filter((asset) => this.isSelected(asset));
@@ -136,7 +166,7 @@ export class SelectXAsset extends LitElement {
         () =>
           html`
             <uigc-asset-list>
-              ${map(range(3), (i) => this.loadingTemplate())}
+              ${map(range(3), () => this.loadingTemplate())}
             </uigc-asset-list>
           `,
       )}

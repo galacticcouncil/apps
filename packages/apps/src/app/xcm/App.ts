@@ -1326,6 +1326,8 @@ export class XcmApp extends PoolApp {
           .balances=${this.xchain.balance}
           .asset=${this.transfer.asset}
           .chain=${this.transfer.srcChain}
+          .registry=${this.assets.registry}
+          .registryChain=${this.configService.getChain('hydradx')}
           @asset-click=${this.onAssetClick}>
           <div class="header section" slot="header">
             <uigc-icon-button
@@ -1514,6 +1516,8 @@ export class XcmApp extends PoolApp {
           .destChainFee=${this.transfer.destChainFee}
           .max=${this.transfer.max}
           .error=${this.transfer.error}
+          .registry=${this.assets.registry}
+          .registryChain=${this.configService.getChain('hydradx')}
           @asset-input-change=${this.onAssetInputChange}
           @address-input-change=${this.onAddressInputChange}
           @asset-switch-click=${this.onChainSwitchClick}
