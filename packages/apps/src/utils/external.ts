@@ -18,7 +18,7 @@ export function configureExternal(
   isTestnet: boolean,
   configService: ConfigService,
 ) {
-  readExternal(isTestnet).forEach((ext) => {
+  readExternal(isTestnet)?.forEach((ext) => {
     if (ext.origin === 1000 && !defaultExternals.includes(ext.id)) {
       const assetData = buildAssetData(ext, '_ah_');
       console.log('💀 Registering ' + assetData.asset.key);
