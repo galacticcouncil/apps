@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 4.3.1
+
+### Patch Changes
+
+- Fix externals undefined for bsx platform
+
 ## 4.3.0
 
 ### Minor Changes
