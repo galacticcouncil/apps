@@ -92,12 +92,19 @@ export class SelectAsset extends LitElement {
       .map((a) => this.getAssetBalance(a))
       .sort((a, b) => {
         if (Number(b.balanceUsd) === 0 && Number(a.balanceUsd) === 0) {
-          if (a.asset.type === 'External') return 1;
-          if (b.asset.type === 'External') return -1;
+          if (a.asset.type === 'External' && b.asset.type !== 'External')
+            return 1;
+          if (a.asset.type !== 'External' && b.asset.type === 'External')
+            return -1;
 
-          return (
-            getTickerIndex(a.asset.symbol) - getTickerIndex(b.asset.symbol)
-          );
+          const tickerIndexA = getTickerIndex(a.asset.symbol);
+          const tickerIndexB = getTickerIndex(b.asset.symbol);
+
+          if (tickerIndexA === tickerIndexB) {
+            return a.asset.symbol.localeCompare(b.asset.symbol);
+          }
+
+          return tickerIndexA - tickerIndexB;
         }
 
         return Number(b.balanceUsd) - Number(a.balanceUsd);
