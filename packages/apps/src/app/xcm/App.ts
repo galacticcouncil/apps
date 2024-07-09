@@ -1266,36 +1266,42 @@ export class XcmApp extends PoolApp {
   }
 
   selectChainTab() {
+    const active = this.tab === TransferTab.SelectChain;
+    const isDest = this.isDestChainSelection();
     const classes = {
       tab: true,
-      active: this.tab == TransferTab.SelectChain,
+      active: active,
     };
-    const isDest = this.isDestChainSelection();
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-xchain
-          .active=${this.tab == TransferTab.SelectChain}
-          .chains=${isDest
-            ? this.xchain.dest.map((c) => c)
-            : this.xchain.list.map((c) => c)}
-          .srcChain=${this.transfer.srcChain}
-          .destChain=${this.transfer.destChain}
-          .selector=${this.xchain.selector}
-          @list-item-click=${this.onChainClick}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TransferTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${isDest
-                ? i18n.t('header.select.chainDst')
-                : i18n.t('header.select.chainSrc')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-select-xchain>
+        ${when(
+          active,
+          () => html`
+            <gc-select-xchain
+              .active=${this.tab == TransferTab.SelectChain}
+              .chains=${isDest
+                ? this.xchain.dest.map((c) => c)
+                : this.xchain.list.map((c) => c)}
+              .srcChain=${this.transfer.srcChain}
+              .destChain=${this.transfer.destChain}
+              .selector=${this.xchain.selector}
+              @list-item-click=${this.onChainClick}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TransferTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${isDest
+                    ? i18n.t('header.select.chainDst')
+                    : i18n.t('header.select.chainSrc')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-select-xchain>
+          `,
+        )}
       </uigc-paper>
     `;
   }
@@ -1306,30 +1312,35 @@ export class XcmApp extends PoolApp {
   }
 
   selectTokenTab() {
+    const active = this.tab === TransferTab.SelectToken;
     const classes = {
       tab: true,
-      active: this.tab == TransferTab.SelectToken,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-xasset
-          .active=${this.tab == TransferTab.SelectToken}
-          .assets=${this.xchain.tokens}
-          .balances=${this.xchain.balance}
-          .asset=${this.transfer.asset}
-          @asset-click=${this.onAssetClick}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TransferTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${i18n.t('header.select')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-select-xasset>
+        ${when(
+          active,
+          () => html`
+            <gc-select-xasset
+              .assets=${this.xchain.tokens}
+              .balances=${this.xchain.balance}
+              .asset=${this.transfer.asset}
+              @asset-click=${this.onAssetClick}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TransferTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${i18n.t('header.select')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-select-xasset>
+          `,
+        )}
       </uigc-paper>
     `;
   }

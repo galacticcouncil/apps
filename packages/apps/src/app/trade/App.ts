@@ -1104,28 +1104,34 @@ export class TradeApp extends PoolApp {
   }
 
   settingsTab() {
+    const active = this.tab === TradeTab.Settings;
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == TradeTab.Settings,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-trade-settings
-          .ecosystem=${this.ecosystem}
-          @settings-change=${() => this.recalculateTrade()}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TradeTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${i18n.t('header.settings')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-trade-settings>
+        ${when(
+          active,
+          () => html`
+            <gc-trade-settings
+              .ecosystem=${this.ecosystem}
+              @settings-change=${() => this.recalculateTrade()}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TradeTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${i18n.t('header.settings')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-trade-settings>
+          `,
+        )}
       </uigc-paper>
     `;
   }
@@ -1190,47 +1196,53 @@ export class TradeApp extends PoolApp {
   }
 
   selectAssetTab() {
+    const active = this.tab === TradeTab.SelectAsset;
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == TradeTab.SelectAsset,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-asset
-          .active=${this.tab == TradeTab.SelectAsset}
-          .assets=${this.assets.tradeable}
-          .pairs=${this.assets.pairs}
-          .balances=${this.assets.balance}
-          .ecosystem=${this.ecosystem}
-          .usdPrice=${this.assets.usdPrice}
-          .assetIn=${this.trade.assetIn}
-          .assetOut=${this.trade.assetOut}
-          .switchAllowed=${this.isSwitchEnabled()}
-          .selector=${this.asset.selector}
-          @asset-click=${this.onAssetClick}>
-          ${this.addAssetBtn()} ${this.addAssetBtnTitle()}
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TradeTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${i18n.t('header.select')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-select-asset>
+        ${when(
+          active,
+          () => html`
+            <gc-select-asset
+              .assets=${this.assets.tradeable}
+              .pairs=${this.assets.pairs}
+              .balances=${this.assets.balance}
+              .ecosystem=${this.ecosystem}
+              .usdPrice=${this.assets.usdPrice}
+              .assetIn=${this.trade.assetIn}
+              .assetOut=${this.trade.assetOut}
+              .switchAllowed=${this.isSwitchEnabled()}
+              .selector=${this.asset.selector}
+              @asset-click=${this.onAssetClick}>
+              ${this.addAssetBtn()} ${this.addAssetBtnTitle()}
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TradeTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${i18n.t('header.select')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-select-asset>
+          `,
+        )}
       </uigc-paper>
     `;
   }
 
   chartTab() {
+    const active = this.tab === TradeTab.Chart;
     const classes = {
       tab: true,
       chart: true,
-      active: this.tab == TradeTab.Chart,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>

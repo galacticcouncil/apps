@@ -47,6 +47,14 @@ export abstract class PoolApp extends BaseApp {
     balance: new Map<string, Amount>([]),
   };
 
+  private channelMessageListener = (event: MessageEvent<any>) => {
+    this.onBroadcastMessage(event);
+    if (event.data === 'external-sync') {
+      this.syncAssets();
+      this.resubscribeBalance();
+    }
+  };
+
   protected abstract onInit(): void;
   protected abstract onBlockChange(blockNumber: number): void;
   protected abstract onBalanceUpdate(): void;
@@ -76,19 +84,14 @@ export abstract class PoolApp extends BaseApp {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.channel.addEventListener('message', (event) => {
-      this.onBroadcastMessage(event);
-      if (event.data === 'external-sync') {
-        this.syncAssets();
-        this.resubscribeBalance();
-      }
-    });
+    this.channel.addEventListener('message', this.channelMessageListener);
   }
 
   override disconnectedCallback() {
     const account = this.account.state;
     this.disconnectSubscribeNewHeads?.();
     this.unsubscribeBalance(account);
+    this.channel.removeEventListener('message', this.channelMessageListener);
     super.disconnectedCallback();
   }
 
