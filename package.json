@@ -47,6 +47,7 @@
     "typescript": "^5.0.4"
   },
   "optionalDependencies": {
+    "@esbuild/linux-x64": "0.20.2",
     "lightningcss-linux-x64-gnu": "1.25.1"
   }
 }
