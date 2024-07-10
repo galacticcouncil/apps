@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 4.1.1
+
+### Patch Changes
+
+- Remove popper listeners on disconnect
+
 ## 4.1.0
 
 ### Minor Changes
