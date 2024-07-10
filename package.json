@@ -45,5 +45,8 @@
     "tsc-alias": "^1.8.8",
     "turbo": "^1.12.4",
     "typescript": "^5.0.4"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "1.25.1"
   }
 }
