@@ -37,7 +37,7 @@ export function readExternal(isTestnet: boolean) {
   return undefined;
 }
 
-function buildAssetData(
+export function buildAssetData(
   external: ExternalAsset,
   suffix: string,
 ): ChainAssetData {
@@ -58,7 +58,7 @@ function buildAssetData(
   } as ChainAssetData;
 }
 
-function buildAssethubConfig(
+export function buildAssethubConfig(
   assetData: ChainAssetData,
   configService: ConfigService,
 ) {
