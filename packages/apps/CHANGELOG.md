@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 4.4.0
+
+### Minor Changes
+
+- Export external utils, when directive for tabs
+
 ## 4.3.1
 
 ### Patch Changes
