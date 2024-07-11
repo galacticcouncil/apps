@@ -57,6 +57,7 @@ import { Wallet, XCall, XCallEvm, XTransfer } from '@galacticcouncil/xcm-sdk';
 
 import {
   addr,
+  big,
   AnyChain,
   AnyEvmChain,
   AnyParachain,
@@ -66,8 +67,6 @@ import {
   EvmParachain,
   Parachain,
 } from '@galacticcouncil/xcm-core';
-
-import { toBigInt } from '@moonbeam-network/xcm-utils';
 
 import type {
   PalletAssetsAssetDetails,
@@ -354,9 +353,9 @@ export class XcmApp extends PoolApp {
       amount: destChain.isEvmChain() ? min.amount * 2n : min.amount,
     });
 
-    const amountBn = toBigInt(amount, balance.decimals);
-    const maxBn = toBigInt(max.amount, max.decimals);
-    const minBn = toBigInt(minWithRelay.amount, max.decimals);
+    const amountBn = big.toBigInt(amount, balance.decimals);
+    const maxBn = big.toBigInt(max.amount, max.decimals);
+    const minBn = big.toBigInt(minWithRelay.amount, max.decimals);
 
     if (balance.amount == 0n) {
       this.transfer.error['amount'] = i18n.t('error.balance');
@@ -861,12 +860,12 @@ export class XcmApp extends PoolApp {
           evmProvider.getGasPrice(),
         ]);
         return AssetAmount.fromAsset(feeAssetData.asset, {
-          amount: toBigInt(gas * gasPrice, feeAsset.decimals),
+          amount: big.toBigInt(gas * gasPrice, feeAsset.decimals),
           decimals: feeAsset.decimals,
         });
       } catch (error) {
         return AssetAmount.fromAsset(feeAssetData.asset, {
-          amount: toBigInt(0n, feeAsset.decimals),
+          amount: big.toBigInt(0n, feeAsset.decimals),
           decimals: feeAsset.decimals,
         });
       }
@@ -878,7 +877,7 @@ export class XcmApp extends PoolApp {
       srcFee.amount.toString(),
     );
     return AssetAmount.fromAsset(feeAssetData.asset, {
-      amount: toBigInt(fee.toString(), 0),
+      amount: big.toBigInt(fee.toString(), 0),
       decimals: feeAsset.decimals,
     });
   }

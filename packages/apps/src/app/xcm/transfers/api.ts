@@ -2,6 +2,7 @@ import { findNestedKey } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import {
   addr,
+  big,
   mda,
   Abi,
   AnyChain,
@@ -10,7 +11,6 @@ import {
   Precompile,
   WormholeChain,
 } from '@galacticcouncil/xcm-core';
-import { toDecimal } from '@moonbeam-network/xcm-utils';
 import { TypeRegistry } from '@polkadot/types';
 import { XcmVersionedLocation } from '@polkadot/types/lookup';
 
@@ -296,7 +296,7 @@ export class TransferApi {
     const { asset, decimals } = Array.from(chain.assetsData.values()).find(
       (a) => a.id.toString().toLowerCase() === token.toLowerCase(),
     );
-    const tokenAmount = toDecimal(value, decimals);
+    const tokenAmount = big.toDecimal(value, decimals);
     return {
       symbol: asset.originSymbol,
       tokenAmount: tokenAmount,
