@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.0
+
+### Minor Changes
+
+- Asset info windget
+
 ## 5.0.0
 
 ### Major Changes
