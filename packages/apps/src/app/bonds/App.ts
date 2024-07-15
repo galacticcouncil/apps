@@ -1,6 +1,8 @@
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { when } from 'lit/directives/when.js';
+
 import { Asset, PoolToken, PoolBase, PoolType } from '@galacticcouncil/sdk';
 
 import { i18n } from 'localization';
@@ -159,94 +161,112 @@ export class BondsApp extends TradeApp {
   }
 
   selectAssetTab() {
+    const active = this.tab === TradeTab.SelectAsset;
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == TradeTab.SelectAsset,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-asset
-          .active=${this.tab == TradeTab.SelectAsset}
-          .assetIn=${this.trade.assetIn}
-          .assetOut=${this.trade.assetOut}
-          .assets=${this.assets.tradeable}
-          .assetsAlt=${this.lbp.assets}
-          .balances=${this.assets.balance}
-          .pairs=${this.assets.pairs}
-          .usdPrice=${this.assets.usdPrice}
-          .switchAllowed=${this.isSwitchEnabled()}
-          .selector=${this.asset.selector}
-          @asset-click=${this.onAssetClick}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TradeTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${i18n.t('trade.selectAsset')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-select-asset>
+        ${when(
+          active,
+          () => html`
+            <gc-select-asset
+              .assetIn=${this.trade.assetIn}
+              .assetOut=${this.trade.assetOut}
+              .assets=${this.assets.tradeable}
+              .assetsAlt=${this.lbp.assets}
+              .balances=${this.assets.balance}
+              .pairs=${this.assets.pairs}
+              .usdPrice=${this.assets.usdPrice}
+              .switchAllowed=${this.isSwitchEnabled()}
+              .selector=${this.asset.selector}
+              @asset-click=${this.onAssetClick}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TradeTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${i18n.t('trade.selectAsset')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-select-asset>
+          `,
+        )}
       </uigc-paper>
     `;
   }
 
   chartTab() {
+    const active = this.tab === TradeTab.Chart;
     const classes = {
       tab: true,
       chart: true,
-      active: this.tab == TradeTab.Chart,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-bonds-chart
-          .assetIn=${this.lbp.accumulated}
-          .assetOut=${this.lbp.distributed}
-          .poolId=${this.lbp.id}
-          .squidUrl=${this.squidUrl}
-          .spotPrice=${this.trade.spotPrice}
-          .tradeProgress=${this.trade.inProgress}
-          .usdPrice=${this.assets.usdPrice}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TradeTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${i18n.t('header.chart')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-bonds-chart>
+        ${when(
+          active,
+          () => html`
+            <gc-bonds-chart
+              .assetIn=${this.lbp.accumulated}
+              .assetOut=${this.lbp.distributed}
+              .poolId=${this.lbp.id}
+              .squidUrl=${this.squidUrl}
+              .spotPrice=${this.trade.spotPrice}
+              .tradeProgress=${this.trade.inProgress}
+              .usdPrice=${this.assets.usdPrice}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TradeTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${i18n.t('header.chart')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-bonds-chart>
+          `,
+        )}
       </uigc-paper>
     `;
   }
 
   settingsTab() {
+    const active = this.tab === TradeTab.Settings;
     const classes = {
       tab: true,
       main: true,
-      active: this.tab == TradeTab.Settings,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-bonds-settings @settings-change=${() => this.recalculateTrade()}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TradeTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${i18n.t('header.settings')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-bonds-settings>
+        ${when(
+          active,
+          () => html`
+            <gc-bonds-settings
+              @settings-change=${() => this.recalculateTrade()}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TradeTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${i18n.t('header.settings')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-bonds-settings>
+          `,
+        )}
       </uigc-paper>
     `;
   }

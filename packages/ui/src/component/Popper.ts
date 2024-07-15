@@ -13,30 +13,45 @@ export class Popper extends UIGCElement {
 
   static styles = [UIGCElement.styles, styles];
 
-  override async firstUpdated() {
+  get triggerElement() {
     const slotted = this.shadowRoot.querySelector('slot');
-    const triggerElement = slotted.assignedElements()[0];
-    const tooltipElement = this.shadowRoot.querySelector(
-      '.tooltip',
-    ) as HTMLElement;
+    return slotted.assignedElements()[0];
+  }
 
-    triggerElement.addEventListener('mouseover', () => {
-      computePosition(triggerElement, tooltipElement, {
-        placement: 'right-start',
-      }).then(({ x, y }) => {
-        Object.assign(tooltipElement.style, {
-          display: 'block',
-          left: `${x}px`,
-          top: `${y}px`,
-        });
+  get tooltipElement() {
+    return this.shadowRoot.querySelector('.tooltip') as HTMLElement;
+  }
+
+  private mouseOverListener = () => {
+    computePosition(this.triggerElement, this.tooltipElement, {
+      placement: 'right-start',
+    }).then(({ x, y }) => {
+      Object.assign(this.tooltipElement.style, {
+        display: 'block',
+        left: `${x}px`,
+        top: `${y}px`,
       });
     });
+  };
 
-    triggerElement.addEventListener('mouseout', () => {
-      Object.assign(tooltipElement.style, {
-        display: 'none',
-      });
+  private mouseOutListener = () => {
+    Object.assign(this.tooltipElement.style, {
+      display: 'none',
     });
+  };
+
+  override async firstUpdated() {
+    this.triggerElement.addEventListener('mouseover', this.mouseOverListener);
+    this.triggerElement.addEventListener('mouseout', this.mouseOutListener);
+  }
+
+  override disconnectedCallback() {
+    this.triggerElement.removeEventListener(
+      'mouseover',
+      this.mouseOverListener,
+    );
+    this.triggerElement.removeEventListener('mouseout', this.mouseOutListener);
+    super.disconnectedCallback();
   }
 
   render() {

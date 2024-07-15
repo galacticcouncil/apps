@@ -57,6 +57,7 @@ import { Wallet, XCall, XCallEvm, XTransfer } from '@galacticcouncil/xcm-sdk';
 
 import {
   addr,
+  big,
   AnyChain,
   AnyEvmChain,
   AnyParachain,
@@ -66,8 +67,6 @@ import {
   EvmParachain,
   Parachain,
 } from '@galacticcouncil/xcm-core';
-
-import { toBigInt } from '@moonbeam-network/xcm-utils';
 
 import type {
   PalletAssetsAssetDetails,
@@ -354,9 +353,9 @@ export class XcmApp extends PoolApp {
       amount: destChain.isEvmChain() ? min.amount * 2n : min.amount,
     });
 
-    const amountBn = toBigInt(amount, balance.decimals);
-    const maxBn = toBigInt(max.amount, max.decimals);
-    const minBn = toBigInt(minWithRelay.amount, max.decimals);
+    const amountBn = big.toBigInt(amount, balance.decimals);
+    const maxBn = big.toBigInt(max.amount, max.decimals);
+    const minBn = big.toBigInt(minWithRelay.amount, max.decimals);
 
     if (balance.amount == 0n) {
       this.transfer.error['amount'] = i18n.t('error.balance');
@@ -861,12 +860,12 @@ export class XcmApp extends PoolApp {
           evmProvider.getGasPrice(),
         ]);
         return AssetAmount.fromAsset(feeAssetData.asset, {
-          amount: toBigInt(gas * gasPrice, feeAsset.decimals),
+          amount: big.toBigInt(gas * gasPrice, feeAsset.decimals),
           decimals: feeAsset.decimals,
         });
       } catch (error) {
         return AssetAmount.fromAsset(feeAssetData.asset, {
-          amount: toBigInt(0n, feeAsset.decimals),
+          amount: big.toBigInt(0n, feeAsset.decimals),
           decimals: feeAsset.decimals,
         });
       }
@@ -878,7 +877,7 @@ export class XcmApp extends PoolApp {
       srcFee.amount.toString(),
     );
     return AssetAmount.fromAsset(feeAssetData.asset, {
-      amount: toBigInt(fee.toString(), 0),
+      amount: big.toBigInt(fee.toString(), 0),
       decimals: feeAsset.decimals,
     });
   }
@@ -1266,36 +1265,42 @@ export class XcmApp extends PoolApp {
   }
 
   selectChainTab() {
+    const active = this.tab === TransferTab.SelectChain;
+    const isDest = this.isDestChainSelection();
     const classes = {
       tab: true,
-      active: this.tab == TransferTab.SelectChain,
+      active: active,
     };
-    const isDest = this.isDestChainSelection();
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-xchain
-          .active=${this.tab == TransferTab.SelectChain}
-          .chains=${isDest
-            ? this.xchain.dest.map((c) => c)
-            : this.xchain.list.map((c) => c)}
-          .srcChain=${this.transfer.srcChain}
-          .destChain=${this.transfer.destChain}
-          .selector=${this.xchain.selector}
-          @list-item-click=${this.onChainClick}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TransferTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${isDest
-                ? i18n.t('header.select.chainDst')
-                : i18n.t('header.select.chainSrc')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-select-xchain>
+        ${when(
+          active,
+          () => html`
+            <gc-select-xchain
+              .active=${this.tab == TransferTab.SelectChain}
+              .chains=${isDest
+                ? this.xchain.dest.map((c) => c)
+                : this.xchain.list.map((c) => c)}
+              .srcChain=${this.transfer.srcChain}
+              .destChain=${this.transfer.destChain}
+              .selector=${this.xchain.selector}
+              @list-item-click=${this.onChainClick}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TransferTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${isDest
+                    ? i18n.t('header.select.chainDst')
+                    : i18n.t('header.select.chainSrc')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-select-xchain>
+          `,
+        )}
       </uigc-paper>
     `;
   }
@@ -1306,30 +1311,35 @@ export class XcmApp extends PoolApp {
   }
 
   selectTokenTab() {
+    const active = this.tab === TransferTab.SelectToken;
     const classes = {
       tab: true,
-      active: this.tab == TransferTab.SelectToken,
+      active: active,
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        <gc-select-xasset
-          .active=${this.tab == TransferTab.SelectToken}
-          .assets=${this.xchain.tokens}
-          .balances=${this.xchain.balance}
-          .asset=${this.transfer.asset}
-          @asset-click=${this.onAssetClick}>
-          <div class="header section" slot="header">
-            <uigc-icon-button
-              class="back"
-              @click=${() => this.changeTab(TransferTab.Form)}>
-              <uigc-icon-back></uigc-icon-back>
-            </uigc-icon-button>
-            <uigc-typography variant="section">
-              ${i18n.t('header.select')}
-            </uigc-typography>
-            <span></span>
-          </div>
-        </gc-select-xasset>
+        ${when(
+          active,
+          () => html`
+            <gc-select-xasset
+              .assets=${this.xchain.tokens}
+              .balances=${this.xchain.balance}
+              .asset=${this.transfer.asset}
+              @asset-click=${this.onAssetClick}>
+              <div class="header section" slot="header">
+                <uigc-icon-button
+                  class="back"
+                  @click=${() => this.changeTab(TransferTab.Form)}>
+                  <uigc-icon-back></uigc-icon-back>
+                </uigc-icon-button>
+                <uigc-typography variant="section">
+                  ${i18n.t('header.select')}
+                </uigc-typography>
+                <span></span>
+              </div>
+            </gc-select-xasset>
+          `,
+        )}
       </uigc-paper>
     `;
   }

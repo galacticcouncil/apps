@@ -1,5 +1,17 @@
 # @galacticcouncil/apps
 
+## 5.0.0
+
+### Major Changes
+
+- Upgrade to pjs 12.x
+
+## 4.4.0
+
+### Minor Changes
+
+- Export external utils, when directive for tabs
+
 ## 4.3.1
 
 ### Patch Changes

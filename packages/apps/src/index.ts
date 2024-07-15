@@ -18,3 +18,6 @@ export * from './signer';
 
 /* Theme */
 export * from './theme.ctrl';
+
+/* External utils */
+export * as external from './utils/external';

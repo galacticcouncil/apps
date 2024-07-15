@@ -30,7 +30,6 @@ export class SelectAsset extends LitElement {
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: Boolean }) switchAllowed = true;
-  @property({ type: Boolean }) active = false;
 
   @state() query = '';
 
@@ -125,14 +124,6 @@ export class SelectAsset extends LitElement {
       return this.filterAssets(query, assets);
     }
     return this.filterAssets(query, this.assetsAlt);
-  }
-
-  override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('active') && !this.active) {
-      this.query = '';
-    }
-
-    super.update(changedProperties);
   }
 
   isDisabled(asset: Asset): boolean {

@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/ui",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Galactic UI Kit",
   "author": "GalacticCouncil",
   "repository": {
@@ -34,9 +34,8 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.5.1",
-    "@lit/reactive-element": "^1.0.0",
     "imask": "^6.4.3",
-    "lit": "^2.8.0",
+    "lit": "^3.1.4",
     "ts-debounce": "^4.0.0"
   }
 }

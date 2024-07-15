@@ -15,7 +15,6 @@ export class SelectXChain extends LitElement {
   @property({ attribute: false }) destChain = null;
   @property({ type: String }) selector = null;
   @property({ type: String }) query = '';
-  @property({ type: Boolean }) active = false;
 
   static styles = [baseStyles, selectorStyles];
 
@@ -45,14 +44,6 @@ export class SelectXChain extends LitElement {
     } else {
       return null;
     }
-  }
-
-  override update(changedProperties: Map<string, unknown>) {
-    if (changedProperties.has('active') && !this.active) {
-      this.query = '';
-    }
-
-    super.update(changedProperties);
   }
 
   loadingTemplate() {

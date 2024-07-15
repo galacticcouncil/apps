@@ -13,11 +13,6 @@ readdirSync('../../node_modules/@polkadot').forEach((pckg) => {
   polkadotDeps.push('@polkadot/' + pckg);
 });
 
-const moonbeamDeps = [];
-readdirSync('../../node_modules/@moonbeam-network').forEach((pckg) => {
-  moonbeamDeps.push('@moonbeam-network/' + pckg);
-});
-
 esbuild
   .build({
     ...esmConfig,
@@ -28,7 +23,6 @@ esbuild
       ...Object.keys(dependencies),
       ...Object.keys(peerDependencies),
       ...polkadotDeps,
-      ...moonbeamDeps,
     ],
   })
   .then(({ metafile }) => {
