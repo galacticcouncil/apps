@@ -45,9 +45,11 @@ import {
   Swap,
   ZERO,
 } from '@galacticcouncil/sdk';
+import { chainsMap } from '@galacticcouncil/xcm-cfg';
 
 import './Form';
 import './Settings';
+import './AssetInfo';
 import './chart';
 import './orders';
 
@@ -66,6 +68,7 @@ import {
 } from './types';
 
 import styles from './App.css';
+import { Parachain } from '@galacticcouncil/xcm-core';
 
 @customElement('gc-trade')
 export class TradeApp extends PoolApp {
@@ -79,6 +82,7 @@ export class TradeApp extends PoolApp {
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) twapOn: Boolean = false;
   @property({ type: Boolean }) newAssetBtn: Boolean = false;
+  @property({ type: Boolean }) assetCheckEnabled: Boolean = false;
 
   @state() tab: TradeTab = TradeTab.Form;
   @state() trade: TradeState = { ...DEFAULT_TRADE_STATE };
@@ -1275,6 +1279,49 @@ export class TradeApp extends PoolApp {
     `;
   }
 
+  protected onCheckAssetDataClick(asset: Asset) {
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: asset,
+    };
+    this.dispatchEvent(new CustomEvent('gc:external:checkData', options));
+  }
+
+  protected validateExternalAssetByOrigin(asset?: Asset, origin?: number) {
+    return asset?.type === 'External' && asset?.origin === origin
+      ? asset
+      : null;
+  }
+
+  assetCheck() {
+    if (!this.assetCheckEnabled) return;
+
+    const assetHub = chainsMap.get('assethub') as Parachain;
+
+    const assetIn = this.validateExternalAssetByOrigin(
+      this.trade.assetIn,
+      assetHub.parachainId,
+    );
+
+    const assetOut = this.validateExternalAssetByOrigin(
+      this.trade.assetOut,
+      assetHub.parachainId,
+    );
+
+    if (assetIn || assetOut) {
+      return html`
+        <gc-trade-asset-info
+          .chainName=${assetHub.name}
+          .assets=${this.assets.registry}
+          .assetIn=${assetIn}
+          .assetOut=${assetOut}
+          .onCheckAssetDataClick=${this
+            .onCheckAssetDataClick}></gc-trade-asset-info>
+      `;
+    }
+  }
+
   ordersSummary() {
     const account = this.account.state;
     if (this.twapOn) {
@@ -1299,8 +1346,14 @@ export class TradeApp extends PoolApp {
   render() {
     return html`
       <div class="layout-root">
-        ${this.chartTab()} ${this.formTab()} ${this.settingsTab()}
-        ${this.ordersSummary()} ${this.selectAssetTab()}
+        ${this.chartTab()}
+        <div class="layout-trade">
+          <div>
+            ${this.formTab()} ${this.settingsTab()} ${this.selectAssetTab()}
+          </div>
+          ${this.assetCheck()}
+        </div>
+        ${this.ordersSummary()}
       </div>
     `;
   }
