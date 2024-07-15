@@ -12,6 +12,11 @@
   grid-row-gap: 20px;
 }
 
+.layout-trade {
+  display: grid;
+  grid-row-gap: 20px;
+}
+
 .main {
   grid-area: main;
 }

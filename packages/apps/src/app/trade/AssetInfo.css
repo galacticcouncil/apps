@@ -1,0 +1,61 @@
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+uigc-paper {
+  padding: 20px;
+}
+
+.title {
+  display: block;
+  margin-bottom: 12px;
+
+  text-transform: uppercase;
+  color: var(--hex-bright-blue-300);
+
+  font-family: var(--uigc-app-font-secondary);
+  font-weight: var(--uigc-typography__section-font-weight);
+  font-size: var(--uigc-typography__subsection-font-size);
+}
+
+.assets {
+  display: flex;
+  gap: 10px;
+}
+
+.asset,
+.asset:focus {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  cursor: pointer;
+
+  font-weight: 500;
+
+  padding: 8px 16px 8px 12px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--uigc-button__primary-color);
+}
+
+.asset:hover {
+  border: 1px solid rgba(133, 209, 255, 0.5);
+  background: rgba(133, 209, 255, 0.2);
+}
+
+.asset > .link {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--hex-bright-blue-300);
+  text-decoration-line: underline;
+}
+
+gc-asset-identicon {
+  display: block;
+
+  width: 28px;
+  height: 28px;
+}
