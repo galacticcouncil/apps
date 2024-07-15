@@ -46,6 +46,7 @@ import {
   ZERO,
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
+import { Parachain } from '@galacticcouncil/xcm-core';
 
 import './Form';
 import './Settings';
@@ -68,7 +69,6 @@ import {
 } from './types';
 
 import styles from './App.css';
-import { Parachain } from '@galacticcouncil/xcm-core';
 
 @customElement('gc-trade')
 export class TradeApp extends PoolApp {
@@ -1279,46 +1279,35 @@ export class TradeApp extends PoolApp {
     `;
   }
 
-  protected onCheckAssetDataClick(asset: Asset) {
-    const options = {
-      bubbles: true,
-      composed: true,
-      detail: asset,
-    };
-    this.dispatchEvent(new CustomEvent('gc:external:checkData', options));
-  }
-
-  protected validateExternalAssetByOrigin(asset?: Asset, origin?: number) {
+  protected validateAssetByOrigin(asset?: Asset, origin?: number) {
     return asset?.type === 'External' && asset?.origin === origin
       ? asset
       : null;
   }
 
   assetCheck() {
-    if (!this.assetCheckEnabled) return;
+    if (this.assetCheckEnabled) {
+      const assetHub = chainsMap.get('assethub') as Parachain;
 
-    const assetHub = chainsMap.get('assethub') as Parachain;
+      const assetIn = this.validateAssetByOrigin(
+        this.trade.assetIn,
+        assetHub.parachainId,
+      );
 
-    const assetIn = this.validateExternalAssetByOrigin(
-      this.trade.assetIn,
-      assetHub.parachainId,
-    );
+      const assetOut = this.validateAssetByOrigin(
+        this.trade.assetOut,
+        assetHub.parachainId,
+      );
 
-    const assetOut = this.validateExternalAssetByOrigin(
-      this.trade.assetOut,
-      assetHub.parachainId,
-    );
-
-    if (assetIn || assetOut) {
-      return html`
-        <gc-trade-asset-info
-          .chainName=${assetHub.name}
-          .assets=${this.assets.registry}
-          .assetIn=${assetIn}
-          .assetOut=${assetOut}
-          .onCheckAssetDataClick=${this
-            .onCheckAssetDataClick}></gc-trade-asset-info>
-      `;
+      if (assetIn || assetOut) {
+        return html`
+          <gc-trade-asset-info
+            .chain=${assetHub}
+            .assets=${this.assets.registry}
+            .assetIn=${assetIn}
+            .assetOut=${assetOut}></gc-trade-asset-info>
+        `;
+      }
     }
   }
 

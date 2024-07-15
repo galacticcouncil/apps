@@ -4,20 +4,28 @@ import { customElement, property } from 'lit/decorators.js';
 import { Asset } from '@galacticcouncil/sdk';
 
 import { i18n } from 'localization';
+import { baseStyles } from 'styles';
 
 import styles from './AssetInfo.css';
-import { baseStyles } from 'styles';
+import { Parachain } from '@galacticcouncil/xcm-core';
 
 @customElement('gc-trade-asset-info')
 export class TradeAssetInfo extends LitElement {
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
-  @property({ type: String }) chainName: string = null;
-  @property({ type: Function }) onCheckAssetDataClick: (asset: Asset) => void =
-    null;
+  @property({ type: Object }) chain: Parachain = null;
 
   static styles = [baseStyles, styles];
+
+  protected onCheckAssetDataClick(asset: Asset) {
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: asset,
+    };
+    this.dispatchEvent(new CustomEvent('gc:external:checkData', options));
+  }
 
   renderAsset(asset: Asset) {
     if (asset) {
@@ -42,7 +50,7 @@ export class TradeAssetInfo extends LitElement {
       <uigc-paper>
         <p class="title">
           ${i18n.t('header.assetInfo', {
-            name: this.chainName,
+            name: this.chain.name,
           })}
         </p>
         <div class="assets">
