@@ -48,7 +48,7 @@
     "@galacticcouncil/api-augment": "^0.2.0"
   },
   "peerDependencies": {
-    "@galacticcouncil/sdk": "^4.0.0",
+    "@galacticcouncil/sdk": "^4.0.1",
     "@galacticcouncil/ui": "^4.1.1",
     "@galacticcouncil/xcm-cfg": "^3.0.0",
     "@galacticcouncil/xcm-core": "^2.0.0",
