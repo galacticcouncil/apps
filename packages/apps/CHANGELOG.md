@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.1
+
+### Patch Changes
+
+- Fix blacklist xcm issue
+
 ## 5.1.0
 
 ### Minor Changes
