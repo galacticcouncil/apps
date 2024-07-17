@@ -34,8 +34,16 @@ export abstract class BaseElement extends LitElement {
     this._dayjs = dayjs;
   }
 
-  parseListArgs(list: string) {
-    return list ? list.split(',') : [];
+  parseAsList(args: string) {
+    return args ? args.split(',') : [];
+  }
+
+  parseAsSet(args: string) {
+    if (args) {
+      const list = this.parseAsList(args);
+      return new Set<string>(list);
+    }
+    return new Set<string>();
   }
 
   parseJson<T>(json: string): T {

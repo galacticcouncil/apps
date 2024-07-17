@@ -1080,7 +1080,10 @@ export class XcmApp extends PoolApp {
     const srcChainCfg = chainsConfig.get(srcChain.key);
     const srcChainAssetsCfg = srcChainCfg.getAssetsConfigs();
 
-    const destChains = srcChainAssetsCfg.map((a) => a.destination);
+    const destBlacklist = this.parseAsSet(this.blacklist);
+    const destChains = srcChainAssetsCfg
+      .filter((a) => !destBlacklist.has(a.destination.key))
+      .map((a) => a.destination);
     const destChainsUnique = new Set<AnyChain>(destChains);
 
     const isDestValid = destChainsUnique.has(destChain);
@@ -1156,7 +1159,7 @@ export class XcmApp extends PoolApp {
   }
 
   private initConfig() {
-    this.blacklist?.split(',').forEach((c) => {
+    this.parseAsList(this.blacklist).forEach((c) => {
       chainsMap.delete(c);
       chainsConfigMap.delete(c);
     });
