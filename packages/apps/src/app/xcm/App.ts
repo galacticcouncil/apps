@@ -207,7 +207,7 @@ export class XcmApp extends PoolApp {
   }
 
   private hasH160AddrSupport(chain: AnyChain) {
-    if (chain instanceof EvmParachain) {
+    if (chain instanceof Parachain) {
       return chain.h160AccOnly;
     }
     return chain.isEvmChain();
@@ -801,7 +801,9 @@ export class XcmApp extends PoolApp {
   private isSubstrateAddressError(dest: AnyChain, address: string) {
     return (
       dest instanceof Parachain &&
-      !['hydradx', 'moonbeam', 'darwinia', 'acala-evm'].includes(dest.key) &&
+      !['hydradx', 'moonbeam', 'darwinia', 'acala-evm', 'mythos'].includes(
+        dest.key,
+      ) &&
       !isValidAddress(address)
     );
   }
@@ -1036,7 +1038,7 @@ export class XcmApp extends PoolApp {
 
   private async syncEvmContext() {
     const { srcChain } = this.transfer;
-    if (!this.hasEvmAccount()) {
+    if (!this.hasEvmAccount() || srcChain.isParachain()) {
       return;
     }
 

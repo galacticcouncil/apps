@@ -123,7 +123,7 @@ export class TransactionCenter extends LitElement {
     const { provider } = txInfo.account;
     const chain = chainsMap.get('hydradx');
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
-    if (isEvmProvider) {
+    if (isEvmProvider && chain.isEvm()) {
       this.signWithEvm(chain as AnyEvmChain, txId, txInfo);
     } else {
       this.signWithSubstrate(chain as Parachain, txId, txInfo);
@@ -135,7 +135,7 @@ export class TransactionCenter extends LitElement {
     const { provider } = txInfo.account;
     const chain = chainsMap.get(srcChain);
     const isEvmProvider = EVM_PROVIDERS.includes(provider);
-    if (isEvmProvider) {
+    if (isEvmProvider && chain.isEvm()) {
       this.signWithEvm(chain as AnyEvmChain, txId, txInfo);
     } else {
       this.signWithSubstrate(chain as Parachain, txId, txInfo);
