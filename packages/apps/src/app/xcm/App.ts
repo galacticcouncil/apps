@@ -210,7 +210,7 @@ export class XcmApp extends PoolApp {
     if (chain instanceof Parachain) {
       return chain.h160AccOnly;
     }
-    return chain.isEvmChain();
+    return chain.isEvm();
   }
 
   private isEvmCompatible(chain: AnyChain) {
@@ -221,10 +221,10 @@ export class XcmApp extends PoolApp {
   }
 
   private isNativeCompatible(chain: AnyChain) {
-    if (chain instanceof EvmParachain) {
+    if (chain instanceof Parachain) {
       return !chain.h160AccOnly;
     }
-    return chain.isParachain();
+    return false;
   }
 
   private isSupportedWallet(chain: AnyChain) {
