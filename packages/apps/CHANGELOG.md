@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.2
+
+### Patch Changes
+
+- Mythos bump, fix evm resolution (temp)
+
 ## 5.1.1
 
 ### Patch Changes
