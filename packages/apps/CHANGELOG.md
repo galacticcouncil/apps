@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.3
+
+### Patch Changes
+
+- Fix xcm native comp check
+
 ## 5.1.2
 
 ### Patch Changes
