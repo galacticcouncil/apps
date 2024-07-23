@@ -1,5 +1,5 @@
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
-import { AnyParachain } from '@galacticcouncil/xcm-core';
+import { AnyChain, AnyParachain, Parachain } from '@galacticcouncil/xcm-core';
 
 import { Ecosystem } from '../db';
 
@@ -16,4 +16,18 @@ export function getChainKey(paraId: number, ecosystem: Ecosystem) {
     return chain.key;
   }
   return null;
+}
+
+export function useH160AddressSpace(chain: AnyChain) {
+  if (chain instanceof Parachain) {
+    return chain.h160AccOnly;
+  }
+  return chain.isEvmChain();
+}
+
+export function useSs58AddressSpace(chain: AnyChain) {
+  if (chain instanceof Parachain) {
+    return !chain.h160AccOnly;
+  }
+  return false;
 }

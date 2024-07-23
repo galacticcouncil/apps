@@ -20,12 +20,13 @@ import { Account, Ecosystem, XStoreUtils, XItemCursor, XItem } from 'db';
 import { TxInfo, TxMessage, TxNotification } from 'signer/types';
 import { baseStyles, headerStyles, basicLayoutStyles } from 'styles';
 import {
-  EVM_NATIVE_ASSET_ID,
   convertAddressSS58,
   isValidAddress,
+  EVM_NATIVE_ASSET_ID,
 } from 'utils/account';
 import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 import { getXcmKey } from 'utils/asset';
+import { useH160AddressSpace, useSs58AddressSpace } from 'utils/chain';
 import { isApprove, parseSpender, parseAmount } from 'utils/erc20';
 import { configureExternal } from 'utils/external';
 import { calculateEffectiveBalance } from 'utils/balance';
@@ -35,6 +36,11 @@ import {
   isEvmAccount,
   DISPATCH_ADDRESS,
 } from 'utils/evm';
+import {
+  EVM_PROVIDERS,
+  SUBSTRATE_H160_PROVIDERS,
+  WalletProvider,
+} from 'utils/wallet';
 
 import '@galacticcouncil/ui';
 import {
@@ -206,25 +212,15 @@ export class XcmApp extends PoolApp {
     return this._syncKey == update;
   }
 
-  private hasH160AddrSupport(chain: AnyChain) {
-    if (chain instanceof Parachain) {
-      return chain.h160AccOnly;
-    }
-    return chain.isEvm();
-  }
-
-  private isEvmCompatible(chain: AnyChain) {
+  private hasEvmSupport(chain: AnyChain) {
     if (chain.key === 'hydradx') {
       return true;
     }
-    return this.hasH160AddrSupport(chain);
+    return useH160AddressSpace(chain);
   }
 
-  private isNativeCompatible(chain: AnyChain) {
-    if (chain instanceof Parachain) {
-      return !chain.h160AccOnly;
-    }
-    return false;
+  private hasNativeSupport(chain: AnyChain) {
+    return useSs58AddressSpace(chain);
   }
 
   private isSupportedWallet(chain: AnyChain) {
@@ -234,10 +230,14 @@ export class XcmApp extends PoolApp {
       return false;
     }
 
+    const provider: WalletProvider = WalletProvider[account.provider];
     if (isEvmAccount(account.address)) {
-      return this.isEvmCompatible(chain);
+      if (chain.isParachain()) {
+        return SUBSTRATE_H160_PROVIDERS.includes(provider);
+      }
+      return this.hasEvmSupport(chain) && EVM_PROVIDERS.includes(provider);
     } else {
-      return this.isNativeCompatible(chain);
+      return this.hasNativeSupport(chain);
     }
   }
 
@@ -722,10 +722,10 @@ export class XcmApp extends PoolApp {
    *
    * @param address - ss58 account address
    * @param chain - chain
-   * @returns - valid account address for given chain
+   * @returns - valid address fornat for given chain
    */
   private formatAddress(address: string, chain: AnyChain): string {
-    if (this.hasH160AddrSupport(chain)) {
+    if (useH160AddressSpace(chain)) {
       return convertToH160(address);
     } else {
       return convertAddressSS58(address);
@@ -737,7 +737,7 @@ export class XcmApp extends PoolApp {
    *
    * @param address - ss58 or h160 dest address
    * @param chain - chain
-   * @returns - valid dest address for given chain
+   * @returns - valid address format for given chain
    */
   private formatDestAddress(address: string, chain: AnyChain): string {
     if (chain.key === 'hydradx' && addr.isH160(address)) {
@@ -747,7 +747,7 @@ export class XcmApp extends PoolApp {
   }
 
   private prefillNative(address: string, chain: AnyChain, ss58prefix?: number) {
-    if (this.isNativeCompatible(chain)) {
+    if (this.hasNativeSupport(chain)) {
       return convertAddressSS58(address, ss58prefix ? ss58prefix : undefined);
     } else {
       return null;
@@ -755,7 +755,7 @@ export class XcmApp extends PoolApp {
   }
 
   private prefillEvm(address: string, chain: AnyChain) {
-    if (this.isEvmCompatible(chain)) {
+    if (this.hasEvmSupport(chain)) {
       return convertToH160(address);
     } else {
       return null;
@@ -795,7 +795,7 @@ export class XcmApp extends PoolApp {
   }
 
   private isEvmAddressError(dest: AnyChain, address: string) {
-    return this.hasH160AddrSupport(dest) && !addr.isH160(address);
+    return useH160AddressSpace(dest) && !addr.isH160(address);
   }
 
   private isSubstrateAddressError(dest: AnyChain, address: string) {

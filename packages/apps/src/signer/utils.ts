@@ -21,22 +21,22 @@ export async function signAndSend(
   onError: (error: unknown) => void,
 ) {
   const { account, transaction } = tx;
+  const { address, provider } = account;
 
   const api = await chain.api;
   const extrinsic = api.tx(transaction.hex);
 
-  const provider = account.provider.replace('-evm', '');
-  const address = chain.h160AccOnly
-    ? convertToH160(account.address)
-    : account.address;
+  const normalizedAddress = chain.h160AccOnly
+    ? convertToH160(address)
+    : address;
 
   const wallet = getWalletBySource(provider);
   await wallet.enable('Hydration');
-  const nextNonce = await api.rpc.system.accountNextIndex(address);
+  const nextNonce = await api.rpc.system.accountNextIndex(normalizedAddress);
 
   extrinsic
     .signAndSend(
-      address,
+      normalizedAddress,
       { signer: wallet.signer, nonce: nextNonce },
       onStatusChange,
     )

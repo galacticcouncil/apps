@@ -12,8 +12,8 @@ import * as i18n from 'i18next';
 import short from 'short-uuid';
 
 import { Chain, ChainCursor, DatabaseController } from 'db';
-import { EVM_PROVIDERS } from 'utils/account';
 import { txRecord } from 'utils/event';
+import { WalletProvider, EVM_PROVIDERS } from 'utils/wallet';
 
 import { signAndSend, signAndSendEvm } from './utils';
 import {
@@ -122,8 +122,9 @@ export class TransactionCenter extends LitElement {
   private async processTx(txId: string, txInfo: TxInfo) {
     const { provider } = txInfo.account;
     const chain = chainsMap.get('hydradx');
-    const isEvmProvider = EVM_PROVIDERS.includes(provider);
-    if (isEvmProvider && chain.isEvm()) {
+    const walletProvider: WalletProvider = WalletProvider[provider];
+    const isEvmProvider = EVM_PROVIDERS.includes(walletProvider);
+    if (isEvmProvider) {
       this.signWithEvm(chain as AnyEvmChain, txId, txInfo);
     } else {
       this.signWithSubstrate(chain as Parachain, txId, txInfo);
@@ -134,8 +135,9 @@ export class TransactionCenter extends LitElement {
     const { srcChain } = txInfo.meta;
     const { provider } = txInfo.account;
     const chain = chainsMap.get(srcChain);
-    const isEvmProvider = EVM_PROVIDERS.includes(provider);
-    if (isEvmProvider && chain.isEvm()) {
+    const walletProvider: WalletProvider = WalletProvider[provider];
+    const isEvmProvider = EVM_PROVIDERS.includes(walletProvider);
+    if (isEvmProvider) {
       this.signWithEvm(chain as AnyEvmChain, txId, txInfo);
     } else {
       this.signWithSubstrate(chain as Parachain, txId, txInfo);

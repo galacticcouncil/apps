@@ -4,7 +4,6 @@ import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import { convertFromH160 } from './evm';
 
-export const EVM_PROVIDERS = ['metamask', 'talisman-evm'];
 export const EVM_NATIVE_ASSET_ID = '20';
 
 export function convertAddressSS58(address: string, ss58prefix = 42): string {
