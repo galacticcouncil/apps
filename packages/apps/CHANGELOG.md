@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.4
+
+### Patch Changes
+
+- Fix wallet support check
+
 ## 5.1.3
 
 ### Patch Changes
