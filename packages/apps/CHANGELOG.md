@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.5
+
+### Patch Changes
+
+- Fix Yield DCA messaging, block period est rounding
+
 ## 5.1.4
 
 ### Patch Changes
