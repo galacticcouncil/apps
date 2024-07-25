@@ -47,6 +47,6 @@ export class TradeApi<T> {
    */
   toBlockPeriod(periodMsec: number, blockTime: number): number {
     const noOfBlocks = periodMsec / blockTime;
-    return Math.floor(noOfBlocks);
+    return Math.round(noOfBlocks);
   }
 }
