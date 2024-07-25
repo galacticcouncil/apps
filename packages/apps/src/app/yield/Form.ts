@@ -111,6 +111,14 @@ export class YieldForm extends BaseElement {
     const order = this.order?.toHuman();
     const dotYield = this.getDotYield();
 
+    const error = this.error['minInvestmentTooLow'];
+    if (error) {
+      return html`
+        <span class="label">${i18n.t('form.summary')}</span>
+        <span class="value">${error}</span>
+      `;
+    }
+
     const summary = i18n.t('form.summary.message', {
       amountIn: humanizeAmount(order?.amountIn),
       amountInYield: humanizeAmount(order?.amountInYield),
@@ -330,7 +338,6 @@ export class YieldForm extends BaseElement {
 
   render() {
     const isValid = this.amountIn && this.order && this.rate;
-
     const infoClasses = {
       info: true,
       show: isValid,

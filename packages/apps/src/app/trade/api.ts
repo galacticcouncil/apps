@@ -11,7 +11,7 @@ import { TradeApi } from 'api/trade';
 import { TradeConfig } from 'db';
 import { formatAmount } from 'utils/amount';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
-import { HOUR_MS, SECOND_MS } from 'utils/time';
+import { HOUR_MS } from 'utils/time';
 
 import { TwapOrder, TwapError } from './types';
 

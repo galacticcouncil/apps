@@ -21,7 +21,7 @@
   "form.info.slippage": "Slippage protection",
 
   "error.insufficientBalance": "Your trade is bigger than your balance.",
-  "error.minInvestmentTooLow": "The minimum is {{amount}} {{asset}}.",
+  "error.minInvestmentTooLow": "The minimum amount for DCA is {{amount}} {{asset}}.",
 
   "settings.slippage": "Slippage protection",
   "settings.slippageInfo1": "Tolerated price deviation from the last known price. Trade will be rescheduled if the price changes more than the specified percentage since previous block or 10 block average.",
