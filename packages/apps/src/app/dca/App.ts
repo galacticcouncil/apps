@@ -334,6 +334,7 @@ export class DcaApp extends PoolApp {
   }
 
   private processTx(account: Account, transaction: Transaction) {
+    console.log(transaction, 'transaction');
     const notification = {
       processing: this.notificationTemplate(this.dca, 'notify.processing'),
       success: this.notificationTemplate(this.dca, 'notify.success'),

@@ -14,6 +14,8 @@ import { MINUTE_MS } from 'utils/time';
 
 import { DcaOrder } from './types';
 
+const fee = 0.025; // 2.5%
+
 export class DcaApi extends TradeApi<DcaConfig> {
   /**
    * Get DCA sell execution info & build order tx
@@ -66,7 +68,7 @@ export class DcaApi extends TradeApi<DcaConfig> {
             Sell: {
               assetIn: assetIn.id,
               assetOut: assetOut.id,
-              amountIn: amountInPerTrade.toFixed(),
+              amountIn: amountInPerTrade.times(1 - fee).toFixed(0),
               minAmountOut: '0',
               route: buildRoute(swaps),
             },
