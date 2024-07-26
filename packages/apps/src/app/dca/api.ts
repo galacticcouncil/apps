@@ -14,8 +14,6 @@ import { MINUTE_MS } from 'utils/time';
 
 import { DcaOrder } from './types';
 
-const fee = 0.025; // 2.5%
-
 export class DcaApi extends TradeApi<DcaConfig> {
   /**
    * Get DCA sell execution info & build order tx
