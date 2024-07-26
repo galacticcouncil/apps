@@ -68,7 +68,7 @@ export class DcaApi extends TradeApi<DcaConfig> {
             Sell: {
               assetIn: assetIn.id,
               assetOut: assetOut.id,
-              amountIn: amountInPerTrade.times(1 - fee).toFixed(0),
+              amountIn: amountInPerTrade.toFixed(),
               minAmountOut: '0',
               route: buildRoute(swaps),
             },
@@ -115,7 +115,7 @@ export class DcaApi extends TradeApi<DcaConfig> {
    */
   private getOptimizedTradesNo(priceDifference: number): number {
     const optTradesNo = Math.round(priceDifference * 10) || 1;
-    return optTradesNo === 1 ? 2 : optTradesNo;
+    return optTradesNo === 1 ? 3 : optTradesNo;
   }
 
   /**
