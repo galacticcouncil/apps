@@ -108,7 +108,7 @@ export class DcaApi extends TradeApi<DcaConfig> {
 
   /**
    * Calculate optimal no of trades for order execution. We aim to achieve
-   * price impact 0.1% per single execution with at least 2 trades.
+   * price impact 0.1% per single execution with at least 3 trades.
    *
    * @param priceDifference - price difference of swap execution (single trade)
    * @returns optimal no of trades
