@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.6
+
+### Patch Changes
+
+- Fix DCA min no of execution to 3
+
 ## 5.1.5
 
 ### Patch Changes
