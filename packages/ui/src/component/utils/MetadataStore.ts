@@ -53,7 +53,7 @@ export class MetadataStore {
   }
 
   public externalWhitelist(): string[] {
-    const whitelist = this._metadata.assets.external.whitelist;
+    const whitelist = this._metadata?.assets.external.whitelist ?? {};
     return Object.values(whitelist);
   }
 }
