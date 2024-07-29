@@ -277,7 +277,9 @@ export class XcmForm extends LitElement {
     const ledgerWarnClasses = {
       warning: true,
       show:
-        this.srcChain.key === 'polkadot' || this.srcChain.key === 'assethub',
+        (this.srcChain.key === 'polkadot' ||
+          this.srcChain.key === 'assethub') &&
+        this.destChain.key !== 'hydradx',
     };
     return html`
       <slot name="header"></slot>
