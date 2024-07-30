@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.7
+
+### Patch Changes
+
+- Remove ledger warning, bump deps
+
 ## 5.1.6
 
 ### Patch Changes
