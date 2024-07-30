@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 4.1.2
+
+### Patch Changes
+
+- Fix unavailable metadata
+
 ## 4.1.1
 
 ### Patch Changes
