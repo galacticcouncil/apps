@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.8
+
+### Patch Changes
+
+- Remove ledger warning
+
 ## 5.1.7
 
 ### Patch Changes
