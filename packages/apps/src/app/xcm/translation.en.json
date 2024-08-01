@@ -38,7 +38,6 @@
   "error.transfer.ed": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for existential deposit",
 
   "warning.cex": "Transferring assets to CEX through XCM directly will result in loss of funds. Please send them to your address on the relevant network first.",
-  "warning.ledger": "If using a Ledger hardware wallet, please transfer funds to a hot wallet before sending to Hydration network.",
 
   "notify.processing": "Sending <1>{{amount}} {{asset}}</1> from <1>{{srcChain}}</1> to <1>{{destChain}}</1> submitted",
   "notify.success": "Sent <1>{{amount}} {{asset}}</1> from <1>{{srcChain}}</1> to <1>{{destChain}}</1>",
