@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.9
+
+### Patch Changes
+
+- Fix chart height
+
 ## 5.1.8
 
 ### Patch Changes
