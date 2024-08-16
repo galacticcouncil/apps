@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.10
+
+### Patch Changes
+
+- Bump deps, sync transfer on address change
+
 ## 5.1.9
 
 ### Patch Changes
