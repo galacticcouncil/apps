@@ -981,10 +981,10 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const { address } = this.account.state;
-    const { asset, destChain, srcChain } = this.transfer;
-    const srcAddr = this.formatAddress(address, srcChain);
-    const destAddr = this.formatAddress(address, destChain);
+    const account = this.account.state;
+    const { address, asset, destChain, srcChain } = this.transfer;
+    const srcAddr = this.formatAddress(account.address, srcChain);
+    const destAddr = this.formatDestAddress(address, destChain);
 
     const xTransfer = await this.wallet.transfer(
       asset,
@@ -1054,6 +1054,7 @@ export class XcmApp extends PoolApp {
   }
 
   private async syncData(syncBalance?: boolean) {
+    this.setLoading(true);
     const update = this.getUpdateKey();
     const exec = [this.syncInput(update), this.syncEvmContext()];
 
@@ -1440,6 +1441,7 @@ export class XcmApp extends PoolApp {
     this.updateAddress(address);
     this.validateAddress();
     if (this.isToAddressValid()) {
+      this.syncData();
       this.syncBalancesOnAddressChange();
     } else {
       this.clearError('hubEd');
