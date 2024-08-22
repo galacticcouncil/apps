@@ -842,6 +842,8 @@ export class XcmApp extends PoolApp {
     const feeAssetData = Array.from(srcChain.assetsData.values()).find((a) => {
       return Object.hasOwn(a, 'metadataId')
         ? a.metadataId.toString() === feeAsset.id
+        : Object.hasOwn(a, 'balanceId')
+        ? a.balanceId.toString() === feeAsset.id
         : a.id.toString() === feeAsset.id;
     });
     if (isEvmAccount(account.address) && feeAsset.id === EVM_NATIVE_ASSET_ID) {
