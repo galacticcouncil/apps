@@ -1001,7 +1001,9 @@ export class XcmApp extends PoolApp {
     let srcChainFee: AssetAmount;
     let srcChainMax: AssetAmount;
     if (srcChain.key == 'hydradx') {
-      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(address);
+      const feeAssetId = await this.paymentApi.getPaymentFeeAsset(
+        addr.isH160(address) ? convertFromH160(address) : address,
+      );
       const feeAsset = this.assets.registry.get(feeAssetId);
       srcChainFee = await this.calculateSourceFee(
         xTransfer,
