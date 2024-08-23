@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 5.1.11
+
+### Patch Changes
+
+- Fix fee payment asset XCM calc
+
 ## 5.1.10
 
 ### Patch Changes
