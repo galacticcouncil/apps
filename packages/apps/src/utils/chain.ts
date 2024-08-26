@@ -40,13 +40,18 @@ export function useSs58AddressSpace(chain: AnyChain) {
 
 export function getChainAssetId(chain: AnyChain, asset: Asset) {
   const selected = Array.from(chain.assetsData.values()).find((a) => {
-    if (asset.key === 'eth') {
-      // tmp fix (eth using weth key in xcm-sdk)
+    // Ethereum using weth key for native asset (eth) in xcm-sdk
+    if (chain.key === 'ethereum' && asset.key === 'eth') {
       return a.asset.key === 'weth';
     }
     return a.asset.key === asset.key;
   });
-  return selected.id || '0';
+
+  // Acala correct composite key is mapped in ID (TODO: Unify metadataId)
+  if (chain.key.startsWith('acala')) {
+    return selected.id;
+  }
+  return selected.balanceId || selected.id || '0';
 }
 
 export function getChainId(chain: AnyChain) {
