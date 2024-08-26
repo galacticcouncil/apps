@@ -1,5 +1,16 @@
 # @galacticcouncil/apps
 
+## 6.0.0
+
+### Major Changes
+
+- Support metadata v2
+
+### Patch Changes
+
+- Updated dependencies
+  - @galacticcouncil/ui@5.0.0
+
 ## 5.1.11
 
 ### Patch Changes

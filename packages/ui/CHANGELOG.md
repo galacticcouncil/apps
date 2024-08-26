@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.0.0
+
+### Major Changes
+
+- Support metadata v2
+
 ## 4.1.2
 
 ### Patch Changes
