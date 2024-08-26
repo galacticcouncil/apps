@@ -6,11 +6,17 @@ import { MetadataStore } from '../utils';
 
 @customElement('uigc-logo-asset')
 export class AssetLogo extends BaseLogo {
-  @property({ type: String }) asset: string = null;
+  @property({ type: String }) ecosystem: string = null;
+  @property({ type: String }) chain: string = null;
+  @property({ attribute: false }) asset: string | { [key: string]: string } =
+    null;
 
   render() {
-    const key = this.normalizeKey(this.asset);
-    const asset = MetadataStore.getInstance().asset(key);
+    const asset = MetadataStore.getInstance().asset(
+      this.ecosystem,
+      this.chain,
+      this.asset,
+    );
 
     if (asset) {
       return html`

@@ -10,15 +10,18 @@ import styles from './AssetId.css';
 
 @customElement('uigc-asset-id')
 export class AssetId extends UIGCElement {
-  @property({ type: String }) symbol = null;
-  @property({ type: String }) chain = null;
+  @property({ type: String }) ecosystem: string = null;
+  @property({ type: String }) chain: string = null;
+  @property({ type: String }) chainOrigin: string = null;
+  @property({ attribute: false }) asset: string | { [key: string]: string } =
+    null;
 
   static styles = styles;
 
   override async updated() {
     const logoChain = this.shadowRoot.querySelector('uigc-logo-chain');
-    if (this.chain) {
-      logoChain.setAttribute('chain', this.chain);
+    if (this.chainOrigin) {
+      logoChain.setAttribute('chain', this.chainOrigin);
     } else {
       logoChain.removeAttribute('chain');
     }
@@ -26,10 +29,14 @@ export class AssetId extends UIGCElement {
 
   render() {
     return html`
-      <uigc-logo-asset fit .asset=${this.symbol}>
+      <uigc-logo-asset
+        fit
+        ecosystem=${this.ecosystem}
+        .chain=${this.chain}
+        .asset=${this.asset}>
         <uigc-logo-placeholder fit slot="placeholder"></uigc-logo-placeholder>
       </uigc-logo-asset>
-      <uigc-logo-chain fit>
+      <uigc-logo-chain fit ecosystem=${this.ecosystem}>
         <uigc-logo-placeholder fit slot="placeholder"></uigc-logo-placeholder>
       </uigc-logo-chain>
       <slot name="badge"></slot>

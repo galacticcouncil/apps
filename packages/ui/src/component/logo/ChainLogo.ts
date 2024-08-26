@@ -6,11 +6,11 @@ import { MetadataStore } from '../utils';
 
 @customElement('uigc-logo-chain')
 export class ChainLogo extends BaseLogo {
+  @property({ type: String }) ecosystem: string = null;
   @property({ type: String }) chain: string = null;
 
   render() {
-    const key = this.normalizeKey(this.chain);
-    const chain = MetadataStore.getInstance().chain(key);
+    const chain = MetadataStore.getInstance().chain(this.ecosystem, this.chain);
 
     if (chain) {
       return html`

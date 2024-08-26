@@ -6,7 +6,7 @@ uigc-logo-chain {
   display: none;
 }
 
-:host([chain]) uigc-logo-asset {
+:host([chainOrigin]) uigc-logo-asset {
   mask: radial-gradient(112% 112% at 84% 16%, transparent 25%, white 25%);
   -webkit-mask: radial-gradient(
     112% 112% at 84% 16%,
@@ -15,7 +15,7 @@ uigc-logo-chain {
   );
 }
 
-:host([chain]) uigc-logo-chain {
+:host([chainOrigin]) uigc-logo-chain {
   display: flex;
   position: absolute;
   width: 50%;

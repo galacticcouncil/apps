@@ -12,7 +12,6 @@ import styles from './ChainSelector.css';
 export class ChainSelector extends UIGCElement {
   @property({ type: String }) title = null;
   @property({ type: String }) chain = null;
-  @property({ type: String }) chainKey = null;
 
   static styles = [UIGCElement.styles, styles];
 
@@ -20,11 +19,10 @@ export class ChainSelector extends UIGCElement {
     const options = {
       bubbles: true,
       composed: true,
-      detail: { chain: this.chainKey },
+      detail: { chain: this.chain },
     };
     this.dispatchEvent(new CustomEvent('chain-selector-click', options));
   }
-
   render() {
     return html`
       <button @click=${this.onSelectorClick}>
@@ -32,12 +30,9 @@ export class ChainSelector extends UIGCElement {
           <span class="title">${this.title}</span>
           ${when(
             this.chain,
-            () =>
-              html`
-                <uigc-chain
-                  .name=${this.chain}
-                  .key=${this.chainKey}></uigc-chain>
-              `,
+            () => html`
+              <slot name="chain"></slot>
+            `,
             () => html`
               <span class="select">
                 <span>Select chain</span>
