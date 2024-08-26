@@ -1333,6 +1333,7 @@ export class XcmApp extends PoolApp {
               .assets=${this.xchain.tokens}
               .balances=${this.xchain.balance}
               .asset=${this.transfer.asset}
+              .chain=${this.transfer.srcChain}
               @asset-click=${this.onAssetClick}>
               <div class="header section" slot="header">
                 <uigc-icon-button

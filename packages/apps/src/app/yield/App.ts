@@ -490,7 +490,10 @@ export class YieldApp extends PoolApp {
             </div>
           </gc-yield-form>
         </uigc-paper>
-        <gc-yield-stepper class=${classMap(stepClasses)}></gc-yield-stepper>
+        <gc-yield-stepper
+          class=${classMap(stepClasses)}
+          .assets=${this.assets.registry}
+          .ecosystem=${this.ecosystem}></gc-yield-stepper>
       </div>
     `;
   }

@@ -4,10 +4,12 @@ import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
 
-import { Asset, AssetAmount } from '@galacticcouncil/xcm-core';
+import { AnyChain, Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 
 import { baseStyles, selectorStyles } from 'styles';
+
 import { humanizeAmount } from 'utils/amount';
+import { getChainAssetId, getChainEcosystem, getChainId } from 'utils/chain';
 
 @customElement('gc-select-xasset')
 export class SelectXAsset extends LitElement {
@@ -15,7 +17,8 @@ export class SelectXAsset extends LitElement {
   @property({ attribute: false }) balances: Map<string, AssetAmount> = new Map(
     [],
   );
-  @property({ type: String }) asset = null;
+  @property({ attribute: false }) asset: Asset = null;
+  @property({ attribute: false }) chain: AnyChain = null;
   @property({ type: String }) query = '';
 
   static styles = [baseStyles, selectorStyles];
@@ -38,11 +41,11 @@ export class SelectXAsset extends LitElement {
     );
   }
 
-  isSelected(asset: string): boolean {
+  isSelected(asset: Asset): boolean {
     return this.asset == asset;
   }
 
-  getSlot(asset: string): string {
+  getSlot(asset: Asset): string {
     if (this.isSelected(asset)) {
       return 'selected';
     } else {
@@ -90,15 +93,20 @@ export class SelectXAsset extends LitElement {
                 : '-';
               return html`
                 <uigc-asset-list-item
-                  slot=${this.getSlot(asset.key)}
-                  ?selected=${this.isSelected(asset.key)}
+                  slot=${this.getSlot(asset)}
+                  ?selected=${this.isSelected(asset)}
                   .asset=${{ symbol: asset.key }}
                   .unit=${balance ? asset.originSymbol : null}
                   .balance=${displayBalance}>
                   <uigc-asset slot="asset" symbol=${asset.originSymbol}>
                     <uigc-asset-id
                       slot="icon"
-                      symbol=${asset.originSymbol}></uigc-asset-id>
+                      .ecosystem=${getChainEcosystem(this.chain)}
+                      .chain=${getChainId(this.chain)}
+                      .asset=${getChainAssetId(
+                        this.chain,
+                        asset,
+                      )}></uigc-asset-id>
                   </uigc-asset>
                 </uigc-asset-list-item>
               `;

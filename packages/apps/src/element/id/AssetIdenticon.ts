@@ -4,10 +4,14 @@ import { map } from 'lit/directives/map.js';
 
 import { i18n } from 'localization';
 
-import { Asset } from '@galacticcouncil/sdk';
+import {
+  Asset,
+  BASILISK_PARACHAIN_ID,
+  HYDRADX_PARACHAIN_ID,
+  SYSTEM_ASSET_ID,
+} from '@galacticcouncil/sdk';
 
 import { Ecosystem } from 'db';
-import { getChainKey } from 'utils/chain';
 import { isExternalAssetWhitelisted } from 'utils/asset';
 
 import styles from './AssetIdenticon.css';
@@ -36,26 +40,38 @@ export class AssetIdenticon extends LitElement {
     `;
   }
 
-  iconTemplate(id: string, icon: string) {
+  iconTemplate(id: string) {
     const asset = this.assets.get(id);
+    const chain =
+      this.ecosystem === Ecosystem.Polkadot
+        ? HYDRADX_PARACHAIN_ID
+        : BASILISK_PARACHAIN_ID;
 
     if (asset.origin) {
-      const originChain = getChainKey(asset.origin, this.ecosystem);
       return html`
-        <uigc-asset-id slot="icon" symbol=${icon} chain=${originChain}>
+        <uigc-asset-id
+          slot="icon"
+          ecosystem=${this.ecosystem.toLowerCase()}
+          chain=${chain}
+          chainOrigin=${asset.origin}
+          .asset=${id}>
           ${this.iconBadgeTemplate(asset)}
         </uigc-asset-id>
       `;
     }
     return html`
-      <uigc-asset-id slot="icon" symbol=${icon}>
+      <uigc-asset-id
+        slot="icon"
+        ecosystem=${this.ecosystem.toLowerCase()}
+        chain=${chain}
+        .asset=${id}>
         ${this.iconBadgeTemplate(asset)}
       </uigc-asset-id>
     `;
   }
 
   render() {
-    const { id, name, icon, symbol, meta, type } = this.asset || {};
+    const { id, name, symbol, meta, type } = this.asset || {};
     if (meta) {
       const icons = Object.entries(meta);
       return html`
@@ -63,24 +79,30 @@ export class AssetIdenticon extends LitElement {
           ?icon=${!this.showSymbol}
           symbol=${symbol}
           desc=${this.showDesc ? name : null}>
-          ${map(icons, ([key, value]) => {
-            return this.iconTemplate(key, value);
+          ${map(icons, ([key]) => {
+            return this.iconTemplate(key);
           })}
         </uigc-asset>
       `;
     }
 
-    const altDesc =
-      type === 'Bond' && !this.showDesc
-        ? name.replace('HDX Bond', '').trim()
-        : null;
+    if (type === 'Bond') {
+      return html`
+        <uigc-asset
+          ?icon=${!this.showSymbol}
+          symbol=${symbol}
+          desc=${this.showDesc ? name : name.replace('HDX Bond', '').trim()}>
+          ${this.iconTemplate(SYSTEM_ASSET_ID)}
+        </uigc-asset>
+      `;
+    }
 
     return html`
       <uigc-asset
         ?icon=${!this.showSymbol}
         symbol=${symbol}
-        desc=${this.showDesc ? name : altDesc}>
-        ${this.iconTemplate(id, icon || symbol)}
+        desc=${this.showDesc ? name : null}>
+        ${this.iconTemplate(id)}
       </uigc-asset>
     `;
   }

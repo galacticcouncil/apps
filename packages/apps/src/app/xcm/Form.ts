@@ -17,6 +17,7 @@ import { Account, AccountCursor, DatabaseController } from 'db';
 import { baseStyles, formStyles } from 'styles';
 import { isSameAddress } from 'utils/account';
 import { humanizeAmount } from 'utils/amount';
+import { getChainAssetId, getChainEcosystem, getChainId } from 'utils/chain';
 
 import 'element/id';
 
@@ -197,7 +198,12 @@ export class XcmForm extends LitElement {
         <uigc-asset slot="asset" symbol=${this.asset?.originSymbol}>
           <uigc-asset-id
             slot="icon"
-            symbol=${this.asset?.originSymbol}></uigc-asset-id>
+            .ecosystem=${getChainEcosystem(this.srcChain)}
+            .chain=${getChainId(this.srcChain)}
+            .asset=${getChainAssetId(
+              this.srcChain,
+              this.asset,
+            )}></uigc-asset-id>
         </uigc-asset>
         <uigc-asset-balance
           slot="balance"
@@ -215,8 +221,13 @@ export class XcmForm extends LitElement {
       <div class="chain">
         <uigc-chain-selector
           title=${i18n.t('form.chainSrc.label')}
-          .chain=${this.srcChain?.name}
-          .chainKey=${this.srcChain?.key}></uigc-chain-selector>
+          .chain=${this.srcChain.key}>
+          <uigc-chain
+            slot="chain"
+            .name=${this.srcChain.name}
+            .ecosystem=${getChainEcosystem(this.srcChain)}
+            .chain=${getChainId(this.srcChain)}></uigc-chain>
+        </uigc-chain-selector>
         <div class="switch__mobile">
           <div class="divider"></div>
           <uigc-asset-switch class="switch"></uigc-asset-switch>
@@ -224,8 +235,13 @@ export class XcmForm extends LitElement {
         <uigc-asset-switch basic class="switch__desktop"></uigc-asset-switch>
         <uigc-chain-selector
           title=${i18n.t('form.chainDst.label')}
-          .chain=${this.destChain?.name}
-          .chainKey=${this.destChain?.key}></uigc-chain-selector>
+          .chain=${this.destChain.key}>
+          <uigc-chain
+            slot="chain"
+            .name=${this.destChain.name}
+            .ecosystem=${getChainEcosystem(this.destChain)}
+            .chain=${getChainId(this.destChain)}></uigc-chain>
+        </uigc-chain-selector>
       </div>
     `;
   }

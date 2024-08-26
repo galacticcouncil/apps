@@ -1,15 +1,22 @@
 import { LitElement, html, TemplateResult } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import * as i18n from 'i18next';
 
+import { Ecosystem } from 'db';
 import { baseStyles } from 'styles';
 
+import { Asset } from '@galacticcouncil/sdk';
+
 import styles from './Stepper.css';
+import { HYDRADX_PARACHAIN_ID } from '@galacticcouncil/sdk';
 
 @customElement('gc-yield-stepper')
 export class YieldStepper extends LitElement {
   static styles = [baseStyles, styles];
+
+  @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
+  @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
   stepTemplate(no: number, title: string, desc: string, link: TemplateResult) {
     return html`
@@ -41,11 +48,20 @@ export class YieldStepper extends LitElement {
     `;
   }
 
+  private getAsset(symbol: string) {
+    return Array.from(this.assets.values()).find(
+      (a: Asset) => a.symbol === symbol,
+    );
+  }
+
   render() {
     return html`
       <div class="stepper">
         <div class="header">
-          <uigc-asset-id symbol=${'vDOT'}></uigc-asset-id>
+          <uigc-asset-id
+            ecosystem=${this.ecosystem}
+            .chain=${HYDRADX_PARACHAIN_ID}
+            .asset=${this.getAsset('vDOT')?.id}></uigc-asset-id>
           <div class="title">
             <uigc-typography variant="section">
               ${i18n.t('stepper.title')}
