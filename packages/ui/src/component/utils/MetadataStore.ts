@@ -51,7 +51,7 @@ export class MetadataStore {
 
     if (id) {
       const key = [ecosystem, chain, 'assets', id].join('/');
-      const item = items.find((path) => path.startsWith(key));
+      const item = items.find((path) => path.startsWith(key + '/icon'));
       return this.getUrl(this._assets, item);
     }
     return null;
@@ -60,7 +60,7 @@ export class MetadataStore {
   public chain(ecosystem: string, chain: string): string {
     const { items } = this._chains;
     const key = [ecosystem, chain].join('/');
-    const item = items.find((path) => path.startsWith(key));
+    const item = items.find((path) => path.startsWith(key + '/icon'));
     return this.getUrl(this._chains, item);
   }
 
