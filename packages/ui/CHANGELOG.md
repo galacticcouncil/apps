@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.0.1
+
+### Patch Changes
+
+- Fix metadata store item predicate
+
 ## 5.0.0
 
 ### Major Changes
