@@ -210,10 +210,14 @@ export class SelectAsset extends LitElement {
 
   render() {
     const filteredAssets = this.filter(this.query);
+    const isDisabled = filteredAssets.some(({ asset }) =>
+      this.isDisabled(asset),
+    );
+
     const assets =
       filteredAssets.length > 0
         ? () => html`
-            <uigc-asset-list>
+            <uigc-asset-list .isDisabledAssets=${isDisabled}>
               <slot slot="footer" name="footer"></slot>
               ${map(filteredAssets, ({ asset, balance, balanceUsd }) => {
                 const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
