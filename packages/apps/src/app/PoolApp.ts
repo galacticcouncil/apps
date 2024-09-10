@@ -128,8 +128,8 @@ export abstract class PoolApp extends BaseApp {
         const blockNumber = lastHeader.number.toNumber();
         console.log('Current block: ' + blockNumber);
         this.blockNumber = blockNumber;
-        // this.syncDolarPrice();
-        // this.syncNativePrice();
+        this.syncDolarPrice();
+        this.syncNativePrice();
         this.onBlockChange(blockNumber);
       },
     );
