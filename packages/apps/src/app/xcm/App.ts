@@ -1281,34 +1281,29 @@ export class XcmApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-select-xchain
-              .active=${this.tab == TransferTab.SelectChain}
-              .chains=${isDest
-                ? this.xchain.dest.map((c) => c)
-                : this.xchain.list.map((c) => c)}
-              .srcChain=${this.transfer.srcChain}
-              .destChain=${this.transfer.destChain}
-              .selector=${this.xchain.selector}
-              @list-item-click=${this.onChainClick}>
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(TransferTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${isDest
-                    ? i18n.t('header.select.chainDst')
-                    : i18n.t('header.select.chainSrc')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-select-xchain>
-          `,
-        )}
+        <gc-select-xchain
+          .active=${this.tab == TransferTab.SelectChain}
+          .chains=${isDest
+            ? this.xchain.dest.map((c) => c)
+            : this.xchain.list.map((c) => c)}
+          .srcChain=${this.transfer.srcChain}
+          .destChain=${this.transfer.destChain}
+          .selector=${this.xchain.selector}
+          @list-item-click=${this.onChainClick}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TransferTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${isDest
+                ? i18n.t('header.select.chainDst')
+                : i18n.t('header.select.chainSrc')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-select-xchain>
       </uigc-paper>
     `;
   }
@@ -1326,29 +1321,24 @@ export class XcmApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-select-xasset
-              .assets=${this.xchain.tokens}
-              .balances=${this.xchain.balance}
-              .asset=${this.transfer.asset}
-              .chain=${this.transfer.srcChain}
-              @asset-click=${this.onAssetClick}>
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(TransferTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${i18n.t('header.select')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-select-xasset>
-          `,
-        )}
+        <gc-select-xasset
+          .assets=${this.xchain.tokens}
+          .balances=${this.xchain.balance}
+          .asset=${this.transfer.asset}
+          .chain=${this.transfer.srcChain}
+          @asset-click=${this.onAssetClick}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TransferTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.select')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-select-xasset>
       </uigc-paper>
     `;
   }

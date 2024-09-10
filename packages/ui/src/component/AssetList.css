@@ -1,6 +1,6 @@
 .list-root {
   height: 100%;
-  overflow-y: auto;
+  display: unset;
 }
 
 .list-header {

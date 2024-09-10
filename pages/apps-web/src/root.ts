@@ -3,7 +3,7 @@ import { customElement } from 'lit/decorators.js';
 
 import { ThemeController, setObj } from '@galacticcouncil/apps';
 
-import external from 'config/external.json';
+import external from 'config/external.degen.json';
 
 @customElement('gc-root')
 export class Root extends LitElement {

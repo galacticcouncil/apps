@@ -19,6 +19,22 @@ uigc-list,
 uigc-asset-list {
   margin-top: 20px;
   overflow-y: auto;
+  height: 100%;
+  width: 100%;
+}
+
+uigc-asset-list.virtual {
+  display: flex;
+}
+
+uigc-asset-list.virtual > * {
+  top: 25px !important;
+}
+
+uigc-list > *,
+uigc-asset-list > * {
+  display: flex;
+  width: 100%;
 }
 
 .loading {

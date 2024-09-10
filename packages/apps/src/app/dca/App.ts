@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { cache } from 'lit/directives/cache.js';
 
 import { i18n } from 'localization';
 import { translation } from './locales';
@@ -540,24 +541,19 @@ export class DcaApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-dca-settings @settings-change=${() => this.updateTradeSize()}>
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(DcaTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${i18n.t('header.settings')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-dca-settings>
-          `,
-        )}
+        <gc-dca-settings @settings-change=${() => this.updateTradeSize()}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(DcaTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.settings')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-dca-settings>
       </uigc-paper>
     `;
   }
@@ -580,35 +576,29 @@ export class DcaApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-select-asset
-              .assets=${this.assets.tradeable.filter(
-                (a) => a.type !== 'Bond' && a.isSufficient,
-              )}
-              .pairs=${this.assets.pairs}
-              .balances=${this.assets.balance}
-              .usdPrice=${this.assets.usdPrice}
-              .assetIn=${this.dca.assetIn}
-              .assetOut=${this.dca.assetOut}
-              .switchAllowed=${false}
-              .selector=${this.asset.selector}
-              @asset-click=${this.onAssetClick}>
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(DcaTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${i18n.t('header.select')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-select-asset>
-          `,
-        )}
+        <gc-select-asset
+          .assets=${this.assets.tradeable.filter(
+            (a) => a.type !== 'Bond' && a.isSufficient,
+          )}
+          .balances=${this.assets.balance}
+          .usdPrice=${this.assets.usdPrice}
+          .assetIn=${this.dca.assetIn}
+          .assetOut=${this.dca.assetOut}
+          .switchAllowed=${false}
+          .selector=${this.asset.selector}
+          @asset-click=${this.onAssetClick}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(DcaTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.select')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-select-asset>
       </uigc-paper>
     `;
   }

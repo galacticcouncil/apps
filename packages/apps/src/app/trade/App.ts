@@ -2,6 +2,7 @@ import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { cache } from 'lit/directives/cache.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import { i18n } from 'localization';
@@ -81,7 +82,7 @@ export class TradeApp extends PoolApp {
 
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) twapOn: Boolean = false;
-  @property({ type: Boolean }) newAssetBtn: Boolean = false;
+  @property({ type: Boolean }) newAssetBtn: Boolean = true;
   @property({ type: Boolean }) assetCheckEnabled: Boolean = false;
 
   @state() tab: TradeTab = TradeTab.Form;
@@ -127,24 +128,10 @@ export class TradeApp extends PoolApp {
   }
 
   isSwitchEnabled(): boolean {
-    const assetIn = this.trade.assetIn?.id;
-    const assetOut = this.trade.assetOut?.id;
-
-    if (!assetIn || !assetOut) {
-      return true;
-    }
-
-    const assetInAllowed = isAssetInAllowed(
-      this.assets.tradeable,
-      this.assets.pairs,
-      assetOut,
-    );
-    const assetOutAllowed = isAssetOutAllowed(
-      this.assets.tradeable,
-      this.assets.pairs,
-      assetIn,
-    );
-    return assetInAllowed && assetOutAllowed;
+    const assetIn = this.trade.assetIn;
+    const isLrna =
+      assetIn?.id === '1' && assetIn?.symbol.toLowerCase() === 'h2o';
+    return !isLrna;
   }
 
   isEmptyAmount(amount: string): boolean {
@@ -152,24 +139,8 @@ export class TradeApp extends PoolApp {
   }
 
   isPoolError(): boolean {
-    const assetIn = this.trade.assetIn?.id;
-    const assetOut = this.trade.assetOut?.id;
-
-    if (!assetIn || !assetOut) {
-      return false;
-    }
-
-    const assetInAllowed = isAssetInAllowed(
-      this.assets.tradeable,
-      this.assets.pairs,
-      assetIn,
-    );
-    const assetOutAllowed = isAssetOutAllowed(
-      this.assets.tradeable,
-      this.assets.pairs,
-      assetOut,
-    );
-    return assetIn === assetOut || !assetInAllowed || !assetOutAllowed;
+    const assetOut = this.trade.assetOut;
+    return assetOut?.id === '1' && assetOut?.symbol.toLowerCase() === 'h2o';
   }
 
   changeTab(active: TradeTab) {
@@ -229,7 +200,12 @@ export class TradeApp extends PoolApp {
       assetIn.id,
       assetOut.id,
     );
-    return scale(ONE, price.decimals).div(price.amount).toFixed();
+
+    if (price) {
+      return scale(ONE, price.decimals).div(price.amount).toFixed();
+    } else {
+      return undefined;
+    }
   }
 
   protected async calculateSell(
@@ -1116,26 +1092,21 @@ export class TradeApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-trade-settings
-              .ecosystem=${this.ecosystem}
-              @settings-change=${() => this.recalculateTrade()}>
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(TradeTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${i18n.t('header.settings')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-trade-settings>
-          `,
-        )}
+        <gc-trade-settings
+          .ecosystem=${this.ecosystem}
+          @settings-change=${() => this.recalculateTrade()}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TradeTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.settings')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-trade-settings>
       </uigc-paper>
     `;
   }
@@ -1208,35 +1179,29 @@ export class TradeApp extends PoolApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-select-asset
-              .assets=${this.assets.tradeable}
-              .pairs=${this.assets.pairs}
-              .balances=${this.assets.balance}
-              .ecosystem=${this.ecosystem}
-              .usdPrice=${this.assets.usdPrice}
-              .assetIn=${this.trade.assetIn}
-              .assetOut=${this.trade.assetOut}
-              .switchAllowed=${this.isSwitchEnabled()}
-              .selector=${this.asset.selector}
-              @asset-click=${this.onAssetClick}>
-              ${this.addAssetBtn()} ${this.addAssetBtnTitle()}
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(TradeTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${i18n.t('header.select')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-select-asset>
-          `,
-        )}
+        <gc-select-asset
+          .assets=${this.assets.tradeable}
+          .balances=${this.assets.balance}
+          .ecosystem=${this.ecosystem}
+          .usdPrice=${this.assets.usdPrice}
+          .assetIn=${this.trade.assetIn}
+          .assetOut=${this.trade.assetOut}
+          .switchAllowed=${this.isSwitchEnabled()}
+          .selector=${this.asset.selector}
+          @asset-click=${this.onAssetClick}>
+          ${this.addAssetBtn()} ${this.addAssetBtnTitle()}
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TradeTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.select')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-select-asset>
       </uigc-paper>
     `;
   }

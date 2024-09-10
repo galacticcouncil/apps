@@ -3,13 +3,16 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
+import {
+  virtualize,
+  virtualizerRef,
+} from '@lit-labs/virtualizer/virtualize.js';
 
 import { Amount, Asset } from '@galacticcouncil/sdk';
 
 import { Ecosystem } from 'db';
 import { baseStyles, selectorStyles } from 'styles';
 import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
-import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 
 import { AssetSelector } from './types';
 
@@ -22,7 +25,6 @@ import styles from './SelectAsset.css';
 export class SelectAsset extends LitElement {
   @property({ attribute: false }) assets: Asset[] = [];
   @property({ attribute: false }) assetsAlt: Asset[] = null;
-  @property({ attribute: false }) pairs: Map<string, Asset[]> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
@@ -45,6 +47,10 @@ export class SelectAsset extends LitElement {
 
   private updateSearch(searchDetail: any) {
     this.query = searchDetail.value;
+  }
+
+  private resetSearch() {
+    this.query = '';
   }
 
   private getAssetBalance(asset: Asset) {
@@ -127,26 +133,10 @@ export class SelectAsset extends LitElement {
   }
 
   isDisabled(asset: Asset): boolean {
-    const asAssetInAllowed = isAssetInAllowed(
-      this.assets,
-      this.pairs,
-      asset.id,
-    );
-    const asAssetOutAllowed = isAssetOutAllowed(
-      this.assets,
-      this.pairs,
-      asset.id,
-    );
-
-    if (this.selector?.id == 'assetIn') {
-      return this.switchAllowed
-        ? !asAssetInAllowed
-        : this.assetOut.symbol == asset.symbol;
-    } else if (this.selector?.id == 'assetOut') {
-      return !asAssetOutAllowed;
-    } else {
-      return false;
+    if (this.selector?.id == 'assetOut') {
+      return asset.id === '1' && asset.symbol.toLowerCase() === 'h2o';
     }
+    return false;
   }
 
   isSelected(asset: Asset): boolean {
@@ -154,16 +144,6 @@ export class SelectAsset extends LitElement {
       return this[this.selector.id].id === asset.id;
     }
     return false;
-  }
-
-  getSlot(asset: Asset): string {
-    if (this.isSelected(asset)) {
-      return 'selected';
-    } else if (this.isDisabled(asset)) {
-      return 'disabled';
-    } else {
-      return null;
-    }
   }
 
   loadingTemplate() {
@@ -208,33 +188,61 @@ export class SelectAsset extends LitElement {
     `;
   }
 
-  render() {
-    const filteredAssets = this.filter(this.query);
-    const assets =
-      filteredAssets.length > 0
-        ? () => html`
-            <uigc-asset-list>
-              <slot slot="footer" name="footer"></slot>
-              ${map(filteredAssets, ({ asset, balance, balanceUsd }) => {
-                const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
+  renderFn(aBalance: any, index: number) {
+    if (aBalance === 'footer') {
+      return html`
+        <slot style="z-index: ${0 - index};" slot="footer" name="footer"></slot>
+      `;
+    }
 
-                return html`
-                  <uigc-asset-list-item
-                    slot=${this.getSlot(asset)}
-                    ?selected=${this.isSelected(asset)}
-                    ?disabled=${this.isDisabled(asset)}
-                    .asset=${asset}
-                    .unit=${icons.length === 1 ? asset.symbol : null}
-                    .balance=${humanizeAmount(balance)}
-                    .balanceUsd=${humanizeAmount(balanceUsd, 2)}>
-                    <gc-asset-identicon
-                      slot="asset"
-                      .showDesc=${true}
-                      .asset=${asset}
-                      .assets=${this.getAssets()}
-                      .ecosystem=${this.ecosystem}></gc-asset-identicon>
-                  </uigc-asset-list-item>
-                `;
+    const { asset, balance, balanceUsd } = aBalance;
+    const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
+    return html`
+      <uigc-asset-list-item
+        style="z-index: ${0 - index};"
+        ?selected=${this.isSelected(asset)}
+        ?disabled=${this.isDisabled(asset)}
+        .asset=${asset}
+        .unit=${icons.length === 1 ? asset.symbol : null}
+        .balance=${humanizeAmount(balance)}
+        .balanceUsd=${humanizeAmount(balanceUsd, 2)}>
+        <gc-asset-identicon
+          slot="asset"
+          .showDesc=${true}
+          .asset=${asset}
+          .assets=${this.getAssets()}
+          .ecosystem=${this.ecosystem}></gc-asset-identicon>
+      </uigc-asset-list-item>
+    `;
+  }
+
+  override async update(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('selector')) {
+      const virtualizer = this.shadowRoot.querySelector('.virtual');
+      if (virtualizer) {
+        virtualizer[virtualizerRef].element(0).scrollIntoView();
+        this.resetSearch();
+      }
+    }
+    super.update(changedProperties);
+  }
+
+  render() {
+    const filtered = this.filter(this.query);
+    const selected = filtered.filter(({ asset }) => this.isSelected(asset));
+    const disabled = filtered.filter(({ asset }) => this.isDisabled(asset));
+    const rest = filtered.filter(
+      ({ asset }) => !this.isDisabled(asset) && !this.isSelected(asset),
+    );
+
+    const assets =
+      filtered.length > 0
+        ? () => html`
+            <uigc-asset-list class="virtual">
+              ${virtualize({
+                scroller: true,
+                items: [...selected, ...rest, ...disabled, 'footer'],
+                renderItem: (asset, index) => this.renderFn(asset, index),
               })}
             </uigc-asset-list>
           `

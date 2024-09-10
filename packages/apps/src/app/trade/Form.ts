@@ -882,7 +882,7 @@ export class TradeForm extends BaseElement {
     };
     const errorClasses = {
       error: true,
-      show: this.hasTradeRoute() && !this.twapEnabled && this.hasGeneralError(),
+      show: !this.twapEnabled && this.hasGeneralError(),
     };
     return html`
       <slot name="header"></slot>

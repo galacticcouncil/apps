@@ -4,8 +4,10 @@ import {
   BalanceClient,
   BigNumber,
   TradeRouter,
+  ZERO,
 } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
+import { formatAmount } from 'utils/amount';
 
 import { pairs2Map } from 'utils/mapper';
 
@@ -43,24 +45,36 @@ export class AssetApi {
 
   async getPrice(
     assets: Asset[],
+    balance: Map<string, Amount>,
     stableCoinAssetId: string,
     stableCoinRate?: string,
   ): Promise<Map<string, Amount>> {
     const prices: [string, Amount][] = await Promise.all(
       assets.map(async (asset: Asset) => {
-        const price = await this._router.getBestSpotPrice(
-          asset.id,
-          stableCoinAssetId,
-        );
+        const assetBalance = balance.get(asset.id);
+        if (assetBalance && assetBalance.amount > ZERO) {
+          const price = await this._router.getBestSpotPrice(
+            asset.id,
+            stableCoinAssetId,
+          );
 
-        if (stableCoinRate && price) {
+          if (stableCoinRate && price) {
+            return [
+              asset.id,
+              { ...price, amount: price.amount?.times(stableCoinRate) },
+            ];
+          }
+
+          return [asset.id, price];
+        } else {
           return [
             asset.id,
-            { ...price, amount: price.amount?.times(stableCoinRate) },
+            {
+              amount: ZERO,
+              decimals: asset.decimals,
+            },
           ];
         }
-
-        return [asset.id, price];
       }),
     );
     return pairs2Map(prices);

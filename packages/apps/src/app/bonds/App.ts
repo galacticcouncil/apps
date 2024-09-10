@@ -169,34 +169,28 @@ export class BondsApp extends TradeApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-select-asset
-              .assetIn=${this.trade.assetIn}
-              .assetOut=${this.trade.assetOut}
-              .assets=${this.assets.tradeable}
-              .assetsAlt=${this.lbp.assets}
-              .balances=${this.assets.balance}
-              .pairs=${this.assets.pairs}
-              .usdPrice=${this.assets.usdPrice}
-              .switchAllowed=${this.isSwitchEnabled()}
-              .selector=${this.asset.selector}
-              @asset-click=${this.onAssetClick}>
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(TradeTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${i18n.t('trade.selectAsset')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-select-asset>
-          `,
-        )}
+        <gc-select-asset
+          .assetIn=${this.trade.assetIn}
+          .assetOut=${this.trade.assetOut}
+          .assets=${this.assets.tradeable}
+          .assetsAlt=${this.lbp.assets}
+          .balances=${this.assets.balance}
+          .usdPrice=${this.assets.usdPrice}
+          .switchAllowed=${this.isSwitchEnabled()}
+          .selector=${this.asset.selector}
+          @asset-click=${this.onAssetClick}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TradeTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('trade.selectAsset')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-select-asset>
       </uigc-paper>
     `;
   }
@@ -248,25 +242,19 @@ export class BondsApp extends TradeApp {
     };
     return html`
       <uigc-paper class=${classMap(classes)}>
-        ${when(
-          active,
-          () => html`
-            <gc-bonds-settings
-              @settings-change=${() => this.recalculateTrade()}>
-              <div class="header section" slot="header">
-                <uigc-icon-button
-                  class="back"
-                  @click=${() => this.changeTab(TradeTab.Form)}>
-                  <uigc-icon-back></uigc-icon-back>
-                </uigc-icon-button>
-                <uigc-typography variant="section">
-                  ${i18n.t('header.settings')}
-                </uigc-typography>
-                <span></span>
-              </div>
-            </gc-bonds-settings>
-          `,
-        )}
+        <gc-bonds-settings @settings-change=${() => this.recalculateTrade()}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TradeTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.settings')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-bonds-settings>
       </uigc-paper>
     `;
   }

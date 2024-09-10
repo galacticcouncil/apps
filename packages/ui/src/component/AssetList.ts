@@ -16,12 +16,7 @@ export class AssetList extends UIGCElement {
           <span>ASSET</span>
           <span>BALANCE</span>
         </div>
-        <slot name="selected"></slot>
         <slot></slot>
-        <div class="list-header subheader">
-          <span>ASSETS WITHOUT PAIR/POOL</span>
-        </div>
-        <slot name="disabled"></slot>
         <slot name="footer"></slot>
       </div>
     `;

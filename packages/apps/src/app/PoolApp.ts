@@ -41,7 +41,6 @@ export abstract class PoolApp extends BaseApp {
   @state() assets = {
     tradeable: [] as Asset[],
     registry: new Map<string, Asset>([]),
-    pairs: new Map<string, Asset[]>([]),
     usdPrice: new Map<string, Amount>([]),
     nativePrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
@@ -109,14 +108,12 @@ export abstract class PoolApp extends BaseApp {
     this.balanceClient = new BalanceClient(api);
 
     const tradeable = await router.getAllAssets();
-    const pairs = await this.assetApi.getPairs(tradeable);
-
     this.assets = {
       ...this.assets,
       tradeable: tradeable,
       registry: new Map(poolService.assets.map((a) => [a.id, a])),
-      pairs: pairs,
     };
+
     this.timeApi.getBlockTime().then((time: number) => {
       this.blockTime = time;
       console.log('Avg blockTime:', time);
@@ -131,8 +128,8 @@ export abstract class PoolApp extends BaseApp {
         const blockNumber = lastHeader.number.toNumber();
         console.log('Current block: ' + blockNumber);
         this.blockNumber = blockNumber;
-        this.syncDolarPrice();
-        this.syncNativePrice();
+        // this.syncDolarPrice();
+        // this.syncNativePrice();
         this.onBlockChange(blockNumber);
       },
     );
@@ -221,19 +218,18 @@ export abstract class PoolApp extends BaseApp {
   protected async syncAssets() {
     const { poolService, router } = this.chain.state;
     const tradeable = await router.getAllAssets();
-    const pairs = await this.assetApi.getPairs(tradeable);
 
     this.assets = {
       ...this.assets,
       tradeable: tradeable,
       registry: new Map(poolService.assets.map((a) => [a.id, a])),
-      pairs: pairs,
     };
   }
 
   protected async syncDolarPrice() {
     this.assets.usdPrice = await this.assetApi.getPrice(
       this.assets.tradeable,
+      this.assets.balance,
       this.stableCoinAssetId,
       this.stableCoinRate,
     );
@@ -242,6 +238,7 @@ export abstract class PoolApp extends BaseApp {
   protected async syncNativePrice() {
     this.assets.nativePrice = await this.assetApi.getPrice(
       this.assets.tradeable,
+      this.assets.balance,
       SYSTEM_ASSET_ID,
     );
   }
