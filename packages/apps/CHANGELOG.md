@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.1.1
+
+### Patch Changes
+
+- Fix virtualizer deps
+
 ## 6.1.0
 
 ### Minor Changes

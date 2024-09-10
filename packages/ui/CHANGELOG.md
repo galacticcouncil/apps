@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.1.1
+
+### Patch Changes
+
+- Fix virtualizer deps
+
 ## 5.1.0
 
 ### Minor Changes
