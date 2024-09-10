@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.1.0
+
+### Minor Changes
+
+- Virtual scroll, sdk perf fixes
+
 ## 6.0.0
 
 ### Major Changes

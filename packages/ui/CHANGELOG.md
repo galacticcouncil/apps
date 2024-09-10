@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.1.0
+
+### Minor Changes
+
+- Virtual scroll, sdk perf fixes
+
 ## 5.0.1
 
 ### Patch Changes

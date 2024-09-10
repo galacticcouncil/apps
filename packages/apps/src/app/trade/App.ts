@@ -82,7 +82,7 @@ export class TradeApp extends PoolApp {
 
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) twapOn: Boolean = false;
-  @property({ type: Boolean }) newAssetBtn: Boolean = true;
+  @property({ type: Boolean }) newAssetBtn: Boolean = false;
   @property({ type: Boolean }) assetCheckEnabled: Boolean = false;
 
   @state() tab: TradeTab = TradeTab.Form;
