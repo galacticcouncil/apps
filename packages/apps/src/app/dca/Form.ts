@@ -327,25 +327,41 @@ export class DcaForm extends BaseElement {
   }
 
   formFrequencyTemplate() {
-    const error = this.error['frequencyOutOfRange'];
-    const isDisabled =
-      this.error['balanceTooLow'] || this.error['minBudgetTooLow'];
+    const min = this.order
+      ? Math.min(this.order.frequencyMin, this.order.frequencyOpt)
+      : 0;
+
+    const max = Number.isFinite(this.order?.frequencyOpt)
+      ? Math.max(min, this.order.frequencyOpt)
+      : 0;
+
+    const value = this.frequency ?? max;
+
+    const valueMsec = value * 60 * 1000;
+    const blockTime = 12_000;
+    const blockCount = Math.floor(valueMsec / blockTime);
+    const blockHint =
+      blockCount > 0
+        ? i18n.t('form.advanced.intervalBlocks', {
+            minutes: value,
+            blocks: blockCount,
+          })
+        : undefined;
+
     return html`
-      <uigc-textfield
-        field
-        number
-        ?disabled=${!!isDisabled}
-        .disabled=${!!isDisabled}
-        ?error=${error}
-        .error=${error}
-        .min=${1}
-        .placeholder=${this.order?.frequency}
-        .value=${this.frequency}
-        @input-change=${(e: CustomEvent) => this.onFrequencyChange(e)}>
-        <span class="adornment" slot="inputAdornment">
-          ${i18n.t('form.advanced.interval')}
-        </span>
-      </uigc-textfield>
+      <div>
+        <uigc-slider
+          label=${i18n.t('form.advanced.interval')}
+          unit="min"
+          hint=${blockHint}
+          .min=${min}
+          .max=${max}
+          .value=${value}
+          .disabled=${!this.order}
+          @input-change=${(e: CustomEvent) => this.onFrequencyChange(e)}>
+          >
+        </uigc-slider>
+      </div>
     `;
   }
 

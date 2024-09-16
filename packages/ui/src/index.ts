@@ -33,6 +33,7 @@ export { Progress } from './component/Progress';
 export { SearchBar } from './component/SearchBar';
 export { Selector } from './component/Selector';
 export { Skeleton } from './component/Skeleton';
+export { Slider } from './component/Slider';
 export { Switch } from './component/Switch';
 export { Textfield } from './component/Textfield';
 export { Toast } from './component/Toast';
