@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.1.2
+
+### Patch Changes
+
+- Fix fee payment asset in xcm
+
 ## 6.1.1
 
 ### Patch Changes
