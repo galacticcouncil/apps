@@ -983,10 +983,10 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const account = this.account.state;
-    const { address, asset, destChain, srcChain } = this.transfer;
-    const srcAddr = this.formatAddress(account.address, srcChain);
-    const destAddr = this.formatDestAddress(address, destChain);
+    const { address } = this.account.state;
+    const { asset, destChain, srcChain, address: destAddress } = this.transfer;
+    const srcAddr = this.formatAddress(address, srcChain);
+    const destAddr = this.formatDestAddress(destAddress, destChain);
 
     const xTransfer = await this.wallet.transfer(
       asset,
