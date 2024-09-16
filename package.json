@@ -23,9 +23,9 @@
     "link": "turbo run link",
     "changeset": "changeset",
     "changeset:version": "node ./scripts/changeset-version.mjs",
+    "changeset:snapshot": "node ./scripts/changeset-snapshot.mjs",
     "prerelease": "npm run build",
     "release": "changeset publish",
-    "release:beta": "npm run release -- --no-git-tag --snapshot --tag beta",
     "postrelease": "bash ./scripts/changeset-push.sh"
   },
   "devDependencies": {
