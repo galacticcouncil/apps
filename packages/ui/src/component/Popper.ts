@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
-import { computePosition } from '@floating-ui/dom';
+import { computePosition, flip } from '@floating-ui/dom';
 
 import styles from './Popper.css';
 
@@ -22,16 +22,24 @@ export class Popper extends UIGCElement {
     return this.shadowRoot.querySelector('.tooltip') as HTMLElement;
   }
 
-  private mouseOverListener = () => {
+  private updatePosition = () => {
     computePosition(this.triggerElement, this.tooltipElement, {
       placement: 'right-start',
+      strategy: 'fixed',
+      middleware: [flip()],
     }).then(({ x, y }) => {
       Object.assign(this.tooltipElement.style, {
-        display: 'block',
         left: `${x}px`,
         top: `${y}px`,
       });
     });
+  };
+
+  private mouseOverListener = () => {
+    Object.assign(this.tooltipElement.style, {
+      display: 'block',
+    });
+    this.updatePosition();
   };
 
   private mouseOutListener = () => {
