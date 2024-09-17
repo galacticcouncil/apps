@@ -93,7 +93,7 @@ export class Slider extends UIGCElement {
     if (!this.hint) return '';
     return html`
       <uigc-popper text=${this.hint}>
-        <uigc-icon-info fit></uigc-icon-info>
+        <uigc-icon-info></uigc-icon-info>
       </uigc-popper>
     `;
   }
