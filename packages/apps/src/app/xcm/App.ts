@@ -1516,6 +1516,7 @@ export class XcmApp extends PoolApp {
           .destChainFee=${this.transfer.destChainFee}
           .max=${this.transfer.max}
           .error=${this.transfer.error}
+          .ecosystem=${this.ecosystem}
           .registry=${this.assets.registry}
           .registryChain=${this.configService.getChain('hydradx')}
           @asset-input-change=${this.onAssetInputChange}

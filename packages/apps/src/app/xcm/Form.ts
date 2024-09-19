@@ -14,7 +14,7 @@ import {
 
 import * as i18n from 'i18next';
 
-import { Account, AccountCursor, DatabaseController } from 'db';
+import { Account, AccountCursor, DatabaseController, Ecosystem } from 'db';
 import { baseStyles, formStyles } from 'styles';
 import { isSameAddress } from 'utils/account';
 import { humanizeAmount } from 'utils/amount';
@@ -42,6 +42,7 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) srcChainFee: AssetAmount = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destChainFee: AssetAmount = null;
+  @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
   @property({ attribute: false }) registryChain: AnyChain = null;
 
@@ -212,6 +213,7 @@ export class XcmForm extends LitElement {
   }
 
   formAssetTemplate(asset: Asset) {
+    console.log('temp');
     if (this.registry.size > 0) {
       const registryId = this.registryChain.getBalanceAssetId(asset);
       const registryAsset = this.registry.get(registryId.toString());
@@ -231,7 +233,8 @@ export class XcmForm extends LitElement {
         <gc-asset-identicon
           slot="asset"
           .asset=${registryAsset}
-          .assets=${this.registry}></gc-asset-identicon>
+          .assets=${this.registry}
+          .ecosystem=${this.ecosystem}></gc-asset-identicon>
       `;
     }
     return this.formAssetLoadingTemplate();
@@ -251,16 +254,7 @@ export class XcmForm extends LitElement {
         .selectable=${this.registry.size > 0}
         ?error=${this.error['amount']}
         .error=${this.error['amount']}>
-        <uigc-asset slot="asset" symbol=${this.asset?.originSymbol}>
-          <uigc-asset-id
-            slot="icon"
-            .ecosystem=${getChainEcosystem(this.srcChain)}
-            .chain=${getChainId(this.srcChain)}
-            .asset=${getChainAssetId(
-              this.srcChain,
-              this.asset,
-            )}></uigc-asset-id>
-        </uigc-asset>
+        ${this.formAssetTemplate(this.asset)}
         <uigc-asset-balance
           slot="balance"
           .balance=${balance}
