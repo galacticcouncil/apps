@@ -3,6 +3,10 @@ import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { range } from 'lit/directives/range.js';
 import { map } from 'lit/directives/map.js';
+import {
+  virtualize,
+  virtualizerRef,
+} from '@lit-labs/virtualizer/virtualize.js';
 
 import { AnyChain, Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 
@@ -27,6 +31,10 @@ export class SelectXAsset extends LitElement {
     this.query = searchDetail.value;
   }
 
+  private resetSearch() {
+    this.query = '';
+  }
+
   onBackClick(e: any) {
     const options = {
       bubbles: true,
@@ -43,14 +51,6 @@ export class SelectXAsset extends LitElement {
 
   isSelected(asset: Asset): boolean {
     return this.asset == asset;
-  }
-
-  getSlot(asset: Asset): string {
-    if (this.isSelected(asset)) {
-      return 'selected';
-    } else {
-      return null;
-    }
   }
 
   loadingTemplate() {
@@ -73,7 +73,55 @@ export class SelectXAsset extends LitElement {
     `;
   }
 
+  renderFn(asset: Asset) {
+    const balance = this.balances.get(asset.key) || null;
+    const displayBalance = balance ? humanizeAmount(balance.toDecimal()) : '-';
+    return html`
+      <uigc-asset-list-item
+        ?selected=${this.isSelected(asset)}
+        .asset=${{ symbol: asset.key }}
+        .unit=${balance ? asset.originSymbol : null}
+        .balance=${displayBalance}>
+        <uigc-asset slot="asset" symbol=${asset.originSymbol}>
+          <uigc-asset-id
+            slot="icon"
+            .ecosystem=${getChainEcosystem(this.chain)}
+            .chain=${getChainId(this.chain)}
+            .asset=${getChainAssetId(this.chain, asset)}></uigc-asset-id>
+        </uigc-asset>
+      </uigc-asset-list-item>
+    `;
+  }
+
+  override async update(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has('asset')) {
+      const virtualizer = this.shadowRoot.querySelector('.virtual');
+      if (virtualizer) {
+        virtualizer[virtualizerRef].element(0).scrollIntoView();
+        this.resetSearch();
+      }
+    }
+    super.update(changedProperties);
+  }
+
   render() {
+    const filtered = this.filterAssets(this.query);
+    const selected = filtered.filter((asset) => this.isSelected(asset));
+    const rest = filtered.filter((asset) => !this.isSelected(asset));
+
+    const assets =
+      filtered.length > 0
+        ? () => html`
+            <uigc-asset-list class="virtual">
+              ${virtualize({
+                scroller: true,
+                items: [...selected, ...rest],
+                renderItem: (asset) => this.renderFn(asset),
+              })}
+            </uigc-asset-list>
+          `
+        : () => html``;
+
     return html`
       <slot name="header"></slot>
       <uigc-search-bar
@@ -84,35 +132,7 @@ export class SelectXAsset extends LitElement {
           this.updateSearch(e.detail)}></uigc-search-bar>
       ${when(
         this.assets.length > 0,
-        () => html`
-          <uigc-asset-list>
-            ${map(this.filterAssets(this.query), (asset: Asset) => {
-              const balance = this.balances.get(asset.key) || null;
-              const displayBalance = balance
-                ? humanizeAmount(balance.toDecimal())
-                : '-';
-              return html`
-                <uigc-asset-list-item
-                  slot=${this.getSlot(asset)}
-                  ?selected=${this.isSelected(asset)}
-                  .asset=${{ symbol: asset.key }}
-                  .unit=${balance ? asset.originSymbol : null}
-                  .balance=${displayBalance}>
-                  <uigc-asset slot="asset" symbol=${asset.originSymbol}>
-                    <uigc-asset-id
-                      slot="icon"
-                      .ecosystem=${getChainEcosystem(this.chain)}
-                      .chain=${getChainId(this.chain)}
-                      .asset=${getChainAssetId(
-                        this.chain,
-                        asset,
-                      )}></uigc-asset-id>
-                  </uigc-asset>
-                </uigc-asset-list-item>
-              `;
-            })}
-          </uigc-asset-list>
-        `,
+        assets,
         () =>
           html`
             <uigc-asset-list>
