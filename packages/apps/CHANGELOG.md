@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.2.0
+
+### Minor Changes
+
+- Support Virtual XAsset selector
+
 ## 6.1.2
 
 ### Patch Changes

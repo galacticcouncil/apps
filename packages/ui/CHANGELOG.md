@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.1.2
+
+### Patch Changes
+
+- Fix icon rounding
+
 ## 5.1.1
 
 ### Patch Changes
