@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.3.0
+
+### Minor Changes
+
+- Support chain icons & badges in XCM App
+
 ## 6.2.0
 
 ### Minor Changes
