@@ -51,5 +51,10 @@
     "@esbuild/linux-x64": "0.20.2",
     "lightningcss-linux-x64-gnu": "1.25.1"
   },
+  "overrides": {
+    "@vaadin/router": {
+      "path-to-regexp": "3.3.0"
+    }
+  },
   "packageManager": "npm@10.7.0"
 }
