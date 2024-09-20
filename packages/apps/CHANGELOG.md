@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.4.0
+
+### Minor Changes
+
+- 4f7ebce: Show asset names in XCM selector
+
 ## 6.3.1
 
 ### Patch Changes
