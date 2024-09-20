@@ -12,6 +12,7 @@ const defaultExternals = [
   '18', // DOTA
   '23', // PINK
   '30', // DED
+  '31337', // WUD
 ];
 
 export function configureExternal(
@@ -37,7 +38,7 @@ export function readExternal(isTestnet: boolean) {
   return undefined;
 }
 
-function buildAssetData(external: ExternalAsset): ChainAssetData {
+export function buildAssetData(external: ExternalAsset): ChainAssetData {
   const { decimals, id, symbol, internalId } = external;
 
   const key = symbol.toLowerCase();
