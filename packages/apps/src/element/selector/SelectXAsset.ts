@@ -89,9 +89,8 @@ export class SelectXAsset extends LitElement {
         ?selected=${this.isSelected(asset)}
         .asset=${{ symbol: asset.key }}
         .unit=${balance ? asset.originSymbol : null}
-        .balance=${displayBalance}>  
+        .balance=${displayBalance}>
         ${this.formAssetTemplate(asset)}
-        </uigc-asset>
       </uigc-asset-list-item>
     `;
   }
@@ -127,6 +126,7 @@ export class SelectXAsset extends LitElement {
     return html`
       <gc-asset-identicon
         slot="asset"
+        .showDesc=${true}
         .asset=${registryAsset}
         .assets=${this.registry}
         .ecosystem=${this.ecosystem}></gc-asset-identicon>
