@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.3.1
+
+### Patch Changes
+
+- Fix buffer, external exports
+
 ## 6.3.0
 
 ### Minor Changes
