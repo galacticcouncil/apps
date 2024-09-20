@@ -213,7 +213,6 @@ export class XcmForm extends LitElement {
   }
 
   formAssetTemplate(asset: Asset) {
-    console.log('temp');
     if (this.registry.size > 0) {
       const registryId = this.registryChain.getBalanceAssetId(asset);
       const registryAsset = this.registry.get(registryId.toString());
@@ -223,8 +222,13 @@ export class XcmForm extends LitElement {
           <uigc-asset slot="asset" symbol=${asset.originSymbol}>
             <uigc-asset-id
               slot="icon"
-              symbol=${asset.originSymbol}
-              chain=${this.srcChain.key}></uigc-asset-id>
+              ecosystem=${getChainEcosystem(this.srcChain)}
+              chain=${getChainId(this.srcChain)}
+              chainOrigin=${getChainId(this.srcChain)}
+              .asset=${getChainAssetId(
+                this.srcChain,
+                this.asset,
+              )}></uigc-asset-id>
           </uigc-asset>
         `;
       }

@@ -11,6 +11,7 @@ import {
 import { Asset as RegAsset } from '@galacticcouncil/sdk';
 import { AnyChain, Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 
+import { Ecosystem } from 'db';
 import { baseStyles, selectorStyles } from 'styles';
 
 import { humanizeAmount } from 'utils/amount';
@@ -22,7 +23,7 @@ import 'element/id';
 export class SelectXAsset extends LitElement {
   @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
   @property({ attribute: false }) registryChain: AnyChain = null;
-
+  @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ attribute: false }) assets: Asset[] = [];
   @property({ attribute: false }) balances: Map<string, AssetAmount> = new Map(
     [],
@@ -79,21 +80,17 @@ export class SelectXAsset extends LitElement {
     `;
   }
 
-  renderFn(asset: Asset) {
+  renderFn(asset: Asset, index: number) {
     const balance = this.balances.get(asset.key) || null;
     const displayBalance = balance ? humanizeAmount(balance.toDecimal()) : '-';
     return html`
       <uigc-asset-list-item
+        style="z-index: ${0 - index};"
         ?selected=${this.isSelected(asset)}
         .asset=${{ symbol: asset.key }}
         .unit=${balance ? asset.originSymbol : null}
-        .balance=${displayBalance}>
-        <uigc-asset slot="asset" symbol=${asset.originSymbol}>
-          <uigc-asset-id
-            slot="icon"
-            .ecosystem=${getChainEcosystem(this.chain)}
-            .chain=${getChainId(this.chain)}
-            .asset=${getChainAssetId(this.chain, asset)}></uigc-asset-id>
+        .balance=${displayBalance}>  
+        ${this.formAssetTemplate(asset)}
         </uigc-asset>
       </uigc-asset-list-item>
     `;
@@ -119,8 +116,10 @@ export class SelectXAsset extends LitElement {
         <uigc-asset slot="asset" symbol=${asset.originSymbol}>
           <uigc-asset-id
             slot="icon"
-            symbol=${asset.originSymbol}
-            chain=${this.chain.key}></uigc-asset-id>
+            ecosystem=${getChainEcosystem(this.chain)}
+            chain=${getChainId(this.chain)}
+            chainOrigin=${getChainId(this.chain)}
+            .asset=${getChainAssetId(this.chain, asset)}></uigc-asset-id>
         </uigc-asset>
       `;
     }
@@ -128,9 +127,9 @@ export class SelectXAsset extends LitElement {
     return html`
       <gc-asset-identicon
         slot="asset"
-        .showDesc=${true}
         .asset=${registryAsset}
-        .assets=${this.registry}></gc-asset-identicon>
+        .assets=${this.registry}
+        .ecosystem=${this.ecosystem}></gc-asset-identicon>
     `;
   }
 
@@ -146,7 +145,7 @@ export class SelectXAsset extends LitElement {
               ${virtualize({
                 scroller: true,
                 items: [...selected, ...rest],
-                renderItem: (asset) => this.renderFn(asset),
+                renderItem: (asset, index) => this.renderFn(asset, index),
               })}
             </uigc-asset-list>
           `

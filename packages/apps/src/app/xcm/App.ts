@@ -1326,6 +1326,7 @@ export class XcmApp extends PoolApp {
           .balances=${this.xchain.balance}
           .asset=${this.transfer.asset}
           .chain=${this.transfer.srcChain}
+          .ecosystem=${this.ecosystem}
           .registry=${this.assets.registry}
           .registryChain=${this.configService.getChain('hydradx')}
           @asset-click=${this.onAssetClick}>
