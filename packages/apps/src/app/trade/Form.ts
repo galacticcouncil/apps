@@ -529,7 +529,7 @@ export class TradeForm extends BaseElement {
         .balance=${balance && formatAmount(balance.amount, balance.decimals)}
         .formatter=${humanizeAmount}
         .onMaxClick=${this.maxClickHandler(id, asset)}
-        ?disabled=${this.readonly}
+        ?disabled=${this.readonly || !this.transactionFee}
         @asset-max-click=${() => {
           this.twapEnabled = false;
         }}></uigc-asset-balance>

@@ -694,8 +694,13 @@ export class TradeApp extends PoolApp {
 
   async syncTransactionFee() {
     const account = this.account.state;
-    const { trade } = this.trade;
-    const transaction = trade.toTx(ZERO);
+    const { trade, assetIn, assetOut } = this.trade;
+
+    const nTrade = trade
+      ? trade
+      : await this.safeSell(assetIn, assetOut, ONE.toFixed()); // Dummy trade if no action was taken
+
+    const transaction = nTrade.toTx(ZERO);
     const [paymentInfo, feeAssetId] = await Promise.all([
       this.paymentApi.getPaymentInfo(transaction, account),
       this.paymentApi.getPaymentFeeAsset(account?.address),
@@ -715,7 +720,7 @@ export class TradeApp extends PoolApp {
       account?.address,
     );
 
-    const { assetIn, assetOut, balanceIn } = this.trade;
+    const { assetIn, balanceIn, transactionFee } = this.trade;
 
     if (asset.id !== feeAssetId) {
       const { amount, decimals } = balanceIn;
@@ -724,24 +729,12 @@ export class TradeApp extends PoolApp {
       return;
     }
 
-    const trade = await this.safeSell(assetIn, assetOut, ONE.toFixed());
-    const transaction = trade.toTx(ZERO);
-    const paymentInfo = await this.paymentApi.getPaymentInfo(
-      transaction,
-      account,
-    );
-    const txFee = await this.calculateTransactionFee(
-      transaction,
-      feeAssetId,
-      paymentInfo.partialFee.toString(),
-    );
-
     const eb = calculateEffectiveBalance(
       this.trade.balanceIn.amount,
       this.trade.assetIn.symbol,
-      txFee.amount,
-      txFee.asset.symbol,
-      bnum(txFee.asset.existentialDeposit),
+      transactionFee.amount,
+      transactionFee.asset.symbol,
+      bnum(transactionFee.asset.existentialDeposit),
     );
     const effectiveIn = formatAmount(eb, assetIn.decimals);
     this.updateAmountIn(effectiveIn);
@@ -753,7 +746,7 @@ export class TradeApp extends PoolApp {
       account?.address,
     );
 
-    const { assetIn, assetOut, balanceOut } = this.trade;
+    const { assetOut, balanceOut, transactionFee } = this.trade;
 
     if (asset.id !== feeAssetId) {
       const { amount, decimals } = balanceOut;
@@ -762,24 +755,12 @@ export class TradeApp extends PoolApp {
       return;
     }
 
-    const trade = await this.safeBuy(assetIn, assetOut, ONE.toFixed());
-    const transaction = trade.toTx(ZERO);
-    const paymentInfo = await this.paymentApi.getPaymentInfo(
-      transaction,
-      account,
-    );
-    const txFee = await this.calculateTransactionFee(
-      transaction,
-      feeAssetId,
-      paymentInfo.partialFee.toString(),
-    );
-
     const eb = calculateEffectiveBalance(
       this.trade.balanceOut.amount,
       this.trade.assetOut.symbol,
-      txFee.amount,
-      txFee.asset.symbol,
-      bnum(txFee.asset.existentialDeposit),
+      transactionFee.amount,
+      transactionFee.asset.symbol,
+      bnum(transactionFee.asset.existentialDeposit),
     );
     const effectiveOut = formatAmount(eb, assetOut.decimals);
     this.updateAmountOut(effectiveOut);
@@ -937,6 +918,7 @@ export class TradeApp extends PoolApp {
     this.initAssets();
     this.validatePool();
     this.recalculateSpotPrice();
+    this.syncTransactionFee();
   }
 
   protected onBlockChange(): void {
