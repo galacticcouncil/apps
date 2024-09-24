@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.4.2
+
+### Patch Changes
+
+- fix max button perf, dca & twap min trade no default to 3
+
 ## 6.4.1
 
 ### Patch Changes
