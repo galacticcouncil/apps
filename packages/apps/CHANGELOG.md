@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.4.1
+
+### Patch Changes
+
+- Fix usd/native price calc, price api
+
 ## 6.4.0
 
 ### Minor Changes
