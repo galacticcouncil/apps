@@ -105,18 +105,6 @@ export class DcaApi extends TradeApi<DcaConfig> {
   }
 
   /**
-   * Calculate optimal no of trades for order execution. We aim to achieve
-   * price impact 0.1% per single execution with at least 3 trades.
-   *
-   * @param priceDifference - price difference of swap execution (single trade)
-   * @returns optimal no of trades
-   */
-  private getOptimizedTradesNo(priceDifference: number): number {
-    const optTradesNo = Math.round(priceDifference * 10) || 1;
-    return optTradesNo === 1 ? 3 : optTradesNo;
-  }
-
-  /**
    * Calculate minimal no of trades for order execution. Single trade
    * execution amount must be at least 20% of minimal budget
    *

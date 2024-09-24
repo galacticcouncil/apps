@@ -49,4 +49,16 @@ export class TradeApi<T> {
     const noOfBlocks = periodMsec / blockTime;
     return Math.round(noOfBlocks);
   }
+
+  /**
+   * Calculate optimal no of trades for order execution. We aim to achieve
+   * price impact 0.1% per single execution with at least 3 trades.
+   *
+   * @param priceDifference - price difference of swap execution (single trade)
+   * @returns optimal no of trades
+   */
+  getOptimizedTradesNo(priceDifference: number): number {
+    const optTradesNo = Math.round(priceDifference * 10) || 1;
+    return optTradesNo < 3 ? 3 : optTradesNo;
+  }
 }

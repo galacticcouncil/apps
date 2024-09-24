@@ -43,7 +43,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     const { slippageTwap } = this._config.deref();
     const { amountIn } = trade;
     const priceDifference = Math.abs(trade.priceImpactPct);
-    const tradesNumber = this.getOptimizedTradesNo(priceDifference, blockTime);
+    const tradesNumber = this.getTradesNo(priceDifference, blockTime);
     const txFees = this.getFees(tradesNumber, txFee);
     const executionTime = this.getExecutionTime(tradesNumber, blockTime);
 
@@ -155,7 +155,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     const { amountOut } = trade;
     const priceDifference = Math.abs(trade.priceImpactPct);
 
-    const tradesNumber = this.getOptimizedTradesNo(priceDifference, blockTime);
+    const tradesNumber = this.getTradesNo(priceDifference, blockTime);
     const txFees = this.getFees(tradesNumber, txFee);
     const executionTime = this.getExecutionTime(tradesNumber, blockTime);
 
@@ -249,18 +249,15 @@ export class TwapApi extends TradeApi<TradeConfig> {
   }
 
   /**
-   * Calculate optimal no of trades for order execution. We aim to achieve
+   * Calculate no of trades for twap order execution. We aim to achieve
    * price impact 0.1% per single execution with max execution time 6 hours.
    *
    * @param priceDifference - price difference of swap execution (single trade)
    * @param blockTime - block time in ms
    * @returns optimal no of trades for twap execution
    */
-  private getOptimizedTradesNo(
-    priceDifference: number,
-    blockTime: number,
-  ): number {
-    const noOfTrades = Math.round(priceDifference * 10) || 1;
+  private getTradesNo(priceDifference: number, blockTime: number): number {
+    const noOfTrades = this.getOptimizedTradesNo(priceDifference);
     const executionTime = noOfTrades * TWAP_BLOCK_PERIOD * blockTime;
 
     if (executionTime > TWAP_MAX_DURATION) {
