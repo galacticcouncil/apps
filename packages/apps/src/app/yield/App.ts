@@ -107,21 +107,27 @@ export class YieldApp extends PoolApp {
     this.requestUpdate();
   }
 
+  private async calculateSpotPrice(
+    assetIn: Asset,
+    assetOut: Asset,
+  ): Promise<string> {
+    const price: Amount = await this.getSpotPrice(assetIn, assetOut);
+
+    if (price) {
+      return scale(ONE, price.decimals).div(price.amount).toFixed();
+    } else {
+      return undefined;
+    }
+  }
+
   private async recalculateSpotPrice() {
-    const assetIn = this.dca.assetIn;
-    const assetOut = this.dca.assetOut;
+    const { assetIn, assetOut } = this.dca;
 
     if (!assetIn || !assetOut) {
       return;
     }
 
-    const router = this.chain.state.router;
-    const price: Amount = await router.getBestSpotPrice(
-      assetIn.id,
-      assetOut.id,
-    );
-    const spotPrice = scale(ONE, price.decimals).div(price.amount).toFixed();
-
+    const spotPrice = await this.calculateSpotPrice(assetIn, assetOut);
     this.dca = {
       ...this.dca,
       spotPrice: spotPrice,
@@ -241,8 +247,9 @@ export class YieldApp extends PoolApp {
     const { amountIn, assetIn, interval } = this.dca;
 
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
+    const spotPriceNative = await this.getNativePrice(assetIn);
     const minBudget = exchangeNative(
-      this.assets.nativePrice,
+      spotPriceNative,
       assetIn,
       minBudgetNative,
     ).shiftedBy(-1 * assetIn.decimals);

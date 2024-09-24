@@ -875,8 +875,9 @@ export class XcmApp extends PoolApp {
       }
     }
 
+    const feePriceNative = await this.getNativePrice(feeAsset);
     const fee = exchangeNative(
-      this.assets.nativePrice,
+      feePriceNative,
       feeAsset,
       srcFee.amount.toString(),
     );

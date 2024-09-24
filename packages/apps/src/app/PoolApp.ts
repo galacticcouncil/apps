@@ -2,8 +2,10 @@ import { property, state } from 'lit/decorators.js';
 
 import { AssetApi } from 'api/asset';
 import { PaymentApi } from 'api/payment';
+import { PriceApi } from 'api/price';
 import { TimeApi } from 'api/time';
 import { BaseApp } from 'app/BaseApp';
+
 import { createApi } from 'chain';
 import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 import { SECOND_MS } from 'utils/time';
@@ -15,6 +17,7 @@ import {
   BigNumber,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
+  ZERO,
 } from '@galacticcouncil/sdk';
 import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
 
@@ -30,6 +33,7 @@ export abstract class PoolApp extends BaseApp {
   protected assetApi: AssetApi = null;
   protected balanceClient: BalanceClient = null;
   protected paymentApi: PaymentApi = null;
+  protected priceApi: PriceApi = null;
   protected timeApi: TimeApi = null;
 
   @property({ type: String }) apiAddress: string = null;
@@ -42,7 +46,6 @@ export abstract class PoolApp extends BaseApp {
     tradeable: [] as Asset[],
     registry: new Map<string, Asset>([]),
     usdPrice: new Map<string, Amount>([]),
-    nativePrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
   };
 
@@ -61,6 +64,28 @@ export abstract class PoolApp extends BaseApp {
 
   isApiReady(): boolean {
     return !!this.chain.state;
+  }
+
+  async getSpotPrice(assetIn: Asset, assetOut: Asset): Promise<Amount> {
+    const usdPeggedAsset = this.assets.tradeable.find(
+      (a) => a.id === this.stableCoinAssetId,
+    );
+    const [spotPrice, assetInUsd, assetOutUsd] = await Promise.all([
+      this.priceApi.getPrice(assetIn, assetOut),
+      this.priceApi.getPrice(assetIn, usdPeggedAsset, this.stableCoinRate),
+      this.priceApi.getPrice(assetOut, usdPeggedAsset, this.stableCoinRate),
+    ]);
+
+    this.assets.usdPrice.set(assetIn.id, assetInUsd);
+    this.assets.usdPrice.set(assetOut.id, assetOutUsd);
+    return spotPrice;
+  }
+
+  async getNativePrice(asset: Asset): Promise<Amount> {
+    const nativeAsset = this.assets.tradeable.find(
+      (a) => a.id === SYSTEM_ASSET_ID,
+    );
+    return this.priceApi.getPrice(asset, nativeAsset);
   }
 
   override async firstUpdated() {
@@ -91,6 +116,7 @@ export abstract class PoolApp extends BaseApp {
     this.disconnectSubscribeNewHeads?.();
     this.unsubscribeBalance(account);
     this.channel.removeEventListener('message', this.channelMessageListener);
+    this.priceApi.destroy();
     super.disconnectedCallback();
   }
 
@@ -104,6 +130,7 @@ export abstract class PoolApp extends BaseApp {
     const { api, poolService, router } = this.chain.state;
     this.assetApi = new AssetApi(api, router);
     this.paymentApi = new PaymentApi(api, router);
+    this.priceApi = new PriceApi(api, router);
     this.timeApi = new TimeApi(api);
     this.balanceClient = new BalanceClient(api);
 
@@ -129,7 +156,6 @@ export abstract class PoolApp extends BaseApp {
         console.log('Current block: ' + blockNumber);
         this.blockNumber = blockNumber;
         this.syncDolarPrice();
-        this.syncNativePrice();
         this.onBlockChange(blockNumber);
       },
     );
@@ -227,19 +253,29 @@ export abstract class PoolApp extends BaseApp {
   }
 
   protected async syncDolarPrice() {
-    this.assets.usdPrice = await this.assetApi.getPrice(
-      this.assets.tradeable,
-      this.assets.balance,
-      this.stableCoinAssetId,
-      this.stableCoinRate,
+    const assets = this.assets.tradeable;
+    const balances = this.assets.balance;
+    const current = this.assets.usdPrice;
+    const usdPeggedAsset = this.assets.tradeable.find(
+      (a) => a.id === this.stableCoinAssetId,
     );
-  }
 
-  protected async syncNativePrice() {
-    this.assets.nativePrice = await this.assetApi.getPrice(
-      this.assets.tradeable,
-      this.assets.balance,
-      SYSTEM_ASSET_ID,
+    const latest = new Map<string, Amount>([]);
+    await Promise.all(
+      assets.map(async (asset) => {
+        const assetBalance = balances.get(asset.id);
+        if (assetBalance && assetBalance.amount > ZERO) {
+          const price = await this.priceApi.getPrice(
+            asset,
+            usdPeggedAsset,
+            this.stableCoinRate,
+          );
+          latest.set(asset.id, price);
+        }
+      }),
     );
+
+    this.assets.usdPrice = new Map([...current, ...latest]);
+    this.requestUpdate();
   }
 }

@@ -194,7 +194,6 @@ export class SelectAsset extends LitElement {
         <slot style="z-index: ${0 - index};" slot="footer" name="footer"></slot>
       `;
     }
-
     const { asset, balance, balanceUsd } = aBalance;
     const icons = asset.icon?.split('/') || [asset.symbol]; // TODO fix ext icon
     return html`

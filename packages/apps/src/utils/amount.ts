@@ -2,7 +2,6 @@ import {
   Amount,
   Asset,
   BigNumber,
-  ONE,
   SYSTEM_ASSET_ID,
   bnum,
   scale,
@@ -41,37 +40,28 @@ export function humanizeAmount(
 }
 
 export function exchange(
-  rates: Map<string, Amount>,
+  exchangeRates: Map<string, Amount>,
   asset: Asset,
   amount: string | number,
 ): string {
-  if (rates.size === 0 || !asset) {
+  const rate = exchangeRates.get(asset?.id);
+  if (!rate) {
     return null;
   }
-
-  const rate = rates.get(asset.id) || {
-    amount: scale(ONE, asset.decimals),
-    decimals: asset.decimals,
-  };
 
   const result = rate.amount.multipliedBy(amount);
   return formatAmount(result, rate.decimals);
 }
 
 export function exchangeNative(
-  rates: Map<string, Amount>,
+  exchangeRate: Amount,
   asset: Asset,
   amountNative: string | number,
 ): BigNumber {
-  if (rates.size === 0) {
-    return null;
-  }
-
   if (SYSTEM_ASSET_ID === asset.id) {
     return toBn(amountNative, 0);
   }
 
-  const rate = rates.get(asset.id);
-  const result = bnum(amountNative).div(rate.amount);
+  const result = bnum(amountNative).div(exchangeRate.amount);
   return scale(result, asset.decimals).decimalPlaces(0, 1);
 }

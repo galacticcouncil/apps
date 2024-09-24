@@ -2,7 +2,6 @@ import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { cache } from 'lit/directives/cache.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import { i18n } from 'localization';
@@ -24,7 +23,6 @@ import {
   MIN_NATIVE_AMOUNT,
   toBn,
 } from 'utils/amount';
-import { isAssetInAllowed, isAssetOutAllowed } from 'utils/asset';
 import { calculateEffectiveBalance } from 'utils/balance';
 import { isEvmAccount } from 'utils/evm';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
@@ -165,13 +163,14 @@ export class TradeApp extends PoolApp {
   private async calculateSellTwap() {
     const { assetIn, assetOut, trade, transactionFee } = this.trade;
     if (this.isTwapEnabled()) {
+      const spotPriceNative = await this.getNativePrice(assetIn);
       const txFee = exchangeNative(
-        this.assets.nativePrice,
+        spotPriceNative,
         assetIn,
         transactionFee.amountNative,
       );
       const amountInMin = exchangeNative(
-        this.assets.nativePrice,
+        spotPriceNative,
         assetIn,
         MIN_NATIVE_AMOUNT,
       );
@@ -195,11 +194,7 @@ export class TradeApp extends PoolApp {
     assetIn: Asset,
     assetOut: Asset,
   ): Promise<string> {
-    const { router } = this.chain.state;
-    const price: Amount = await router.getBestSpotPrice(
-      assetIn.id,
-      assetOut.id,
-    );
+    const price: Amount = await this.getSpotPrice(assetIn, assetOut);
 
     if (price) {
       return scale(ONE, price.decimals).div(price.amount).toFixed();
@@ -260,13 +255,14 @@ export class TradeApp extends PoolApp {
   private async calculateBuyTwap() {
     const { assetIn, assetOut, trade, transactionFee } = this.trade;
     if (this.isTwapEnabled()) {
+      const spotPriceNative = await this.getNativePrice(assetIn);
       const txFee = exchangeNative(
-        this.assets.nativePrice,
+        spotPriceNative,
         assetIn,
         transactionFee.amountNative,
       );
       const amountInMin = exchangeNative(
-        this.assets.nativePrice,
+        spotPriceNative,
         assetIn,
         MIN_NATIVE_AMOUNT,
       );
