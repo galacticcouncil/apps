@@ -2,6 +2,10 @@
   max-width: 570px;
 }
 
+.layout-root {
+  gap: 20px;
+}
+
 .logo {
   padding: 16px 0;
   display: flex;
