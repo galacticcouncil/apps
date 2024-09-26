@@ -128,6 +128,7 @@ export class XcmApp extends PoolApp {
   @property({ type: String }) asset: string = null;
   @property({ type: String }) blacklist: string = null;
   @property({ type: Number }) ss58Prefix: number = null;
+  @property({ type: Boolean }) assetCheckEnabled: Boolean = false;
 
   @state() tab: TransferTab = TransferTab.Form;
   @state() transfer: TransferState = DEFAULT_TRANSFER_STATE;
@@ -1555,6 +1556,37 @@ export class XcmApp extends PoolApp {
     `;
   }
 
+  protected validateAssetByOrigin(asset?: Asset, origin?: number) {
+    return asset?.type === 'External' && asset?.origin === origin
+      ? asset
+      : null;
+  }
+
+  assetCheck() {
+    if (this.assetCheckEnabled) {
+      const assetHub = chainsMap.get('assethub') as Parachain;
+      const { asset } = this.transfer;
+
+      const registry = this.configService.getChain('hydradx');
+      const registryId = registry.getBalanceAssetId(asset);
+      const registryAsset = this.assets.registry.get(registryId.toString());
+
+      const assetIn = this.validateAssetByOrigin(
+        registryAsset,
+        assetHub.parachainId,
+      );
+
+      if (assetIn) {
+        return html`
+          <gc-trade-asset-info
+            .chain=${assetHub}
+            .assets=${this.assets.registry}
+            .assetIn=${assetIn}></gc-trade-asset-info>
+        `;
+      }
+    }
+  }
+
   /*   transfersSummary() {
     const account = this.account.state;
     const blockNo = this.blockNo;
@@ -1576,6 +1608,7 @@ export class XcmApp extends PoolApp {
     return html`
       <div class="layout-root">
         ${this.formTab()} ${this.selectChainTab()} ${this.selectTokenTab()}
+        ${this.assetCheck()}
       </div>
     `;
   }
