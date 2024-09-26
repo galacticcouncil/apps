@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.5.0
+
+### Minor Changes
+
+- 57cee8d: Added external asset check to XCM
+
 ## 6.4.2
 
 ### Patch Changes
