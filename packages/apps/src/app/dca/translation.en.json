@@ -22,6 +22,10 @@
   "form.info.estSchedule": "Schedule end (est.)",
   "form.info.slippage": "Slippage protection",
 
+  "form.frequency.min": "minutes",
+  "form.frequency.hour": "hours",
+  "form.frequency.day": "days",
+
   "error.insufficientBalance": "Your trade is bigger than your balance.",
   "error.minBudgetTooLow": "The minimum budget is {{amount}} {{asset}}.",
   "error.frequencyOutOfRange": "The valid frequency is between {{min}} and {{max}} minutes.",

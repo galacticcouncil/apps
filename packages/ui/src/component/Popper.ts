@@ -3,13 +3,17 @@ import { customElement, property } from 'lit/decorators.js';
 
 import { UIGCElement } from './base/UIGCElement';
 
-import { computePosition, flip } from '@floating-ui/dom';
+import { computePosition, flip, Placement } from '@floating-ui/dom';
 
 import styles from './Popper.css';
+
+type TriggerMethod = 'click' | 'hover';
 
 @customElement('uigc-popper')
 export class Popper extends UIGCElement {
   @property({ type: String }) text = null;
+  @property({ type: String }) placement: Placement = 'right-start';
+  @property({ type: String }) triggerMethod: TriggerMethod = 'hover';
 
   static styles = [UIGCElement.styles, styles];
 
@@ -24,7 +28,7 @@ export class Popper extends UIGCElement {
 
   private updatePosition = () => {
     computePosition(this.triggerElement, this.tooltipElement, {
-      placement: 'right-start',
+      placement: this.placement,
       strategy: 'fixed',
       middleware: [flip()],
     }).then(({ x, y }) => {
@@ -35,30 +39,36 @@ export class Popper extends UIGCElement {
     });
   };
 
-  private mouseOverListener = () => {
-    Object.assign(this.tooltipElement.style, {
-      display: 'block',
-    });
+  private onShow = () => {
+    this.tooltipElement.classList.add('show');
     this.updatePosition();
   };
 
-  private mouseOutListener = () => {
-    Object.assign(this.tooltipElement.style, {
-      display: 'none',
-    });
+  private onHide = () => {
+    this.tooltipElement.classList.remove('show');
+  };
+
+  private onToggle = () => {
+    this.tooltipElement.classList.toggle('show');
+    this.updatePosition();
   };
 
   override async firstUpdated() {
-    this.triggerElement.addEventListener('mouseover', this.mouseOverListener);
-    this.triggerElement.addEventListener('mouseout', this.mouseOutListener);
+    if (this.triggerMethod === 'click') {
+      this.triggerElement.addEventListener('mousedown', this.onToggle);
+    } else {
+      this.triggerElement.addEventListener('mouseover', this.onShow);
+      this.triggerElement.addEventListener('mouseout', this.onHide);
+    }
   }
 
   override disconnectedCallback() {
-    this.triggerElement.removeEventListener(
-      'mouseover',
-      this.mouseOverListener,
-    );
-    this.triggerElement.removeEventListener('mouseout', this.mouseOutListener);
+    if (this.triggerMethod === 'click') {
+      this.triggerElement.removeEventListener('mousedown', this.onToggle);
+    } else {
+      this.triggerElement.removeEventListener('mouseover', this.onShow);
+      this.triggerElement.removeEventListener('mouseout', this.onHide);
+    }
     super.disconnectedCallback();
   }
 

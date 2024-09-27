@@ -23,6 +23,7 @@ export { Dialog } from './component/Dialog';
 export { DialogCountdown } from './component/DialogCountdown';
 export { Divider } from './component/Divider';
 export { Drawer } from './component/Drawer';
+export { Dropdown } from './component/Dropdown';
 export { IconButton } from './component/IconButton';
 export { Input } from './component/Input';
 export { List } from './component/List';

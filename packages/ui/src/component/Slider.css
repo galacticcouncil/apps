@@ -110,6 +110,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-left: auto;
+}
+.slider-root .hint {
+  margin-left: 4px;
 }
 
 .slider-root .bottom {

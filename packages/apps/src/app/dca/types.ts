@@ -54,6 +54,7 @@ export const INTERVAL_DCA_MS: Record<IntervalDca, number> = {
 };
 
 export type IntervalDca = (typeof INTERVAL_DCA)[number];
+export type FrequencyUnit = 'min' | 'hour' | 'day';
 
 export interface DcaOrder extends Humanizer {
   amountIn: BigNumber;

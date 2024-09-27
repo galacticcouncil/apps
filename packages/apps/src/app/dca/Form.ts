@@ -18,11 +18,14 @@ import { baseStyles, formStyles } from 'styles';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
-import { DcaOrder, INTERVAL_DCA, IntervalDca } from './types';
+import { DcaOrder, FrequencyUnit, INTERVAL_DCA, IntervalDca } from './types';
 
 import { Amount, Asset } from '@galacticcouncil/sdk';
 
 import styles from './Form.css';
+
+const HOUR_MIN = 60;
+const DAY_MIN = 24 * HOUR_MIN;
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
@@ -36,6 +39,7 @@ export class DcaForm extends BaseElement {
   @property({ type: Object }) assetIn: Asset = null;
   @property({ type: Object }) assetOut: Asset = null;
   @property({ type: String }) interval: IntervalDca = 'hour';
+
   @property({ type: Number }) intervalMultiplier: number = 1;
   @property({ type: Number }) frequency: number = null;
   @property({ type: String }) amountIn = null;
@@ -44,6 +48,7 @@ export class DcaForm extends BaseElement {
   @property({ attribute: false }) error = {};
 
   @state() advanced: boolean = false;
+  @state() frequencyUnit: FrequencyUnit = 'min';
 
   static styles = [baseStyles, formStyles, styles];
 
@@ -83,6 +88,18 @@ export class DcaForm extends BaseElement {
     this.advanced = !this.advanced;
   }
 
+  get minFrequency() {
+    return this.order
+      ? Math.min(this.order.frequencyMin, this.order.frequencyOpt)
+      : 0;
+  }
+
+  get maxFrequency() {
+    return Number.isFinite(this.order?.frequencyOpt)
+      ? Math.max(this.minFrequency, this.order.frequencyOpt)
+      : 0;
+  }
+
   onScheduleClick(e: any) {
     const options = {
       bubbles: true,
@@ -92,11 +109,20 @@ export class DcaForm extends BaseElement {
   }
 
   onIntervalChange(e: any) {
+    const interval = e.detail.value as IntervalDca;
     const options = {
       bubbles: true,
       composed: true,
-      detail: { value: e.detail.value },
+      detail: { value: interval },
     };
+
+    const freqUnitByInterval: Record<IntervalDca, FrequencyUnit> = {
+      hour: 'min',
+      day: 'min',
+      week: 'hour',
+    };
+
+    this.setFrequencyUnit(this.maxFrequency, freqUnitByInterval[interval]);
     this.dispatchEvent(new CustomEvent('interval-change', options));
   }
 
@@ -109,13 +135,26 @@ export class DcaForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('interval-mul-change', options));
   }
 
-  onFrequencyChange(e: any) {
+  convertFrequencyValue(value: number, unit: FrequencyUnit = 'min') {
+    return unit === 'min'
+      ? value
+      : unit === 'hour'
+      ? value * HOUR_MIN
+      : value * DAY_MIN;
+  }
+
+  onFrequencyChange(value: number, unit: FrequencyUnit = 'min') {
     const options = {
       bubbles: true,
       composed: true,
-      detail: { value: e.detail.value },
+      detail: { value: this.convertFrequencyValue(value, unit) },
     };
     this.dispatchEvent(new CustomEvent('frequency-change', options));
+  }
+
+  setFrequencyUnit(value: number, unit: FrequencyUnit) {
+    this.frequencyUnit = unit;
+    this.onFrequencyChange(value, unit);
   }
 
   infoSummaryTemplate() {
@@ -327,14 +366,8 @@ export class DcaForm extends BaseElement {
   }
 
   formFrequencyTemplate() {
-    const min = this.order
-      ? Math.min(this.order.frequencyMin, this.order.frequencyOpt)
-      : 0;
-
-    const max = Number.isFinite(this.order?.frequencyOpt)
-      ? Math.max(min, this.order.frequencyOpt)
-      : 0;
-
+    const min = this.minFrequency;
+    const max = this.maxFrequency;
     const value = this.frequency ?? max;
 
     const valueMsec = value * 60 * 1000;
@@ -348,18 +381,69 @@ export class DcaForm extends BaseElement {
           })
         : undefined;
 
+    const range = max - min;
+    const rangeInHours = Math.floor(range / HOUR_MIN);
+    const rangeInDays = Math.floor(range / DAY_MIN);
+
+    const minValues: Record<FrequencyUnit, number> = {
+      min: min,
+      hour: Math.ceil(min / HOUR_MIN),
+      day: Math.ceil(min / DAY_MIN),
+    };
+
+    const maxValues: Record<FrequencyUnit, number> = {
+      min: max,
+      hour: Math.floor(max / HOUR_MIN),
+      day: Math.floor(max / DAY_MIN),
+    };
+
+    const values: Record<FrequencyUnit, number> = {
+      min: value,
+      hour: Math.floor(value / HOUR_MIN),
+      day: Math.floor(value / DAY_MIN),
+    };
+
+    const units = [
+      'min',
+      rangeInHours > 0 && 'hour',
+      rangeInDays > 0 && 'day',
+    ].filter((u): u is FrequencyUnit => !!u);
+
     return html`
       <div>
         <uigc-slider
           label=${i18n.t('form.advanced.interval')}
-          unit="min"
+          unit=${i18n.t(`form.frequency.${this.frequencyUnit}`)}
           hint=${blockHint}
-          .min=${min}
-          .max=${max}
-          .value=${value}
+          .min=${minValues[this.frequencyUnit]}
+          .max=${maxValues[this.frequencyUnit]}
+          .value=${values[this.frequencyUnit]}
           .disabled=${!this.order}
-          @input-change=${(e: CustomEvent) => this.onFrequencyChange(e)}>
+          @input-change=${(e: CustomEvent) =>
+            this.onFrequencyChange(
+              parseFloat(e.detail.value),
+              this.frequencyUnit,
+            )}>
           >
+          <div slot="value">
+            ${units.length > 1
+              ? html`
+                  <uigc-dropdown
+                    triggerMethod="click"
+                    placement="bottom-end"
+                    .items=${units.map((u) => ({
+                      active: this.frequencyUnit === u,
+                      text: i18n.t(`form.frequency.${u}`),
+                      onClick: () => this.setFrequencyUnit(values[u], u),
+                    }))}>
+                    <div class="frequency-trigger">
+                      ${i18n.t(`form.frequency.${this.frequencyUnit}`)}
+                      <uigc-icon-dropdown></uigc-icon-dropdown>
+                    </div>
+                  </uigc-dropdown>
+                `
+              : i18n.t(`form.frequency.${this.frequencyUnit}`)}
+          </div>
         </uigc-slider>
       </div>
     `;

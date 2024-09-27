@@ -92,7 +92,7 @@ export class Slider extends UIGCElement {
   hintTemplate() {
     if (!this.hint) return '';
     return html`
-      <uigc-popper text=${this.hint}>
+      <uigc-popper class="hint" text=${this.hint}>
         <uigc-icon-info></uigc-icon-info>
       </uigc-popper>
     `;
@@ -103,7 +103,11 @@ export class Slider extends UIGCElement {
       <div class="slider-root">
         <div class="top">
           <p class="label">${this.label}</p>
-          <p class="value">${this.value} ${this.unit} ${this.hintTemplate()}</p>
+          <p class="value">
+            ${this.value}
+            <slot class="value" name="value">${this.unit}</slot>
+            ${this.hintTemplate()}
+          </p>
         </div>
         <div class="slider">
           <input
