@@ -44,9 +44,10 @@ export class TradeChartApi {
       .then((response) => response.json())
       .then((data) => {
         const buckets = data.results.buckets.frames[0].data.values;
-        const priceDS = this.formatPriceData(buckets);
+        const bucketsNorm = this.filterOutliers(buckets);
+        const priceDS = this.formatPriceData(bucketsNorm);
         const priceOhlcDS = [];
-        const volumeDS = this.formatVolumeData(buckets);
+        const volumeDS = this.formatVolumeData(bucketsNorm);
         onSuccess(assetIn, assetOut, {
           primary: priceDS,
           primaryOhlc: priceOhlcDS,
@@ -57,6 +58,49 @@ export class TradeChartApi {
         console.error(res.message);
         onError(res);
       });
+  }
+
+  /**
+   * Filter outliers from dataset
+   *
+   * @param originDs - original bucket frames
+   * @param range - selected range
+   * @returns buckets without outliers
+   */
+  private filterOutliers(originDs: any) {
+    const [ts, price, volume] = originDs;
+    const priceCp = price.concat();
+    priceCp.sort((a: number, b: number) => a - b);
+
+    /*
+     * Find a generous IQR. This is generous because if (values.length / 4)
+     * is not an int, then average the two elements on either
+     * side to find q1 is a must. Likewise for q3.
+     */
+    const q1 = priceCp[Math.floor(priceCp.length / 4)];
+    const q3 = priceCp[Math.ceil(priceCp.length * (3 / 4))];
+    const iqr = q3 - q1;
+
+    const maxValue = q3 + iqr * 1.5;
+    const minValue = q1 - iqr * 1.5;
+
+    const outlierCheckFn = (x: number) => x > maxValue || x < minValue;
+    const outliers = price
+      .map((p: number, i: number) => ({ p, i }))
+      .filter((o: any) => outlierCheckFn(o.p));
+
+    if (outliers.length === 0) {
+      return originDs;
+    } else {
+      console.log('Filtering outliers ' + outliers.length);
+    }
+
+    const outliersIndexes = new Set(outliers.map((o: any) => o.i));
+    return [
+      ts.filter((_: any, i: number) => !outliersIndexes.has(i)),
+      price.filter((_: any, i: number) => !outliersIndexes.has(i)),
+      volume.filter((_: any, i: number) => !outliersIndexes.has(i)),
+    ];
   }
 
   private formatPriceData([ts, price, _volume]) {
