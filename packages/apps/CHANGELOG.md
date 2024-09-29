@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.5.1
+
+### Patch Changes
+
+- Fix outliers
+
 ## 6.5.0
 
 ### Minor Changes
