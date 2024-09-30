@@ -1,3 +1,7 @@
+:host {
+  width: 100%;
+}
+
 .slider-root {
   position: relative;
   width: 100%;
