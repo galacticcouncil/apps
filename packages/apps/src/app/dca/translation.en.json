@@ -13,13 +13,18 @@
 
   "form.advanced": "Advanced settings",
   "form.advanced.desc": "Customize your trades to an even greater extent.",
-  "form.advanced.interval": "Interval (minutes)",
+  "form.advanced.interval": "Custom interval",
+  "form.advanced.intervalBlocks": "{{minutes}} minutes = {{blocks}} blocks",
 
   "form.summary": "Summary",
   "form.summary.message": "Swap <1>{{amountIn}} {{assetIn}}</1> for <1>{{assetOut}}</1> every <1>~{{frequency}}</1> with a total budget of <1>{{amountInBudget}} {{assetIn}}</1> over the period of <1>~{{time}}</1>",
 
   "form.info.estSchedule": "Schedule end (est.)",
   "form.info.slippage": "Slippage protection",
+
+  "form.frequency.min": "minutes",
+  "form.frequency.hour": "hours",
+  "form.frequency.day": "days",
 
   "error.insufficientBalance": "Your trade is bigger than your balance.",
   "error.minBudgetTooLow": "The minimum budget is {{amount}} {{asset}}.",

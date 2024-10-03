@@ -18,11 +18,19 @@ import { baseStyles, formStyles } from 'styles';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
-import { DcaOrder, INTERVAL_DCA, IntervalDca } from './types';
+import { DcaOrder, FrequencyUnit, INTERVAL_DCA, IntervalDca } from './types';
 
 import { Amount, Asset } from '@galacticcouncil/sdk';
 
 import styles from './Form.css';
+
+const HOUR_MIN = 60;
+const DAY_MIN = 24 * HOUR_MIN;
+const FREQ_UNIT_BY_INTERVAL: Record<IntervalDca, FrequencyUnit> = {
+  hour: 'min',
+  day: 'hour',
+  week: 'day',
+};
 
 @customElement('gc-dca-form')
 export class DcaForm extends BaseElement {
@@ -43,7 +51,7 @@ export class DcaForm extends BaseElement {
   @property({ attribute: false }) order: DcaOrder = null;
   @property({ attribute: false }) error = {};
 
-  @state() advanced: boolean = false;
+  @state() frequencyUnit: FrequencyUnit = 'hour';
 
   static styles = [baseStyles, formStyles, styles];
 
@@ -79,8 +87,25 @@ export class DcaForm extends BaseElement {
     return null;
   }
 
-  private toggleAdvanced() {
-    this.advanced = !this.advanced;
+  get minFrequency() {
+    return this.order
+      ? Math.min(this.order.frequencyMin, this.order.frequencyOpt)
+      : 0;
+  }
+
+  get maxFrequency() {
+    return Number.isFinite(this.order?.frequencyOpt)
+      ? Math.max(this.minFrequency, this.order.frequencyOpt)
+      : 0;
+  }
+
+  get frequencyRanges(): Record<FrequencyUnit, number> {
+    const range = this.maxFrequency - this.minFrequency;
+    return {
+      min: range,
+      hour: Math.floor(range / HOUR_MIN),
+      day: Math.floor(range / DAY_MIN),
+    };
   }
 
   onScheduleClick(e: any) {
@@ -92,30 +117,54 @@ export class DcaForm extends BaseElement {
   }
 
   onIntervalChange(e: any) {
+    const interval = e.detail.value as IntervalDca;
     const options = {
       bubbles: true,
       composed: true,
-      detail: { value: e.detail.value },
+      detail: { value: interval },
     };
+
+    this.setFrequencyUnit(this.maxFrequency, FREQ_UNIT_BY_INTERVAL[interval]);
     this.dispatchEvent(new CustomEvent('interval-change', options));
   }
 
   onIntervalMultiplierChange(e: any) {
+    const multipliplier = e.detail.value;
     const options = {
       bubbles: true,
       composed: true,
-      detail: { value: e.detail.value },
+      detail: { value: multipliplier },
     };
+
     this.dispatchEvent(new CustomEvent('interval-mul-change', options));
+
+    setTimeout(() => {
+      if (this.frequencyRanges[this.frequencyUnit] <= 1) {
+        this.setFrequencyUnit(this.maxFrequency, 'min');
+      }
+    }, 0);
   }
 
-  onFrequencyChange(e: any) {
+  convertFrequencyValue(value: number, unit: FrequencyUnit = 'min') {
+    return unit === 'min'
+      ? value
+      : unit === 'hour'
+      ? value * HOUR_MIN
+      : value * DAY_MIN;
+  }
+
+  onFrequencyChange(value: number, unit: FrequencyUnit = 'min') {
     const options = {
       bubbles: true,
       composed: true,
-      detail: { value: e.detail.value },
+      detail: { value: this.convertFrequencyValue(value, unit) },
     };
     this.dispatchEvent(new CustomEvent('frequency-change', options));
+  }
+
+  setFrequencyUnit(value: number, unit: FrequencyUnit) {
+    this.frequencyUnit = unit;
+    this.onFrequencyChange(value, unit);
   }
 
   infoSummaryTemplate() {
@@ -311,41 +360,91 @@ export class DcaForm extends BaseElement {
     `;
   }
 
-  formAdvancedSwitch() {
-    return html`
-      <div class="form-switch">
-        <div>
-          <span class="title">${i18n.t('form.advanced')}</span>
-          <span class="desc">${i18n.t('form.advanced.desc')}</span>
-        </div>
-        <uigc-switch
-          .checked=${this.advanced}
-          size="small"
-          @click=${() => this.toggleAdvanced()}></uigc-switch>
-      </div>
-    `;
-  }
-
   formFrequencyTemplate() {
-    const error = this.error['frequencyOutOfRange'];
-    const isDisabled =
-      this.error['balanceTooLow'] || this.error['minBudgetTooLow'];
+    const min = this.minFrequency;
+    const max = this.maxFrequency;
+    const value = this.frequency ?? max;
+
+    const valueMsec = value * 60 * 1000;
+    const blockTime = 12_000;
+    const blockCount = Math.floor(valueMsec / blockTime);
+    const blockHint =
+      blockCount > 0
+        ? i18n.t('form.advanced.intervalBlocks', {
+            minutes: value,
+            blocks: blockCount,
+          })
+        : undefined;
+
+    const range = max - min;
+    const rangeInHours = Math.floor(range / HOUR_MIN);
+    const rangeInDays = Math.floor(range / DAY_MIN);
+
+    const minValues: Record<FrequencyUnit, number> = {
+      min: min,
+      hour: Math.ceil(min / HOUR_MIN),
+      day: Math.ceil(min / DAY_MIN),
+    };
+
+    const maxValues: Record<FrequencyUnit, number> = {
+      min: max,
+      hour: Math.floor(max / HOUR_MIN),
+      day: Math.floor(max / DAY_MIN),
+    };
+
+    const values: Record<FrequencyUnit, number> = {
+      min: value,
+      hour: Math.floor(value / HOUR_MIN),
+      day: Math.floor(value / DAY_MIN),
+    };
+
+    const frequencyRanges = {
+      min: range,
+      hour: rangeInHours,
+      day: rangeInDays,
+    };
+
+    const units = [
+      'min',
+      this.frequencyRanges.hour > 0 && 'hour',
+      this.frequencyRanges.day > 0 && 'day',
+    ].filter((u): u is FrequencyUnit => !!u);
+
     return html`
-      <uigc-textfield
-        field
-        number
-        ?disabled=${!!isDisabled}
-        .disabled=${!!isDisabled}
-        ?error=${error}
-        .error=${error}
-        .min=${1}
-        .placeholder=${this.order?.frequency}
-        .value=${this.frequency}
-        @input-change=${(e: CustomEvent) => this.onFrequencyChange(e)}>
-        <span class="adornment" slot="inputAdornment">
-          ${i18n.t('form.advanced.interval')}
-        </span>
-      </uigc-textfield>
+      <uigc-slider
+        label=${i18n.t('form.advanced.interval')}
+        unit=${i18n.t(`form.frequency.${this.frequencyUnit}`)}
+        hint=${blockHint}
+        .min=${minValues[this.frequencyUnit]}
+        .max=${maxValues[this.frequencyUnit]}
+        .value=${values[this.frequencyUnit]}
+        .disabled=${!this.order}
+        @input-change=${(e: CustomEvent) =>
+          this.onFrequencyChange(
+            parseFloat(e.detail.value),
+            this.frequencyUnit,
+          )}>
+        >
+        <div slot="value">
+          ${units.length > 1
+            ? html`
+                <uigc-dropdown
+                  triggerMethod="click"
+                  placement="bottom-end"
+                  .items=${units.map((u) => ({
+                    active: this.frequencyUnit === u,
+                    text: i18n.t(`form.frequency.${u}`),
+                    onClick: () => this.setFrequencyUnit(values[u], u),
+                  }))}>
+                  <div class="frequency-select">
+                    ${i18n.t(`form.frequency.${this.frequencyUnit}`)}
+                    <uigc-icon-dropdown></uigc-icon-dropdown>
+                  </div>
+                </uigc-dropdown>
+              `
+            : i18n.t(`form.frequency.${this.frequencyUnit}`)}
+        </div>
+      </uigc-slider>
     `;
   }
 
@@ -366,21 +465,16 @@ export class DcaForm extends BaseElement {
       info: true,
       show: isValid,
     };
-    const advancedClasses = {
-      hidden: this.advanced == false,
-      advanced: true,
-    };
+
     return html`
       <slot name="header"></slot>
       <div class="invest">
         ${this.formAssetInTemplate()}
         ${this.formSwitch()}${this.formAssetOutTemplate()}
-        ${this.formIntervalTemplate()} ${this.formAdvancedSwitch()}
-        <div class=${classMap(advancedClasses)}>
-          ${this.formFrequencyTemplate()}
-        </div>
+        ${this.formIntervalTemplate()}
       </div>
       <div class=${classMap(infoClasses)}>
+        <div class="row">${this.formFrequencyTemplate()}</div>
         <div class="row summary show">${this.infoSummaryTemplate()}</div>
         <div class="row">${this.infoEstEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>

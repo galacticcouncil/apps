@@ -83,6 +83,14 @@
   width: 100%;
 }
 
+.frequency-select {
+  display: inline-flex;
+  margin-right: -8px;
+  height: 18px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .adornment {
   white-space: nowrap;
   font-weight: 500;

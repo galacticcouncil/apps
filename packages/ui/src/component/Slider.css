@@ -1,0 +1,134 @@
+:host {
+  width: 100%;
+}
+
+.slider-root {
+  position: relative;
+  width: 100%;
+}
+
+.slider-root:has(input:disabled) .progress,
+.slider-root:has(input:disabled) .thumb::before {
+  background: var(--hex-basic-600);
+}
+
+.slider-root .slider {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  height: var(--thumb-size);
+}
+
+.slider-root .slider > input {
+  appearance: none;
+  width: 100%;
+  height: var(--track-size);
+  margin: 0;
+
+  border-radius: var(--track-size);
+  background: rgba(84, 99, 128, 0.35);
+
+  outline: none;
+  padding: 0;
+}
+
+.slider-root input:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+.slider-root input::-webkit-slider-thumb {
+  touch-action: auto;
+  appearance: none;
+  opacity: 0;
+
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+
+  cursor: grab;
+}
+
+.slider-root input::-moz-range-thumb {
+  touch-action: auto;
+  opacity: 0;
+  cursor: grab;
+}
+
+.slider-root .progress {
+  position: absolute;
+  top: 50%;
+  margin-top: calc(var(--track-size) / 2 * -1);
+  width: calc(
+    var(--percentage) + var(--thumb-offset) - (var(--thumb-size) / 2)
+  );
+  height: var(--track-size);
+  border-radius: var(--track-size);
+  background: var(--hex-bright-blue-300);
+  pointer-events: none;
+}
+
+.slider-root .thumb {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--percentage) + var(--thumb-offset));
+
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: 50%;
+
+  background: rgba(146, 209, 247, 0.2);
+  backdrop-filter: blur(3px);
+
+  transform: translate(-50%, -50%);
+
+  pointer-events: none;
+}
+
+.slider-root .thumb::before {
+  content: '';
+  position: absolute;
+  width: calc(var(--thumb-size) / 2);
+  height: calc(var(--thumb-size) / 2);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  border-radius: 50%;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+  background: var(--hex-bright-blue-300);
+}
+
+.slider-root .top,
+.slider-root .bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.slider-root .value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.slider-root .hint {
+  margin-left: 4px;
+}
+
+.slider-root .bottom {
+  font-size: 11px;
+  color: var(--hex-basic-600);
+}
+
+.slider-root .dash {
+  position: absolute;
+  height: 4px;
+  width: 1px;
+
+  background-color: rgba(150, 138, 158, 0.24);
+}

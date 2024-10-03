@@ -13,3 +13,7 @@
   font-size: 90%;
   z-index: 1000;
 }
+
+.tooltip.show {
+  display: block;
+}
