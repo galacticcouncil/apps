@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 6.6.0
+
+### Minor Changes
+
+- f15ccfd: Added range slider component for DCA
+
 ## 6.5.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.2.0
+
+### Minor Changes
+
+- f15ccfd: Added range slider component
+
 ## 5.1.2
 
 ### Patch Changes
