@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { map } from 'lit/directives/map.js';
 
 import { Asset as RegAsset } from '@galacticcouncil/sdk';
 import {
@@ -10,6 +11,7 @@ import {
   Asset,
   AssetAmount,
   Parachain,
+  SwapInfo,
 } from '@galacticcouncil/xcm-core';
 
 import * as i18n from 'i18next';
@@ -42,6 +44,7 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) srcChainFee: AssetAmount = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destChainFee: AssetAmount = null;
+  @property({ type: Object }) swap: SwapInfo = null;
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
   @property({ attribute: false }) registryChain: AnyChain = null;
@@ -188,6 +191,36 @@ export class XcmForm extends LitElement {
     }
   }
 
+  transferSwapTemplate() {
+    if (this.swap) {
+      const { aIn, aOut } = this.swap;
+      const info = i18n.t('info.swap', {
+        amount: aOut.toDecimal(aOut.decimals),
+        symbol: aOut.originSymbol,
+        fee: aIn.originSymbol,
+        chain:
+          this.destChain.key === 'ethereum' ? 'Moonbeam' : this.destChain.name,
+      });
+      return html`
+        <span>${unsafeHTML(info)}</span>
+      `;
+    }
+  }
+
+  transferErrorTemplate() {
+    return html`
+      <div class="errors">
+        ${map(Object.keys(this.error), (k) => {
+          if (k.startsWith('transfer.')) {
+            return html`
+              <span>${unsafeHTML(this.error[k])}</span>
+            `;
+          }
+        })}
+      </div>
+    `;
+  }
+
   formAssetLoadingTemplate() {
     return html`
       <div class="loading" slot="asset">
@@ -330,17 +363,21 @@ export class XcmForm extends LitElement {
     const account = this.account.state;
     const isValidAddr = this.isValidAddress();
     const isSameAddr = isSameAddress(this.address, account?.address);
+    const hasTransferError = Object.keys(this.error).some((e) =>
+      e.startsWith('transfer.'),
+    );
+    const swapInfoClasses = {
+      alert: true,
+      info: true,
+      show: !!this.swap && this.swap.enabled,
+    };
     const errWarnClasses = {
+      alert: true,
       error: true,
-      show:
-        this.error['feeSrc'] ||
-        this.error['feeDest'] ||
-        this.error['hubEd'] ||
-        this.error['hubFrozen'] ||
-        this.error['hdxEd'] ||
-        this.error['hdxMrlFee'],
+      show: hasTransferError,
     };
     const cexWarnClasses = {
+      alert: true,
       warning: true,
       show: account && isValidAddr && !isSameAddr,
     };
@@ -379,20 +416,17 @@ export class XcmForm extends LitElement {
             `,
         )}
       </div>
+      <div class=${classMap(swapInfoClasses)}>
+        <uigc-icon-info></uigc-icon-info>
+        ${this.transferSwapTemplate()}
+      </div>
       <div class=${classMap(cexWarnClasses)}>
         <uigc-icon-warning></uigc-icon-warning>
         <span>${i18n.t('warning.cex')}</span>
       </div>
       <div class=${classMap(errWarnClasses)}>
         <uigc-icon-error></uigc-icon-error>
-        <div class="errors">
-          <span>${unsafeHTML(this.error['feeSrc'])}</span>
-          <span>${unsafeHTML(this.error['feeDest'])}</span>
-          <span>${unsafeHTML(this.error['hubEd'])}</span>
-          <span>${unsafeHTML(this.error['hubFrozen'])}</span>
-          <span>${unsafeHTML(this.error['hdxEd'])}</span>
-          <span>${unsafeHTML(this.error['hdxMrlFee'])}</span>
-        </div>
+        ${this.transferErrorTemplate()}
       </div>
       <div class="grow"></div>
       <uigc-button

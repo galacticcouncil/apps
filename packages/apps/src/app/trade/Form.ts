@@ -827,6 +827,7 @@ export class TradeForm extends BaseElement {
     const priceImpact = this.trade?.priceImpactPct;
     const priceImpactAbs = Math.abs(priceImpact);
     const slippageWarnClasses = {
+      alert: true,
       warning: true,
       show:
         this.twapEnabled &&
@@ -848,6 +849,7 @@ export class TradeForm extends BaseElement {
     const priceImpact = this.trade?.priceImpactPct;
     const priceImpactAbs = Math.abs(priceImpact);
     const dcaWarnClasses = {
+      alert: true,
       warning: true,
       show: this.twapEnabled && priceImpactAbs > 5,
     };
@@ -881,6 +883,7 @@ export class TradeForm extends BaseElement {
       show: this.hasTradeRoute(),
     };
     const errorClasses = {
+      alert: true,
       error: true,
       show: !this.twapEnabled && this.hasGeneralError(),
     };

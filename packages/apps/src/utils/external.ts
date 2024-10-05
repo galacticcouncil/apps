@@ -1,5 +1,5 @@
 import { ExternalAsset } from '@galacticcouncil/sdk';
-import { external } from '@galacticcouncil/xcm-cfg';
+import { templates } from '@galacticcouncil/xcm-cfg';
 import {
   Asset,
   ChainAssetData,
@@ -61,19 +61,23 @@ export function buildAssethubConfig(
   configService: ConfigService,
 ) {
   const assethub = configService.getChain('assethub');
-  const hydration = configService.getChain('hydradx');
+  const hydration = configService.getChain('hydration');
   const { balanceId, ...base } = assetData;
 
   assethub.updateAsset(base);
   hydration.updateAsset(assetData);
 
   configService.updateAsset(assetData.asset);
+
+  const assethubTmp = templates.assethub;
   configService.updateChainAssetConfig(
     assethub,
-    external.fromAhTemplate(assetData),
+    assethubTmp.toHydrationExtTemplate(assetData.asset),
   );
+
+  const hydrationTmp = templates.hydration;
   configService.updateChainAssetConfig(
     hydration,
-    external.toAhTemplate(assetData),
+    hydrationTmp.toHubExtTemplate(assetData.asset),
   );
 }

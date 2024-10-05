@@ -33,11 +33,12 @@
   "error.maxAmount": "The maximum transferable amount is {{amount}} {{asset}}.",
   "error.minAmount": "The minimum transferable amount is {{amount}} {{asset}}.",
 
-  "error.transfer.fee": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for fees",
-  "error.transfer.feeDest": "You need to have at least <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1>",
-  "error.transfer.frozen": "Your account on <1>{{chain}}</1> has frozen balance for <1>{{symbol}}</1>",
-  "error.transfer.ed": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for existential deposit",
+  "error.fee.insufficientBalance": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for fees",
+  "error.destFee.insufficientBalance": "You need to have at least <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1>",
+  "error.asset.frozen": "Your account on <1>{{chain}}</1> has frozen balance for <1>{{symbol}}</1>",
+  "error.account.insufficientDeposit": "You need to have <1>{{amount}} {{symbol}}</1> on <1>{{chain}}</1> for existential deposit",
 
+  "info.swap": "<1>{{fee}}</1> will be swapped for <1>{{amount}} {{symbol}}</1> to cover <1>{{chain}}</1> fees.",
   "warning.cex": "Transferring assets to CEX through XCM directly will result in loss of funds. Please send them to your address on the relevant network first.",
 
   "notify.processing": "Sending <1>{{amount}} {{asset}}</1> from <1>{{srcChain}}</1> to <1>{{destChain}}</1> submitted",

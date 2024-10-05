@@ -45,7 +45,7 @@ export class XcmScreen extends LitElement implements BeforeEnterObserver {
     return html`
       <gc-xcm
         srcChain=${this.srcChain || 'assethub'}
-        destChain=${this.destChain || 'hydradx'}
+        destChain=${this.destChain || 'hydration'}
         asset=${this.asset}
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}

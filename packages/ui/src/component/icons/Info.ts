@@ -13,8 +13,8 @@ export class InfoIcon extends BaseIcon {
     return html`
       <svg
         bsx
-        width="17"
-        height="16"
+        width="24"
+        height="24"
         viewBox="0 0 17 16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg">
@@ -45,8 +45,8 @@ export class InfoIcon extends BaseIcon {
     return html`
       <svg
         hdx
-        width="17"
-        height="16"
+        width="24"
+        height="24"
         viewBox="0 0 17 16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg">

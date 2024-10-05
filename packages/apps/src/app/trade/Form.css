@@ -218,6 +218,7 @@
 
 .tooltip {
   position: relative;
+  width: 22px;
 }
 
 .tooltip uigc-icon-info {

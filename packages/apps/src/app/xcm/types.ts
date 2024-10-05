@@ -1,4 +1,9 @@
-import { AnyChain, Asset, AssetAmount } from '@galacticcouncil/xcm-core';
+import {
+  AnyChain,
+  Asset,
+  AssetAmount,
+  SwapInfo,
+} from '@galacticcouncil/xcm-core';
 import { XTransfer } from '@galacticcouncil/xcm-sdk';
 
 export enum TransferTab {
@@ -23,6 +28,7 @@ export type TransferState = {
   srcChain: AnyChain;
   srcChainFee: AssetAmount;
   error: { [key: string]: string };
+  swap: SwapInfo;
   xTransfer: XTransfer;
 };
 
@@ -42,12 +48,12 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   srcChain: null,
   srcChainFee: null,
   error: {},
+  swap: null,
   xTransfer: null,
 };
 
 export type ChainState = {
   balance: Map<string, AssetAmount>;
-  balanceDest: Map<string, AssetAmount>;
   dest: AnyChain[];
   list: AnyChain[];
   tokens: Asset[];
@@ -56,7 +62,6 @@ export type ChainState = {
 
 export const DEFAULT_CHAIN_STATE: ChainState = {
   balance: new Map([]),
-  balanceDest: new Map([]),
   dest: [],
   list: [],
   tokens: [],

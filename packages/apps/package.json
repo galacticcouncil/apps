@@ -50,9 +50,9 @@
   "peerDependencies": {
     "@galacticcouncil/sdk": "^4.2.1",
     "@galacticcouncil/ui": "^5.2.0",
-    "@galacticcouncil/xcm-cfg": "^3.5.0",
-    "@galacticcouncil/xcm-core": "^3.0.0",
-    "@galacticcouncil/xcm-sdk": "^4.2.0",
+    "@galacticcouncil/xcm-cfg": "^4.0.1",
+    "@galacticcouncil/xcm-core": "^4.0.0",
+    "@galacticcouncil/xcm-sdk": "^5.2.1",
     "@polkadot/api": "^12.1.1",
     "@polkadot/extension-inject": "^0.48.2",
     "@talismn/connect-wallets": "^1.2.5",

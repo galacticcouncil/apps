@@ -26,14 +26,14 @@ export function getChainKey(paraId: number, ecosystem: Ecosystem) {
 
 export function useH160AddressSpace(chain: AnyChain) {
   if (chain instanceof Parachain) {
-    return chain.h160AccOnly;
+    return chain.usesH160Acc;
   }
   return chain.isEvmChain();
 }
 
 export function useSs58AddressSpace(chain: AnyChain) {
   if (chain instanceof Parachain) {
-    return !chain.h160AccOnly;
+    return !chain.usesH160Acc;
   }
   return false;
 }
@@ -56,7 +56,7 @@ export function getChainAssetId(chain: AnyChain, asset: Asset) {
 
 export function getChainId(chain: AnyChain) {
   if (chain instanceof EvmChain) {
-    return chain.defEvm.id;
+    return chain.evmChain.id;
   }
   if (chain instanceof Parachain) {
     return chain.parachainId;

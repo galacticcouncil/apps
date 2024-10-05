@@ -59,11 +59,6 @@
   flex-direction: column;
 }
 
-.errors .highlight {
-  font-weight: 600;
-  color: var(--hex-white);
-}
-
 @media (min-width: 480px) {
   .transfer .chain {
     display: flex;
