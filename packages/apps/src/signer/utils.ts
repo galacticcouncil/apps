@@ -26,7 +26,7 @@ export async function signAndSend(
   const api = await chain.api;
   const extrinsic = api.tx(transaction.hex);
 
-  const normalizedAddress = chain.h160AccOnly
+  const normalizedAddress = chain.usesH160Acc
     ? convertToH160(address)
     : address;
 

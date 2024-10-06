@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.2.1
+
+### Patch Changes
+
+- Fix info icon dimension
+
 ## 5.2.0
 
 ### Minor Changes

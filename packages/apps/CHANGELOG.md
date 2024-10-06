@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 7.0.0
+
+### Major Changes
+
+- Support xcm fee swaps, bump to next xcm-sdk
+
 ## 6.6.0
 
 ### Minor Changes
