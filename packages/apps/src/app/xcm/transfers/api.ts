@@ -9,7 +9,7 @@ import {
   EvmChain,
   Parachain,
   Precompile,
-  WormholeChain,
+  Wormhole,
 } from '@galacticcouncil/xcm-core';
 import { TypeRegistry } from '@polkadot/types';
 import { XcmVersionedLocation } from '@polkadot/types/lookup';
@@ -102,7 +102,7 @@ export class TransferApi {
     period = 300n,
   ): Promise<Transfer[]> {
     const ctx = chain as EvmChain;
-    const ctxWh = chain as WormholeChain;
+    const ctxWh = chain as Wormhole;
     const provider = ctx.client.getProvider();
     const tokenBridge = ctxWh.getTokenBridge();
     const blockNo = await provider.getBlockNumber();
@@ -168,7 +168,7 @@ export class TransferApi {
     onTransfer: (transfer: Transfer) => void,
   ): Promise<WatchContractEventReturnType[]> {
     return this.chains.map((c: EvmChain) => {
-      const ctxWh = c as WormholeChain;
+      const ctxWh = c as Wormhole;
       const provider = c.client.getProvider();
       const tokenBridge = ctxWh.getTokenBridge();
       const address = this.formatAddress(c, account);

@@ -21,6 +21,7 @@ import { convertAddressSS58, isValidAddress } from 'utils/account';
 import { useH160AddressSpace, useSs58AddressSpace } from 'utils/chain';
 import { isApprove, parseSpender, parseAmount } from 'utils/erc20';
 import { convertFromH160, convertToH160, isEvmAccount } from 'utils/evm';
+import { configureExternal } from 'utils/external';
 import {
   EVM_PROVIDERS,
   SUBSTRATE_H160_PROVIDERS,
@@ -826,6 +827,7 @@ export class XcmApp extends PoolApp {
       chains: chainsMap,
       chainsConfig: chainsConfigMap,
     });
+    configureExternal(this.isTestnet, this.configService);
   }
 
   private initTransferState() {

@@ -486,7 +486,7 @@ export class TradeForm extends BaseElement {
     };
     return html`
       <span class=${classMap(twapClasses)}>
-        (${twapSymbol}${humanizeAmount(twapDiffAbs.toString())})
+        (${twapSymbol}${humanizeAmount(twapDiffAbs.toString(), 2)})
       </span>
     `;
   }
