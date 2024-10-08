@@ -80,7 +80,8 @@ export class SelectXChain extends LitElement {
                   .item=${chain}
                   slot=${this.getSlot(chain)}
                   ?selected=${this.isSelected(chain)}
-                  ?disabled=${this.isDisabled(chain)}>
+                  ?disabled=${this.isDisabled(chain)}
+                  @list-item-click=${() => (this.query = '')}>
                   <uigc-chain
                     .name=${name}
                     .ecosystem=${getChainEcosystem(chain)}
