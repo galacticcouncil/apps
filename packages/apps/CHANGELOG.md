@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 7.0.1
+
+### Patch Changes
+
+- Reset xchain search on click
+
 ## 7.0.0
 
 ### Major Changes
