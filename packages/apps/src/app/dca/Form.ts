@@ -139,8 +139,17 @@ export class DcaForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('interval-mul-change', options));
 
     setTimeout(() => {
-      if (this.frequencyRanges[this.frequencyUnit] <= 1) {
-        this.setFrequencyUnit(this.maxFrequency, 'min');
+      if (multipliplier && this.frequencyRanges[this.frequencyUnit] <= 1) {
+        const units = Object.keys(this.frequencyRanges);
+        const unit =
+          (units[units.indexOf(this.frequencyUnit) - 1] as FrequencyUnit) ||
+          'min';
+        const values = {
+          min: this.maxFrequency,
+          hour: Math.floor(this.maxFrequency / HOUR_MIN),
+          day: Math.floor(this.maxFrequency / DAY_MIN),
+        };
+        this.setFrequencyUnit(values[unit], unit);
       }
     }, 0);
   }
@@ -396,12 +405,6 @@ export class DcaForm extends BaseElement {
       min: value,
       hour: Math.floor(value / HOUR_MIN),
       day: Math.floor(value / DAY_MIN),
-    };
-
-    const frequencyRanges = {
-      min: range,
-      hour: rangeInHours,
-      day: rangeInDays,
     };
 
     const units = [
