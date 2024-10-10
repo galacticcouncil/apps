@@ -26,8 +26,8 @@ export class ChainSelector extends UIGCElement {
   render() {
     return html`
       <button @click=${this.onSelectorClick}>
+        <span class="title">${this.title}</span>
         <span class="chain">
-          <span class="title">${this.title}</span>
           ${when(
             this.chain,
             () => html`

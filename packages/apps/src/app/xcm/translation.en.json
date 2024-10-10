@@ -18,8 +18,9 @@
 
   "form.chainSrc.label": "Source chain",
   "form.chainDst.label": "Destination chain",
-  "form.asset.label": "Transfer asset",
-  "form.address.label": "To address",
+  "form.assetSrc.label": "Asset to transfer",
+  "form.assetDst.label": "Asset to receive",
+  "form.address.label": "Destination address",
 
   "form.info.sourceFee": "Source chain fee:",
   "form.info.destFee": "Destination chain fee:",
