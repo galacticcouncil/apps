@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 7.0.2
+
+### Patch Changes
+
+- Fix balance load if dest addr missing/invalid
+
 ## 7.0.1
 
 ### Patch Changes
