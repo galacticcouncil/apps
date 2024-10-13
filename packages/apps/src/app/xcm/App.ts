@@ -601,7 +601,12 @@ export class XcmApp extends PoolApp {
     balances.forEach((balance: AssetAmount) => {
       updated.set(balance.key, balance);
     });
+
+    const { asset } = this.transfer;
+    const newBalance = updated.get(asset.key);
+    this.transfer.balance = newBalance;
     this.xchain.balance = updated;
+    this.requestUpdate();
   }
 
   private async syncBalances() {

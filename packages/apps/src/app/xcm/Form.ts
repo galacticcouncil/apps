@@ -81,6 +81,10 @@ export class XcmForm extends LitElement {
     return this.address && !this.error['address'];
   }
 
+  private isFeeLoaded(): boolean {
+    return !!this.srcChainFee && !!this.destChainFee;
+  }
+
   onTransferClick(e: any) {
     const options = {
       bubbles: true,
@@ -295,10 +299,8 @@ export class XcmForm extends LitElement {
         <uigc-asset-balance
           slot="balance"
           .balance=${balance}
-          .onMaxClick=${this.maxClickHandler(
-            balance,
-            max,
-          )}></uigc-asset-balance>
+          .onMaxClick=${this.maxClickHandler(balance, max)}
+          ?disabled=${!this.isFeeLoaded()}></uigc-asset-balance>
       </uigc-asset-transfer>
     `;
   }
