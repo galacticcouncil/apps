@@ -14,7 +14,7 @@
   "form.advanced": "Advanced settings",
   "form.advanced.desc": "Customize your trades to an even greater extent.",
   "form.advanced.interval": "Custom interval",
-  "form.advanced.intervalBlocks": "{{minutes}} minutes = {{blocks}} blocks",
+  "form.advanced.intervalBlocks": "{{value}} {{unit}} = ~{{blocks}} blocks",
 
   "form.summary": "Summary",
   "form.summary.message": "Swap <1>{{amountIn}} {{assetIn}}</1> for <1>{{assetOut}}</1> every <1>~{{frequency}}</1> with a total budget of <1>{{amountInBudget}} {{assetIn}}</1> over the period of <1>~{{time}}</1>",
