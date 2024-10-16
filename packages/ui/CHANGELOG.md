@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.2.2
+
+### Patch Changes
+
+- 8f91157: Updated XCM form layout
+
 ## 5.2.1
 
 ### Patch Changes

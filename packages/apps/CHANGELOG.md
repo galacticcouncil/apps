@@ -1,5 +1,15 @@
 # @galacticcouncil/apps
 
+## 8.0.0
+
+### Major Changes
+
+- Bump to NEXT xcm
+
+### Patch Changes
+
+- 8f91157: Updated XCM form layout
+
 ## 7.0.2
 
 ### Patch Changes
