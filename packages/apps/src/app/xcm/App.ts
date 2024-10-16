@@ -34,13 +34,11 @@ import { Asset, Transaction } from '@galacticcouncil/sdk';
 import {
   assetsMap,
   chainsMap,
-  HydrationConfigService,
   routesMap,
   validations,
+  HydrationConfigService,
 } from '@galacticcouncil/xcm-cfg';
-
 import { Wallet, XCall, XCallEvm } from '@galacticcouncil/xcm-sdk';
-
 import {
   addr,
   big,
@@ -191,9 +189,9 @@ export class XcmApp extends PoolApp {
   }
 
   private getUpdateKey() {
-    const { asset, srcChain, destChain } = this.transfer;
+    const { srcAsset, srcChain, destChain } = this.transfer;
     const date = new Date().getTime();
-    this._syncKey = `${srcChain?.key}-${destChain?.key}-${asset?.key}-${date}`;
+    this._syncKey = `${srcChain.key}-${destChain.key}-${srcAsset.key}-${date}`;
     return this._syncKey;
   }
 
@@ -254,15 +252,16 @@ export class XcmApp extends PoolApp {
   }
 
   private async switchChains() {
-    const { destChain, srcChain } = this.transfer;
+    const { destAsset, destChain, srcChain, srcAsset } = this.transfer;
     const supportedWallet = this.isSupportedWallet(destChain);
     if (!supportedWallet) {
       this.onChangeWallet(destChain);
       return;
     }
     this.resetTransfer({
-      balance: null,
+      destAsset: srcAsset,
       destChain: srcChain,
+      srcAsset: destAsset,
       srcChain: destChain,
     });
     this.changeChain();
@@ -277,7 +276,6 @@ export class XcmApp extends PoolApp {
       return;
     }
     this.resetTransfer({
-      balance: null,
       srcChain: srcChain,
     });
     this.changeChain();
@@ -287,19 +285,24 @@ export class XcmApp extends PoolApp {
     const { chains } = this.configService;
     const destChain = chains.get(chain);
     this.resetTransfer({
-      balance: null,
       destChain: destChain,
     });
     this.changeChain();
   }
 
   private async changeAsset(asset: string) {
-    const { assets } = this.configService;
-    const balance = this.xchain.balance.get(asset);
+    const { destChain, srcChain } = this.transfer;
+    const transfer = ConfigBuilder(this.configService)
+      .assets()
+      .asset(asset)
+      .source(srcChain)
+      .destination(destChain)
+      .build();
+    const { source, destination } = transfer.origin.route;
     this.clearTransferErrors();
     this.resetTransfer({
-      balance: balance,
-      asset: assets.get(asset),
+      srcAsset: source.asset,
+      destAsset: destination.asset,
     });
     this._syncData();
   }
@@ -318,10 +321,15 @@ export class XcmApp extends PoolApp {
   }
 
   updateSrcFee(fee: bigint) {
-    const { srcChainFee } = this.transfer;
+    const { srcData } = this.transfer;
+    const updatedFee = srcData.fee.copyWith({ amount: fee });
+
     this.transfer = {
       ...this.transfer,
-      srcChainFee: srcChainFee.copyWith({ amount: fee }),
+      srcData: {
+        ...srcData,
+        fee: updatedFee,
+      },
     };
   }
 
@@ -337,7 +345,9 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const { asset, balance, max, min } = this.transfer;
+    const { srcAsset, srcData } = this.transfer;
+    const { balance, max, min } = srcData;
+
     const minWithRelay = min.copyWith({
       amount: destChain.isEvmChain() ? min.amount * 2n : min.amount,
     });
@@ -353,7 +363,7 @@ export class XcmApp extends PoolApp {
         'amount',
         i18n.t('error.maxAmount', {
           amount: max.toDecimal(max.decimals),
-          asset: asset.originSymbol,
+          asset: srcAsset.originSymbol,
         }),
       );
     } else if (amountBn < minBn) {
@@ -361,7 +371,7 @@ export class XcmApp extends PoolApp {
         'amount',
         i18n.t('error.minAmount', {
           amount: minWithRelay.toDecimal(minWithRelay.decimals),
-          asset: asset.originSymbol,
+          asset: srcAsset.originSymbol,
         }),
       );
     } else {
@@ -370,11 +380,11 @@ export class XcmApp extends PoolApp {
   }
 
   notificationTemplate(transfer: TransferState, tKey: string): TxMessage {
-    const { amount, asset, srcChain, destChain } = transfer;
+    const { amount, srcAsset, srcChain, destChain } = transfer;
 
     const message = i18n.t(tKey, {
       amount: amount,
-      asset: asset.originSymbol,
+      asset: srcAsset.originSymbol,
       srcChain: srcChain.name,
       destChain: destChain.name,
     });
@@ -411,8 +421,8 @@ export class XcmApp extends PoolApp {
       ? this.notificationApproveTemplate(transfer)
       : this.notificationTransferTemplate(transfer);
 
-    const { srcChain, srcChainFee, destChain, destChainFee } = transfer;
-    const srcChainFeeBalance = this.xchain.balance.get(srcChainFee.key);
+    const { srcChain, srcData, destChain } = transfer;
+    const srcChainFeeBalance = this.xchain.balance.get(srcData.fee.key);
     const options = {
       bubbles: true,
       composed: true,
@@ -422,14 +432,16 @@ export class XcmApp extends PoolApp {
         notification: notification,
         meta: {
           srcChain: srcChain.key,
-          srcChainFee: srcChainFee.toDecimal(srcChainFee.decimals),
+          srcChainFee: srcData.fee.toDecimal(srcData.fee.decimals),
           srcChainFeeBalance: srcChainFeeBalance?.toDecimal(
-            srcChainFee.decimals,
+            srcData.fee.decimals,
           ),
-          srcChainFeeSymbol: srcChainFee.originSymbol,
+          srcChainFeeSymbol: srcData.fee.originSymbol,
           dstChain: destChain.key,
-          dstChainFee: destChainFee.toDecimal(destChainFee.decimals),
-          dstChainFeeSymbol: destChainFee.originSymbol,
+          dstChainFee: srcData.destinationFee.toDecimal(
+            srcData.destinationFee.decimals,
+          ),
+          dstChainFeeSymbol: srcData.destinationFee.originSymbol,
         },
       } as TxInfo,
     };
@@ -437,9 +449,8 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateTransfer() {
-    const { srcChainFee, xTransfer } = this.transfer;
-
-    const report = await xTransfer.validate(srcChainFee.amount);
+    const { srcData, xTransfer } = this.transfer;
+    const report = await xTransfer.validate(srcData.fee.amount);
     if (report.length > 0) {
       report.forEach((e) => {
         this.addError(
@@ -583,18 +594,32 @@ export class XcmApp extends PoolApp {
       isProcessing: false,
       isApproving: false,
       isApprove: false,
-      srcChainFee: null,
-      destChainFee: null,
-      max: null,
-      min: null,
-      swap: null,
+      srcData: null,
+      destData: null,
       xTransfer: null,
     };
   }
 
+  private updateBalances(balances: Map<string, AssetAmount>) {
+    this.xchain.balance = balances;
+  }
+
+  private updateInSource(key: any, val: any) {
+    if (this.transfer.srcData) {
+      this.transfer.srcData[key] = val;
+    }
+  }
+
+  private updateInDestination(key: any, val: any) {
+    if (this.transfer.destData) {
+      this.transfer.destData[key] = val;
+    }
+  }
+
   private resetBalances() {
-    this.transfer.balance = null;
-    this.xchain.balance = new Map([]);
+    this.updateInSource('balance', null);
+    this.updateInDestination('balance', null);
+    this.updateBalances(new Map([]));
   }
 
   private updateBalance(balances: AssetAmount[]) {
@@ -603,10 +628,10 @@ export class XcmApp extends PoolApp {
       updated.set(balance.key, balance);
     });
 
-    const { asset } = this.transfer;
-    const newBalance = updated.get(asset.key);
-    this.transfer.balance = newBalance;
-    this.xchain.balance = updated;
+    const { srcAsset } = this.transfer;
+    const balance = updated.get(srcAsset.key);
+    this.updateInSource('balance', balance);
+    this.updateBalances(updated);
     this.requestUpdate();
   }
 
@@ -631,23 +656,21 @@ export class XcmApp extends PoolApp {
   }
 
   private async syncInputOnBalanceChange() {
-    const { asset, xTransfer } = this.transfer;
+    const { srcAsset, srcData } = this.transfer;
     const { balance } = this.xchain;
 
     if (!this.hasTransferData()) {
       return;
     }
 
-    const { source } = xTransfer;
+    const srcAssetBalance = balance.get(srcAsset.key);
+    const srcFeeBalance = balance.get(srcData.fee.key);
+    const destFeeBalance = balance.get(srcData.destinationFee.key);
 
-    const assetBalance = balance.get(asset.key);
-    const srcFeeBalance = balance.get(source.fee.key);
-    const destFeeBalance = balance.get(source.destinationFee.key);
-
-    const hasAssetBalanceChange = !assetBalance.isEqual(source.balance);
-    const hasFeeBalanceChange = !srcFeeBalance.isEqual(source.feeBalance);
+    const hasAssetBalanceChange = !srcAssetBalance.isEqual(srcData.balance);
+    const hasFeeBalanceChange = !srcFeeBalance.isEqual(srcData.feeBalance);
     const hasDestFeeBalanceChange = !destFeeBalance.isEqual(
-      source.destinationFeeBalance,
+      srcData.destinationFeeBalance,
     );
 
     const shouldSync =
@@ -664,31 +687,30 @@ export class XcmApp extends PoolApp {
     }
 
     const { address } = this.account.state;
-    const { asset, destChain, srcChain, address: destAddress } = this.transfer;
+    const {
+      destChain,
+      srcAsset,
+      srcChain,
+      address: destAddress,
+    } = this.transfer;
 
     const srcAddr = this.formatAddress(address, srcChain);
     const destAddr = this.formatDestAddress(destAddress, destChain);
 
     const xTransfer = await this.wallet.transfer(
-      asset,
+      srcAsset,
       srcAddr,
       srcChain,
       destAddr,
       destChain,
     );
 
-    const { source, destination } = xTransfer;
     if (this.isLastUpdate(update)) {
+      const { source, destination } = xTransfer;
       this.transfer = {
         ...this.transfer,
-        balance: source.balance,
-        max: source.max,
-        min: source.min,
-        dest: destination,
-        destChainFee: source.destinationFee,
-        src: source,
-        srcChainFee: source.fee,
-        swap: source.feeSwap,
+        destData: destination,
+        srcData: source,
         xTransfer: xTransfer,
       };
       this.validateAmount();
@@ -737,8 +759,8 @@ export class XcmApp extends PoolApp {
   }
 
   private syncChains() {
-    const { srcChain, destChain, asset } = this.transfer;
     const { routes } = this.configService;
+    const { srcAsset, srcChain, destChain } = this.transfer;
 
     const srcChainRoutes = routes.get(srcChain.key);
     const srcChainAssetRoutes = srcChainRoutes.getRoutes();
@@ -749,26 +771,26 @@ export class XcmApp extends PoolApp {
       .map((a) => a.destination.chain);
     const destChainsUnique = new Set<AnyChain>(destChains);
 
-    const isDestValid = destChainsUnique.has(destChain);
-    const validDestChain = isDestValid
+    const isDestReacheable = destChainsUnique.has(destChain);
+    const validDestChain = isDestReacheable
       ? destChain
       : destChainsUnique.values().next().value;
 
-    const supportedAssets = srcChainAssetRoutes
+    const srcAssets = srcChainAssetRoutes
       .filter((a) => a.destination.chain === validDestChain)
       .map((a) => a.source.asset);
 
-    const isEthereumSelected =
-      srcChain.key === 'ethereum' || destChain.key === 'ethereum';
+    const isSupportedAsset = srcAssets.includes(srcAsset);
 
-    // TODO - REWORK
-    const selectedAsset = supportedAssets.includes(asset)
-      ? asset
-      : isEthereumSelected
-      ? supportedAssets.find(
-          (asset) => asset.key === 'eth' || asset.key === 'weth_mwh',
-        ) ?? supportedAssets[0]
-      : supportedAssets[0];
+    let selectedAsset = isSupportedAsset ? srcAsset : srcAssets[0];
+
+    if (!isSupportedAsset && srcChain.key === 'ethereum') {
+      selectedAsset = srcAssets.find((a) => a.key === 'eth');
+    }
+
+    if (!isSupportedAsset && destChain.key === 'ethereum') {
+      selectedAsset = srcAssets.find((a) => a.key === 'weth_mwh');
+    }
 
     const transfer = ConfigBuilder(this.configService)
       .assets()
@@ -780,19 +802,16 @@ export class XcmApp extends PoolApp {
     this.xchain = {
       ...this.xchain,
       dest: [...destChainsUnique],
-      tokens: supportedAssets,
+      assets: srcAssets,
       balance: new Map([]),
     };
 
     const { source, destination } = transfer.origin.route;
     this.transfer = {
       ...this.transfer,
-      asset: source.asset,
-      balance: null,
-      srcChainFee: null,
+      srcAsset: source.asset,
       destAsset: destination.asset,
       destChain: validDestChain,
-      destChainFee: null,
     };
   }
 
@@ -854,9 +873,9 @@ export class XcmApp extends PoolApp {
     const { assets, chains } = this.configService;
     this.transfer = {
       ...this.transfer,
+      srcAsset: assets.get(this.asset),
       srcChain: chains.get(this.srcChain),
       destChain: chains.get(this.destChain),
-      asset: assets.get(this.asset),
     };
   }
 
@@ -993,9 +1012,9 @@ export class XcmApp extends PoolApp {
     return html`
       <uigc-paper class=${classMap(classes)}>
         <gc-select-xasset
-          .assets=${this.xchain.tokens}
+          .assets=${this.xchain.assets}
           .balances=${this.xchain.balance}
-          .asset=${this.transfer.asset}
+          .asset=${this.transfer.srcAsset}
           .chain=${this.transfer.srcChain}
           .ecosystem=${this.ecosystem}
           .registry=${this.assets.registry}
@@ -1031,14 +1050,14 @@ export class XcmApp extends PoolApp {
   }
 
   private updateTransferCtx(call: XCallEvm, nonce: number) {
-    const { asset, srcChain } = this.transfer;
+    const { srcAsset, srcChain } = this.transfer;
     this.transfer = {
       ...this.transfer,
       isApproving: false,
       isApprove: false,
     };
 
-    const assetId = srcChain.getBalanceAssetId(asset);
+    const assetId = srcChain.getBalanceAssetId(srcAsset);
     const approvedTx = this.xStore.transactions.filter(
       (tx: XItem) =>
         tx.nonce < nonce &&
@@ -1127,13 +1146,13 @@ export class XcmApp extends PoolApp {
 
   async onTransferClick() {
     const account = this.account.state;
-    const { address, asset, amount, srcChain, destChain } = this.transfer;
+    const { address, amount, srcAsset, srcChain, destChain } = this.transfer;
 
     const srcAddr = this.formatAddress(account.address, srcChain);
     const destAddr = this.formatDestAddress(address, destChain);
 
     const xTransfer = await this.wallet.transfer(
-      asset,
+      srcAsset,
       srcAddr,
       srcChain,
       destAddr,
@@ -1180,17 +1199,12 @@ export class XcmApp extends PoolApp {
           .disabled=${this.isFormDisabled()}
           .address=${this.transfer.address}
           .amount=${this.transfer.amount}
-          .asset=${this.transfer.asset}
-          .balance=${this.transfer.balance}
-          .src=${this.transfer.src}
+          .srcAsset=${this.transfer.srcAsset}
           .srcChain=${this.transfer.srcChain}
-          .srcChainFee=${this.transfer.srcChainFee}
-          .dest=${this.transfer.dest}
+          .srcData=${this.transfer.srcData}
           .destAsset=${this.transfer.destAsset}
           .destChain=${this.transfer.destChain}
-          .destChainFee=${this.transfer.destChainFee}
-          .max=${this.transfer.max}
-          .swap=${this.transfer.swap}
+          .destData=${this.transfer.destData}
           .error=${this.transfer.error}
           .ecosystem=${this.ecosystem}
           .registry=${this.assets.registry}
@@ -1237,11 +1251,11 @@ export class XcmApp extends PoolApp {
 
   assetCheck() {
     if (this.assetCheckEnabled) {
-      const { asset } = this.transfer;
+      const { srcAsset } = this.transfer;
 
       const assethub = this.configService.getChain('assethub') as Parachain;
       const registry = this.configService.getChain('hydration');
-      const registryId = registry.getBalanceAssetId(asset);
+      const registryId = registry.getBalanceAssetId(srcAsset);
       const registryAsset = this.assets.registry.get(registryId.toString());
 
       const assetIn = this.validateAssetByOrigin(
@@ -1259,23 +1273,6 @@ export class XcmApp extends PoolApp {
       }
     }
   }
-
-  /*   transfersSummary() {
-    const account = this.account.state;
-    const blockNo = this.blockNo;
-    return html`
-      <gc-transfers
-        class="orders"
-        .accountAddress=${account?.address}
-        .accountProvider=${account?.provider}
-        .accountName=${account?.name}
-        .blockNo=${blockNo}>
-        <uigc-typography slot="header" variant="title">
-          ${i18n.t('header.transfers')}
-        </uigc-typography>
-      </gc-transfers>
-    `;
-  } */
 
   render() {
     return html`

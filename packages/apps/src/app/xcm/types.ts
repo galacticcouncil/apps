@@ -1,9 +1,4 @@
-import {
-  AnyChain,
-  Asset,
-  AssetAmount,
-  SwapCtx,
-} from '@galacticcouncil/xcm-core';
+import { AnyChain, Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 import {
   TransferDestinationData,
   TransferSourceData,
@@ -23,19 +18,13 @@ export type TransferState = {
   isApprove: boolean;
   address: string;
   amount: string;
-  asset: Asset;
-  balance: AssetAmount;
-  dest: TransferDestinationData;
   destAsset: Asset;
   destChain: AnyChain;
-  destChainFee: AssetAmount;
-  max: AssetAmount;
-  min: AssetAmount;
-  src: TransferSourceData;
+  destData: TransferDestinationData;
+  srcAsset: Asset;
   srcChain: AnyChain;
-  srcChainFee: AssetAmount;
+  srcData: TransferSourceData;
   error: { [key: string]: string };
-  swap: SwapCtx;
   xTransfer: XTransfer;
 };
 
@@ -46,19 +35,13 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   isApprove: false,
   address: null,
   amount: null,
-  asset: null,
-  balance: null,
-  dest: null,
   destAsset: null,
   destChain: null,
-  destChainFee: null,
-  max: null,
-  min: null,
-  src: null,
+  destData: null,
+  srcAsset: null,
   srcChain: null,
-  srcChainFee: null,
+  srcData: null,
   error: {},
-  swap: null,
   xTransfer: null,
 };
 
@@ -66,7 +49,7 @@ export type ChainState = {
   balance: Map<string, AssetAmount>;
   dest: AnyChain[];
   list: AnyChain[];
-  tokens: Asset[];
+  assets: Asset[];
   selector: string;
 };
 
@@ -74,6 +57,6 @@ export const DEFAULT_CHAIN_STATE: ChainState = {
   balance: new Map([]),
   dest: [],
   list: [],
-  tokens: [],
+  assets: [],
   selector: null,
 };

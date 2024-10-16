@@ -11,7 +11,6 @@ import {
   Asset,
   AssetAmount,
   Parachain,
-  SwapCtx,
 } from '@galacticcouncil/xcm-core';
 import {
   TransferDestinationData,
@@ -41,17 +40,12 @@ export class XcmForm extends LitElement {
   @property({ type: Boolean }) isApprove = false;
   @property({ type: String }) address = null;
   @property({ type: String }) amount = null;
-  @property({ type: Object }) asset: Asset = null;
-  @property({ type: Object }) balance: AssetAmount = null;
-  @property({ type: Object }) max: AssetAmount = null;
-  @property({ type: Object }) src: TransferSourceData = null;
+  @property({ type: Object }) srcAsset: Asset = null;
   @property({ type: Object }) srcChain: AnyChain = null;
-  @property({ type: Object }) srcChainFee: AssetAmount = null;
-  @property({ type: Object }) dest: TransferDestinationData = null;
+  @property({ type: Object }) srcData: TransferSourceData = null;
   @property({ type: Object }) destAsset: Asset = null;
   @property({ type: Object }) destChain: AnyChain = null;
-  @property({ type: Object }) destChainFee: AssetAmount = null;
-  @property({ type: Object }) swap: SwapCtx = null;
+  @property({ type: Object }) destData: TransferDestinationData = null;
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
   @property({ attribute: false }) registryChain: AnyChain = null;
@@ -88,8 +82,26 @@ export class XcmForm extends LitElement {
     return this.address && !this.error['address'];
   }
 
-  private isFeeLoaded(): boolean {
-    return !!this.srcChainFee && !!this.destChainFee;
+  private isTransferLoaded(): boolean {
+    return !!this.srcData && !!this.destData;
+  }
+
+  private isRegistryLoaded(): boolean {
+    return this.registry.size > 0;
+  }
+
+  private getDestinationAmount(): string {
+    if (!this.isTransferLoaded()) {
+      return null;
+    }
+
+    const { destinationFee } = this.srcData;
+    if (this.amount && this.srcAsset.isEqual(destinationFee)) {
+      const destFee = destinationFee.toDecimal(destinationFee.decimals);
+      const amountMinusFee = Number(this.amount) - Number(destFee);
+      return amountMinusFee > 0 ? amountMinusFee.toString() : null;
+    }
+    return null;
   }
 
   onTransferClick(e: any) {
@@ -203,8 +215,9 @@ export class XcmForm extends LitElement {
   }
 
   transferSwapTemplate() {
-    if (this.swap) {
-      const { aIn, aOut } = this.swap;
+    if (this.srcData?.feeSwap) {
+      const { feeSwap } = this.srcData;
+      const { aIn, aOut } = feeSwap;
       const info = i18n.t('info.swap', {
         amount: aOut.toDecimal(aOut.decimals),
         symbol: aOut.originSymbol,
@@ -285,33 +298,40 @@ export class XcmForm extends LitElement {
   }
 
   formSelectSourceAssetTemplate() {
-    const balance = this.balance?.toDecimal(this.balance.decimals);
-    const max = this.max?.toDecimal(this.max.decimals);
+    let assetBalance = null;
+    let assetMax = null;
+    if (this.srcData) {
+      const { balance, max } = this.srcData;
+      assetBalance = balance.toDecimal(balance.decimals);
+      assetMax = max.toDecimal(max.decimals);
+    }
+
     return html`
       <uigc-asset-transfer
         id="asset"
         title=${i18n.t('form.assetSrc.label')}
-        .asset=${this.asset?.originSymbol}
+        .asset=${this.srcAsset?.originSymbol}
         .amount=${this.amount}
-        .unit=${this.asset?.originSymbol}
-        ?selectable=${this.registry.size > 0}
-        .selectable=${this.registry.size > 0}
+        .unit=${this.srcAsset?.originSymbol}
+        ?selectable=${this.isRegistryLoaded()}
+        .selectable=${this.isRegistryLoaded()}
         ?error=${this.error['amount']}
         .error=${this.error['amount']}>
-        ${this.formAssetTemplate(this.asset, this.srcChain)}
+        ${this.formAssetTemplate(this.srcAsset, this.srcChain)}
         <uigc-asset-balance
           slot="balance"
-          .balance=${balance}
-          .onMaxClick=${this.maxClickHandler(balance, max)}
-          ?disabled=${!this.isFeeLoaded()}></uigc-asset-balance>
+          .balance=${assetBalance}
+          .onMaxClick=${this.maxClickHandler(assetBalance, assetMax)}
+          ?disabled=${!this.isTransferLoaded()}></uigc-asset-balance>
       </uigc-asset-transfer>
     `;
   }
 
   formSelectDestAssetTemplate() {
+    const amount = this.getDestinationAmount();
     let assetBalance = null;
-    if (this.dest) {
-      const { balance } = this.dest;
+    if (this.destData) {
+      const { balance } = this.destData;
       assetBalance = balance.toDecimal(balance.decimals);
     }
 
@@ -320,10 +340,12 @@ export class XcmForm extends LitElement {
         id="assetOut"
         title=${i18n.t('form.assetDst.label')}
         .asset=${this.destAsset?.originSymbol}
-        .amount=${this.amount}
+        .amount=${amount}
         .unit=${this.destAsset?.originSymbol}
         ?selectable=${false}
-        .selectable=${false}>
+        .selectable=${false}
+        ?readonly=${true}
+        .readonly=${true}>
         ${this.formAssetTemplate(this.destAsset, this.destChain)}
         <uigc-asset-balance
           slot="balance"
@@ -397,7 +419,7 @@ export class XcmForm extends LitElement {
     const swapInfoClasses = {
       alert: true,
       info: true,
-      show: !!this.swap && this.swap.enabled,
+      show: !!this.srcData?.feeSwap?.enabled,
     };
     const errWarnClasses = {
       alert: true,
@@ -428,7 +450,7 @@ export class XcmForm extends LitElement {
         <div class="row">
           ${this.transferFeeTemplate(
             i18n.t('form.info.sourceFee'),
-            this.srcChainFee,
+            this.srcData?.fee,
           )}
         </div>
         ${when(
@@ -440,7 +462,7 @@ export class XcmForm extends LitElement {
                   this.isRelayerTransfer()
                     ? i18n.t('form.info.relayerFee')
                     : i18n.t('form.info.destFee'),
-                  this.destChainFee,
+                  this.srcData?.destinationFee,
                   this.srcChain.isEvmChain(),
                 )}
               </div>
