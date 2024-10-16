@@ -281,13 +281,13 @@ export class XcmForm extends LitElement {
     return this.formAssetLoadingTemplate();
   }
 
-  formSelectAssetTemplate() {
+  formSelectSourceAssetTemplate() {
     const balance = this.balance?.toDecimal(this.balance.decimals);
     const max = this.max?.toDecimal(this.max.decimals);
     return html`
       <uigc-asset-transfer
         id="asset"
-        title=${i18n.t('form.asset.label')}
+        title=${i18n.t('form.assetSrc.label')}
         .asset=${this.asset?.originSymbol}
         .amount=${this.amount}
         .unit=${this.asset?.originSymbol}
@@ -305,33 +305,46 @@ export class XcmForm extends LitElement {
     `;
   }
 
-  formSelectChainTemplate() {
+  formSelectDestAssetTemplate() {
     return html`
-      <div class="chain">
-        <uigc-chain-selector
-          title=${i18n.t('form.chainSrc.label')}
-          .chain=${this.srcChain.key}>
-          <uigc-chain
-            slot="chain"
-            .name=${this.srcChain.name}
-            .ecosystem=${getChainEcosystem(this.srcChain)}
-            .chain=${getChainId(this.srcChain)}></uigc-chain>
-        </uigc-chain-selector>
-        <div class="switch__mobile">
-          <div class="divider"></div>
-          <uigc-asset-switch class="switch"></uigc-asset-switch>
-        </div>
-        <uigc-asset-switch basic class="switch__desktop"></uigc-asset-switch>
-        <uigc-chain-selector
-          title=${i18n.t('form.chainDst.label')}
-          .chain=${this.destChain.key}>
-          <uigc-chain
-            slot="chain"
-            .name=${this.destChain.name}
-            .ecosystem=${getChainEcosystem(this.destChain)}
-            .chain=${getChainId(this.destChain)}></uigc-chain>
-        </uigc-chain-selector>
-      </div>
+      <uigc-asset-transfer
+        id="asset"
+        title=${i18n.t('form.assetDst.label')}
+        .asset=${this.asset?.originSymbol}
+        .amount=${this.amount}
+        .unit=${this.asset?.originSymbol}
+        .selectable=${false}
+        .readonly=${true}>
+        ${this.formAssetTemplate(this.asset)}
+      </uigc-asset-transfer>
+    `;
+  }
+
+  formSelectSourceChainTemplate() {
+    return html`
+      <uigc-chain-selector
+        title=${i18n.t('form.chainSrc.label')}
+        .chain=${this.srcChain.key}>
+        <uigc-chain
+          slot="chain"
+          .name=${this.srcChain.name}
+          .ecosystem=${getChainEcosystem(this.srcChain)}
+          .chain=${getChainId(this.srcChain)}></uigc-chain>
+      </uigc-chain-selector>
+    `;
+  }
+
+  formSelectDestChainTemplate() {
+    return html`
+      <uigc-chain-selector
+        title=${i18n.t('form.chainDst.label')}
+        .chain=${this.destChain.key}>
+        <uigc-chain
+          slot="chain"
+          .name=${this.destChain.name}
+          .ecosystem=${getChainEcosystem(this.destChain)}
+          .chain=${getChainId(this.destChain)}></uigc-chain>
+      </uigc-chain-selector>
     `;
   }
 
@@ -386,14 +399,17 @@ export class XcmForm extends LitElement {
     return html`
       <slot name="header"></slot>
       <div class="transfer">
-        <uigc-typography variant="subsection">
-          ${i18n.t('form.section.chains')}
-        </uigc-typography>
-        ${this.formSelectChainTemplate()}
-        <uigc-typography variant="subsection">
-          ${i18n.t('form.section.asset')}
-        </uigc-typography>
-        ${this.formSelectAssetTemplate()} ${this.formAddressTemplate()}
+        ${this.formSelectSourceChainTemplate()}
+        ${this.formSelectSourceAssetTemplate()}
+      </div>
+      <div class="switch">
+        <div class="divider left"></div>
+        <uigc-asset-switch basic></uigc-asset-switch>
+        <div class="divider right"></div>
+      </div>
+      <div class="transfer">
+        ${this.formSelectDestChainTemplate()}
+        ${this.formSelectDestAssetTemplate()} ${this.formAddressTemplate()}
       </div>
       <div class="info show">
         <div class="row">

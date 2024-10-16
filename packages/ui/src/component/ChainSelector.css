@@ -27,6 +27,8 @@ button .title {
 }
 
 button .chain {
+  margin-left: auto;
+  padding: 0 8px;
   display: flex;
   flex-direction: column;
   gap: 14px;
