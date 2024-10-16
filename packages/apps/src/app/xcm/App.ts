@@ -34,7 +34,8 @@ import { Asset, Transaction } from '@galacticcouncil/sdk';
 import {
   assetsMap,
   chainsMap,
-  chainsConfigMap,
+  HydrationConfigService,
+  routesMap,
   validations,
 } from '@galacticcouncil/xcm-cfg';
 
@@ -47,8 +48,8 @@ import {
   AnyEvmChain,
   AssetAmount,
   ChainEcosystem,
-  ConfigService,
   Parachain,
+  ConfigBuilder,
 } from '@galacticcouncil/xcm-core';
 
 import 'element/selector';
@@ -69,7 +70,7 @@ import styles from './App.css';
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
-  private configService: ConfigService = null;
+  private configService: HydrationConfigService = null;
   private wallet: Wallet = null;
   private xStore: XStoreUtils = new XStoreUtils();
 
@@ -637,14 +638,16 @@ export class XcmApp extends PoolApp {
       return;
     }
 
-    const assetBalance = balance.get(asset.key);
-    const srcFeeBalance = balance.get(xTransfer.srcFee.key);
-    const destFeeBalance = balance.get(xTransfer.dstFee.key);
+    const { source } = xTransfer;
 
-    const hasAssetBalanceChange = !assetBalance.isEqual(xTransfer.balance);
-    const hasFeeBalanceChange = !srcFeeBalance.isEqual(xTransfer.srcFeeBalance);
+    const assetBalance = balance.get(asset.key);
+    const srcFeeBalance = balance.get(source.fee.key);
+    const destFeeBalance = balance.get(source.destinationFee.key);
+
+    const hasAssetBalanceChange = !assetBalance.isEqual(source.balance);
+    const hasFeeBalanceChange = !srcFeeBalance.isEqual(source.feeBalance);
     const hasDestFeeBalanceChange = !destFeeBalance.isEqual(
-      xTransfer.dstFeeBalance,
+      source.destinationFeeBalance,
     );
 
     const shouldSync =
@@ -674,16 +677,18 @@ export class XcmApp extends PoolApp {
       destChain,
     );
 
-    const { balance, dstFee, max, min, srcFee, srcFeeSwap } = xTransfer;
+    const { source, destination } = xTransfer;
     if (this.isLastUpdate(update)) {
       this.transfer = {
         ...this.transfer,
-        balance: balance,
-        max: max,
-        min: min,
-        destChainFee: dstFee,
-        srcChainFee: srcFee,
-        swap: srcFeeSwap,
+        balance: source.balance,
+        max: source.max,
+        min: source.min,
+        dest: destination,
+        destChainFee: source.destinationFee,
+        src: source,
+        srcChainFee: source.fee,
+        swap: source.feeSwap,
         xTransfer: xTransfer,
       };
       this.validateAmount();
@@ -733,15 +738,15 @@ export class XcmApp extends PoolApp {
 
   private syncChains() {
     const { srcChain, destChain, asset } = this.transfer;
-    const { chainsConfig } = this.configService;
+    const { routes } = this.configService;
 
-    const srcChainCfg = chainsConfig.get(srcChain.key);
-    const srcChainAssetsCfg = srcChainCfg.getAssetsConfigs();
+    const srcChainRoutes = routes.get(srcChain.key);
+    const srcChainAssetRoutes = srcChainRoutes.getRoutes();
 
     const destBlacklist = this.parseAsSet(this.blacklist);
-    const destChains = srcChainAssetsCfg
-      .filter((a) => !destBlacklist.has(a.destination.key))
-      .map((a) => a.destination);
+    const destChains = srcChainAssetRoutes
+      .filter((a) => !destBlacklist.has(a.destination.chain.key))
+      .map((a) => a.destination.chain);
     const destChainsUnique = new Set<AnyChain>(destChains);
 
     const isDestValid = destChainsUnique.has(destChain);
@@ -749,13 +754,14 @@ export class XcmApp extends PoolApp {
       ? destChain
       : destChainsUnique.values().next().value;
 
-    const supportedAssets = srcChainAssetsCfg
-      .filter((a) => a.destination === validDestChain)
-      .map((a) => a.asset);
+    const supportedAssets = srcChainAssetRoutes
+      .filter((a) => a.destination.chain === validDestChain)
+      .map((a) => a.source.asset);
 
     const isEthereumSelected =
       srcChain.key === 'ethereum' || destChain.key === 'ethereum';
 
+    // TODO - REWORK
     const selectedAsset = supportedAssets.includes(asset)
       ? asset
       : isEthereumSelected
@@ -764,6 +770,13 @@ export class XcmApp extends PoolApp {
         ) ?? supportedAssets[0]
       : supportedAssets[0];
 
+    const transfer = ConfigBuilder(this.configService)
+      .assets()
+      .asset(selectedAsset)
+      .source(srcChain)
+      .destination(validDestChain)
+      .build();
+
     this.xchain = {
       ...this.xchain,
       dest: [...destChainsUnique],
@@ -771,11 +784,13 @@ export class XcmApp extends PoolApp {
       balance: new Map([]),
     };
 
+    const { source, destination } = transfer.origin.route;
     this.transfer = {
       ...this.transfer,
-      asset: selectedAsset,
+      asset: source.asset,
       balance: null,
       srcChainFee: null,
+      destAsset: destination.asset,
       destChain: validDestChain,
       destChainFee: null,
     };
@@ -825,12 +840,12 @@ export class XcmApp extends PoolApp {
   private initConfig() {
     this.parseAsList(this.blacklist).forEach((c) => {
       chainsMap.delete(c);
-      chainsConfigMap.delete(c);
+      routesMap.delete(c);
     });
-    this.configService = new ConfigService({
+    this.configService = new HydrationConfigService({
       assets: assetsMap,
       chains: chainsMap,
-      chainsConfig: chainsConfigMap,
+      routes: routesMap,
     });
     configureExternal(this.isTestnet, this.configService);
   }
@@ -1167,8 +1182,11 @@ export class XcmApp extends PoolApp {
           .amount=${this.transfer.amount}
           .asset=${this.transfer.asset}
           .balance=${this.transfer.balance}
+          .src=${this.transfer.src}
           .srcChain=${this.transfer.srcChain}
           .srcChainFee=${this.transfer.srcChainFee}
+          .dest=${this.transfer.dest}
+          .destAsset=${this.transfer.destAsset}
           .destChain=${this.transfer.destChain}
           .destChainFee=${this.transfer.destChainFee}
           .max=${this.transfer.max}

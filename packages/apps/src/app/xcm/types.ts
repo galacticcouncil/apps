@@ -2,9 +2,13 @@ import {
   AnyChain,
   Asset,
   AssetAmount,
-  SwapInfo,
+  SwapCtx,
 } from '@galacticcouncil/xcm-core';
-import { XTransfer } from '@galacticcouncil/xcm-sdk';
+import {
+  TransferDestinationData,
+  TransferSourceData,
+  XTransfer,
+} from '@galacticcouncil/xcm-sdk';
 
 export enum TransferTab {
   Form,
@@ -21,14 +25,17 @@ export type TransferState = {
   amount: string;
   asset: Asset;
   balance: AssetAmount;
+  dest: TransferDestinationData;
+  destAsset: Asset;
   destChain: AnyChain;
   destChainFee: AssetAmount;
   max: AssetAmount;
   min: AssetAmount;
+  src: TransferSourceData;
   srcChain: AnyChain;
   srcChainFee: AssetAmount;
   error: { [key: string]: string };
-  swap: SwapInfo;
+  swap: SwapCtx;
   xTransfer: XTransfer;
 };
 
@@ -41,10 +48,13 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   amount: null,
   asset: null,
   balance: null,
+  dest: null,
+  destAsset: null,
   destChain: null,
   destChainFee: null,
   max: null,
   min: null,
+  src: null,
   srcChain: null,
   srcChainFee: null,
   error: {},

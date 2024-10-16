@@ -39,19 +39,15 @@ export function useSs58AddressSpace(chain: AnyChain) {
 }
 
 export function getChainAssetId(chain: AnyChain, asset: Asset) {
-  const selected = Array.from(chain.assetsData.values()).find((a) => {
-    // Ethereum using weth key for native asset (eth) in xcm-sdk
-    if (chain.key === 'ethereum' && asset.key === 'eth') {
-      return a.asset.key === 'weth';
-    }
-    return a.asset.key === asset.key;
-  });
-
   // Acala correct composite key is mapped in ID (TODO: Unify metadataId)
-  if (chain.key.startsWith('acala')) {
-    return selected.id;
+  // if (chain.key.startsWith('acala')) {
+  //   return selected.id;
+  // }
+
+  if (chain instanceof Parachain) {
+    return chain.getMetadataAssetId(asset) || 0;
   }
-  return selected.balanceId || selected.id || '0';
+  return chain.getAssetId(asset);
 }
 
 export function getChainId(chain: AnyChain) {
@@ -65,11 +61,5 @@ export function getChainId(chain: AnyChain) {
 }
 
 export function getChainEcosystem(chain: AnyChain) {
-  if (chain instanceof EvmChain) {
-    return 'ethereum';
-  }
-  if (chain instanceof Parachain) {
-    return chain.ecosystem.toLowerCase();
-  }
-  throw new Error('Unsupported chain type: ' + chain);
+  return chain.ecosystem.toLowerCase();
 }

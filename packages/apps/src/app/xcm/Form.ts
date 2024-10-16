@@ -11,8 +11,12 @@ import {
   Asset,
   AssetAmount,
   Parachain,
-  SwapInfo,
+  SwapCtx,
 } from '@galacticcouncil/xcm-core';
+import {
+  TransferDestinationData,
+  TransferSourceData,
+} from '@galacticcouncil/xcm-sdk';
 
 import * as i18n from 'i18next';
 
@@ -40,11 +44,14 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) asset: Asset = null;
   @property({ type: Object }) balance: AssetAmount = null;
   @property({ type: Object }) max: AssetAmount = null;
+  @property({ type: Object }) src: TransferSourceData = null;
   @property({ type: Object }) srcChain: AnyChain = null;
   @property({ type: Object }) srcChainFee: AssetAmount = null;
+  @property({ type: Object }) dest: TransferDestinationData = null;
+  @property({ type: Object }) destAsset: Asset = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destChainFee: AssetAmount = null;
-  @property({ type: Object }) swap: SwapInfo = null;
+  @property({ type: Object }) swap: SwapCtx = null;
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
   @property({ attribute: false }) registryChain: AnyChain = null;
@@ -249,27 +256,23 @@ export class XcmForm extends LitElement {
     `;
   }
 
-  formAssetTemplate(asset: Asset) {
+  formAssetTemplate(asset: Asset, chain: AnyChain) {
     if (this.registry.size > 0) {
-      const registryId = this.registryChain.getBalanceAssetId(asset);
-      const registryAsset = this.registry.get(registryId.toString());
-
-      if (this.srcChain.isEvmChain()) {
+      if (chain.isEvmChain()) {
         return html`
           <uigc-asset slot="asset" symbol=${asset.originSymbol}>
             <uigc-asset-id
               slot="icon"
-              ecosystem=${getChainEcosystem(this.srcChain)}
-              chain=${getChainId(this.srcChain)}
-              chainOrigin=${getChainId(this.srcChain)}
-              .asset=${getChainAssetId(
-                this.srcChain,
-                this.asset,
-              )}></uigc-asset-id>
+              ecosystem=${getChainEcosystem(chain)}
+              chain=${getChainId(chain)}
+              chainOrigin=${getChainId(chain)}
+              .asset=${getChainAssetId(chain, asset)}></uigc-asset-id>
           </uigc-asset>
         `;
       }
 
+      const registryId = this.registryChain.getBalanceAssetId(asset);
+      const registryAsset = this.registry.get(registryId.toString());
       return html`
         <gc-asset-identicon
           slot="asset"
@@ -295,7 +298,7 @@ export class XcmForm extends LitElement {
         .selectable=${this.registry.size > 0}
         ?error=${this.error['amount']}
         .error=${this.error['amount']}>
-        ${this.formAssetTemplate(this.asset)}
+        ${this.formAssetTemplate(this.asset, this.srcChain)}
         <uigc-asset-balance
           slot="balance"
           .balance=${balance}
@@ -306,16 +309,26 @@ export class XcmForm extends LitElement {
   }
 
   formSelectDestAssetTemplate() {
+    let assetBalance = null;
+    if (this.dest) {
+      const { balance } = this.dest;
+      assetBalance = balance.toDecimal(balance.decimals);
+    }
+
     return html`
       <uigc-asset-transfer
-        id="asset"
+        id="assetOut"
         title=${i18n.t('form.assetDst.label')}
-        .asset=${this.asset?.originSymbol}
+        .asset=${this.destAsset?.originSymbol}
         .amount=${this.amount}
-        .unit=${this.asset?.originSymbol}
-        .selectable=${false}
-        .readonly=${true}>
-        ${this.formAssetTemplate(this.asset)}
+        .unit=${this.destAsset?.originSymbol}
+        ?selectable=${false}
+        .selectable=${false}>
+        ${this.formAssetTemplate(this.destAsset, this.destChain)}
+        <uigc-asset-balance
+          slot="balance"
+          .visible=${false}
+          .balance=${assetBalance}></uigc-asset-balance>
       </uigc-asset-transfer>
     `;
   }

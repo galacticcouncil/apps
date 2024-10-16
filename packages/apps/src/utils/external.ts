@@ -1,10 +1,6 @@
 import { ExternalAsset } from '@galacticcouncil/sdk';
-import { templates } from '@galacticcouncil/xcm-cfg';
-import {
-  Asset,
-  ChainAssetData,
-  ConfigService,
-} from '@galacticcouncil/xcm-core';
+import { HydrationConfigService } from '@galacticcouncil/xcm-cfg';
+import { Asset, ChainAssetData } from '@galacticcouncil/xcm-core';
 
 import { ExternalAssetCursor } from 'db';
 
@@ -17,13 +13,13 @@ const defaultExternals = [
 
 export function configureExternal(
   isTestnet: boolean,
-  configService: ConfigService,
+  configService: HydrationConfigService,
 ) {
   readExternal(isTestnet)?.forEach((ext) => {
     if (ext.origin === 1000 && !defaultExternals.includes(ext.id)) {
       const assetData = buildAssetData(ext);
       console.log('💀 Registering ' + assetData.asset.key);
-      buildAssethubConfig(assetData, configService);
+      configService.addExternalHubRoute(assetData);
     }
   });
 }
@@ -54,30 +50,4 @@ export function buildAssetData(external: ExternalAsset): ChainAssetData {
     id: id,
     palletInstance: 50,
   } as ChainAssetData;
-}
-
-export function buildAssethubConfig(
-  assetData: ChainAssetData,
-  configService: ConfigService,
-) {
-  const assethub = configService.getChain('assethub');
-  const hydration = configService.getChain('hydration');
-  const { balanceId, ...base } = assetData;
-
-  assethub.updateAsset(base);
-  hydration.updateAsset(assetData);
-
-  configService.updateAsset(assetData.asset);
-
-  const assethubTmp = templates.assethub;
-  configService.updateChainAssetConfig(
-    assethub,
-    assethubTmp.toHydrationExtTemplate(assetData.asset),
-  );
-
-  const hydrationTmp = templates.hydration;
-  configService.updateChainAssetConfig(
-    hydration,
-    hydrationTmp.toHubExtTemplate(assetData.asset),
-  );
 }

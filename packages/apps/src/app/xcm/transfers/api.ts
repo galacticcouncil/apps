@@ -1,9 +1,9 @@
 import { findNestedKey } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import {
+  acc,
   addr,
   big,
-  mda,
   Abi,
   AnyChain,
   EvmChain,
@@ -70,7 +70,7 @@ export class TransferApi {
   }
 
   async getOperations(address: string): Promise<Map<string, Operation>> {
-    const fromAddress = mda.calculateMDA(address, '2034', 1);
+    const fromAddress = acc.getMultilocationDerivatedAccount(2034, address, 1);
     const toAddress = convertToH160(address);
 
     const operations = await Promise.all([
@@ -388,7 +388,7 @@ export class TransferApi {
    */
   private formatAddress(chain: AnyChain, address: string): string {
     if (chain.key === 'moonbeam') {
-      return mda.calculateMDA(address, '2034', 1);
+      return acc.getMultilocationDerivatedAccount(2034, address, 1);
     }
     return convertToH160(address);
   }
