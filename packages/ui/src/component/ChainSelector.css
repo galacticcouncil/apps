@@ -9,7 +9,7 @@ button {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 12px 12px 18px;
+  padding: 12px 12px 12px 12px;
   border-radius: var(--uigc-chain-selector-border-radius);
   cursor: pointer;
   background: var(--uigc-chain-selector-background);
