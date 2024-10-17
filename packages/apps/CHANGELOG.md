@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 8.0.1
+
+### Patch Changes
+
+- Fix sync chains dest chain
+
 ## 8.0.0
 
 ### Major Changes
