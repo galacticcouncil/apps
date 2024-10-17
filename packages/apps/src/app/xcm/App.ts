@@ -788,7 +788,7 @@ export class XcmApp extends PoolApp {
       selectedAsset = srcAssets.find((a) => a.key === 'eth');
     }
 
-    if (!isSupportedAsset && destChain.key === 'ethereum') {
+    if (!isSupportedAsset && validDestChain.key === 'ethereum') {
       selectedAsset = srcAssets.find((a) => a.key === 'weth_mwh');
     }
 
