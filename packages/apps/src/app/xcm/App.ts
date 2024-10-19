@@ -594,32 +594,18 @@ export class XcmApp extends PoolApp {
       isProcessing: false,
       isApproving: false,
       isApprove: false,
+      srcBalance: null,
       srcData: null,
+      destBalance: null,
       destData: null,
       xTransfer: null,
     };
   }
 
-  private updateBalances(balances: Map<string, AssetAmount>) {
-    this.xchain.balance = balances;
-  }
-
-  private updateInSource(key: any, val: any) {
-    if (this.transfer.srcData) {
-      this.transfer.srcData[key] = val;
-    }
-  }
-
-  private updateInDestination(key: any, val: any) {
-    if (this.transfer.destData) {
-      this.transfer.destData[key] = val;
-    }
-  }
-
   private resetBalances() {
-    this.updateInSource('balance', null);
-    this.updateInDestination('balance', null);
-    this.updateBalances(new Map([]));
+    this.transfer.srcBalance = null;
+    this.transfer.destBalance = null;
+    this.xchain.balance = new Map([]);
   }
 
   private updateBalance(balances: AssetAmount[]) {
@@ -630,8 +616,9 @@ export class XcmApp extends PoolApp {
 
     const { srcAsset } = this.transfer;
     const balance = updated.get(srcAsset.key);
-    this.updateInSource('balance', balance);
-    this.updateBalances(updated);
+
+    this.transfer.srcBalance = balance;
+    this.xchain.balance = updated;
     this.requestUpdate();
   }
 
@@ -642,8 +629,9 @@ export class XcmApp extends PoolApp {
     }
 
     const { address } = this.account.state;
-    const { srcChain } = this.transfer;
+    const { srcChain, destChain } = this.transfer;
     const srcAddress = this.formatAddress(address, srcChain);
+    const destAddr = this.formatAddress(address, destChain);
 
     this.balanceSubscription = await this.wallet.subscribeBalance(
       srcAddress,
@@ -652,6 +640,42 @@ export class XcmApp extends PoolApp {
         this.updateBalance(balances);
         this.syncInputOnBalanceChange();
       },
+    );
+
+    if (this.isToAddressValid()) {
+      this.balanceDestSubscription = await this.wallet.subscribeBalance(
+        destAddr,
+        destChain,
+        (balances: AssetAmount[]) => this.updateBalanceDest(balances),
+      );
+    }
+  }
+
+  private updateBalanceDest(balances: AssetAmount[]) {
+    const updated: Map<string, AssetAmount> = new Map([]);
+    balances.forEach((balance: AssetAmount) => {
+      updated.set(balance.key, balance);
+    });
+
+    const { destAsset } = this.transfer;
+    const balance = updated.get(destAsset.key);
+
+    this.transfer.destBalance = balance;
+    this.requestUpdate();
+  }
+
+  private async syncBalancesOnAddressChange() {
+    const account = this.account.state;
+    if (!account) {
+      return;
+    }
+
+    const { address, destChain } = this.transfer;
+    const destAddr = this.formatDestAddress(address, destChain);
+    this.balanceDestSubscription = await this.wallet.subscribeBalance(
+      destAddr,
+      destChain,
+      (balances: AssetAmount[]) => this.updateBalanceDest(balances),
     );
   }
 
@@ -697,6 +721,7 @@ export class XcmApp extends PoolApp {
     const srcAddr = this.formatAddress(address, srcChain);
     const destAddr = this.formatDestAddress(destAddress, destChain);
 
+    console.log('Sync started for: ' + update);
     const xTransfer = await this.wallet.transfer(
       srcAsset,
       srcAddr,
@@ -706,10 +731,13 @@ export class XcmApp extends PoolApp {
     );
 
     if (this.isLastUpdate(update)) {
+      console.log('Sync done: ' + update);
       const { source, destination } = xTransfer;
       this.transfer = {
         ...this.transfer,
+        destBalance: destination.balance,
         destData: destination,
+        srcBalance: source.balance,
         srcData: source,
         xTransfer: xTransfer,
       };
@@ -1127,10 +1155,14 @@ export class XcmApp extends PoolApp {
     this.disablePrefill();
     this.updateAddress(address);
     this.validateAddress();
+
+    this.balanceDestSubscription?.unsubscribe();
     if (this.isToAddressValid()) {
       const update = this.getUpdateKey();
       this.syncInput(update);
+      this.syncBalancesOnAddressChange();
     } else {
+      this.transfer.destBalance = null;
       this.clearTransferErrors();
     }
   }
@@ -1200,9 +1232,11 @@ export class XcmApp extends PoolApp {
           .address=${this.transfer.address}
           .amount=${this.transfer.amount}
           .srcAsset=${this.transfer.srcAsset}
+          .srcBalance=${this.transfer.srcBalance}
           .srcChain=${this.transfer.srcChain}
           .srcData=${this.transfer.srcData}
           .destAsset=${this.transfer.destAsset}
+          .destBalance=${this.transfer.destBalance}
           .destChain=${this.transfer.destChain}
           .destData=${this.transfer.destData}
           .error=${this.transfer.error}

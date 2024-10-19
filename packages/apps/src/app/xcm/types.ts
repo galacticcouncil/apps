@@ -19,9 +19,11 @@ export type TransferState = {
   address: string;
   amount: string;
   destAsset: Asset;
+  destBalance: AssetAmount;
   destChain: AnyChain;
   destData: TransferDestinationData;
   srcAsset: Asset;
+  srcBalance: AssetAmount;
   srcChain: AnyChain;
   srcData: TransferSourceData;
   error: { [key: string]: string };
@@ -36,9 +38,11 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   address: null,
   amount: null,
   destAsset: null,
+  destBalance: null,
   destChain: null,
   destData: null,
   srcAsset: null,
+  srcBalance: null,
   srcChain: null,
   srcData: null,
   error: {},

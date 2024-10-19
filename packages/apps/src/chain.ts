@@ -10,13 +10,15 @@ const logFmt = (log: string) => {
 };
 
 async function info(api: ApiPromise): Promise<void> {
-  const [systemChain, systemChainType] = await Promise.all([
+  const [systemChain, systemChainType, coreVersion] = await Promise.all([
     api.rpc.system.chain(),
     api.rpc.system.chainType(),
-    api.rpc.system.name(),
-    api.rpc.system.version(),
+    api.call.core.version(),
   ]);
+  const specName = api.runtimeVersion.specName.toString();
+  const specVersion = api.runtimeVersion.specVersion.toString();
   logFmt(`Chain: ${systemChain} (${systemChainType.toString()})`);
+  logFmt(`Runtime: ${specName} (${specVersion})`);
 }
 
 function initApi(

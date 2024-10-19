@@ -41,9 +41,11 @@ export class XcmForm extends LitElement {
   @property({ type: String }) address = null;
   @property({ type: String }) amount = null;
   @property({ type: Object }) srcAsset: Asset = null;
+  @property({ type: Object }) srcBalance: AssetAmount = null;
   @property({ type: Object }) srcChain: AnyChain = null;
   @property({ type: Object }) srcData: TransferSourceData = null;
   @property({ type: Object }) destAsset: Asset = null;
+  @property({ type: Object }) destBalance: AssetAmount = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destData: TransferDestinationData = null;
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
@@ -100,6 +102,13 @@ export class XcmForm extends LitElement {
       const destFee = destinationFee.toDecimal(destinationFee.decimals);
       const amountMinusFee = Number(this.amount) - Number(destFee);
       return amountMinusFee > 0 ? amountMinusFee.toString() : null;
+    }
+    return null;
+  }
+
+  private getBalanceSafe(balance: AssetAmount): string {
+    if (balance) {
+      return balance.toDecimal(balance.decimals);
     }
     return null;
   }
@@ -298,12 +307,11 @@ export class XcmForm extends LitElement {
   }
 
   formSelectSourceAssetTemplate() {
-    let assetBalance = null;
+    let assetBalance = this.getBalanceSafe(this.srcBalance);
     let assetMax = null;
     if (this.srcData) {
-      const { balance, max } = this.srcData;
-      assetBalance = balance.toDecimal(balance.decimals);
-      assetMax = max.toDecimal(max.decimals);
+      const { max } = this.srcData;
+      assetMax = max?.toDecimal(max?.decimals);
     }
 
     return html`
@@ -328,12 +336,8 @@ export class XcmForm extends LitElement {
   }
 
   formSelectDestAssetTemplate() {
-    const amount = this.getDestinationAmount();
-    let assetBalance = null;
-    if (this.destData) {
-      const { balance } = this.destData;
-      assetBalance = balance.toDecimal(balance.decimals);
-    }
+    let amount = this.getDestinationAmount();
+    let assetBalance = this.getBalanceSafe(this.destBalance);
 
     return html`
       <uigc-asset-transfer
