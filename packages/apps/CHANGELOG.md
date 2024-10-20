@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 8.0.3
+
+### Patch Changes
+
+- Fix hydradx references
+
 ## 8.0.2
 
 ### Patch Changes
