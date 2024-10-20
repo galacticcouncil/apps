@@ -121,7 +121,7 @@ export class TransactionCenter extends LitElement {
 
   private async processTx(txId: string, txInfo: TxInfo) {
     const { provider } = txInfo.account;
-    const chain = chainsMap.get('hydradx');
+    const chain = chainsMap.get('hydration');
     const walletProvider: WalletProvider = WalletProvider[provider];
     const isEvmProvider = EVM_PROVIDERS.includes(walletProvider);
     if (isEvmProvider) {

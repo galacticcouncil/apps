@@ -73,7 +73,7 @@ export class PaymentApi {
   async getEvmPaymentFee(txHex: string, account: Account): Promise<Amount> {
     const extrinsic = this._api.tx(txHex);
     const evmAddress = convertToH160(account.address);
-    const { client } = chainsMap.get('hydradx') as EvmParachain;
+    const { client } = chainsMap.get('hydration') as EvmParachain;
     const provider = client.getProvider();
     try {
       const data = extrinsic.inner.toHex();

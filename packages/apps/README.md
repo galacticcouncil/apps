@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@galacticcouncil/apps.svg)](https://www.npmjs.com/package/@galacticcouncil/apps)
 
-View & interaction layer with HydraDX & Basilisk chains.
+View & interaction layer with Hydration & Basilisk chains.
 
 ## Overview
 
@@ -99,7 +99,7 @@ Bare cross chain transaction app without tx & notification center.
 ```html
 <gc-xcm
   srcChain="polkadot"
-  destChain="hydradx"
+  destChain="hydration"
   asset="dot"
   accountAddress="your_account_address"
   accountProvider="polkadot-js"

@@ -4,7 +4,7 @@
 
 ## What are [UIGC Web Components]?
 
-- Collection of **reusable UI elements** crafted to ease Basilisk & HydraDX chains integration driven by a **lit framework** (~400kb unpacked size).
+- Collection of **reusable UI elements** crafted to ease Basilisk & Hydration chains integration driven by a **lit framework** (~400kb unpacked size).
 - Usable with any current or future **web development framework**.
 - Created and maintained by [Galactic Council](https://galacticcouncil.io/).
 

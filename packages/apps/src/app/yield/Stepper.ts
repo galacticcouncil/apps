@@ -6,10 +6,9 @@ import * as i18n from 'i18next';
 import { Ecosystem } from 'db';
 import { baseStyles } from 'styles';
 
-import { Asset } from '@galacticcouncil/sdk';
+import { Asset, HYDRADX_PARACHAIN_ID } from '@galacticcouncil/sdk';
 
 import styles from './Stepper.css';
-import { HYDRADX_PARACHAIN_ID } from '@galacticcouncil/sdk';
 
 @customElement('gc-yield-stepper')
 export class YieldStepper extends LitElement {
@@ -77,7 +76,7 @@ export class YieldStepper extends LitElement {
             html`
               <a
                 target="_blank"
-                href="/cross-chain?srcChain=hydradx&destChain=bifrost&asset=dot">
+                href="/cross-chain?srcChain=hydration&destChain=bifrost&asset=dot">
                 CROSS-CHAIN UI ${this.icoTemplate()}
               </a>
             `,
@@ -101,7 +100,7 @@ export class YieldStepper extends LitElement {
             html`
               <a
                 target="_blank"
-                href="/cross-chain?srcChain=bifrost&destChain=hydradx&asset=vdot">
+                href="/cross-chain?srcChain=bifrost&destChain=hydration&asset=vdot">
                 CROSS-CHAIN UI ${this.icoTemplate()}
               </a>
             `,

@@ -328,7 +328,7 @@ export class TransferApi {
     return {
       from: from,
       fromChain:
-        fromChain.key === 'moonbeam' ? chainsMap.get('hydradx') : fromChain,
+        fromChain.key === 'moonbeam' ? chainsMap.get('hydration') : fromChain,
       to: addr.toNative(payload.to),
       toChain: getChainById(payload.toChain),
     } as TransferInfo;
@@ -380,10 +380,10 @@ export class TransferApi {
   }
 
   /**
-   * Format hydradx 7KAT address to correct block explorer format
+   * Format hydration 7KAT address to correct block explorer format
    *
    * @param chain - source chain
-   * @param address - hydradx substrate address
+   * @param address - hydration substrate address
    * @returns - corresponding h160 block explorer address
    */
   private formatAddress(chain: AnyChain, address: string): string {
