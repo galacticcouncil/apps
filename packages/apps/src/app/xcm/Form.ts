@@ -93,17 +93,17 @@ export class XcmForm extends LitElement {
   }
 
   private getDestinationAmount(): string {
-    if (!this.isTransferLoaded()) {
+    if (!this.isTransferLoaded() || !this.amount) {
       return null;
     }
 
     const { destinationFee } = this.srcData;
-    if (this.amount && this.srcAsset.isEqual(destinationFee)) {
+    if (this.srcAsset.isEqual(destinationFee)) {
       const destFee = destinationFee.toDecimal(destinationFee.decimals);
       const amountMinusFee = Number(this.amount) - Number(destFee);
       return amountMinusFee > 0 ? amountMinusFee.toString() : null;
     }
-    return null;
+    return this.amount;
   }
 
   private getBalanceSafe(balance: AssetAmount): string {
