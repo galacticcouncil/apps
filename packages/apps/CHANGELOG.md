@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 8.0.4
+
+### Patch Changes
+
+- fix xcm dest amount calc
+
 ## 8.0.3
 
 ### Patch Changes
