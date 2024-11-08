@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 8.1.0
+
+### Minor Changes
+
+- Support currencies api
+
 ## 8.0.4
 
 ### Patch Changes
