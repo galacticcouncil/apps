@@ -18,13 +18,13 @@ import {
   SYSTEM_ASSET_ID,
   ZERO,
 } from '@galacticcouncil/sdk';
-import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
+import { UnsubscribePromise } from '@polkadot/api/types';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
 
   protected disconnectSubscribeNewHeads: () => void = null;
-  protected disconnectSubscribeBalance: VoidFn = null;
+  protected disconnectSubscribeBalance: () => void = null;
 
   protected blockNumber: number = null;
   protected blockTime: number = 12 * SECOND_MS;
@@ -170,7 +170,7 @@ export abstract class PoolApp extends BaseApp {
   }
 
   protected unsubscribeBalance(account: Account) {
-    this.disconnectSubscribeBalance();
+    this.disconnectSubscribeBalance?.();
     if (account) {
       const addrAbrev = this.getShortened(account.address);
       console.log(`Account [${addrAbrev}] balance unsubscribed`);
