@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 8.2.0
+
+### Minor Changes
+
+- Upgrade to pjs 14.x
+
 ## 8.1.1
 
 ### Patch Changes
