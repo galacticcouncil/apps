@@ -187,10 +187,12 @@ export abstract class PoolApp extends BaseApp {
     const account = this.account.state;
     const assets = this.assets.registry;
     const balances = this.assets.balance;
-    const token = [...assets.values()].map((t) => t.id);
+    const tokens = [...assets.values()].map((t) => t.id);
     return this.balanceClient.subscribeBalances(
       account.address,
       (balance: [string, BigNumber][]) => {
+        const updated = [];
+
         balance.forEach(([token, balance]) => {
           const asset: Asset = assets.get(token);
           if (asset) {
@@ -198,11 +200,12 @@ export abstract class PoolApp extends BaseApp {
               amount: balance,
               decimals: asset.decimals,
             } as Amount;
+            updated.push(token);
             balances.set(token, newBalance);
           }
         });
 
-        const empty = token.filter((t) => !balances.get(t));
+        const empty = tokens.filter((t) => !updated.includes(t));
         empty.forEach((token) => {
           const asset: Asset = assets.get(token);
           const emptyBalance: Amount = {
