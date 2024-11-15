@@ -118,21 +118,28 @@ export async function queryPool(squidUrl: string, poolId: string) {
 }
 
 const QUERY_POOLS = gql`
-  query ($assetIn: Int!, $assetOut: Int!) {
-    pools(
-      where: { assetAId_eq: $assetIn, assetBId_eq: $assetOut, poolType_eq: LBP }
+  query ($assetIn: String!, $assetOut: String!) {
+    lbpPools(
+      filter: {
+        assetAId: { equalTo: $assetIn }
+        assetBId: { equalTo: $assetOut }
+      }
     ) {
-      id
-      assetAId
-      assetBId
+      edges {
+        node {
+          id
+          assetAId
+          assetBId
+        }
+      }
     }
   }
 `;
 
 export interface LbpPool {
   id: string;
-  assetAId: number;
-  assetBId: number;
+  assetAId: string;
+  assetBId: string;
 }
 
 export async function queryPools(
@@ -140,8 +147,14 @@ export async function queryPools(
   assetIn: string,
   assetOut: string,
 ) {
-  return await request<{ pools: Array<LbpPool> }>(squidUrl, QUERY_POOLS, {
-    assetIn: Number(assetIn),
-    assetOut: Number(assetOut),
-  });
+  const data = await request<{ lbpPools: { edges: Array<{ node: LbpPool }> } }>(
+    squidUrl,
+    QUERY_POOLS,
+    {
+      assetIn: assetIn,
+      assetOut: assetOut,
+    },
+  );
+
+  return data.lbpPools.edges.map((lpbPool) => lpbPool.node);
 }

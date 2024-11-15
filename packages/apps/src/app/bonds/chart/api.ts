@@ -55,9 +55,7 @@ export class BondsChartApi {
       await queryPools(this._squidUrl, assetOut, assetIn),
     ]);
 
-    const pools = poolsMatrix
-      .map((res) => res.pools)
-      .find((pools) => pools.length > 0);
+    const pools = poolsMatrix.find((pools) => pools.length > 0);
 
     return pools && pools[0];
   }
