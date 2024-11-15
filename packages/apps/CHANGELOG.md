@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 8.2.2
+
+### Patch Changes
+
+- Fix indexer url
+
 ## 8.2.1
 
 ### Patch Changes
