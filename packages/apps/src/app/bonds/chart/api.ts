@@ -45,7 +45,7 @@ export class BondsChartApi {
     }
 
     const pools = await queryPool(this._squidUrl, account32);
-    const [poolData] = pools.lbpPoolData;
+    const poolData = pools.lbpPool;
     return poolData;
   }
 
@@ -80,21 +80,27 @@ export class BondsChartApi {
       pool.id,
       maturity,
     );
-    queryPoolPrice(this._squidUrl, indexes).then(
-      ({ historicalPoolPriceData }) => {
-        const lastBlock = historicalPoolPriceData[0];
-        const datapoints: [number, number][] = historicalPoolPriceData.map(
-          (price) => {
-            return getBlockPrice(assetIn, assetOut, price, pool);
-          },
-        );
-        const historicalBalance = {
-          dataset: datapoints.reverse(),
-          lastBlock: lastBlock,
-        } as HistoricalBalance;
-        onSuccess(assetIn, assetOut, historicalBalance);
-      },
-    );
+    queryPoolPrice(indexes).then(({ lbpPools }) => {
+      const lastBlock = lbpPools[0];
+
+      const datapoints: [number, number][] = lbpPools.nodes.map(
+        ({ relayChainBlockHeight, lbpPoolAssetsDataByPoolId }) => {
+          const [balanceA, balanceB] = lbpPoolAssetsDataByPoolId.nodes;
+          const price = {
+            relayChainBlockHeight,
+            assetABalance: balanceB.balances.free,
+            assetBBalance: balanceA.balances.free,
+          };
+          return getBlockPrice(assetIn, assetOut, price, pool);
+        },
+      );
+
+      const historicalBalance = {
+        dataset: datapoints.reverse(),
+        lastBlock: lastBlock,
+      } as HistoricalBalance;
+      onSuccess(assetIn, assetOut, historicalBalance);
+    });
   }
 
   getPoolPredictionPrices(
@@ -128,7 +134,7 @@ export class BondsChartApi {
       account32,
       blockHeight,
     ).then();
-    return res.historicalPoolPriceData[0];
+    return res.lbpPoolHistoricalData.nodes[0];
   }
 
   async getLastBlock(
@@ -141,6 +147,6 @@ export class BondsChartApi {
       account32,
       blockHeight,
     );
-    return res.historicalPoolPriceData[0];
+    return res.lbpPoolHistoricalData.nodes[0];
   }
 }
