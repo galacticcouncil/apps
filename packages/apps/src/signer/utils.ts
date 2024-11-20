@@ -31,7 +31,7 @@ export async function signAndSend(
     : address;
 
   const wallet = getWalletBySource(provider);
-  await wallet.enable('Hydration');
+  await wallet.enable('hydration');
   const nextNonce = await api.rpc.system.accountNextIndex(normalizedAddress);
 
   extrinsic

@@ -15,16 +15,17 @@ import {
   Asset,
   BalanceClient,
   BigNumber,
+  SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
   ZERO,
 } from '@galacticcouncil/sdk';
-import { UnsubscribePromise } from '@polkadot/api/types';
+import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
 
   protected disconnectSubscribeNewHeads: () => void = null;
-  protected disconnectSubscribeBalance: () => void = null;
+  protected disconnectSubscribeBalance: VoidFn[] = [];
 
   protected blockNumber: number = null;
   protected blockTime: number = 12 * SECOND_MS;
@@ -163,14 +164,19 @@ export abstract class PoolApp extends BaseApp {
   protected async subscribeBalance() {
     const account = this.account.state;
     if (account) {
-      this.disconnectSubscribeBalance = await this.subscribeAccountBalance();
+      this.disconnectSubscribeBalance = await Promise.all([
+        this.subscribeTokensAccountBalance(),
+        this.subscribeSystemAccountBalance(),
+      ]);
       const addrAbrev = this.getShortened(account.address);
       console.log(`Account [${addrAbrev}] balance subscribed`);
     }
   }
 
   protected unsubscribeBalance(account: Account) {
-    this.disconnectSubscribeBalance?.();
+    this.disconnectSubscribeBalance.forEach((unsub) => {
+      unsub();
+    });
     if (account) {
       const addrAbrev = this.getShortened(account.address);
       console.log(`Account [${addrAbrev}] balance unsubscribed`);
@@ -183,38 +189,41 @@ export abstract class PoolApp extends BaseApp {
     this.subscribeBalance();
   }
 
-  private subscribeAccountBalance(): UnsubscribePromise {
+  private subscribeTokensAccountBalance(): UnsubscribePromise {
     const account = this.account.state;
     const assets = this.assets.registry;
     const balances = this.assets.balance;
-    const tokens = [...assets.values()].map((t) => t.id);
-    return this.balanceClient.subscribeBalances(
+    const subsTokens = [...assets.values()].map((t) => t.id);
+    const last = subsTokens[subsTokens.length - 1];
+    return this.balanceClient.subscribeTokenBalance(
       account.address,
-      (balance: [string, BigNumber][]) => {
-        const updated = [];
+      Array.from(assets.values()),
+      (token: string, balance: BigNumber) => {
+        const asset: Asset = assets.get(token);
+        const newBalance: Amount = {
+          amount: balance,
+          decimals: asset.decimals,
+        } as Amount;
+        balances.set(token, newBalance);
+        if (last === token) {
+          this.assets.balance = new Map(balances);
+          this.onBalanceUpdate();
+        }
+      },
+    );
+  }
 
-        balance.forEach(([token, balance]) => {
-          const asset: Asset = assets.get(token);
-          if (asset) {
-            const newBalance: Amount = {
-              amount: balance,
-              decimals: asset.decimals,
-            } as Amount;
-            updated.push(token);
-            balances.set(token, newBalance);
-          }
-        });
-
-        const empty = tokens.filter((t) => !updated.includes(t));
-        empty.forEach((token) => {
-          const asset: Asset = assets.get(token);
-          const emptyBalance: Amount = {
-            amount: ZERO,
-            decimals: asset.decimals,
-          } as Amount;
-          balances.set(token, emptyBalance);
-        });
-
+  private subscribeSystemAccountBalance(): UnsubscribePromise {
+    const account = this.account.state;
+    const balances = this.assets.balance;
+    return this.balanceClient.subscribeSystemBalance(
+      account.address,
+      (token: string, balance: BigNumber) => {
+        const newBalance: Amount = {
+          amount: balance,
+          decimals: SYSTEM_ASSET_DECIMALS,
+        } as Amount;
+        balances.set(token, newBalance);
         this.assets.balance = new Map(balances);
         this.onBalanceUpdate();
       },

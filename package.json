@@ -55,8 +55,12 @@
     "lightningcss-linux-x64-gnu": "1.25.1"
   },
   "overrides": {
+    "cross-spawn": "^7.0.5",
     "@vaadin/router": {
       "path-to-regexp": "3.3.0"
+    },
+    "@galacticcouncil/xcm-sdk": {
+      "@galacticcouncil/sdk": "4.5.1-pr91-07e437b"
     }
   },
   "packageManager": "npm@10.7.0"
