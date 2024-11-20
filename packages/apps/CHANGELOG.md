@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 8.3.0
+
+### Minor Changes
+
+- Downgrade to pjs 14.0.x, fix clients
+
 ## 8.2.2
 
 ### Patch Changes
