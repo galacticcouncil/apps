@@ -166,6 +166,7 @@ export abstract class PoolApp extends BaseApp {
     if (account) {
       this.disconnectSubscribeBalance = await Promise.all([
         this.subscribeTokensAccountBalance(),
+        this.subscribeErc20AccountBalance(),
         this.subscribeSystemAccountBalance(),
       ]);
       const addrAbrev = this.getShortened(account.address);
@@ -193,22 +194,42 @@ export abstract class PoolApp extends BaseApp {
     const account = this.account.state;
     const assets = this.assets.registry;
     const balances = this.assets.balance;
-    const subsTokens = [...assets.values()].map((t) => t.id);
-    const last = subsTokens[subsTokens.length - 1];
     return this.balanceClient.subscribeTokenBalance(
       account.address,
       Array.from(assets.values()),
-      (token: string, balance: BigNumber) => {
-        const asset: Asset = assets.get(token);
-        const newBalance: Amount = {
-          amount: balance,
-          decimals: asset.decimals,
-        } as Amount;
-        balances.set(token, newBalance);
-        if (last === token) {
-          this.assets.balance = new Map(balances);
-          this.onBalanceUpdate();
-        }
+      (balaces) => {
+        balaces.forEach(([token, balance]) => {
+          const asset: Asset = assets.get(token);
+          const newBalance = {
+            amount: balance,
+            decimals: asset.decimals,
+          } as Amount;
+          balances.set(token, newBalance);
+        });
+        this.assets.balance = balances;
+        this.onBalanceUpdate();
+      },
+    );
+  }
+
+  private subscribeErc20AccountBalance(): UnsubscribePromise {
+    const account = this.account.state;
+    const assets = this.assets.registry;
+    const balances = this.assets.balance;
+    return this.balanceClient.subscribeErc20Balance(
+      account.address,
+      Array.from(assets.values()),
+      (balaces) => {
+        balaces.forEach(([token, balance]) => {
+          const asset: Asset = assets.get(token);
+          const newBalance = {
+            amount: balance,
+            decimals: asset.decimals,
+          } as Amount;
+          balances.set(token, newBalance);
+        });
+        this.assets.balance = balances;
+        this.onBalanceUpdate();
       },
     );
   }

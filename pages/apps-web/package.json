@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@galacticcouncil/apps": "^8.2.2",
-    "@polkadot/api": "^14.2.3",
+    "@polkadot/api": "~14.0.1",
     "@polkadot/extension-inject": "^0.48.2",
     "@vaadin/router": "^1.7.4"
   }
