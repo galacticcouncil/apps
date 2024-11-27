@@ -31,17 +31,18 @@ import { EVM_NATIVE_ASSET_ID } from 'utils/account';
 
 import '@galacticcouncil/ui';
 import {
+  bnum,
+  findNestedKey,
+  scale,
   Asset,
   Amount,
   PoolType,
-  scale,
-  ONE,
-  SYSTEM_ASSET_ID,
   TradeType,
   Transaction,
-  bnum,
   Trade,
   Swap,
+  ONE,
+  SYSTEM_ASSET_ID,
   ZERO,
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
@@ -1223,7 +1224,8 @@ export class TradeApp extends PoolApp {
   }
 
   protected validateAssetByOrigin(asset?: Asset, origin?: number) {
-    return asset?.type === 'External' && asset?.origin === origin
+    const parachainEntry = findNestedKey(asset?.location, 'parachain');
+    return asset?.type === 'External' && parachainEntry?.parachain === origin
       ? asset
       : null;
   }
