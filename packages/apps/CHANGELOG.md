@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 9.0.0
+
+### Major Changes
+
+- Support sdk 5.x, xcm tags
+
 ## 8.3.0
 
 ### Minor Changes
