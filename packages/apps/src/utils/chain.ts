@@ -39,11 +39,6 @@ export function useSs58AddressSpace(chain: AnyChain) {
 }
 
 export function getChainAssetId(chain: AnyChain, asset: Asset) {
-  // Acala correct composite key is mapped in ID (TODO: Unify metadataId)
-  // if (chain.key.startsWith('acala')) {
-  //   return selected.id;
-  // }
-
   if (chain instanceof Parachain) {
     return chain.getMetadataAssetId(asset) || 0;
   }

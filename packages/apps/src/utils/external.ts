@@ -35,11 +35,11 @@ export function readExternal(isTestnet: boolean) {
 }
 
 export function buildAssetData(external: ExternalAsset): ChainAssetData {
-  const { decimals, id, symbol, internalId } = external;
+  const { decimals, id, internalId, origin, symbol } = external;
 
   const key = symbol.toLowerCase();
   const asset = new Asset({
-    key: [key, external.origin, id].join('_'),
+    key: [key, origin, id].join('_'),
     originSymbol: symbol,
   });
 
