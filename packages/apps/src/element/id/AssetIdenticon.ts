@@ -5,6 +5,7 @@ import { map } from 'lit/directives/map.js';
 import { i18n } from 'localization';
 
 import {
+  findNestedKey,
   Asset,
   BASILISK_PARACHAIN_ID,
   HYDRADX_PARACHAIN_ID,
@@ -42,18 +43,36 @@ export class AssetIdenticon extends LitElement {
 
   iconTemplate(id: string) {
     const asset = this.assets.get(id);
+
+    const ethereumNetworkEntry = findNestedKey(asset.location, 'ethereum');
+    if (ethereumNetworkEntry) {
+      const { ethereum } = ethereumNetworkEntry;
+      const ethereumChain = findNestedKey(ethereum, 'chainId');
+      const ethereumAsset = findNestedKey(asset.location, 'key');
+      return html`
+        <uigc-asset-id
+          slot="icon"
+          ecosystem=${'ethereum'}
+          chain=${ethereumChain.chainId}
+          chainOrigin=${ethereumChain.chainId}
+          .asset=${ethereumAsset.key}>
+          ${this.iconBadgeTemplate(asset)}
+        </uigc-asset-id>
+      `;
+    }
+
     const chain =
       this.ecosystem === Ecosystem.Polkadot
         ? HYDRADX_PARACHAIN_ID
         : BASILISK_PARACHAIN_ID;
-
-    if (asset.origin) {
+    const parachainEntry = findNestedKey(asset.location, 'parachain');
+    if (parachainEntry) {
       return html`
         <uigc-asset-id
           slot="icon"
           ecosystem=${this.ecosystem.toLowerCase()}
           chain=${chain}
-          chainOrigin=${asset.origin}
+          chainOrigin=${parachainEntry.parachain}
           .asset=${id}>
           ${this.iconBadgeTemplate(asset)}
         </uigc-asset-id>
