@@ -29,7 +29,7 @@ import {
 } from 'utils/wallet';
 
 import '@galacticcouncil/ui';
-import { Asset, Transaction } from '@galacticcouncil/sdk';
+import { findNestedKey, Asset, Transaction } from '@galacticcouncil/sdk';
 
 import {
   assetsMap,
@@ -298,11 +298,12 @@ export class XcmApp extends PoolApp {
       .source(srcChain)
       .destination(destChain)
       .build();
-    const { source, destination } = transfer.origin.route;
+    const { source, destination, tags } = transfer.origin.route;
     this.clearTransferErrors();
     this.resetTransfer({
       srcAsset: source.asset,
       destAsset: destination.asset,
+      tags: tags || [],
     });
     this._syncData();
   }
@@ -834,12 +835,13 @@ export class XcmApp extends PoolApp {
       balance: new Map([]),
     };
 
-    const { source, destination } = transfer.origin.route;
+    const { source, destination, tags } = transfer.origin.route;
     this.transfer = {
       ...this.transfer,
       srcAsset: source.asset,
       destAsset: destination.asset,
       destChain: validDestChain,
+      tags: tags || [],
     };
   }
 
@@ -1207,13 +1209,8 @@ export class XcmApp extends PoolApp {
   }
 
   private isWormholeTransfer() {
-    const { srcChain, destChain } = this.transfer;
-    return (
-      srcChain?.isEvmChain() ||
-      srcChain?.key === 'acala-evm' ||
-      destChain?.isEvmChain() ||
-      destChain?.key === 'acala-evm'
-    );
+    const { tags } = this.transfer;
+    return tags.includes('Wormhole');
   }
 
   formTab() {
@@ -1239,6 +1236,7 @@ export class XcmApp extends PoolApp {
           .destBalance=${this.transfer.destBalance}
           .destChain=${this.transfer.destChain}
           .destData=${this.transfer.destData}
+          .tags=${this.transfer.tags}
           .error=${this.transfer.error}
           .ecosystem=${this.ecosystem}
           .registry=${this.assets.registry}
@@ -1278,7 +1276,8 @@ export class XcmApp extends PoolApp {
   }
 
   protected validateAssetByOrigin(asset?: Asset, origin?: number) {
-    return asset?.type === 'External' && asset?.origin === origin
+    const parachainEntry = findNestedKey(asset?.location, 'parachain');
+    return asset?.type === 'External' && parachainEntry?.parachain === origin
       ? asset
       : null;
   }

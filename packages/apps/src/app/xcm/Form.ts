@@ -48,6 +48,7 @@ export class XcmForm extends LitElement {
   @property({ type: Object }) destBalance: AssetAmount = null;
   @property({ type: Object }) destChain: AnyChain = null;
   @property({ type: Object }) destData: TransferDestinationData = null;
+  @property({ attribute: false }) tags: string[] = [];
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ attribute: false }) registry: Map<string, RegAsset> = new Map([]);
   @property({ attribute: false }) registryChain: AnyChain = null;
@@ -76,8 +77,16 @@ export class XcmForm extends LitElement {
    *
    * @returns true for every evm dest chains ATM
    */
-  private isRelayerTransfer(): boolean {
-    return this.destChain.isEvmChain();
+  private getDestinationFeeLabel(): string {
+    if (this.tags.includes('Wormhole') && this.tags.includes('Mrl')) {
+      return i18n.t('form.info.relayerFee');
+    }
+
+    if (this.tags.includes('Snowbridge')) {
+      return i18n.t('form.info.bridgeFee');
+    }
+
+    return i18n.t('form.info.destFee');
   }
 
   private isValidAddress(): boolean {
@@ -133,7 +142,7 @@ export class XcmForm extends LitElement {
     };
   }
 
-  transferFeeTemplate(label: string, fee: AssetAmount, free = false) {
+  transferFeeTemplate(label: string, fee: AssetAmount) {
     if (this.inProgress) {
       return html`
         <span class="label">${label}</span>
@@ -143,14 +152,6 @@ export class XcmForm extends LitElement {
           rectangle
           width="80px"
           height="12px"></uigc-skeleton>
-      `;
-    }
-
-    if (free) {
-      return html`
-        <span class="label">${label}</span>
-        <span class="grow"></span>
-        <span class="value">FREE</span>
       `;
     }
 
@@ -170,6 +171,45 @@ export class XcmForm extends LitElement {
         <span class="label">${label}</span>
         <span class="grow"></span>
         <span class="value">Estimation not available</span>
+      `;
+    }
+
+    return html`
+      <span class="label">${label}</span>
+      <span class="grow"></span>
+      <span class="value">${humanizeAmount(formatted)} ${originSymbol}</span>
+    `;
+  }
+
+  transferDestFeeTemplate(label: string, fee: AssetAmount) {
+    if (this.inProgress) {
+      return html`
+        <span class="label">${label}</span>
+        <span class="grow"></span>
+        <uigc-skeleton
+          progress
+          rectangle
+          width="80px"
+          height="12px"></uigc-skeleton>
+      `;
+    }
+
+    if (!fee) {
+      return html`
+        <span class="label">${label}</span>
+        <span class="grow"></span>
+        <span class="value">-</span>
+      `;
+    }
+
+    const { amount, decimals, originSymbol } = fee;
+    const formatted = fee.toDecimal(decimals);
+
+    if (amount === 0n) {
+      return html`
+        <span class="label">${label}</span>
+        <span class="grow"></span>
+        <span class="value">FREE</span>
       `;
     }
 
@@ -462,12 +502,9 @@ export class XcmForm extends LitElement {
           () =>
             html`
               <div class="row">
-                ${this.transferFeeTemplate(
-                  this.isRelayerTransfer()
-                    ? i18n.t('form.info.relayerFee')
-                    : i18n.t('form.info.destFee'),
+                ${this.transferDestFeeTemplate(
+                  this.getDestinationFeeLabel(),
                   this.srcData?.destinationFee,
-                  this.srcChain.isEvmChain(),
                 )}
               </div>
             `,

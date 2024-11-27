@@ -28,6 +28,7 @@ export type TransferState = {
   srcData: TransferSourceData;
   error: { [key: string]: string };
   xTransfer: XTransfer;
+  tags: string[];
 };
 
 export const DEFAULT_TRANSFER_STATE: TransferState = {
@@ -47,6 +48,7 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   srcData: null,
   error: {},
   xTransfer: null,
+  tags: [],
 };
 
 export type ChainState = {

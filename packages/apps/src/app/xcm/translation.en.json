@@ -25,6 +25,7 @@
   "form.info.sourceFee": "Source chain fee:",
   "form.info.destFee": "Destination chain fee:",
   "form.info.relayerFee": "Relayer fee:",
+  "form.info.bridgeFee": "Bridge fee:",
 
   "error.required": "This field is required.",
   "error.notEvmAddr": "The address is incorrect. Please use valid ethereum address.",
