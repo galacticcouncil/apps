@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 9.0.1
+
+### Patch Changes
+
+- Fix swap chain fee info (bridgehub)
+
 ## 9.0.0
 
 ### Major Changes
