@@ -72,21 +72,12 @@ export class XcmForm extends LitElement {
     return !this.inProgress;
   }
 
-  /**
-   * Check whether we use relayer to redeem funds on dest chain.
-   *
-   * @returns true for every evm dest chains ATM
-   */
-  private getDestinationFeeLabel(): string {
-    if (this.tags.includes('Wormhole') && this.tags.includes('Mrl')) {
-      return i18n.t('form.info.relayerFee');
-    }
+  private isMrl() {
+    return this.tags.includes('Wormhole') && this.tags.includes('Mrl');
+  }
 
-    if (this.tags.includes('Snowbridge')) {
-      return i18n.t('form.info.bridgeFee');
-    }
-
-    return i18n.t('form.info.destFee');
+  private isSnowbridge() {
+    return this.tags.includes('Snowbridge');
   }
 
   private isValidAddress(): boolean {
@@ -99,6 +90,30 @@ export class XcmForm extends LitElement {
 
   private isRegistryLoaded(): boolean {
     return this.registry.size > 0;
+  }
+
+  private getSwapInfoChain(): string {
+    if (this.destChain.key === 'ethereum' && this.isMrl()) {
+      return 'Moonbeam';
+    }
+
+    if (this.destChain.key === 'ethereum' && this.isSnowbridge()) {
+      return 'Bridgehub';
+    }
+
+    return this.destChain.name;
+  }
+
+  private getDestinationFeeLabel(): string {
+    if (this.isMrl()) {
+      return i18n.t('form.info.relayerFee');
+    }
+
+    if (this.isSnowbridge()) {
+      return i18n.t('form.info.bridgeFee');
+    }
+
+    return i18n.t('form.info.destFee');
   }
 
   private getDestinationAmount(): string {
@@ -271,8 +286,7 @@ export class XcmForm extends LitElement {
         amount: aOut.toDecimal(aOut.decimals),
         symbol: aOut.originSymbol,
         fee: aIn.originSymbol,
-        chain:
-          this.destChain.key === 'ethereum' ? 'Moonbeam' : this.destChain.name,
+        chain: this.getSwapInfoChain(),
       });
       return html`
         <span>${unsafeHTML(info)}</span>
