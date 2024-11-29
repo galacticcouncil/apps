@@ -32,6 +32,7 @@ import '@galacticcouncil/ui';
 import { findNestedKey, Asset, Transaction } from '@galacticcouncil/sdk';
 
 import {
+  tags as xtags,
   assetsMap,
   chainsMap,
   routesMap,
@@ -65,6 +66,8 @@ import {
 } from './types';
 
 import styles from './App.css';
+
+const Tag = xtags.Tag;
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
@@ -422,7 +425,7 @@ export class XcmApp extends PoolApp {
       ? this.notificationApproveTemplate(transfer)
       : this.notificationTransferTemplate(transfer);
 
-    const { srcChain, srcData, destChain } = transfer;
+    const { srcChain, srcData, destChain, tags } = transfer;
     const srcChainFeeBalance = this.xchain.balance.get(srcData.fee.key);
     const options = {
       bubbles: true,
@@ -443,6 +446,7 @@ export class XcmApp extends PoolApp {
             srcData.destinationFee.decimals,
           ),
           dstChainFeeSymbol: srcData.destinationFee.originSymbol,
+          tags: tags.join(','),
         },
       } as TxInfo,
     };
@@ -1210,7 +1214,7 @@ export class XcmApp extends PoolApp {
 
   private isWormholeTransfer() {
     const { tags } = this.transfer;
-    return tags.includes('Wormhole');
+    return tags.includes(Tag.Wormhole);
   }
 
   formTab() {

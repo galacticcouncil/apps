@@ -6,6 +6,7 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { map } from 'lit/directives/map.js';
 
 import { Asset as RegAsset } from '@galacticcouncil/sdk';
+import { tags as xtags } from '@galacticcouncil/xcm-cfg';
 import {
   AnyChain,
   Asset,
@@ -28,6 +29,8 @@ import { getChainAssetId, getChainEcosystem, getChainId } from 'utils/chain';
 import 'element/id';
 
 import styles from './Form.css';
+
+const Tag = xtags.Tag;
 
 @customElement('gc-xcm-form')
 export class XcmForm extends LitElement {
@@ -73,11 +76,11 @@ export class XcmForm extends LitElement {
   }
 
   private isMrl() {
-    return this.tags.includes('Wormhole') && this.tags.includes('Mrl');
+    return this.tags.includes(Tag.Wormhole) && this.tags.includes(Tag.Mrl);
   }
 
   private isSnowbridge() {
-    return this.tags.includes('Snowbridge');
+    return this.tags.includes(Tag.Snowbridge);
   }
 
   private isValidAddress(): boolean {
