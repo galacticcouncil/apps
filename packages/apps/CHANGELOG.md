@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 9.0.2
+
+### Patch Changes
+
+- Include transfer tags in gc:xcm:new event
+
 ## 9.0.1
 
 ### Patch Changes
