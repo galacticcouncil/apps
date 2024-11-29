@@ -261,16 +261,21 @@ export class YieldApp extends PoolApp {
     const minInvestment = minGain / (apyMultiplier - 1);
 
     if (minInvestment > Number(amountIn)) {
-      this.dca.error['minInvestmentTooLow'] = i18n.t(
-        'error.minInvestmentTooLow',
-        {
-          amount: humanizeAmount(minInvestment),
-          asset: assetIn.symbol,
+      this.dca = {
+        ...this.dca,
+        error: {
+          ...this.dca.error,
+          minInvestmentTooLow: i18n.t('error.minInvestmentTooLow', {
+            amount: humanizeAmount(minInvestment),
+            asset: assetIn.symbol,
+          }),
         },
-      );
+      };
     } else {
       delete this.dca.error['minInvestmentTooLow'];
     }
+
+    this.requestUpdate();
   }
 
   notificationTemplate(dca: DcaState, tKey: string): TxMessage {
@@ -431,7 +436,10 @@ export class YieldApp extends PoolApp {
   }
 
   protected onIntervalChange({ detail }: CustomEvent) {
-    this.dca.interval = detail.value;
+    this.dca = {
+      ...this.dca,
+      interval: detail.value,
+    };
     this.updateTradeSize();
     this.validateMinInvestment();
   }
