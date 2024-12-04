@@ -17,7 +17,11 @@ export const getPoolMaturity = (pool: LbpPoolData, price: HistoricalPrice) => {
 export const getBlockPrice = (
   assetIn: Asset,
   assetOut: Asset,
-  historicalPrice: HistoricalPrice,
+  historicalPrice: {
+    relayChainBlockHeight: number;
+    assetABalance: string;
+    assetBBalance: string;
+  },
   pool: LbpPoolData,
 ): [number, number] => {
   const { relayChainBlockHeight } = historicalPrice;

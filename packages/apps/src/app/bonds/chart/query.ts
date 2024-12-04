@@ -1,5 +1,8 @@
 import { gql, request } from 'graphql-request';
 
+const allBlocksSquidUrl =
+  'https://galacticcouncil.squids.live/hydration-storage-dictionary:lbppool/api/graphql';
+
 export interface HistoricalPrice {
   pool: {
     assetAId: number;
@@ -11,19 +14,33 @@ export interface HistoricalPrice {
   relayChainBlockHeight: number;
 }
 
+export interface HistoricalBalance {
+  balances: {
+    free: string;
+    frozen: string;
+    rezerved: string;
+  };
+  assetId: string;
+}
+
 export interface HistoricalPrices {
-  historicalPoolPriceData: Array<HistoricalPrice>;
+  lbpPoolHistoricalData: { nodes: Array<HistoricalPrice> };
 }
 
 const QUERY_POOL_FIRST_BLOCK = gql`
-  query ($id: String!, $blockHeight: Int!) {
-    historicalPoolPriceData(
-      where: { relayChainBlockHeight_gte: $blockHeight, pool: { id_eq: $id } }
-      orderBy: relayChainBlockHeight_ASC
-      limit: 1
+  query FirstBlock($id: String!, $blockHeight: Int!) {
+    lbpPoolHistoricalData(
+      filter: {
+        poolId: { equalTo: $id }
+        relayChainBlockHeight: { greaterThanOrEqualTo: $blockHeight }
+      }
+      first: 1
+      orderBy: RELAY_CHAIN_BLOCK_HEIGHT_ASC
     ) {
-      relayChainBlockHeight
-      paraChainBlockHeight
+      nodes {
+        paraChainBlockHeight
+        relayChainBlockHeight
+      }
     }
   }
 `;
@@ -40,14 +57,19 @@ export async function queryPoolFirstBlock(
 }
 
 const QUERY_POOL_LAST_BLOCK = gql`
-  query ($id: String!, $blockHeight: Int!) {
-    historicalPoolPriceData(
-      where: { relayChainBlockHeight_lte: $blockHeight, pool: { id_eq: $id } }
-      orderBy: relayChainBlockHeight_DESC
-      limit: 1
+  query LastBlock($id: String!, $blockHeight: Int!) {
+    lbpPoolHistoricalData(
+      filter: {
+        poolId: { equalTo: $id }
+        relayChainBlockHeight: { lessThanOrEqualTo: $blockHeight }
+      }
+      first: 1
+      orderBy: RELAY_CHAIN_BLOCK_HEIGHT_DESC
     ) {
-      relayChainBlockHeight
-      paraChainBlockHeight
+      nodes {
+        paraChainBlockHeight
+        relayChainBlockHeight
+      }
     }
   }
 `;
@@ -65,31 +87,41 @@ export async function queryPoolLastBlock(
 
 const QUERY_POOL_DATA = gql`
   query ($recordIds: [String!]!) {
-    historicalPoolPriceData(
-      where: { id_in: $recordIds }
-      orderBy: relayChainBlockHeight_DESC
+    lbpPools(
+      filter: { id: { in: $recordIds } }
+      orderBy: RELAY_CHAIN_BLOCK_HEIGHT_DESC
     ) {
-      pool {
-        assetAId
-        assetBId
+      nodes {
+        relayChainBlockHeight
+        lbpPoolAssetsDataByPoolId {
+          nodes {
+            balances
+            assetId
+          }
+        }
       }
-      assetABalance
-      assetBBalance
-      relayChainBlockHeight
-      paraChainBlockHeight
     }
   }
 `;
 
-export async function queryPoolPrice(squidUrl: string, ids: string[]) {
-  return await request<HistoricalPrices>(squidUrl, QUERY_POOL_DATA, {
-    recordIds: ids,
+export async function queryPoolPrice(recordIds: string[]) {
+  return await request<{
+    lbpPools: {
+      nodes: Array<{
+        relayChainBlockHeight: number;
+        lbpPoolAssetsDataByPoolId: {
+          nodes: Array<HistoricalBalance>;
+        };
+      }>;
+    };
+  }>(allBlocksSquidUrl, QUERY_POOL_DATA, {
+    recordIds,
   });
 }
 
 const QUERY_POOL = gql`
   query ($id: String!) {
-    lbpPoolData(where: { id_eq: $id }) {
+    lbpPool(id: $id) {
       id
       startBlockNumber
       endBlockNumber
@@ -108,7 +140,7 @@ export interface LbpPoolData {
 }
 
 export interface LbpPools {
-  lbpPoolData: Array<LbpPoolData>;
+  lbpPool: LbpPoolData;
 }
 
 export async function queryPool(squidUrl: string, poolId: string) {
@@ -125,12 +157,10 @@ const QUERY_POOLS = gql`
         assetBId: { equalTo: $assetOut }
       }
     ) {
-      edges {
-        node {
-          id
-          assetAId
-          assetBId
-        }
+      nodes {
+        id
+        assetAId
+        assetBId
       }
     }
   }
@@ -147,7 +177,7 @@ export async function queryPools(
   assetIn: string,
   assetOut: string,
 ) {
-  const data = await request<{ lbpPools: { edges: Array<{ node: LbpPool }> } }>(
+  const data = await request<{ lbpPools: { nodes: Array<LbpPool> } }>(
     squidUrl,
     QUERY_POOLS,
     {
@@ -156,5 +186,5 @@ export async function queryPools(
     },
   );
 
-  return data.lbpPools.edges.map((lpbPool) => lpbPool.node);
+  return data.lbpPools.nodes;
 }

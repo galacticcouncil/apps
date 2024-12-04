@@ -205,7 +205,7 @@ export class BondsApp extends TradeApp {
     return html`
       <uigc-paper class=${classMap(classes)}>
         ${when(
-          active,
+          this.chart,
           () => html`
             <gc-bonds-chart
               .assetIn=${this.lbp.accumulated}
