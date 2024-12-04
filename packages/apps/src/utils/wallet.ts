@@ -8,6 +8,9 @@ export enum WalletProvider {
   'nova-wallet',
   'trustwallet',
   'bravewallet',
+  'coinbasewallet',
+  'nightly',
+  'nightly-evm',
   'phantom',
   'enkrypt',
   'manta-wallet-js',
@@ -15,6 +18,7 @@ export enum WalletProvider {
   'polkagate',
   'aleph-zero',
   'walletconnect',
+  'walletconnect-evm',
   'external',
 }
 
@@ -22,9 +26,11 @@ export const EVM_PROVIDERS: WalletProvider[] = [
   WalletProvider.metamask,
   WalletProvider['talisman-evm'],
   WalletProvider['subwallet-evm'],
+  WalletProvider['nightly-evm'],
+  WalletProvider['coinbasewallet'],
   WalletProvider.bravewallet,
   WalletProvider.phantom,
-  WalletProvider.walletconnect,
+  WalletProvider['walletconnect-evm'],
 ];
 
 export const SUBSTRATE_PROVIDERS: WalletProvider[] = [
@@ -33,6 +39,7 @@ export const SUBSTRATE_PROVIDERS: WalletProvider[] = [
   WalletProvider.enkrypt,
   WalletProvider['polkadot-js'],
   WalletProvider['nova-wallet'],
+  WalletProvider.nightly,
   WalletProvider['manta-wallet-js'],
   WalletProvider['fearless-wallet'],
   WalletProvider.polkagate,
