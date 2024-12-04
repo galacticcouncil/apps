@@ -139,8 +139,17 @@ export class DcaForm extends BaseElement {
     this.dispatchEvent(new CustomEvent('interval-mul-change', options));
 
     setTimeout(() => {
-      if (this.frequencyRanges[this.frequencyUnit] <= 1) {
-        this.setFrequencyUnit(this.maxFrequency, 'min');
+      if (multipliplier && this.frequencyRanges[this.frequencyUnit] <= 1) {
+        const units = Object.keys(this.frequencyRanges);
+        const unit =
+          (units[units.indexOf(this.frequencyUnit) - 1] as FrequencyUnit) ||
+          'min';
+        const values = {
+          min: this.maxFrequency,
+          hour: Math.floor(this.maxFrequency / HOUR_MIN),
+          day: Math.floor(this.maxFrequency / DAY_MIN),
+        };
+        this.setFrequencyUnit(values[unit], unit);
       }
     }, 0);
   }
@@ -365,21 +374,6 @@ export class DcaForm extends BaseElement {
     const max = this.maxFrequency;
     const value = this.frequency ?? max;
 
-    const valueMsec = value * 60 * 1000;
-    const blockTime = 12_000;
-    const blockCount = Math.floor(valueMsec / blockTime);
-    const blockHint =
-      blockCount > 0
-        ? i18n.t('form.advanced.intervalBlocks', {
-            minutes: value,
-            blocks: blockCount,
-          })
-        : undefined;
-
-    const range = max - min;
-    const rangeInHours = Math.floor(range / HOUR_MIN);
-    const rangeInDays = Math.floor(range / DAY_MIN);
-
     const minValues: Record<FrequencyUnit, number> = {
       min: min,
       hour: Math.ceil(min / HOUR_MIN),
@@ -398,17 +392,23 @@ export class DcaForm extends BaseElement {
       day: Math.floor(value / DAY_MIN),
     };
 
-    const frequencyRanges = {
-      min: range,
-      hour: rangeInHours,
-      day: rangeInDays,
-    };
-
     const units = [
       'min',
       this.frequencyRanges.hour > 0 && 'hour',
       this.frequencyRanges.day > 0 && 'day',
     ].filter((u): u is FrequencyUnit => !!u);
+
+    const valueMsec = value * 60 * 1000;
+    const blockTime = 12_000;
+    const blockCount = Math.floor(valueMsec / blockTime);
+    const blockHint =
+      blockCount > 0
+        ? i18n.t('form.advanced.intervalBlocks', {
+            unit: i18n.t(`form.frequency.${this.frequencyUnit}`),
+            value: values[this.frequencyUnit],
+            blocks: blockCount,
+          })
+        : undefined;
 
     return html`
       <uigc-slider
