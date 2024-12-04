@@ -1,5 +1,17 @@
 # @galacticcouncil/apps
 
+## 9.1.0
+
+### Minor Changes
+
+- Updated wallet list
+- Step down DCA frequency unit when interval multiplier is lowered
+
+Fixes:
+
+- Fix lifecycle issues in DCA Yield
+- Fix bonds chart
+
 ## 9.0.2
 
 ### Patch Changes
