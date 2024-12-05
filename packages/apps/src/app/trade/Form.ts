@@ -41,6 +41,8 @@ export class TradeForm extends BaseElement {
     this,
     TradeConfigCursor,
   );
+  private formAssetInTemplateId = 'assetIn';
+  private formAssetOutTemplateId = 'assetOut';
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
@@ -69,6 +71,8 @@ export class TradeForm extends BaseElement {
 
   @state() twapEnabled: boolean = false;
   @state() isPriceReversed: boolean = false;
+  @state() isAssetInActive: boolean = false;
+  @state() isAssetOutActive: boolean = false;
 
   static styles = [baseStyles, formStyles, styles];
 
@@ -574,7 +578,7 @@ export class TradeForm extends BaseElement {
     const error = this.error['balance'];
     return html`
       <uigc-asset-transfer
-        id="assetIn"
+        id=${this.formAssetInTemplateId}
         title=${i18n.t('form.assetIn.label')}
         ?readonly=${this.readonly || !this.loaded}
         .readonly=${this.readonly || !this.loaded}
@@ -585,12 +589,14 @@ export class TradeForm extends BaseElement {
         .asset=${this.assetIn?.symbol}
         .amount=${amountIn}
         .amountUsd=${amountUsdHuman}
+        ?isActive=${this.isAssetInActive}
+        .isActive=${this.isAssetInActive}
         @asset-input-change=${() => {
           this.twapEnabled = false;
         }}>
         ${this.formAssetTemplate(this.assetIn)}
         ${this.formAssetBalanceTemplate(
-          'assetIn',
+          this.formAssetInTemplateId,
           this.assetIn,
           this.balanceIn,
         )}
@@ -614,7 +620,7 @@ export class TradeForm extends BaseElement {
 
     return html`
       <uigc-asset-transfer
-        id="assetOut"
+        id=${this.formAssetOutTemplateId}
         title=${i18n.t('form.assetOut.label')}
         ?readonly=${this.readonly || !this.loaded}
         .readonly=${this.readonly || !this.loaded}
@@ -623,12 +629,14 @@ export class TradeForm extends BaseElement {
         .asset=${this.assetOut?.symbol}
         .amount=${amountOut}
         .amountUsd=${humanizeAmount(amountOutUsd, 2)}
+        ?isActive=${this.isAssetOutActive}
+        .isActive=${this.isAssetOutActive}
         @asset-input-change=${() => {
           this.twapEnabled = false;
         }}>
         ${this.formAssetTemplate(this.assetOut)}
         ${this.formAssetBalanceTemplate(
-          'assetOut',
+          this.formAssetOutTemplateId,
           this.assetOut,
           this.balanceOut,
         )}
@@ -862,6 +870,20 @@ export class TradeForm extends BaseElement {
         </div>
       </div>
     `;
+  }
+
+  override update(changedProperties: Map<string, unknown>) {
+    switch (this.shadowRoot.activeElement?.id) {
+      case this.formAssetInTemplateId:
+        this.isAssetInActive = true;
+        this.isAssetOutActive = false;
+        break;
+      case this.formAssetOutTemplateId:
+        this.isAssetInActive = false;
+        this.isAssetOutActive = true;
+        break;
+    }
+    super.update(changedProperties);
   }
 
   render() {
