@@ -20,6 +20,7 @@ export class AssetTransfer extends UIGCElement {
   @property({ type: String }) error = null;
   @property({ type: Boolean }) selectable = true;
   @property({ type: Boolean }) readonly = false;
+  @property({ type: Boolean }) isActive = false;
 
   static styles = [UIGCElement.styles, styles];
 
@@ -49,7 +50,9 @@ export class AssetTransfer extends UIGCElement {
             .amount=${this.amount}
             .amountUsd=${this.amountUsd}
             .unit=${this.unit}
-            ?disabled=${this.readonly}></uigc-asset-input>
+            ?disabled=${this.readonly}
+            ?isActive=${this.isActive}
+            .isActive=${this.isActive}></uigc-asset-input>
           <uigc-asset-input
             bsx
             id=${this.id}
@@ -59,7 +62,9 @@ export class AssetTransfer extends UIGCElement {
             .unit=${this.unit}
             ?error=${this.error}
             .error=${this.error}
-            ?disabled=${this.readonly}></uigc-asset-input>
+            ?disabled=${this.readonly}
+            ?isActive=${this.isActive}
+            .isActive=${this.isActive}></uigc-asset-input>
         </div>
       </div>
       <p hdx class="asset-error">${this.error}</p>
