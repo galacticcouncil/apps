@@ -54,10 +54,10 @@ export class AssetInput extends UIGCElement {
 
   override update(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('amount') && this._imask) {
-      if (this.amount) {
-        this._imask.unmaskedValue = this.amount;
+      if (this.shadowRoot.activeElement && !this.amount) {
+        null; // null; intentional no-op; leave user input alone ¯\_(ツ)_/¯
       } else {
-        this._imask.unmaskedValue = '';
+        this._imask.unmaskedValue = this.amount ?? '';
       }
     }
     super.update(changedProperties);
