@@ -36,7 +36,7 @@ export function configureExternal(
   });
 }
 
-function toHubAsset(external: ExternalAsset): ChainAssetData {
+export function toHubAsset(external: ExternalAsset): ChainAssetData {
   const { decimals, id, origin, symbol } = external;
   const key = symbol.toLowerCase();
   const asset = new Asset({
@@ -64,7 +64,7 @@ function toHubAsset(external: ExternalAsset): ChainAssetData {
   } as ChainAssetData;
 }
 
-function toParachainAsset(external: ExternalAsset): ChainAssetData {
+export function toParachainAsset(external: ExternalAsset): ChainAssetData {
   const { decimals, id, internalId, origin, symbol } = external;
   const key = symbol.toLowerCase();
   const asset = new Asset({
