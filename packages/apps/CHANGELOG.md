@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 9.2.0
+
+### Minor Changes
+
+- Bump cfg to 6.0.0 (xcm locations)
+
 ## 9.1.0
 
 ### Minor Changes
