@@ -11,19 +11,6 @@ const defaultExternals = [
   '31337', // WUD
 ];
 
-export function configureExternal(
-  isTestnet: boolean,
-  configService: HydrationConfigService,
-) {
-  readExternal(isTestnet)?.forEach((ext) => {
-    if (ext.origin === 1000 && !defaultExternals.includes(ext.id)) {
-      const assetData = buildAssetData(ext);
-      console.log('💀 Registering ' + assetData.asset.key);
-      configService.addExternalHubRoute(assetData);
-    }
-  });
-}
-
 export function readExternal(isTestnet: boolean) {
   const config = ExternalAssetCursor.deref();
 
@@ -34,9 +21,23 @@ export function readExternal(isTestnet: boolean) {
   return undefined;
 }
 
-export function buildAssetData(external: ExternalAsset): ChainAssetData {
-  const { decimals, id, internalId, origin, symbol } = external;
+export function configureExternal(
+  isTestnet: boolean,
+  configService: HydrationConfigService,
+) {
+  readExternal(isTestnet)?.forEach((ext) => {
+    if (ext.origin === 1000 && !defaultExternals.includes(ext.id)) {
+      const hubAsset = toHubAsset(ext);
+      const parachainAsset = toParachainAsset(ext);
 
+      console.log('💀 Registering ' + hubAsset.asset.key);
+      configService.addExternalHubRoute(hubAsset, parachainAsset);
+    }
+  });
+}
+
+function toHubAsset(external: ExternalAsset): ChainAssetData {
+  const { decimals, id, origin, symbol } = external;
   const key = symbol.toLowerCase();
   const asset = new Asset({
     key: [key, origin, id].join('_'),
@@ -45,9 +46,51 @@ export function buildAssetData(external: ExternalAsset): ChainAssetData {
 
   return {
     asset: asset,
-    balanceId: internalId,
     decimals: decimals,
     id: id,
-    palletInstance: 50,
+    xcmLocation: {
+      parents: 0,
+      interior: {
+        X2: [
+          {
+            PalletInstance: 50,
+          },
+          {
+            GeneralIndex: id,
+          },
+        ],
+      },
+    },
+  } as ChainAssetData;
+}
+
+function toParachainAsset(external: ExternalAsset): ChainAssetData {
+  const { decimals, id, internalId, origin, symbol } = external;
+  const key = symbol.toLowerCase();
+  const asset = new Asset({
+    key: [key, origin, id].join('_'),
+    originSymbol: symbol,
+  });
+
+  return {
+    asset: asset,
+    decimals: decimals,
+    id: internalId,
+    xcmLocation: {
+      parents: 1,
+      interior: {
+        X3: [
+          {
+            Parachain: origin,
+          },
+          {
+            PalletInstance: 50,
+          },
+          {
+            GeneralIndex: id,
+          },
+        ],
+      },
+    },
   } as ChainAssetData;
 }
