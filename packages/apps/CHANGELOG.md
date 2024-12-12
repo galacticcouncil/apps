@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 9.1.1
+
+### Patch Changes
+
+- b6006c2: Do not reset input when removing last non 0 number
+
 ## 9.1.0
 
 ### Minor Changes
