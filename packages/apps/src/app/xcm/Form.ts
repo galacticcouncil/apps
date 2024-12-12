@@ -466,6 +466,7 @@ export class XcmForm extends LitElement {
                 .ss58prefix=${ss58prefix}></gc-account-identicon>
             `,
         )}
+        <slot name="addressBookBtn" slot="addressBookBtn"></slot>
       </uigc-address-input>
     `;
   }

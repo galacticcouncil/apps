@@ -68,6 +68,7 @@ export class AddressInput extends UIGCElement {
     return html`
       <div tabindex="0" class="address-root">
         <span class="title">${this.title}</span>
+        <slot name="addressBookBtn"></slot>
         <div class="address">
           <uigc-icon-id></uigc-icon-id>
           <slot name="id"></slot>
