@@ -26,3 +26,11 @@
   font-weight: 600;
   line-height: 100%;
 }
+
+.address-book {
+  justify-self: end;
+}
+
+.address-book .endIcon {
+  margin-left: 8px;
+}
