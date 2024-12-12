@@ -1,10 +1,24 @@
 # @galacticcouncil/apps
 
+<<<<<<< HEAD
 ## 9.1.1
 
 ### Patch Changes
 
 - b6006c2: Do not reset input when removing last non 0 number
+=======
+## 9.2.1
+
+### Patch Changes
+
+- Export external assetdata builders
+
+## 9.2.0
+
+### Minor Changes
+
+- Bump cfg to 6.0.0 (xcm locations)
+>>>>>>> master
 
 ## 9.1.0
 
