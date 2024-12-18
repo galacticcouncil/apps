@@ -19,4 +19,4 @@ Visit https://galactic-apps.netlify.app/
 
 ## Issue reporting
 
-In case of unexpected sdk behaviour, please create well-written issue [here](https://https://github.com/galacticcouncil/apps/issues/new). It makes it easier to find & fix the problem accordingly.
+In case of unexpected sdk behaviour, please create well-written issue [here](https://github.com/galacticcouncil/apps/issues/new). It makes it easier to find & fix the problem accordingly.
