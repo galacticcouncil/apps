@@ -2,7 +2,6 @@ import { findNestedKey } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import {
   acc,
-  addr,
   big,
   Abi,
   AnyChain,
@@ -15,9 +14,7 @@ import { TypeRegistry } from '@polkadot/types';
 import { XcmVersionedLocation } from '@polkadot/types/lookup';
 
 import {
-  createPublicClient,
   decodeEventLog,
-  webSocket,
   GetContractEventsParameters,
   TransactionReceipt,
   WatchContractEventReturnType,
@@ -49,14 +46,14 @@ export class TransferApi {
   }
 
   get chains(): AnyChain[] {
-    return Array.from(chainsMap.values()).filter(
-      (c) => c.isWormholeChain() && c.key !== 'acala-evm',
-    );
+    return Array.from(chainsMap.values()).filter((c) => Wormhole.isKnown(c));
   }
 
   chainById(wormholeId: number): AnyChain {
     return Array.from(chainsMap.values()).find(
-      (c) => c.isWormholeChain() && c.getWormholeId() === wormholeId,
+      (c) =>
+        Wormhole.isKnown(c) &&
+        Wormhole.fromChain(c).getWormholeId() === wormholeId,
     );
   }
 
@@ -102,7 +99,7 @@ export class TransferApi {
     period = 300n,
   ): Promise<Transfer[]> {
     const ctx = chain as EvmChain;
-    const ctxWh = chain as Wormhole;
+    const ctxWh = Wormhole.fromChain(chain);
     const provider = ctx.client.getProvider();
     const tokenBridge = ctxWh.getTokenBridge();
     const blockNo = await provider.getBlockNumber();
@@ -168,7 +165,7 @@ export class TransferApi {
     onTransfer: (transfer: Transfer) => void,
   ): Promise<WatchContractEventReturnType[]> {
     return this.chains.map((c: EvmChain) => {
-      const ctxWh = c as Wormhole;
+      const ctxWh = Wormhole.fromChain(c);
       const provider = c.client.getProvider();
       const tokenBridge = ctxWh.getTokenBridge();
       const address = this.formatAddress(c, account);
@@ -225,9 +222,10 @@ export class TransferApi {
     bEvt: TransferLog,
   ): Promise<Transfer> {
     const ctx = chain as EvmChain;
+    const ctxWh = Wormhole.fromChain(chain);
     const provider = ctx.client.getProvider();
-    const tokenBridge = ctx.getTokenBridge();
-    const chainId = ctx.getWormholeId();
+    const tokenBridge = ctxWh.getTokenBridge();
+    const chainId = ctxWh.getWormholeId();
 
     const block = await provider.getBlock({
       blockNumber: bEvt.blockNumber,
@@ -257,7 +255,7 @@ export class TransferApi {
 
     const from = tArgs.args['from'] as `0x${string}`;
     const emitterAddress = tArgs.args['to'] as `0x${string}`;
-    const emitterAddressHex = addr.toHex(emitterAddress).substring(2);
+    const emitterAddressHex = ctxWh.normalizeAddress(emitterAddress);
     const value = tArgs.args['value'] as bigint;
     const sequence = bArgs.args['sequence'] as bigint;
 
@@ -292,7 +290,7 @@ export class TransferApi {
   ): TransferData {
     const { tokenAddress, tokenChain } = payload;
     const chain = getChainById(tokenChain);
-    const token = addr.toNative(tokenAddress);
+    const token = this.toNative(tokenAddress);
     const { asset, decimals } = Array.from(chain.assetsData.values()).find(
       (a) => a.id.toString().toLowerCase() === token.toLowerCase(),
     );
@@ -329,7 +327,7 @@ export class TransferApi {
       from: from,
       fromChain:
         fromChain.key === 'moonbeam' ? chainsMap.get('hydration') : fromChain,
-      to: addr.toNative(payload.to),
+      to: this.toNative(payload.to),
       toChain: getChainById(payload.toChain),
     } as TransferInfo;
   }
@@ -345,7 +343,7 @@ export class TransferApi {
     return (
       payloadID === 3 &&
       toChain === 16 &&
-      addr.toNative(to) === Precompile.Bridge
+      this.toNative(to) === Precompile.Bridge
     );
   }
 
@@ -391,5 +389,9 @@ export class TransferApi {
       return acc.getMultilocationDerivatedAccount(2034, address, 1);
     }
     return convertToH160(address);
+  }
+
+  private toNative(wormholeAddress: string) {
+    return '0x' + wormholeAddress.substring(26);
   }
 }

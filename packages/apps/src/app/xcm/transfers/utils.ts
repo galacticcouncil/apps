@@ -1,5 +1,5 @@
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
-import { EvmChain } from '@galacticcouncil/xcm-core';
+import { AnyChain, Wormhole } from '@galacticcouncil/xcm-core';
 
 /**
  * Find Wormhole chain by id
@@ -7,8 +7,8 @@ import { EvmChain } from '@galacticcouncil/xcm-core';
  * @param wormholeId - Wormhole chain id
  * @returns Wormhole EVM chain
  */
-export function getChainById(wormholeId: number): EvmChain {
+export function getChainById(id: number): AnyChain {
   return Array.from(chainsMap.values()).find(
-    (c) => c.isWormholeChain() && c.getWormholeId() === wormholeId,
-  ) as EvmChain;
+    (c) => Wormhole.isKnown(c) && Wormhole.fromChain(c).getWormholeId() === id,
+  );
 }

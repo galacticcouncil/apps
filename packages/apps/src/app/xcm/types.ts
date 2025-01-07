@@ -2,7 +2,7 @@ import { AnyChain, Asset, AssetAmount } from '@galacticcouncil/xcm-core';
 import {
   TransferDestinationData,
   TransferSourceData,
-  XTransfer,
+  Transfer,
 } from '@galacticcouncil/xcm-sdk';
 
 export enum TransferTab {
@@ -27,7 +27,7 @@ export type TransferState = {
   srcChain: AnyChain;
   srcData: TransferSourceData;
   error: { [key: string]: string };
-  xTransfer: XTransfer;
+  transfer: Transfer;
   tags: string[];
 };
 
@@ -47,7 +47,7 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
   srcChain: null,
   srcData: null,
   error: {},
-  xTransfer: null,
+  transfer: null,
   tags: [],
 };
 

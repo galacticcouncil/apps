@@ -37,9 +37,10 @@ import {
   chainsMap,
   routesMap,
   validations,
+  swaps,
   HydrationConfigService,
 } from '@galacticcouncil/xcm-cfg';
-import { Wallet, XCall, XCallEvm } from '@galacticcouncil/xcm-sdk';
+import { Wallet, Call, EvmCall } from '@galacticcouncil/xcm-sdk';
 import {
   addr,
   big,
@@ -138,7 +139,7 @@ export class XcmApp extends PoolApp {
   }
 
   hasTransferData() {
-    return !!this.transfer.xTransfer;
+    return !!this.transfer.transfer;
   }
 
   hasError(): boolean {
@@ -420,7 +421,7 @@ export class XcmApp extends PoolApp {
     transaction: Transaction,
     transfer: TransferState,
   ) {
-    const call = transaction.get<XCall>();
+    const call = transaction.get<Call>();
     const notification = isApprove(call)
       ? this.notificationApproveTemplate(transfer)
       : this.notificationTransferTemplate(transfer);
@@ -454,8 +455,8 @@ export class XcmApp extends PoolApp {
   }
 
   private async validateTransfer() {
-    const { srcData, xTransfer } = this.transfer;
-    const report = await xTransfer.validate(srcData.fee.amount);
+    const { srcData, transfer } = this.transfer;
+    const report = await transfer.validate(srcData.fee.amount);
     if (report.length > 0) {
       report.forEach((e) => {
         this.addError(
@@ -603,7 +604,7 @@ export class XcmApp extends PoolApp {
       srcData: null,
       destBalance: null,
       destData: null,
-      xTransfer: null,
+      transfer: null,
     };
   }
 
@@ -727,7 +728,7 @@ export class XcmApp extends PoolApp {
     const destAddr = this.formatDestAddress(destAddress, destChain);
 
     console.log('Sync started for: ' + update);
-    const xTransfer = await this.wallet.transfer(
+    const transfer = await this.wallet.transfer(
       srcAsset,
       srcAddr,
       srcChain,
@@ -737,14 +738,14 @@ export class XcmApp extends PoolApp {
 
     if (this.isLastUpdate(update)) {
       console.log('Sync done: ' + update);
-      const { source, destination } = xTransfer;
+      const { source, destination } = transfer;
       this.transfer = {
         ...this.transfer,
         destBalance: destination.balance,
         destData: destination,
         srcBalance: source.balance,
         srcData: source,
-        xTransfer: xTransfer,
+        transfer: transfer,
       };
       this.validateAmount();
       this.validateTransfer();
@@ -854,9 +855,17 @@ export class XcmApp extends PoolApp {
     const { poolService } = this.chain.state;
     this.wallet = new Wallet({
       configService: this.configService,
-      poolService: poolService,
       transferValidations: validations,
     });
+
+    // Register chain swaps
+    const hydration = this.configService.getChain('hydration');
+    const assethub = this.configService.getChain('assethub');
+
+    this.wallet.registerSwaps(
+      new swaps.HydrationSwap(hydration, poolService),
+      new swaps.AssethubSwap(assethub),
+    );
   }
 
   protected onBlockChange(): void {}
@@ -1070,7 +1079,7 @@ export class XcmApp extends PoolApp {
     `;
   }
 
-  private updateApprovalCtx(call: XCallEvm, nonce: number) {
+  private updateApprovalCtx(call: EvmCall, nonce: number) {
     const approvingTx = this.xStore.transactions.find(
       (tx: XItem) => tx.nonce === nonce && tx.to === call.to,
     );
@@ -1083,7 +1092,7 @@ export class XcmApp extends PoolApp {
     };
   }
 
-  private updateTransferCtx(call: XCallEvm, nonce: number) {
+  private updateTransferCtx(call: EvmCall, nonce: number) {
     const { srcAsset, srcChain } = this.transfer;
     this.transfer = {
       ...this.transfer,
@@ -1103,7 +1112,7 @@ export class XcmApp extends PoolApp {
   }
 
   private updateEvmContext(blockNumber?: bigint) {
-    const { amount, srcChain, xTransfer } = this.transfer;
+    const { amount, srcChain, transfer } = this.transfer;
 
     if (
       !srcChain.isEvm() ||
@@ -1124,7 +1133,7 @@ export class XcmApp extends PoolApp {
         blockNumber: blockNumber,
       })
       .then((nonce) => {
-        xTransfer.buildCall(amount).then((call: XCallEvm) => {
+        transfer.buildCall(amount).then((call: EvmCall) => {
           const isApproveCall = isApprove(call);
           if (isApproveCall) {
             this.updateApprovalCtx(call, nonce);
@@ -1201,7 +1210,7 @@ export class XcmApp extends PoolApp {
     const transaction = {
       hex: call.data,
       name: 'xcm',
-      get: (): XCall => {
+      get: (): Call => {
         return call;
       },
     } as Transaction;

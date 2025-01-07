@@ -3,7 +3,7 @@ import {
   EvmParachain,
   Parachain,
 } from '@galacticcouncil/xcm-core';
-import type { XCallEvm } from '@galacticcouncil/xcm-sdk';
+import type { EvmCall } from '@galacticcouncil/xcm-sdk';
 import type { ISubmittableResult } from '@polkadot/types/types';
 import { getWalletBySource } from '@talismn/connect-wallets';
 import { decodeFunctionData } from 'viem';
@@ -98,11 +98,11 @@ export async function signAndSendEvm(
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
-    const call = transaction.get<XCallEvm>();
+    const call = transaction.get<EvmCall>();
     const { abi, data, from, to, value } = call;
     const payload = decodeFunctionData({
       abi: JSON.parse(abi),
-      data: data,
+      data: data as `0x${string}`,
     });
     console.log(payload);
     txHash = await signer.sendTransaction({
@@ -118,7 +118,7 @@ export async function signAndSendEvm(
       .then((nonce) => {
         if (isApprove(call)) {
           XItemCursor.reset({
-            data: data,
+            data: data as `0x${string}`,
             hash: txHash,
             nonce: nonce,
             to: to,
