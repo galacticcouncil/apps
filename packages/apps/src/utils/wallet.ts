@@ -13,6 +13,7 @@ export enum WalletProvider {
   'nightly',
   'nightly-evm',
   'phantom',
+  'solflare',
   'enkrypt',
   'manta-wallet-js',
   'fearless-wallet',
@@ -31,7 +32,6 @@ export const EVM_PROVIDERS: WalletProvider[] = [
   WalletProvider['coinbasewallet'],
   WalletProvider['rabbywallet'],
   WalletProvider.bravewallet,
-  WalletProvider.phantom,
   WalletProvider['walletconnect-evm'],
 ];
 
@@ -52,4 +52,9 @@ export const SUBSTRATE_PROVIDERS: WalletProvider[] = [
 export const SUBSTRATE_H160_PROVIDERS: WalletProvider[] = [
   WalletProvider['subwallet-js'],
   WalletProvider.talisman,
+];
+
+export const SOLANA_PROVIDERS: WalletProvider[] = [
+  WalletProvider.phantom,
+  WalletProvider.solflare,
 ];
