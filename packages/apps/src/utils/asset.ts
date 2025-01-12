@@ -1,14 +1,16 @@
 import { Asset } from '@galacticcouncil/sdk';
-import { MetadataStore } from '@galacticcouncil/ui';
 
 /**
  * Check if external asset is whitelisted
  *
+ * @param whitelist - asset whitelist
  * @param asset - asset
  * @returns true if asset whitelisted, otherwise false
  */
-export const isExternalAssetWhitelisted = (asset: Asset) => {
-  const whitelist = MetadataStore.getInstance().externalWhitelist();
+export const isExternalAssetWhitelisted = (
+  whitelist: string[],
+  asset: Asset,
+) => {
   return asset.type === 'External'
     ? whitelist.includes(asset.id) || !!asset.isWhiteListed
     : true;
