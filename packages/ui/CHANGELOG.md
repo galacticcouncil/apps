@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.3.0
+
+### Minor Changes
+
+- MetadataStore lazy init support
+
 ## 5.2.3
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @galacticcouncil/apps
 
+## 10.0.0
+
+### Major Changes
+
+- Solana support
+- Update wallet list
+
+### Patch Changes
+
+- d10c86d: Do not reset input when you remove last non 0 number
+
 ## 9.2.1
 
 ### Patch Changes
