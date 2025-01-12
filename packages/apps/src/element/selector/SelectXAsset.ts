@@ -110,7 +110,7 @@ export class SelectXAsset extends LitElement {
     const registryId = this.registryChain.getBalanceAssetId(asset);
     const registryAsset = this.registry.get(registryId.toString());
 
-    if (this.chain.isEvmChain()) {
+    if (this.chain.isEvmChain() || this.chain.isSolana()) {
       return html`
         <uigc-asset slot="asset" symbol=${asset.originSymbol}>
           <uigc-asset-id

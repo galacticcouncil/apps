@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 
 import { i18n } from 'localization';
@@ -16,6 +16,7 @@ import { Ecosystem } from 'db';
 import { isExternalAssetWhitelisted } from 'utils/asset';
 
 import styles from './AssetIdenticon.css';
+import { MetadataStore } from '@galacticcouncil/ui';
 
 @customElement('gc-asset-identicon')
 export class AssetIdenticon extends LitElement {
@@ -27,10 +28,18 @@ export class AssetIdenticon extends LitElement {
 
   static styles = styles;
 
+  @state() whitelist: string[] = [];
+
+  override async firstUpdated() {
+    this.whitelist = await MetadataStore.getInstance().externalWhitelist();
+  }
+
   iconBadgeTemplate(asset: Asset) {
     if (asset.type !== 'External') return;
 
-    const variant = isExternalAssetWhitelisted(asset) ? 'warning' : 'danger';
+    const variant = isExternalAssetWhitelisted(this.whitelist, asset)
+      ? 'warning'
+      : 'danger';
     const text = i18n.t(`asset.external.badge.${variant}`);
 
     return html`

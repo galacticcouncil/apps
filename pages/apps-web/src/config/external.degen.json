@@ -8,7 +8,6 @@
           "decimals": 12,
           "symbol": "BBQ",
           "name": "BIG BBQ",
-          "supply": "50000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000435"
@@ -18,7 +17,6 @@
           "decimals": 12,
           "symbol": "LURPIS",
           "name": "LURPIS",
-          "supply": "2100000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000309"
@@ -28,7 +26,6 @@
           "decimals": 10,
           "symbol": "PINK",
           "name": "PINK",
-          "supply": "22994447234017873577",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000021"
@@ -38,7 +35,6 @@
           "decimals": 12,
           "symbol": "PAD",
           "name": "MEMEPAD NO FUN",
-          "supply": "21000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000350"
@@ -48,7 +44,6 @@
           "decimals": 12,
           "symbol": "love",
           "name": "道阻且长，温暖坚定-爱情/love",
-          "supply": "13140000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000272"
@@ -58,7 +53,6 @@
           "decimals": 18,
           "symbol": "web3",
           "name": "web3.online",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000027"
@@ -68,7 +62,6 @@
           "decimals": 10,
           "symbol": "JAM",
           "name": "JAM DUNA Token on Polkadot",
-          "supply": "300000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000124"
@@ -78,7 +71,6 @@
           "decimals": 12,
           "symbol": "PLS",
           "name": "Pleasance",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000408"
@@ -88,7 +80,6 @@
           "decimals": 10,
           "symbol": "BUNS",
           "name": "BUNS",
-          "supply": "694200000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000177"
@@ -98,7 +89,6 @@
           "decimals": 18,
           "symbol": "NCTR",
           "name": "Apillon",
-          "supply": "149999999600000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000197"
@@ -108,7 +98,6 @@
           "decimals": 12,
           "symbol": "OK",
           "name": "OK",
-          "supply": "1000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000244"
@@ -118,7 +107,6 @@
           "decimals": 12,
           "symbol": "BBB",
           "name": "Big Balls Ben",
-          "supply": "888000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000305"
@@ -128,7 +116,6 @@
           "decimals": 12,
           "symbol": "CPcoin",
           "name": "Cypress Coin",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000250"
@@ -138,7 +125,6 @@
           "decimals": 10,
           "symbol": "DMX",
           "name": "DONT MUZZLE THE OX",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000229"
@@ -148,7 +134,6 @@
           "decimals": 12,
           "symbol": "NaCl",
           "name": "Salt",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000275"
@@ -158,7 +143,6 @@
           "decimals": 12,
           "symbol": "JAMTON",
           "name": "JAMTON",
-          "supply": "100000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000494"
@@ -168,7 +152,6 @@
           "decimals": 10,
           "symbol": "CHAOS",
           "name": "CHAOS",
-          "supply": "6660000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000078"
@@ -178,7 +161,6 @@
           "decimals": 12,
           "symbol": "DON",
           "name": "Donkey",
-          "supply": "2100000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000384"
@@ -188,7 +170,6 @@
           "decimals": 6,
           "symbol": "SHIB",
           "name": "SHIB",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000187"
@@ -198,7 +179,6 @@
           "decimals": 18,
           "symbol": "LEAP",
           "name": "Dot Leap",
-          "supply": "1000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000076"
@@ -208,7 +188,6 @@
           "decimals": 12,
           "symbol": "CDOG",
           "name": "Costco Hotdog",
-          "supply": "100001330000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000303"
@@ -218,7 +197,6 @@
           "decimals": 6,
           "symbol": "MOON",
           "name": "MOON",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000139"
@@ -228,7 +206,6 @@
           "decimals": 10,
           "symbol": "DWH",
           "name": "Deer Wif Hat",
-          "supply": "77777777777777777777777777900000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000228"
@@ -238,7 +215,6 @@
           "decimals": 12,
           "symbol": "MCP",
           "name": "Micro",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000240"
@@ -248,7 +224,6 @@
           "decimals": 0,
           "symbol": "GAVIN",
           "name": "GAVIN",
-          "supply": "21000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000110"
@@ -258,7 +233,6 @@
           "decimals": 12,
           "symbol": "NAR",
           "name": "Naruto",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000516"
@@ -268,7 +242,6 @@
           "decimals": 0,
           "symbol": "Cypress",
           "name": "Cypress Capital",
-          "supply": "1000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000186"
@@ -278,7 +251,6 @@
           "decimals": 10,
           "symbol": "ETH",
           "name": "ETH",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000206"
@@ -288,7 +260,6 @@
           "decimals": 10,
           "symbol": "BOOTY",
           "name": "Pirate's Booty",
-          "supply": "100000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000080"
@@ -298,7 +269,6 @@
           "decimals": 10,
           "symbol": "StabCP",
           "name": "Cypress Stable Coin",
-          "supply": "20010000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000193"
@@ -308,7 +278,6 @@
           "decimals": 12,
           "symbol": "GWIF",
           "name": "Gavwifhat",
-          "supply": "33420696969000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000361"
@@ -318,7 +287,6 @@
           "decimals": 12,
           "symbol": "B",
           "name": "BASTI",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000292"
@@ -328,7 +296,6 @@
           "decimals": 12,
           "symbol": "GREEN",
           "name": "GreenNFT",
-          "supply": "5890000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000512"
@@ -338,7 +305,6 @@
           "decimals": 12,
           "symbol": "PI",
           "name": "Polkadot Insider",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000301"
@@ -348,7 +314,6 @@
           "decimals": 8,
           "symbol": "BEAST",
           "name": "Mr. Beast Coin",
-          "supply": "100000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000170"
@@ -358,7 +323,6 @@
           "decimals": 12,
           "symbol": "DIO",
           "name": "Idiom.AI",
-          "supply": "100000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000397"
@@ -368,7 +332,6 @@
           "decimals": 10,
           "symbol": "CLAY",
           "name": "ClayOnDot",
-          "supply": "70000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000120"
@@ -378,7 +341,6 @@
           "decimals": 10,
           "symbol": "test1",
           "name": "TEST",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000208"
@@ -388,7 +350,6 @@
           "decimals": 10,
           "symbol": "HYDRA",
           "name": "HydraCoin",
-          "supply": "210000010000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000158"
@@ -398,7 +359,6 @@
           "decimals": 12,
           "symbol": "PKSK",
           "name": "Polkasharks",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000363"
@@ -408,7 +368,6 @@
           "decimals": 10,
           "symbol": "WIFD",
           "name": "dog wif dots",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000082"
@@ -418,7 +377,6 @@
           "decimals": 12,
           "symbol": "V",
           "name": "Victory!",
-          "supply": "100000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000447"
@@ -428,7 +386,6 @@
           "decimals": 12,
           "symbol": "GIT",
           "name": "GIOTTO",
-          "supply": "100000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000290"
@@ -438,7 +395,6 @@
           "decimals": 10,
           "symbol": "GAME",
           "name": "GameCoin",
-          "supply": "100000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000271"
@@ -448,7 +404,6 @@
           "decimals": 10,
           "symbol": "JAMD",
           "name": "JAM DODGER",
-          "supply": "1100000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000129"
@@ -458,7 +413,6 @@
           "decimals": 10,
           "symbol": "ETH",
           "name": "Ethereum",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000210"
@@ -468,7 +422,6 @@
           "decimals": 12,
           "symbol": "RIDEMY",
           "name": "See-Saw",
-          "supply": "1000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000433"
@@ -478,7 +431,6 @@
           "decimals": 12,
           "symbol": "TOP",
           "name": "TOP",
-          "supply": "1000000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000392"
@@ -488,7 +440,6 @@
           "decimals": 12,
           "symbol": "ZALUPA",
           "name": "ZALUPA",
-          "supply": "2222222222000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000444"
@@ -498,7 +449,6 @@
           "decimals": 10,
           "symbol": "GAME",
           "name": "GAME",
-          "supply": "10000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000104"
@@ -508,7 +458,6 @@
           "decimals": 12,
           "symbol": "JBM",
           "name": "JUSTBUYME",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000248"
@@ -518,7 +467,6 @@
           "decimals": 10,
           "symbol": "KRAK",
           "name": "KrakenKash",
-          "supply": "10000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000153"
@@ -528,7 +476,6 @@
           "decimals": 10,
           "symbol": "SKEM",
           "name": "DED is skem",
-          "supply": "210000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000118"
@@ -538,7 +485,6 @@
           "decimals": 12,
           "symbol": "MDMA",
           "name": "MDMA",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000242"
@@ -548,7 +494,6 @@
           "decimals": 10,
           "symbol": "GAVUN",
           "name": "Gavun Wud 1980",
-          "supply": "19801000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000060"
@@ -558,7 +503,6 @@
           "decimals": 10,
           "symbol": "BORK",
           "name": "BORK",
-          "supply": "6900000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000148"
@@ -568,7 +512,6 @@
           "decimals": 12,
           "symbol": "ANU",
           "name": "Anunnaki",
-          "supply": "10000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000527"
@@ -588,7 +531,6 @@
           "decimals": 12,
           "symbol": "DDT",
           "name": "DIGITAL DOT",
-          "supply": "7007007007000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000354"
@@ -598,7 +540,6 @@
           "decimals": 6,
           "symbol": "WOOD",
           "name": "WOOD",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000136"
@@ -608,7 +549,6 @@
           "decimals": 18,
           "symbol": "WETH",
           "name": "Wrapped Ether",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000053"
@@ -618,7 +558,6 @@
           "decimals": 10,
           "symbol": "SOLETH",
           "name": "Sol Ethereum",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000211"
@@ -628,7 +567,6 @@
           "decimals": 18,
           "symbol": "DAL",
           "name": "Dalmation",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000094"
@@ -638,7 +576,6 @@
           "decimals": 10,
           "symbol": "ETH",
           "name": "Ethereum",
-          "supply": "100000100000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000205"
@@ -648,7 +585,6 @@
           "decimals": 10,
           "symbol": "PEPE",
           "name": "PEPE•ON•DOT•TO•THE•MOON ",
-          "supply": "100000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000150"
@@ -658,7 +594,6 @@
           "decimals": 10,
           "symbol": "COCOA",
           "name": "COCOA",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000134"
@@ -668,7 +603,6 @@
           "decimals": 12,
           "symbol": "KOL",
           "name": "Kolkadot",
-          "supply": "86586711000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000199"
@@ -678,7 +612,6 @@
           "decimals": 12,
           "symbol": "dog",
           "name": "dotdog",
-          "supply": "1000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000322"
@@ -688,7 +621,6 @@
           "decimals": 10,
           "symbol": "HYDRA",
           "name": "HydraCoin",
-          "supply": "10000000010000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000159"
@@ -698,7 +630,6 @@
           "decimals": 12,
           "symbol": "DTS",
           "name": "DOTCAST",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000345"
@@ -708,7 +639,6 @@
           "decimals": 12,
           "symbol": "HELLO",
           "name": "Inu Zeta 1",
-          "supply": "1000110110001101111000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000449"
@@ -728,7 +658,6 @@
           "decimals": 10,
           "symbol": "PP",
           "name": "Pink Pengui",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000219"
@@ -738,31 +667,6 @@
           "decimals": 12,
           "symbol": "EURC.s",
           "name": "Stellar Mykobo EURC",
-          "location": {
-            "parents": 0,
-            "interior": {
-              "x4": [
-                {
-                  "palletInstance": 53
-                },
-                {
-                  "generalIndex": 2
-                },
-                {
-                  "generalKey": {
-                    "length": 4,
-                    "data": "0x4555524300000000000000000000000000000000000000000000000000000000"
-                  }
-                },
-                {
-                  "generalKey": {
-                    "length": 32,
-                    "data": "0x2112ee863867e4e219fe254c0918b00bc9ea400775bfc3ab4430971ce505877c"
-                  }
-                }
-              ]
-            }
-          },
           "origin": 2094,
           "isWhiteListed": false,
           "internalId": "1000181"
@@ -772,7 +676,6 @@
           "decimals": 12,
           "symbol": "Ax",
           "name": "Axlo",
-          "supply": "37000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000519"
@@ -782,7 +685,6 @@
           "decimals": 12,
           "symbol": "DONUT",
           "name": "Singularity Block",
-          "supply": "1234567890000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000356"
@@ -792,7 +694,6 @@
           "decimals": 12,
           "symbol": "AAPL",
           "name": "Apple",
-          "supply": "21000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000487"
@@ -802,7 +703,6 @@
           "decimals": 10,
           "symbol": "PBTC",
           "name": "Polkadot Bitcoin",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000209"
@@ -812,7 +712,6 @@
           "decimals": 6,
           "symbol": "GRL",
           "name": "GRELIVE",
-          "supply": "100000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000123"
@@ -822,7 +721,6 @@
           "decimals": 12,
           "symbol": "PINT",
           "name": "Polkadot Index",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000028"
@@ -832,7 +730,6 @@
           "decimals": 12,
           "symbol": "china",
           "name": "china",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000280"
@@ -842,7 +739,6 @@
           "decimals": 10,
           "symbol": "LEEMO",
           "name": "Leemo",
-          "supply": "4200000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000054"
@@ -852,7 +748,6 @@
           "decimals": 12,
           "symbol": "KAIBYO",
           "name": "KAIBYO",
-          "supply": "330000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000540"
@@ -862,7 +757,6 @@
           "decimals": 10,
           "symbol": "NOTDED",
           "name": "TRUMP",
-          "supply": "9999999999999999999",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000222"
@@ -872,7 +766,6 @@
           "decimals": 10,
           "symbol": "TOM",
           "name": "Tomcoin",
-          "supply": "10000099990000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000106"
@@ -882,7 +775,6 @@
           "decimals": 12,
           "symbol": "TAG",
           "name": "TrumpAndGav",
-          "supply": "2000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000521"
@@ -892,7 +784,6 @@
           "decimals": 12,
           "symbol": "PM",
           "name": "Polkadot Mexico",
-          "supply": "100000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000284"
@@ -902,7 +793,6 @@
           "decimals": 20,
           "symbol": "clay",
           "name": "CLAY",
-          "supply": "699999999999999999999900000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000089"
@@ -912,7 +802,6 @@
           "decimals": 16,
           "symbol": "USDT",
           "name": "POLKADOT-USDT",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000184"
@@ -922,7 +811,6 @@
           "decimals": 10,
           "symbol": "DOTTY",
           "name": "Dotty the Polkadot",
-          "supply": "10000000000010000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000163"
@@ -932,7 +820,6 @@
           "decimals": 10,
           "symbol": "Grift ",
           "name": "Grifters",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000518"
@@ -942,7 +829,6 @@
           "decimals": 12,
           "symbol": "NOFUN",
           "name": "MEMEPAD NOFUN",
-          "supply": "21000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000348"
@@ -952,7 +838,6 @@
           "decimals": 12,
           "symbol": "0x4b61696279c58d",
           "name": "Kaibyō",
-          "supply": "870000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000473"
@@ -962,7 +847,6 @@
           "decimals": 6,
           "symbol": "COCA",
           "name": "COCA",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000140"
@@ -972,7 +856,6 @@
           "decimals": 10,
           "symbol": "WOOD",
           "name": "WOOD",
-          "supply": "1000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000070"
@@ -982,7 +865,6 @@
           "decimals": 12,
           "symbol": ".WH",
           "name": "DOT wif Hat",
-          "supply": "100000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000335"
@@ -992,7 +874,6 @@
           "decimals": 10,
           "symbol": "BNDT",
           "name": "BANDIT the CAT",
-          "supply": "694200000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000091"
@@ -1002,7 +883,6 @@
           "decimals": 10,
           "symbol": "ASX",
           "name": "AssetX",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000059"
@@ -1012,7 +892,6 @@
           "decimals": 10,
           "symbol": "PEPE",
           "name": "PEPE ON POLKADOT TO THE MOON",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000151"
@@ -1022,7 +901,6 @@
           "decimals": 12,
           "symbol": "DUW",
           "name": "Inverse WUD",
-          "supply": "10000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000440"
@@ -1032,7 +910,6 @@
           "decimals": 12,
           "symbol": "KEK",
           "name": "KEK",
-          "supply": "1000000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000393"
@@ -1042,7 +919,6 @@
           "decimals": 12,
           "symbol": "MRSHE",
           "name": "Mr. Shekels",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000295"
@@ -1052,7 +928,6 @@
           "decimals": 6,
           "symbol": "COLA",
           "name": "COLA",
-          "supply": "99999000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000058"
@@ -1062,7 +937,6 @@
           "decimals": 10,
           "symbol": "BOMB",
           "name": "BOMB",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000102"
@@ -1072,7 +946,6 @@
           "decimals": 12,
           "symbol": "GR",
           "name": "GREECE",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000507"
@@ -1082,7 +955,6 @@
           "decimals": 12,
           "symbol": "LUCKY",
           "name": "Lucky 777",
-          "supply": "7777777000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000365"
@@ -1092,7 +964,6 @@
           "decimals": 10,
           "symbol": "Meme",
           "name": "Cypress Meme",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000196"
@@ -1102,7 +973,6 @@
           "decimals": 12,
           "symbol": "XCMS",
           "name": "XCM_Shib",
-          "supply": "1000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000314"
@@ -1112,7 +982,6 @@
           "decimals": 12,
           "symbol": "Shit",
           "name": "Poop",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000337"
@@ -1122,7 +991,6 @@
           "decimals": 10,
           "symbol": "GOVD",
           "name": "OpenGov Drama",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000142"
@@ -1132,7 +1000,6 @@
           "decimals": 10,
           "symbol": "PXPS",
           "name": "PixelPulse",
-          "supply": "10000000009090000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000125"
@@ -1142,7 +1009,6 @@
           "decimals": 12,
           "symbol": "BOYS",
           "name": "BOYS",
-          "supply": "1000000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000391"
@@ -1152,7 +1018,6 @@
           "decimals": 12,
           "symbol": "CPDOT",
           "name": "Cypress Polkadot",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000246"
@@ -1162,7 +1027,6 @@
           "decimals": 0,
           "symbol": "DOTMA",
           "name": "DOTMATIONS",
-          "supply": "101000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000546"
@@ -1172,7 +1036,6 @@
           "decimals": 12,
           "symbol": "TM",
           "name": "Trump meme",
-          "supply": "21000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000288"
@@ -1182,7 +1045,6 @@
           "decimals": 12,
           "symbol": "MONAD",
           "name": "Autonomus Deity.AI",
-          "supply": "9999999999999",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000418"
@@ -1192,7 +1054,6 @@
           "decimals": 12,
           "symbol": "SHIVER",
           "name": "CLOTHES OFF",
-          "supply": "21000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000367"
@@ -1202,7 +1063,6 @@
           "decimals": 10,
           "symbol": "STINK",
           "name": "STINK",
-          "supply": "22996383898849355766",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000034"
@@ -1212,7 +1072,6 @@
           "decimals": 6,
           "symbol": "WUD",
           "name": "WUD",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000185"
@@ -1222,7 +1081,6 @@
           "decimals": 6,
           "symbol": "DOGE",
           "name": "DOGE",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000146"
@@ -1232,31 +1090,6 @@
           "decimals": 12,
           "symbol": "TZS.s",
           "name": "Stellar TZS",
-          "location": {
-            "parents": 0,
-            "interior": {
-              "x4": [
-                {
-                  "palletInstance": 53
-                },
-                {
-                  "generalIndex": 2
-                },
-                {
-                  "generalKey": {
-                    "length": 4,
-                    "data": "0x545a530000000000000000000000000000000000000000000000000000000000"
-                  }
-                },
-                {
-                  "generalKey": {
-                    "length": 32,
-                    "data": "0x34c94b2a4ba9e8b57b22547dcbb30f443c4cb02da3829a89aa1bd4780e4466ba"
-                  }
-                }
-              ]
-            }
-          },
           "origin": 2094,
           "isWhiteListed": false,
           "internalId": "1000172"
@@ -1266,7 +1099,6 @@
           "decimals": 10,
           "symbol": "ELONA",
           "name": "Elona Musk",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000257"
@@ -1276,7 +1108,6 @@
           "decimals": 10,
           "symbol": "usdc",
           "name": "usdc",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000470"
@@ -1286,7 +1117,6 @@
           "decimals": 8,
           "symbol": "GBILL",
           "name": "Gabe's Stable BILLCOIN",
-          "supply": "70001000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000073"
@@ -1296,7 +1126,6 @@
           "decimals": 12,
           "symbol": "ALPHA",
           "name": "Alpha Investoor",
-          "supply": "69000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000429"
@@ -1306,7 +1135,6 @@
           "decimals": 8,
           "symbol": "DANGER",
           "name": "Danger Coin",
-          "supply": "66600000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000029"
@@ -1316,7 +1144,6 @@
           "decimals": 10,
           "symbol": "GAVUN",
           "name": "GAVUN WOOD",
-          "supply": "19800000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000231"
@@ -1326,7 +1153,6 @@
           "decimals": 20,
           "symbol": "gold",
           "name": "gold",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000202"
@@ -1336,7 +1162,6 @@
           "decimals": 10,
           "symbol": "PDOG",
           "name": "Polkadog",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000065"
@@ -1346,7 +1171,6 @@
           "decimals": 10,
           "symbol": "DVCAT",
           "name": "Darth Vader Cat",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000503"
@@ -1356,7 +1180,6 @@
           "decimals": 12,
           "symbol": "POLISD",
           "name": "Polkadot  Insider",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000312"
@@ -1376,7 +1199,6 @@
           "decimals": 10,
           "symbol": "CLAY",
           "name": "ClayOnDot",
-          "supply": "70000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000167"
@@ -1386,7 +1208,6 @@
           "decimals": 10,
           "symbol": "PLAY",
           "name": "PLAY",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000103"
@@ -1396,7 +1217,6 @@
           "decimals": 10,
           "symbol": "test1",
           "name": "TEST",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000207"
@@ -1406,7 +1226,6 @@
           "decimals": 12,
           "symbol": "X",
           "name": "X",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000307"
@@ -1416,7 +1235,6 @@
           "decimals": 12,
           "symbol": "O",
           "name": "Singularity",
-          "supply": "1234567890000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000357"
@@ -1426,7 +1244,6 @@
           "decimals": 4,
           "symbol": "DOTA",
           "name": "DOTA",
-          "supply": "2199999301527422",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000038"
@@ -1436,7 +1253,6 @@
           "decimals": 12,
           "symbol": "SOPHIA",
           "name": "Sophia",
-          "supply": "100000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000524"
@@ -1446,7 +1262,6 @@
           "decimals": 12,
           "symbol": "DDOT",
           "name": "Donkey DOT",
-          "supply": "520000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000318"
@@ -1456,7 +1271,6 @@
           "decimals": 10,
           "symbol": "NIPS",
           "name": "NIPPIE",
-          "supply": "100000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000173"
@@ -1466,7 +1280,6 @@
           "decimals": 12,
           "symbol": "$JAM",
           "name": "JAM",
-          "supply": "210000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000477"
@@ -1476,7 +1289,6 @@
           "decimals": 10,
           "symbol": "DOTCOIN",
           "name": "Dotcoin",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000221"
@@ -1486,7 +1298,6 @@
           "decimals": 10,
           "symbol": "NFLR",
           "name": "NIFFLER",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000138"
@@ -1496,7 +1307,6 @@
           "decimals": 12,
           "symbol": "CORE",
           "name": "The Core",
-          "supply": "10000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000352"
@@ -1506,7 +1316,6 @@
           "decimals": 12,
           "symbol": "MODE",
           "name": "Quant Full Potato.AI",
-          "supply": "50000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000376"
@@ -1516,7 +1325,6 @@
           "decimals": 12,
           "symbol": "TATE",
           "name": "Thunderdome",
-          "supply": "84000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000416"
@@ -1526,7 +1334,6 @@
           "decimals": 12,
           "symbol": "VRN",
           "name": "Viresinnumeris",
-          "supply": "100000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000326"
@@ -1536,7 +1343,6 @@
           "decimals": 12,
           "symbol": "0xf09f9980",
           "name": "F*c*Giotto",
-          "supply": "100000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000333"
@@ -1546,7 +1352,6 @@
           "decimals": 12,
           "symbol": "LFG",
           "name": "Let's Fucking Go",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000274"
@@ -1556,7 +1361,6 @@
           "decimals": 10,
           "symbol": "JUNK",
           "name": "JUNK",
-          "supply": "5000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000179"
@@ -1566,7 +1370,6 @@
           "decimals": 10,
           "symbol": "TAPE",
           "name": "TAPE",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000105"
@@ -1576,7 +1379,6 @@
           "decimals": 10,
           "symbol": "T54",
           "name": "T54",
-          "supply": "25000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000069"
@@ -1586,7 +1388,6 @@
           "decimals": 12,
           "symbol": "SANTA",
           "name": "SantaDOT",
-          "supply": "10000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000297"
@@ -1596,7 +1397,6 @@
           "decimals": 12,
           "symbol": "BIFF",
           "name": "Biff",
-          "supply": "1000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000530"
@@ -1606,7 +1406,6 @@
           "decimals": 6,
           "symbol": "DAO",
           "name": "DAO",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000128"
@@ -1616,31 +1415,6 @@
           "decimals": 12,
           "symbol": "AUDD.s",
           "name": "Stellar AUDD",
-          "location": {
-            "parents": 0,
-            "interior": {
-              "x4": [
-                {
-                  "palletInstance": 53
-                },
-                {
-                  "generalIndex": 2
-                },
-                {
-                  "generalKey": {
-                    "length": 4,
-                    "data": "0x4155444400000000000000000000000000000000000000000000000000000000"
-                  }
-                },
-                {
-                  "generalKey": {
-                    "length": 32,
-                    "data": "0xc5fbe9979e240552860221f4fe2f2219f35e40458b8b58fc32da520a154a561d"
-                  }
-                }
-              ]
-            }
-          },
           "origin": 2094,
           "isWhiteListed": false,
           "internalId": "1000230"
@@ -1660,7 +1434,6 @@
           "decimals": 12,
           "symbol": "H@SH",
           "name": "OG Block H@SH",
-          "supply": "21000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000331"
@@ -1670,7 +1443,6 @@
           "decimals": 12,
           "symbol": "ANGRY",
           "name": "ANGRY",
-          "supply": "1000000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000390"
@@ -1680,7 +1452,6 @@
           "decimals": 20,
           "symbol": "STEEBOR",
           "name": "STEEBOOOOORRR",
-          "supply": "100000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000144"
@@ -1690,7 +1461,6 @@
           "decimals": 10,
           "symbol": "DED",
           "name": "DED",
-          "supply": "9999887933691718189735",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000019"
@@ -1700,7 +1470,6 @@
           "decimals": 12,
           "symbol": "Mill",
           "name": "Million",
-          "supply": "100000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000453"
@@ -1710,7 +1479,6 @@
           "decimals": 6,
           "symbol": "BEER",
           "name": "BEER",
-          "supply": "10500000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000035"
@@ -1720,7 +1488,6 @@
           "decimals": 12,
           "symbol": "NIN",
           "name": "synergy AI",
-          "supply": "50000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000369"
@@ -1730,7 +1497,6 @@
           "decimals": 10,
           "symbol": "DOGE",
           "name": "DOGE (Polkadot Asset Hub)",
-          "supply": "10000000000010000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000155"
@@ -1740,7 +1506,6 @@
           "decimals": 10,
           "symbol": "DEDX",
           "name": "DEDISDED",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000258"
@@ -1750,7 +1515,6 @@
           "decimals": 12,
           "symbol": "MAXCAT",
           "name": "White Panther Max",
-          "supply": "10000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000431"
@@ -1760,7 +1524,6 @@
           "decimals": 18,
           "symbol": "DED",
           "name": "DOT is Dead",
-          "supply": "20000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000025"
@@ -1770,7 +1533,6 @@
           "decimals": 18,
           "symbol": "HASH",
           "name": "HASHONOMICS",
-          "supply": "804754035000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000096"
@@ -1780,7 +1542,6 @@
           "decimals": 2,
           "symbol": "BEEFY",
           "name": "BEEFY",
-          "supply": "1311000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000036"
@@ -1790,7 +1551,6 @@
           "decimals": 12,
           "symbol": "$PGH",
           "name": "Steelers",
-          "supply": "1300000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000359"
@@ -1810,7 +1570,6 @@
           "decimals": 12,
           "symbol": "TP",
           "name": "Trump President meme",
-          "supply": "21000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000282"
@@ -1820,7 +1579,6 @@
           "decimals": 10,
           "symbol": "DUCK",
           "name": "DUCK_DOT",
-          "supply": "222222222220000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000174"
@@ -1830,31 +1588,6 @@
           "decimals": 12,
           "symbol": "BRL.s",
           "name": "Stellar BRL",
-          "location": {
-            "parents": 0,
-            "interior": {
-              "x4": [
-                {
-                  "palletInstance": 53
-                },
-                {
-                  "generalIndex": 2
-                },
-                {
-                  "generalKey": {
-                    "length": 4,
-                    "data": "0x42524c0000000000000000000000000000000000000000000000000000000000"
-                  }
-                },
-                {
-                  "generalKey": {
-                    "length": 32,
-                    "data": "0xeaac68d4d0e37b4c24c2536916e830735f032d0d6b2a1c8fca3bc5a25e083e3a"
-                  }
-                }
-              ]
-            }
-          },
           "origin": 2094,
           "isWhiteListed": false,
           "internalId": "1000294"
@@ -1864,7 +1597,6 @@
           "decimals": 12,
           "symbol": "WOLF",
           "name": "WOLF",
-          "supply": "100000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000299"
@@ -1874,7 +1606,6 @@
           "decimals": 12,
           "symbol": "GOOD",
           "name": "Goodman",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000410"
@@ -1884,7 +1615,6 @@
           "decimals": 12,
           "symbol": "WUDFUD",
           "name": "R2D2100 WUD FUD",
-          "supply": "10001000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000467"
@@ -1894,7 +1624,6 @@
           "decimals": 10,
           "symbol": "MDGA",
           "name": "Make DOT Great Again",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000539"
@@ -1904,7 +1633,6 @@
           "decimals": 12,
           "symbol": "KSM",
           "name": "KUSAMA",
-          "supply": "69000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000339"
@@ -1914,7 +1642,6 @@
           "decimals": 12,
           "symbol": "TDC",
           "name": "TODODECRIPTO",
-          "supply": "100000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000320"
@@ -1924,7 +1651,6 @@
           "decimals": 12,
           "symbol": "FKDC",
           "name": "FREE KIM DOTCOM",
-          "supply": "42000000000069000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000329"
@@ -1934,7 +1660,6 @@
           "decimals": 12,
           "symbol": "Coin68",
           "name": "Coin68",
-          "supply": "100000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000256"
@@ -1944,7 +1669,6 @@
           "decimals": 20,
           "symbol": "GABE",
           "name": "GABE",
-          "supply": "69420696900000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000062"
@@ -1954,7 +1678,6 @@
           "decimals": 12,
           "symbol": "DUD",
           "name": "Inverse_WUD",
-          "supply": "1000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000479"
@@ -1964,7 +1687,6 @@
           "decimals": 10,
           "symbol": "CATWIF",
           "name": "CAT WIF SWEATER",
-          "supply": "10000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000131"
@@ -1974,7 +1696,6 @@
           "decimals": 12,
           "symbol": "DAMN",
           "name": "DamnCoin",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000286"
@@ -1984,7 +1705,6 @@
           "decimals": 12,
           "symbol": "BNG",
           "name": "BEAN GUY",
-          "supply": "80000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000471"
@@ -1994,7 +1714,6 @@
           "decimals": 12,
           "symbol": "PIGS",
           "name": "Pink Pigs",
-          "supply": "100000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000324"
@@ -2004,7 +1723,6 @@
           "decimals": 12,
           "symbol": "SAPIEN",
           "name": "Homosapien Sapien",
-          "supply": "133000001000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000492"
@@ -2014,7 +1732,6 @@
           "decimals": 12,
           "symbol": "DOTZ",
           "name": "DOTZILLA",
-          "supply": "100000000000000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000382"
@@ -2024,7 +1741,6 @@
           "decimals": 20,
           "symbol": "ICE",
           "name": "IceCreamToken",
-          "supply": "10000000000000000000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000023"
@@ -2034,7 +1750,6 @@
           "decimals": 12,
           "symbol": "ALIEN",
           "name": "ALIEN",
-          "supply": "11111111111000000000000",
           "origin": 1000,
           "isWhiteListed": true,
           "internalId": "1000278"
@@ -2044,7 +1759,6 @@
           "decimals": 10,
           "symbol": "CHUG",
           "name": "Chuggin Wif Chad",
-          "supply": "10000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000239"
@@ -2054,7 +1768,6 @@
           "decimals": 12,
           "symbol": "VOR",
           "name": "VORY",
-          "supply": "1000000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000342"
@@ -2064,7 +1777,6 @@
           "decimals": 8,
           "symbol": "WBTC",
           "name": "Wrapped Bitcoin",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000178"
@@ -2074,7 +1786,6 @@
           "decimals": 18,
           "symbol": "EFI",
           "name": "Efinity Token",
-          "supply": "0",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000026"
@@ -2084,7 +1795,6 @@
           "decimals": 12,
           "symbol": "COKE",
           "name": "Polkacaine",
-          "supply": "10000015000000000000000",
           "origin": 1000,
           "isWhiteListed": false,
           "internalId": "1000311"

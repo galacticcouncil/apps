@@ -25,6 +25,15 @@ export class AccountIdenticon extends LitElement {
         <img width="32" height="32" class="avatar" src="${avatarUrl}" />
       `;
     }
+
+    const isSolanaAddr = addr.isSolana(this.address);
+    if (isSolanaAddr) {
+      const svgString = toSvg(this.address.substring(2), 26);
+      return html`
+        ${unsafeHTML(svgString)}
+      `;
+    }
+
     const decoded = decodeAddress(this.address);
     const publicKey = u8aToHex(decoded);
     const svgString = toSvg(publicKey.substring(2), 26);

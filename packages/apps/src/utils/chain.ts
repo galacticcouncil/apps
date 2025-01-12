@@ -5,6 +5,7 @@ import {
   Asset,
   EvmChain,
   Parachain,
+  SolanaChain,
 } from '@galacticcouncil/xcm-core';
 
 import { Ecosystem } from '../db';
@@ -22,6 +23,10 @@ export function getChainKey(paraId: number, ecosystem: Ecosystem) {
     return chain.key;
   }
   return null;
+}
+
+export function useSolanaAddressSpace(chain: AnyChain) {
+  return chain.isSolana();
 }
 
 export function useH160AddressSpace(chain: AnyChain) {
@@ -46,6 +51,9 @@ export function getChainAssetId(chain: AnyChain, asset: Asset) {
 }
 
 export function getChainId(chain: AnyChain) {
+  if (chain instanceof SolanaChain) {
+    return chain.id;
+  }
   if (chain instanceof EvmChain) {
     return chain.evmChain.id;
   }
