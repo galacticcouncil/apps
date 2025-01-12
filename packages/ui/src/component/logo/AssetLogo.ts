@@ -1,5 +1,5 @@
 import { html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { BaseLogo } from './BaseLogo';
 import { MetadataStore } from '../utils';
@@ -11,16 +11,20 @@ export class AssetLogo extends BaseLogo {
   @property({ attribute: false }) asset: string | { [key: string]: string } =
     null;
 
-  render() {
-    const asset = MetadataStore.getInstance().asset(
+  @state() src: string = null;
+
+  override async firstUpdated() {
+    this.src = await MetadataStore.getInstance().asset(
       this.ecosystem,
       this.chain,
       this.asset,
     );
+  }
 
-    if (asset) {
+  render() {
+    if (this.src) {
       return html`
-        <img loading="lazy" src="${asset}" alt="${this.asset}" />
+        <img loading="lazy" src="${this.src}" alt="${this.asset}" />
       `;
     }
     return html`

@@ -1,5 +1,5 @@
 import { html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { BaseLogo } from './BaseLogo';
 import { MetadataStore } from '../utils';
@@ -9,12 +9,19 @@ export class ChainLogo extends BaseLogo {
   @property({ type: String }) ecosystem: string = null;
   @property({ type: String }) chain: string = null;
 
-  render() {
-    const chain = MetadataStore.getInstance().chain(this.ecosystem, this.chain);
+  @state() src: string = null;
 
-    if (chain) {
+  override async firstUpdated() {
+    this.src = await MetadataStore.getInstance().chain(
+      this.ecosystem,
+      this.chain,
+    );
+  }
+
+  render() {
+    if (this.src) {
       return html`
-        <img loading="lazy" src="${chain}" alt="${this.chain}" />
+        <img loading="lazy" src="${this.src}" alt="${this.chain}" />
       `;
     }
     return html`
