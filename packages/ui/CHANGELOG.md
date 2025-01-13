@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.3.1
+
+### Patch Changes
+
+- Fix logo components (asset/chain)
+
 ## 5.3.0
 
 ### Minor Changes
