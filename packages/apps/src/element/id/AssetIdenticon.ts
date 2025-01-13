@@ -30,7 +30,7 @@ export class AssetIdenticon extends LitElement {
 
   @state() whitelist: string[] = [];
 
-  override async updated() {
+  override async firstUpdated() {
     this.whitelist = await MetadataStore.getInstance().externalWhitelist();
   }
 
