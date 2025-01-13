@@ -11,7 +11,7 @@ export class ChainLogo extends BaseLogo {
 
   @state() src: string = null;
 
-  override async firstUpdated() {
+  override async updated() {
     this.src = await MetadataStore.getInstance().chain(
       this.ecosystem,
       this.chain,

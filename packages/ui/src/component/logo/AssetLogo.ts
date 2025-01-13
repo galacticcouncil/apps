@@ -13,7 +13,7 @@ export class AssetLogo extends BaseLogo {
 
   @state() src: string = null;
 
-  override async firstUpdated() {
+  override async updated() {
     this.src = await MetadataStore.getInstance().asset(
       this.ecosystem,
       this.chain,
