@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.1.0
+
+### Minor Changes
+
+- Reset xcm prefilled address on src/dest chain ctx change
+
 ## 10.0.3
 
 ### Patch Changes
