@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.0.3
+
+### Patch Changes
+
+- Fix native wallet support validation
+
 ## 10.0.2
 
 ### Patch Changes
