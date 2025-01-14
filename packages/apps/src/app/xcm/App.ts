@@ -27,6 +27,7 @@ import {
   EVM_PROVIDERS,
   SOLANA_PROVIDERS,
   SUBSTRATE_H160_PROVIDERS,
+  SUBSTRATE_PROVIDERS,
   WalletProvider,
 } from 'utils/wallet';
 
@@ -235,9 +236,11 @@ export class XcmApp extends PoolApp {
         return SUBSTRATE_H160_PROVIDERS.includes(provider);
       }
       return this.hasEvmSupport(chain) && EVM_PROVIDERS.includes(provider);
-    } else {
-      return this.hasNativeSupport(chain);
     }
+
+    return (
+      this.hasNativeSupport(chain) && SUBSTRATE_PROVIDERS.includes(provider)
+    );
   }
 
   private onChangeWallet(srcChain: AnyChain) {
