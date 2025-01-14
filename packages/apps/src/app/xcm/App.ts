@@ -274,6 +274,7 @@ export class XcmApp extends PoolApp {
       return;
     }
     this.resetTransfer({
+      address: null,
       destAsset: srcAsset,
       destChain: srcChain,
       srcAsset: destAsset,
@@ -291,6 +292,7 @@ export class XcmApp extends PoolApp {
       return;
     }
     this.resetTransfer({
+      address: null,
       srcChain: srcChain,
     });
     this.changeChain();
@@ -300,6 +302,7 @@ export class XcmApp extends PoolApp {
     const { chains } = this.configService;
     const destChain = chains.get(chain);
     this.resetTransfer({
+      address: null,
       destChain: destChain,
     });
     this.changeChain();
