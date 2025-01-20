@@ -71,6 +71,7 @@ import {
 } from './types';
 
 import styles from './App.css';
+import { updateQueryParams } from 'utils/url';
 
 const Tag = xtags.Tag;
 
@@ -255,6 +256,21 @@ export class XcmApp extends PoolApp {
     this.dispatchEvent(new CustomEvent('gc:wallet:change', options));
   }
 
+  private updateQuery() {
+    const params = {
+      srcChain: this.xtransfer.srcChain.key,
+      destChain: this.xtransfer.destChain.key,
+      asset: this.xtransfer.srcAsset.key,
+    };
+    updateQueryParams(params);
+    const options = {
+      bubbles: true,
+      composed: true,
+      detail: params,
+    };
+    this.dispatchEvent(new CustomEvent('gc:query:update', options));
+  }
+
   private async changeChain() {
     this.disconnectSubscriptions();
     this.clearTransferErrors();
@@ -264,6 +280,8 @@ export class XcmApp extends PoolApp {
     // Prefill & validation
     this.prefillAddress();
     this.validateAddress();
+
+    this.updateQuery();
   }
 
   private async switchChains() {
@@ -324,6 +342,8 @@ export class XcmApp extends PoolApp {
       tags: tags || [],
     });
     this._syncData();
+
+    this.updateQuery();
   }
 
   updateAmount(amount: string) {
