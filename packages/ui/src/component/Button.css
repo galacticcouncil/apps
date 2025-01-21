@@ -112,6 +112,21 @@
   text-transform: var(--uigc-button__max-text-transform);
 }
 
+:host([variant='address-book']) .button-root {
+  color: var(--hex-dark-blue-100);
+  background: rgba(84, 99, 128, 0.35);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: var(--uigc-button__max-text-transform);
+
+  border-radius: 0;
+}
+
+:host([variant='address-book']) .button-root:hover {
+  background: rgba(var(--rgb-white), 0.15);
+  transition: 0.2s ease-in-out;
+}
+
 :host([variant='max'][disabled]) .button-root {
   opacity: 0.2;
 }
