@@ -161,6 +161,10 @@ export class XcmApp extends PoolApp {
     this.shouldPrefill = false;
   }
 
+  resetPrefill() {
+    this.shouldPrefill = true;
+  }
+
   setLoading(progress: boolean) {
     this.xtransfer = {
       ...this.xtransfer,
