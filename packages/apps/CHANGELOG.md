@@ -1,5 +1,12 @@
 # @galacticcouncil/apps
 
+## 10.2.0
+
+### Minor Changes
+
+- 7218742: Add address book button
+- adf99b9: Sync queryparams in XCM
+
 ## 10.1.0
 
 ### Minor Changes

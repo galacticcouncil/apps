@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.4.0
+
+### Minor Changes
+
+- 7218742: Add address book button
+
 ## 5.3.1
 
 ### Patch Changes

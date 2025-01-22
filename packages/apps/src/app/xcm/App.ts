@@ -963,7 +963,7 @@ export class XcmApp extends PoolApp {
     const options = {
       bubbles: true,
       composed: true,
-      detail: this.transfer,
+      detail: this.xtransfer,
     };
 
     this.dispatchEvent(new CustomEvent('gc:address-book:open', options));
