@@ -41,6 +41,7 @@ export class XcmForm extends LitElement {
   @property({ type: Boolean }) isProcessing = false;
   @property({ type: Boolean }) isApproving = false;
   @property({ type: Boolean }) isApprove = false;
+  @property({ type: Boolean }) isSupportedWallet = null;
   @property({ type: String }) address = null;
   @property({ type: String }) amount = null;
   @property({ type: Object }) srcAsset: Asset = null;
@@ -62,13 +63,7 @@ export class XcmForm extends LitElement {
 
   private isDisabled(): boolean {
     const account = this.account.state;
-    return (
-      !account ||
-      !this.isChainConnected() ||
-      !this.isValidAddress() ||
-      this.isProcessing ||
-      this.isApproving
-    );
+    return !this.isChainConnected() || this.isProcessing || this.isApproving;
   }
 
   private isChainConnected(): boolean {
@@ -238,10 +233,28 @@ export class XcmForm extends LitElement {
     `;
   }
 
+  transferButtonVariant() {
+    if (!this.account.state) {
+      return 'primary';
+    }
+
+    if (!this.isSupportedWallet) {
+      return 'secondary';
+    }
+
+    return 'primary';
+  }
+
   transferButtonTemplate() {
     if (!this.account.state) {
       return html`
         <span class="cta">${i18n.t('form.cta.connect')}</span>
+      `;
+    }
+
+    if (!this.isSupportedWallet) {
+      return html`
+        <span class="cta">${i18n.t('form.cta.switch')}</span>
       `;
     }
 
@@ -544,7 +557,7 @@ export class XcmForm extends LitElement {
       <uigc-button
         ?disabled=${this.disabled || this.isDisabled()}
         class="confirm"
-        variant="primary"
+        variant=${this.transferButtonVariant()}
         fullWidth
         @click=${this.onTransferClick}>
         ${this.transferButtonTemplate()}

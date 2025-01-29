@@ -1333,7 +1333,13 @@ export class XcmApp extends PoolApp {
 
   async onTransferClick() {
     const account = this.account.state;
+
     const { address, amount, srcAsset, srcChain, destChain } = this.xtransfer;
+    const supportedWallet = this.isSupportedWallet(srcChain);
+
+    if (!account || !supportedWallet) {
+      return this.onChangeWallet(srcChain);
+    }
 
     const srcAddr = this.formatAddress(account.address, srcChain);
     const destAddr = this.formatDestAddress(address, destChain);
@@ -1358,6 +1364,12 @@ export class XcmApp extends PoolApp {
   }
 
   private isFormDisabled() {
+    if (
+      !this.account.state ||
+      !this.isSupportedWallet(this.xtransfer.srcChain)
+    ) {
+      return false;
+    }
     return this.isTransferEmpty() || this.hasError() || !this.hasTransferData();
   }
 
@@ -1376,6 +1388,7 @@ export class XcmApp extends PoolApp {
         <gc-xcm-form
           .inProgress=${this.xtransfer.inProgress}
           .isProcessing=${this.xtransfer.isProcessing}
+          .isSupportedWallet=${this.isSupportedWallet(this.xtransfer.srcChain)}
           .isApproving=${this.xtransfer.isApproving}
           .isApprove=${this.xtransfer.isApprove}
           .disabled=${this.isFormDisabled()}
