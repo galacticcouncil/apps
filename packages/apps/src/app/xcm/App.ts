@@ -40,7 +40,7 @@ import {
   chainsMap,
   routesMap,
   validations,
-  swaps,
+  dex,
   HydrationConfigService,
 } from '@galacticcouncil/xcm-cfg';
 import { Wallet, Call, EvmCall } from '@galacticcouncil/xcm-sdk';
@@ -933,9 +933,9 @@ export class XcmApp extends PoolApp {
     const hydration = this.configService.getChain('hydration');
     const assethub = this.configService.getChain('assethub');
 
-    this.wallet.registerSwaps(
-      new swaps.HydrationSwap(hydration, poolService),
-      new swaps.AssethubSwap(assethub),
+    this.wallet.registerDex(
+      new dex.HydrationDex(hydration, poolService),
+      new dex.AssethubDex(assethub),
     );
   }
 

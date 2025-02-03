@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.3.0
+
+### Minor Changes
+
+- Bump to latest xcm upgrade
+
 ## 10.2.0
 
 ### Minor Changes
