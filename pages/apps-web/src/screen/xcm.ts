@@ -50,7 +50,7 @@ export class XcmScreen extends LitElement implements BeforeEnterObserver {
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
         accountName=${this.account.state?.name}
-        blacklist="acala-evm"
+        blacklist=""
         apiAddress="wss://rpc.hydradx.cloud"
         stableCoinAssetId="10"
         ss58Prefix="63"></gc-xcm>

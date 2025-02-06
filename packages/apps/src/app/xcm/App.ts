@@ -866,13 +866,14 @@ export class XcmApp extends PoolApp {
   private syncChains() {
     const { routes } = this.configService;
     const { srcAsset, srcChain, destChain } = this.xtransfer;
+    const { list } = this.xchain;
 
     const srcChainRoutes = routes.get(srcChain.key);
     const srcChainAssetRoutes = srcChainRoutes.getRoutes();
 
-    const destBlacklist = this.parseAsSet(this.blacklist);
+    const destWhitelist = list.map((c) => c.key);
     const destChains = srcChainAssetRoutes
-      .filter((a) => !destBlacklist.has(a.destination.chain.key))
+      .filter((a) => destWhitelist.includes(a.destination.chain.key))
       .map((a) => a.destination.chain);
     const destChainsUnique = new Set<AnyChain>(destChains);
 
@@ -1018,10 +1019,6 @@ export class XcmApp extends PoolApp {
   }
 
   private initConfig() {
-    this.parseAsList(this.blacklist).forEach((c) => {
-      chainsMap.delete(c);
-      routesMap.delete(c);
-    });
     this.configService = new HydrationConfigService({
       assets: assetsMap,
       chains: chainsMap,
@@ -1046,6 +1043,8 @@ export class XcmApp extends PoolApp {
     this.xchain = {
       ...this.xchain,
       list: chainList
+        .filter((c) => !c.isTestChain)
+        .filter((c) => !this.parseAsList(this.blacklist).includes(c.key))
         .filter((c) => {
           switch (this.ecosystem) {
             case Ecosystem.Polkadot:
