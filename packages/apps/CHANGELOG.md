@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.4.0
+
+### Minor Changes
+
+- Bump deps, rework blacklist filtering
+
 ## 10.3.0
 
 ### Minor Changes
