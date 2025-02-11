@@ -8,6 +8,7 @@ export enum WalletProvider {
   'nova-wallet',
   'trustwallet',
   'bravewallet',
+  'bravewallet-sol',
   'coinbasewallet',
   'rabbywallet',
   'nightly',
@@ -57,4 +58,5 @@ export const SUBSTRATE_H160_PROVIDERS: WalletProvider[] = [
 export const SOLANA_PROVIDERS: WalletProvider[] = [
   WalletProvider.phantom,
   WalletProvider.solflare,
+  WalletProvider['bravewallet-sol'],
 ];
