@@ -7,6 +7,7 @@
   "header.assetInfo": "{{name}} Asset data",
 
   "form.cta.connect": "Connect wallet",
+  "form.cta.switch": "Switch wallet",
   "form.cta.connecting": "Connecting...",
   "form.cta.processing": "Processing...",
   "form.cta.transfer": "Transfer",
