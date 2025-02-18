@@ -1,5 +1,13 @@
 # @galacticcouncil/apps
 
+## 10.5.0
+
+### Minor Changes
+
+- Support destAddress xcm dapp prop
+- 87bf766: Clickable connect wallet button in XCM
+- 11d8a14: Added Brave Wallet (SOL)
+
 ## 10.4.0
 
 ### Minor Changes
