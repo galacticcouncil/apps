@@ -104,6 +104,7 @@ export class XcmApp extends PoolApp {
 
   @property({ type: String }) srcChain: string = null;
   @property({ type: String }) destChain: string = null;
+  @property({ type: String, reflect: true }) destAddress: string = null;
   @property({ type: String }) asset: string = null;
   @property({ type: String }) blacklist: string = null;
   @property({ type: Number }) ss58Prefix: number = null;
@@ -349,6 +350,22 @@ export class XcmApp extends PoolApp {
     this._syncData();
 
     this.updateQuery();
+  }
+
+  protected changeAddress(address: string) {
+    this.disablePrefill();
+    this.updateAddress(address);
+    this.validateAddress();
+
+    this.balanceDestSubscription?.unsubscribe();
+    if (this.isToAddressValid()) {
+      const update = this.getUpdateKey();
+      this.syncInput(update);
+      this.syncBalancesOnAddressChange();
+    } else {
+      this.xtransfer.destBalance = null;
+      this.clearTransferErrors();
+    }
   }
 
   updateAmount(amount: string) {
@@ -1094,6 +1111,11 @@ export class XcmApp extends PoolApp {
     if (destChain) {
       this.changeDestinationChain(this.destChain);
     }
+
+    const destAddress = changed.has('destAddress');
+    if (destAddress && this.destAddress) {
+      this.changeAddress(this.destAddress);
+    }
   }
 
   override connectedCallback() {
@@ -1306,19 +1328,8 @@ export class XcmApp extends PoolApp {
   }
 
   protected onAddressInputChange({ detail: { address } }) {
-    this.disablePrefill();
-    this.updateAddress(address);
-    this.validateAddress();
-
-    this.balanceDestSubscription?.unsubscribe();
-    if (this.isToAddressValid()) {
-      const update = this.getUpdateKey();
-      this.syncInput(update);
-      this.syncBalancesOnAddressChange();
-    } else {
-      this.xtransfer.destBalance = null;
-      this.clearTransferErrors();
-    }
+    this.destAddress = null;
+    this.changeAddress(address);
   }
 
   protected onChainSwitchClick({ detail }) {
