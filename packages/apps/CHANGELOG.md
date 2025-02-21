@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.6.0
+
+### Minor Changes
+
+- Support Kusama <-> Polkadot XCM
+
 ## 10.5.0
 
 ### Minor Changes
