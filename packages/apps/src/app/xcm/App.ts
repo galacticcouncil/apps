@@ -1068,7 +1068,9 @@ export class XcmApp extends PoolApp {
               return (
                 c.ecosystem === ChainEcosystem.Polkadot ||
                 c.isEvmChain() ||
-                c.isSolana()
+                c.isSolana() ||
+                (c.ecosystem === ChainEcosystem.Kusama &&
+                  ['kusama', 'assethub_kusama'].includes(c.key))
               );
             case Ecosystem.Kusama:
               return c.ecosystem === ChainEcosystem.Kusama;
