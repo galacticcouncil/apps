@@ -245,8 +245,12 @@ export class XcmApp extends PoolApp {
       return this.hasEvmSupport(chain) && EVM_PROVIDERS.includes(provider);
     }
 
+    const isExternalProvider = provider === WalletProvider.external;
+    const isSubstrateProvider = SUBSTRATE_PROVIDERS.includes(provider);
+
     return (
-      this.hasNativeSupport(chain) && SUBSTRATE_PROVIDERS.includes(provider)
+      this.hasNativeSupport(chain) &&
+      (isSubstrateProvider || isExternalProvider)
     );
   }
 
