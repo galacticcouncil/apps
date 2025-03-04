@@ -17,6 +17,7 @@ import {
 import { baseStyles, formStyles } from 'styles';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
+import { isAToken } from 'utils/asset';
 
 import { DcaOrder, FrequencyUnit, INTERVAL_DCA, IntervalDca } from './types';
 
@@ -459,6 +460,20 @@ export class DcaForm extends BaseElement {
     `;
   }
 
+  formATokenWarning() {
+    const aTokenWarnClasses = {
+      alert: true,
+      warning: true,
+      show: isAToken(this.assetIn),
+    };
+    return html`
+      <div class=${classMap(aTokenWarnClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <span>${i18n.t('warn.aToken')}</span>
+      </div>
+    `;
+  }
+
   render() {
     const isValid = this.amountIn && !!this.order?.amountIn;
     const infoClasses = {
@@ -479,6 +494,7 @@ export class DcaForm extends BaseElement {
         <div class="row">${this.infoEstEndDateTemplate()}</div>
         <div class="row">${this.infoSlippageTemplate()}</div>
       </div>
+      ${this.formATokenWarning()}
       <uigc-button
         ?disabled=${this.disabled || this.inProgress || !this.account.state}
         class="confirm"

@@ -30,6 +30,8 @@
   "error.minBudgetTooLow": "The minimum budget is {{amount}} {{asset}}.",
   "error.frequencyOutOfRange": "The valid frequency is between {{min}} and {{max}} minutes.",
 
+  "warn.aToken": "This action would affect health factor on your Borrow position",
+
   "settings.slippage": "Slippage",
   "settings.slippageInfo1": "Tolerated price deviation from the last known price. Trade will be rescheduled if the price changes more than the specified percentage since previous block or 10 block average.",
   "settings.maxRetries": "Max retries",
