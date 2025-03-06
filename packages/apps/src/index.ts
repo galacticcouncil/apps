@@ -7,17 +7,17 @@ export { YieldApp } from './app/yield';
 export { BondsApp } from './app/bonds';
 export { XcmApp } from './app/xcm';
 
-/* Chain */
-export * from './chain';
-
 /* Database */
 export * from './db';
 
+/* Chain */
+export * as chain from './chain';
+
 /* Signer */
-export * from './signer';
+export * as signer from './signer';
 
 /* Theme */
-export * from './theme.ctrl';
+export * as theme from './theme.ctrl';
 
 /* External utils */
 export * as external from './utils/external';

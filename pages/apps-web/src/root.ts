@@ -1,13 +1,13 @@
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { ThemeController, setObj } from '@galacticcouncil/apps';
+import { theme, setObj } from '@galacticcouncil/apps';
 
 import external from 'config/external.degen.json';
 
 @customElement('gc-root')
 export class Root extends LitElement {
-  private theme = new ThemeController(this);
+  private theme = new theme.ThemeController(this);
 
   private setUpStorage() {
     if (this.theme.state == 'hdx') {
