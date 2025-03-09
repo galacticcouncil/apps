@@ -120,7 +120,7 @@ export abstract class PoolApp extends BaseApp {
     super.connectedCallback();
     this.channel.addEventListener('message', this.channelMessageListener);
     ChainCursor.addWatch(this.chainWatchId, (_id, prev, curr) => {
-      if (prev === null && this.apiAddress === null) {
+      if (this.apiAddress === null) {
         this._init();
       }
     });
