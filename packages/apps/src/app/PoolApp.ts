@@ -1,5 +1,7 @@
 import { property, state } from 'lit/decorators.js';
 
+import short from 'short-uuid';
+
 import { AssetApi } from 'api/asset';
 import { PaymentApi } from 'api/payment';
 import { PriceApi } from 'api/price';
@@ -36,6 +38,8 @@ export abstract class PoolApp extends BaseApp {
   protected priceApi: PriceApi = null;
   protected timeApi: TimeApi = null;
 
+  private chainWatchId: string;
+
   @property({ type: String }) apiAddress: string = null;
   @property({ type: String }) assetIn: string = null;
   @property({ type: String }) assetOut: string = null;
@@ -48,6 +52,11 @@ export abstract class PoolApp extends BaseApp {
     usdPrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
   };
+
+  constructor() {
+    super();
+    this.chainWatchId = 'chain-watch-' + short.generate();
+  }
 
   private channelMessageListener = (event: MessageEvent<any>) => {
     this.onBroadcastMessage(event);
@@ -92,13 +101,14 @@ export abstract class PoolApp extends BaseApp {
     if (this.isApiReady()) {
       this._init();
     } else {
-      createApi(
-        this.apiAddress,
-        this.ecosystem,
-        () => this._init(),
-        () => {},
-        this.isTestnet,
-      );
+      this.apiAddress &&
+        createApi(
+          this.apiAddress,
+          this.ecosystem,
+          () => this._init(),
+          () => {},
+          this.isTestnet,
+        );
     }
   }
 
@@ -109,9 +119,15 @@ export abstract class PoolApp extends BaseApp {
   override connectedCallback() {
     super.connectedCallback();
     this.channel.addEventListener('message', this.channelMessageListener);
+    ChainCursor.addWatch(this.chainWatchId, (_id, prev, curr) => {
+      if (this.apiAddress === null) {
+        this._init();
+      }
+    });
   }
 
   override disconnectedCallback() {
+    ChainCursor.removeWatch(this.chainWatchId);
     const account = this.account.state;
     this.disconnectSubscribeNewHeads?.();
     this.unsubscribeBalance(account);

@@ -2,7 +2,7 @@ import { CachingPoolService, TradeRouter } from '@galacticcouncil/sdk';
 import { SubstrateApis } from '@galacticcouncil/xcm-core';
 import { ApiPromise } from '@polkadot/api';
 
-import { Ecosystem, ChainCursor } from './db';
+import { Ecosystem, ChainCursor, Chain } from './db';
 import { readExternal } from './utils/external';
 
 const logFmt = (log: string) => {
@@ -75,4 +75,21 @@ export async function useApi(
   } catch (error) {
     onError(error);
   }
+}
+
+export async function createChainCtx(
+  apiUrl: string,
+  ecosystem: Ecosystem,
+): Promise<Chain> {
+  const apiPool = SubstrateApis.getInstance();
+  const api = await apiPool.api(apiUrl);
+  const poolService = new CachingPoolService(api);
+  const router = new TradeRouter(poolService);
+  return {
+    api: api,
+    poolService: poolService,
+    router: router,
+    ecosystem: ecosystem,
+    isTestnet: false,
+  };
 }

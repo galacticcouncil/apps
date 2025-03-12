@@ -7,9 +7,6 @@ export { YieldApp } from './app/yield';
 export { BondsApp } from './app/bonds';
 export { XcmApp } from './app/xcm';
 
-/* Chain */
-export * from './chain';
-
 /* Database */
 export * from './db';
 
@@ -18,6 +15,9 @@ export * from './signer';
 
 /* Theme */
 export * from './theme.ctrl';
+
+/* Chain */
+export * as chain from './chain';
 
 /* External utils */
 export * as external from './utils/external';
