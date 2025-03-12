@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.7.0
+
+### Minor Changes
+
+- 19e3c5e: Shared ctx
+
 ## 10.6.0
 
 ### Minor Changes
