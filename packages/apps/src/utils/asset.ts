@@ -1,5 +1,28 @@
 import { Asset } from '@galacticcouncil/sdk';
 
+const A_TOKEN_UNDERLYING_ID_MAP: { [key: string]: string } = {
+  // aDOT
+  '1001': '5',
+  // aUSDT
+  '1002': '10',
+  // aUSDC
+  '1003': '22',
+  // aWBTC
+  '1004': '19',
+  //avDOT
+  '1005': '15',
+};
+
+/**
+ * Check if asset is aToken
+ *
+ * @param asset - asset
+ * @returns true if asset is aToken, otherwise false
+ */
+export const isAToken = (asset: Asset) => {
+  return asset.type === 'Erc20' && !!A_TOKEN_UNDERLYING_ID_MAP[asset.id];
+};
+
 /**
  * Check if external asset is whitelisted
  *

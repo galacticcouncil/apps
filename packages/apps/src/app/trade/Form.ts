@@ -17,6 +17,7 @@ import {
 } from 'db';
 import { baseStyles, formStyles } from 'styles';
 import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
+import { isAToken } from 'utils/asset';
 
 import {
   Amount,
@@ -864,6 +865,20 @@ export class TradeForm extends BaseElement {
     `;
   }
 
+  formATokenWarning() {
+    const aTokenWarnClasses = {
+      alert: true,
+      warning: true,
+      show: isAToken(this.assetIn),
+    };
+    return html`
+      <div class=${classMap(aTokenWarnClasses)}>
+        <uigc-icon-warning></uigc-icon-warning>
+        <span>${i18n.t('warn.aToken')}</span>
+      </div>
+    `;
+  }
+
   render() {
     const assetSymbol =
       this.tradeType == TradeType.Sell
@@ -898,6 +913,7 @@ export class TradeForm extends BaseElement {
         ${this.formTwapOption(assetSymbol)}
       </div>
       ${this.formTwapSlippageWarning()} ${this.formTwapDcaWarning()}
+      ${this.formATokenWarning()}
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>

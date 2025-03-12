@@ -40,6 +40,7 @@
 
   "warn.changeSlippage": "Split trade likely to fail due to slippage - please adjust your slippage settings or reduce trade size.",
   "warn.useDca": "Your trade may be too large for efficient Split Trade execution - please try our DCA page or increase slippage to ensure successful execution.",
+  "warn.aToken": "This action would affect health factor on your Borrow position",
 
   "settings.section.swap": "Single Trade",
   "settings.section.twap": "Split Trade",
