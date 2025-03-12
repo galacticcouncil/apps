@@ -10,14 +10,14 @@ export { XcmApp } from './app/xcm';
 /* Database */
 export * from './db';
 
-/* Chain */
-export * as chain from './chain';
-
 /* Signer */
-export * as signer from './signer';
+export * from './signer';
 
 /* Theme */
-export * as theme from './theme.ctrl';
+export * from './theme.ctrl';
+
+/* Chain */
+export * as chain from './chain';
 
 /* External utils */
 export * as external from './utils/external';
