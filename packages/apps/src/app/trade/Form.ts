@@ -739,12 +739,9 @@ export class TradeForm extends BaseElement {
       <div
         class=${classMap(swapClasses)}
         @click=${() => this.transactionFee && this.disableTwap()}>
-        <div class="left">
+        <div class="form-option-grid">
           <span class="title">${i18n.t('form.swap.title')}</span>
-          <span class="desc">${i18n.t('form.swap.info')}</span>
-        </div>
-        <div class="right">
-          <span class="price">${humanizeAmount(price)} ${assetSymbol}</span>
+          <span class="price">≈ ${humanizeAmount(price)} ${assetSymbol}</span>
           <span class="usd">≈ ${humanizeAmount(priceUsd, 2)} USD</span>
         </div>
       </div>
@@ -786,13 +783,11 @@ export class TradeForm extends BaseElement {
       <div
         class=${classMap(twapClasses)}
         @click=${() => this.transactionFee && this.enableTwap()}>
-        <div class="left">
+        <div class="form-option-grid">
           <span class="title">${i18n.t('form.twap.title')}</span>
           <span class="desc">${i18n.t('form.twap.info', { timeframe })}</span>
-        </div>
-        <div class="right">
           <span class="price">
-            ${humanizeAmount(price.toString())} ${assetSymbol}
+            ≈ ${humanizeAmount(price.toString())} ${assetSymbol}
           </span>
           <span class="usd">
             <span>≈ ${humanizeAmount(priceUsd, 2)} USD</span>
@@ -902,6 +897,13 @@ export class TradeForm extends BaseElement {
       error: true,
       show: !this.twapEnabled && this.hasGeneralError(),
     };
+    const confirmClasses = {
+      confirm: true,
+      'confirm-swap': optionsClasses.show,
+    };
+    const swapBottomSpacerClasses = {
+      'swap-bottom-spacer': optionsClasses.show,
+    };
     return html`
       <slot name="header"></slot>
       <div class="transfer">
@@ -909,11 +911,34 @@ export class TradeForm extends BaseElement {
         ${this.formAssetOutTemplate()}
       </div>
       <div class=${classMap(optionsClasses)}>
-        ${this.formTradeOptionLabel()} ${this.formSwapOption(assetSymbol)}
-        ${this.formTwapOption(assetSymbol)}
+        ${this.formTradeOptionLabel()}
+        <div class="trade-options">
+          ${this.formSwapOption(assetSymbol)}
+          ${this.formTwapOption(assetSymbol)}
+        </div>
       </div>
       ${this.formTwapSlippageWarning()} ${this.formTwapDcaWarning()}
       ${this.formATokenWarning()}
+      <uigc-button
+        ?disabled=${this.readonly || this.isDisabled()}
+        class="confirm"
+        class=${classMap(confirmClasses)}
+        variant="primary"
+        fullWidth
+        @click=${this.onCtaClick}>
+        <div class=${classMap(ctaClasses)}>
+          <span class="swap">
+            ${this.account.state
+              ? i18n.t('form.cta.swap')
+              : i18n.t('form.cta.connect')}
+          </span>
+          <span class="twap">
+            ${this.account.state
+              ? i18n.t('form.cta.twap')
+              : i18n.t('form.cta.connect')}
+          </span>
+        </div>
+      </uigc-button>
       <div class=${classMap(infoClasses)}>
         <div class="row">${this.infoSlippageTemplate(assetSymbol)}</div>
         <div class="row">${this.infoPriceImpactTemplate()}</div>
@@ -931,25 +956,7 @@ export class TradeForm extends BaseElement {
         <uigc-icon-error></uigc-icon-error>
         <span>${this.error['pool'] || this.error['trade']}</span>
       </div>
-      <uigc-button
-        ?disabled=${this.readonly || this.isDisabled()}
-        class="confirm"
-        variant="primary"
-        fullWidth
-        @click=${this.onCtaClick}>
-        <div class=${classMap(ctaClasses)}>
-          <span class="swap">
-            ${this.account.state
-              ? i18n.t('form.cta.swap')
-              : i18n.t('form.cta.connect')}
-          </span>
-          <span class="twap">
-            ${this.account.state
-              ? i18n.t('form.cta.twap')
-              : i18n.t('form.cta.connect')}
-          </span>
-        </div>
-      </uigc-button>
+      <div class=${classMap(swapBottomSpacerClasses)}></div>
     `;
   }
 }
