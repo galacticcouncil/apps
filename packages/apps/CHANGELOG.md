@@ -1,5 +1,12 @@
 # @galacticcouncil/apps
 
+## 10.8.0
+
+### Minor Changes
+
+- 8bebf36: Allow external provider in XCM form
+- db47d58: Added warnings for aTokens
+
 ## 10.7.0
 
 ### Minor Changes
