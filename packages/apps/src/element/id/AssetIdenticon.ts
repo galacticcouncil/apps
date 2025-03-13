@@ -12,8 +12,12 @@ import {
   SYSTEM_ASSET_ID,
 } from '@galacticcouncil/sdk';
 
-import { Ecosystem } from 'db';
-import { isExternalAssetWhitelisted } from 'utils/asset';
+import { ChainCursor, Ecosystem } from 'db';
+import {
+  getATokenUnderlyingAssetId,
+  isAToken,
+  isExternalAssetWhitelisted,
+} from 'utils/asset';
 
 import styles from './AssetIdenticon.css';
 import { MetadataStore } from '@galacticcouncil/ui';
@@ -70,6 +74,11 @@ export class AssetIdenticon extends LitElement {
       `;
     }
 
+    const underlyingAssetId = getATokenUnderlyingAssetId(
+      asset,
+      ChainCursor.deref().isTestnet,
+    );
+
     const chain =
       this.ecosystem === Ecosystem.Polkadot
         ? HYDRADX_PARACHAIN_ID
@@ -82,17 +91,20 @@ export class AssetIdenticon extends LitElement {
           ecosystem=${this.ecosystem.toLowerCase()}
           chain=${chain}
           chainOrigin=${parachainEntry.parachain}
+          .isAToken=${!!underlyingAssetId}
           .asset=${id}>
           ${this.iconBadgeTemplate(asset)}
         </uigc-asset-id>
       `;
     }
+
     return html`
       <uigc-asset-id
         slot="icon"
         ecosystem=${this.ecosystem.toLowerCase()}
         chain=${chain}
-        .asset=${id}>
+        .isAToken=${!!underlyingAssetId}
+        .asset=${underlyingAssetId || id}>
         ${this.iconBadgeTemplate(asset)}
       </uigc-asset-id>
     `;
