@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.8.1
+
+### Patch Changes
+
+- 3817c5a: Fix apps loading
+
 ## 10.8.0
 
 ### Minor Changes
