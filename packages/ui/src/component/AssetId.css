@@ -2,6 +2,16 @@
   position: relative;
 }
 
+:host:has([atoken])::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  background: linear-gradient(to right, #39a5ff, #0063b5 50%, transparent);
+  padding: 2px;
+  border-radius: 50%;
+  mask: linear-gradient(#000 0 0) exclude, linear-gradient(#000 0 0) content-box;
+}
+
 uigc-logo-chain {
   display: none;
 }
