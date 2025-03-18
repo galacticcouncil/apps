@@ -19,8 +19,8 @@ const A_TOKEN_UNDERLYING_ID_MAP: { [key: string]: string } = {
  * @param asset - asset
  * @returns true if asset is aToken, otherwise false
  */
-export const isAToken = (asset: Asset) => {
-  return asset.type === 'Erc20' && !!A_TOKEN_UNDERLYING_ID_MAP[asset.id];
+export const isAToken = (asset?: Asset) => {
+  return asset?.type === 'Erc20' && !!A_TOKEN_UNDERLYING_ID_MAP[asset.id];
 };
 
 /**
