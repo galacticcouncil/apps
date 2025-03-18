@@ -1,6 +1,7 @@
 import { Asset } from '@galacticcouncil/sdk';
+import { ChainCursor } from 'db';
 
-const A_TOKEN_UNDERLYING_ID_MAP: { [key: string]: string } = {
+const A_TOKEN_UNDERLYING_ID_MAP_MAINNET: { [key: string]: string } = {
   // aDOT
   '1001': '5',
   // aUSDT
@@ -13,14 +14,36 @@ const A_TOKEN_UNDERLYING_ID_MAP: { [key: string]: string } = {
   '1005': '15',
 };
 
+export const A_TOKEN_UNDERLYING_ID_MAP_TESTNET: { [key: string]: string } = {
+  // aDOT
+  '1000037': '5',
+  // aUSDT
+  '1000039': '10',
+  // aUSDC
+  '1000038': '21',
+  // aWBTC
+  '1000040': '3',
+  // aWETH
+  '1000041': '20',
+  //avDOT
+  '1005': '15',
+};
+
 /**
  * Check if asset is aToken
  *
  * @param asset - asset
  * @returns true if asset is aToken, otherwise false
  */
-export const isAToken = (asset?: Asset) => {
-  return asset?.type === 'Erc20' && !!A_TOKEN_UNDERLYING_ID_MAP[asset.id];
+export const isAToken = (asset: Asset, isTestnet = false) => {
+  return !!getATokenUnderlyingAssetId(asset, isTestnet);
+};
+
+export const getATokenUnderlyingAssetId = (asset: Asset, isTestnet = false) => {
+  if (asset?.type !== 'Erc20') return;
+  return isTestnet
+    ? A_TOKEN_UNDERLYING_ID_MAP_TESTNET[asset.id]
+    : A_TOKEN_UNDERLYING_ID_MAP_MAINNET[asset.id];
 };
 
 /**

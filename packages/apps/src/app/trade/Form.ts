@@ -10,6 +10,8 @@ import { BaseElement } from 'element/BaseElement';
 import {
   Account,
   AccountCursor,
+  Chain,
+  ChainCursor,
   DatabaseController,
   Ecosystem,
   TradeConfig,
@@ -42,6 +44,7 @@ export class TradeForm extends BaseElement {
     this,
     TradeConfigCursor,
   );
+  private chainConfig = new DatabaseController<Chain>(this, ChainCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
@@ -869,7 +872,9 @@ export class TradeForm extends BaseElement {
     const aTokenWarnClasses = {
       alert: true,
       warning: true,
-      show: isAToken(this.assetIn),
+      show: this.assetIn
+        ? isAToken(this.assetIn, this.chainConfig.state.isTestnet)
+        : false,
     };
     return html`
       <div class=${classMap(aTokenWarnClasses)}>
