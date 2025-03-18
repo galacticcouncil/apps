@@ -454,7 +454,7 @@ export class YieldApp extends PoolApp {
   }
 
   protected isFormLoaded() {
-    return this.assets.tradeable.length > 0 && !!this.chain.state;
+    return this.assets.tradeable.length > 0;
   }
 
   formTab() {
