@@ -150,7 +150,7 @@ export class BondsApp extends TradeApp {
   }
 
   protected isFormLoaded() {
-    return super.isFormLoaded() && this.ready;
+    return super.isFormLoaded() && this.ready && !!this.chain.state;
   }
 
   protected isFormReadOnly() {
