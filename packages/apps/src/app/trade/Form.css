@@ -172,7 +172,7 @@
   transition: max-height 0.2s ease-in-out 0s;
   max-height: 0;
   overflow: hidden;
-  gap: 0;
+  gap: 10px;
 }
 
 @media (max-width: 480px) {
@@ -183,6 +183,7 @@
 
 .options.show {
   max-height: 500px;
+  overflow: inherit;
 }
 
 .options > .label {
@@ -197,7 +198,7 @@
   align-items: center;
 }
 
-.options > div {
+.options > div:not(.trade-options) {
   margin-top: 14px;
 }
 
@@ -262,21 +263,51 @@
   visibility: visible;
 }
 
+.trade-options {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding-bottom: 7px;
+}
+
 .form-option.skeleton {
   align-items: center;
 }
 
+.trade-options .form-option {
+  flex: 1;
+}
+
+.form-option-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto auto;
+  row-gap: 2px;
+  align-items: center;
+  justify-items: start;
+}
+
+.trade-options .form-option .title {
+  grid-column: 1;
+}
+
+.trade-options .form-option .desc {
+  grid-column: 2;
+}
+
 .form-option .price {
+  grid-column: 1/-1;
   color: #fff;
   font-family: 'Geist';
   font-style: normal;
   font-weight: 600;
   line-height: 130%;
-  font-size: 16px;
-  font-size: 4cqw;
+  font-size: 15.6px;
 }
 
 .form-option .usd {
+  grid-column: 1/-1;
   font-size: 10px;
   line-height: 14px;
   color: var(--hex-neutral-gray-400);
@@ -287,4 +318,13 @@
 
 .form-option .usd > span {
   display: inline-block;
+}
+
+.confirm-swap {
+  padding-bottom: 10px;
+}
+
+.swap-bottom-spacer {
+  height: 22px;
+  width: 100%;
 }
