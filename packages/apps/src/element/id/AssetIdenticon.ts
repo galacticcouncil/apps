@@ -58,13 +58,18 @@ export class AssetIdenticon extends LitElement {
       const { ethereum } = ethereumNetworkEntry;
       const ethereumChain = findNestedKey(ethereum, 'chainId');
       const ethereumAsset = findNestedKey(asset.location, 'key');
+
+      const assetId = ethereumAsset
+        ? ethereumAsset.key
+        : '0x0000000000000000000000000000000000000000';
+
       return html`
         <uigc-asset-id
           slot="icon"
           ecosystem=${'ethereum'}
           chain=${ethereumChain.chainId}
           chainOrigin=${ethereumChain.chainId}
-          .asset=${ethereumAsset.key}>
+          .asset=${assetId}>
           ${this.iconBadgeTemplate(asset)}
         </uigc-asset-id>
       `;

@@ -416,8 +416,8 @@ export class XcmForm extends LitElement {
         .asset=${this.destAsset?.originSymbol}
         .amount=${amount}
         .unit=${this.destAsset?.originSymbol}
-        ?selectable=${false}
-        .selectable=${false}
+        ?selectable=${this.isRegistryLoaded()}
+        .selectable=${this.isRegistryLoaded()}
         ?readonly=${true}
         .readonly=${true}>
         ${this.formAssetTemplate(this.destAsset, this.destChain)}

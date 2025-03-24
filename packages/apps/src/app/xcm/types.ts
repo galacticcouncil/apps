@@ -9,6 +9,7 @@ export enum TransferTab {
   Form,
   SelectChain,
   SelectToken,
+  SelectTokenOnDest,
 }
 
 export type TransferState = {
@@ -53,16 +54,20 @@ export const DEFAULT_TRANSFER_STATE: TransferState = {
 
 export type ChainState = {
   balance: Map<string, AssetAmount>;
+  balanceOnDest: Map<string, AssetAmount>;
   dest: AnyChain[];
   list: AnyChain[];
   assets: Asset[];
+  assetsToReceive: Asset[];
   selector: string;
 };
 
 export const DEFAULT_CHAIN_STATE: ChainState = {
   balance: new Map([]),
+  balanceOnDest: new Map([]),
   dest: [],
   list: [],
   assets: [],
+  assetsToReceive: [],
   selector: null,
 };

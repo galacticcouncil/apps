@@ -43,7 +43,12 @@ import {
   dex,
   HydrationConfigService,
 } from '@galacticcouncil/xcm-cfg';
-import { Wallet, Call, EvmCall } from '@galacticcouncil/xcm-sdk';
+import {
+  Wallet,
+  Call,
+  EvmCall,
+  TransferBuilder,
+} from '@galacticcouncil/xcm-sdk';
 import {
   addr,
   big,
@@ -338,12 +343,12 @@ export class XcmApp extends PoolApp {
 
   private async changeAsset(asset: string) {
     const { destChain, srcChain } = this.xtransfer;
-    const transfer = ConfigBuilder(this.configService)
+    const { routes, build } = ConfigBuilder(this.configService)
       .assets()
       .asset(asset)
       .source(srcChain)
-      .destination(destChain)
-      .build();
+      .destination(destChain);
+    const transfer = build();
     const { source, destination, tags } = transfer.origin.route;
     this.clearTransferErrors();
     this.resetTransfer({
@@ -351,8 +356,32 @@ export class XcmApp extends PoolApp {
       destAsset: destination.asset,
       tags: tags || [],
     });
+    this.xchain = {
+      ...this.xchain,
+      assetsToReceive: routes.map((r) => r.destination.asset),
+    };
     this._syncData();
+    this.updateQuery();
+  }
 
+  private async changeAssetOnDest(destAsset: string) {
+    const { destChain, srcChain, srcAsset } = this.xtransfer;
+    const transfer = ConfigBuilder(this.configService)
+      .assets()
+      .asset(srcAsset)
+      .source(srcChain)
+      .destination(destChain)
+      .build(destAsset);
+
+    const { source, destination, tags } = transfer.origin.route;
+    this.clearTransferErrors();
+    this.resetTransfer({
+      srcAsset: source.asset,
+      destAsset: destination.asset,
+      tags: tags || [],
+    });
+
+    this._syncData();
     this.updateQuery();
   }
 
@@ -759,6 +788,7 @@ export class XcmApp extends PoolApp {
     const balance = updated.get(destAsset.key);
 
     this.xtransfer.destBalance = balance;
+    this.xchain.balanceOnDest = updated;
     this.requestUpdate();
   }
 
@@ -810,6 +840,7 @@ export class XcmApp extends PoolApp {
 
     const { address } = this.account.state;
     const {
+      destAsset,
       destChain,
       srcAsset,
       srcChain,
@@ -820,13 +851,15 @@ export class XcmApp extends PoolApp {
     const destAddr = this.formatDestAddress(destAddress, destChain);
 
     console.log('Sync started for: ' + update);
-    const transfer = await this.wallet.transfer(
-      srcAsset,
-      srcAddr,
-      srcChain,
-      destAddr,
-      destChain,
-    );
+    const transfer = await TransferBuilder(this.wallet)
+      .withAsset(srcAsset)
+      .withSource(srcChain)
+      .withDestination(destChain)
+      .build({
+        srcAddress: srcAddr,
+        dstAddress: destAddr,
+        dstAsset: destAsset,
+      });
 
     if (this.isLastUpdate(update)) {
       console.log('Sync done: ' + update);
@@ -906,6 +939,7 @@ export class XcmApp extends PoolApp {
     const srcAssets = srcChainAssetRoutes
       .filter((a) => a.destination.chain === validDestChain)
       .map((a) => a.source.asset);
+    const srcAssetsUnique = new Set(srcAssets);
 
     const isSupportedAsset = srcAssets.includes(srcAsset);
 
@@ -916,21 +950,24 @@ export class XcmApp extends PoolApp {
     }
 
     if (!isSupportedAsset && validDestChain.key === 'ethereum') {
-      selectedAsset = srcAssets.find((a) => a.key === 'weth_mwh');
+      selectedAsset = srcAssets.find((a) => a.key === 'eth');
     }
 
-    const transfer = ConfigBuilder(this.configService)
+    const destinations = ConfigBuilder(this.configService)
       .assets()
       .asset(selectedAsset)
       .source(srcChain)
-      .destination(validDestChain)
-      .build();
+      .destination(validDestChain);
+
+    const transfer = destinations.build();
 
     this.xchain = {
       ...this.xchain,
       dest: [...destChainsUnique],
-      assets: srcAssets,
+      assets: [...srcAssetsUnique],
+      assetsToReceive: destinations.routes.map((r) => r.destination.asset),
       balance: new Map([]),
+      balanceOnDest: new Map([]),
     };
 
     const { source, destination, tags } = transfer.origin.route;
@@ -1201,6 +1238,7 @@ export class XcmApp extends PoolApp {
       tab: true,
       active: active,
     };
+
     return html`
       <uigc-paper class=${classMap(classes)}>
         <gc-select-xasset
@@ -1212,6 +1250,45 @@ export class XcmApp extends PoolApp {
           .registry=${this.assets.registry}
           .registryChain=${this.configService.getChain('hydration')}
           @asset-click=${this.onAssetClick}>
+          <div class="header section" slot="header">
+            <uigc-icon-button
+              class="back"
+              @click=${() => this.changeTab(TransferTab.Form)}>
+              <uigc-icon-back></uigc-icon-back>
+            </uigc-icon-button>
+            <uigc-typography variant="section">
+              ${i18n.t('header.select')}
+            </uigc-typography>
+            <span></span>
+          </div>
+        </gc-select-xasset>
+      </uigc-paper>
+    `;
+  }
+
+  protected onAssetDestClick({ detail: { symbol } }) {
+    this.changeAssetOnDest(symbol);
+    this.changeTab(TransferTab.Form);
+  }
+
+  selectDestTokenTab() {
+    const active = this.tab === TransferTab.SelectTokenOnDest;
+    const classes = {
+      tab: true,
+      active: active,
+    };
+
+    return html`
+      <uigc-paper class=${classMap(classes)}>
+        <gc-select-xasset
+          .assets=${this.xchain.assetsToReceive}
+          .balances=${this.xchain.balanceOnDest}
+          .asset=${this.xtransfer.destAsset}
+          .chain=${this.xtransfer.destChain}
+          .ecosystem=${this.ecosystem}
+          .registry=${this.assets.registry}
+          .registryChain=${this.configService.getChain('hydration')}
+          @asset-click=${this.onAssetDestClick}>
           <div class="header section" slot="header">
             <uigc-icon-button
               class="back"
@@ -1326,6 +1403,12 @@ export class XcmApp extends PoolApp {
     });
   }
 
+  protected onAssetSelectorClick({ detail }) {
+    const { id } = detail;
+    id == 'asset' && this.changeTab(TransferTab.SelectToken);
+    id == 'assetOut' && this.changeTab(TransferTab.SelectTokenOnDest);
+  }
+
   protected onAssetInputChange({ detail: { value } }) {
     this.updateAmount(value);
     this.validateAmount();
@@ -1426,7 +1509,7 @@ export class XcmApp extends PoolApp {
           @asset-input-change=${this.onAssetInputChange}
           @address-input-change=${this.onAddressInputChange}
           @asset-switch-click=${this.onChainSwitchClick}
-          @asset-selector-click=${() => this.changeTab(TransferTab.SelectToken)}
+          @asset-selector-click=${this.onAssetSelectorClick}
           @chain-selector-click=${this.onChainSelectorClick}
           @address-book-click=${this.onAddressBookClick}
           @transfer-click=${() => {
@@ -1495,7 +1578,7 @@ export class XcmApp extends PoolApp {
     return html`
       <div class="layout-root">
         ${this.formTab()} ${this.selectChainTab()} ${this.selectTokenTab()}
-        ${this.assetCheck()}
+        ${this.selectDestTokenTab()} ${this.assetCheck()}
       </div>
     `;
   }
