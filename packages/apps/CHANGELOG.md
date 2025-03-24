@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.9.0
+
+### Minor Changes
+
+- Support native ETH, snowbridge 2.0
+
 ## 10.8.1
 
 ### Patch Changes
