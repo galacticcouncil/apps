@@ -1433,25 +1433,14 @@ export class XcmApp extends PoolApp {
   async onTransferClick() {
     const account = this.account.state;
 
-    const { address, amount, srcAsset, srcChain, destChain } = this.xtransfer;
+    const { amount, srcChain, transfer } = this.xtransfer;
     const supportedWallet = this.isSupportedWallet(srcChain);
 
     if (!account || !supportedWallet) {
       return this.onChangeWallet(srcChain);
     }
 
-    const srcAddr = this.formatAddress(account.address, srcChain);
-    const destAddr = this.formatDestAddress(address, destChain);
-
-    const xTransfer = await this.wallet.transfer(
-      srcAsset,
-      srcAddr,
-      srcChain,
-      destAddr,
-      destChain,
-    );
-
-    const call = await xTransfer.buildCall(amount);
+    const call = await transfer.buildCall(amount);
     const transaction = {
       hex: call.data,
       name: 'xcm',
