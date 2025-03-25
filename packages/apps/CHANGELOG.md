@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 10.10.0
+
+### Minor Changes
+
+- Fix transfer click, bump deps (link, ldo,...)
+
 ## 10.9.0
 
 ### Minor Changes
