@@ -11,6 +11,8 @@ const A_TOKEN_UNDERLYING_ID_MAP: { [key: string]: string } = {
   '1004': '19',
   //avDOT
   '1005': '15',
+  //atBTC
+  '1006': '1000765',
 };
 
 /**
