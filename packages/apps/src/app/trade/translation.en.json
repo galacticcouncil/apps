@@ -16,11 +16,10 @@
   "form.opts": "Trade options",
 
   "form.swap.title": "Single trade",
-  "form.swap.info": "Instant execution",
   "form.swap.desc": "Trade instantly using the omnipool.",
 
   "form.twap.title": "Split trade",
-  "form.twap.info": "Executed in the next {{timeframe}}",
+  "form.twap.info": "Over {{timeframe}}",
   "form.twap.desc": "Achieve lower slippage by splitting your trade in smaller chunks.",
 
   "form.info.priceImpact": "Price impact:",
