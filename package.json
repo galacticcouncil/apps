@@ -55,6 +55,7 @@
     "lightningcss-linux-x64-gnu": "1.25.1"
   },
   "overrides": {
+    "@galacticcouncil/sdk": "5.7.0-pr146-35311fb",
     "cross-spawn": "^7.0.5",
     "@vaadin/router": {
       "path-to-regexp": "3.3.0"
