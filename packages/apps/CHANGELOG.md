@@ -1,5 +1,15 @@
 # @galacticcouncil/apps
 
+## 11.0.0
+
+### Major Changes
+
+- Support atokens
+
+### Minor Changes
+
+- eb59421: aToken icons
+
 ## 10.10.0
 
 ### Minor Changes

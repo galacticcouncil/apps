@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "10.10.0",
+  "version": "11.0.0",
   "description": "Galactic Apps",
   "author": "GalacticCouncil",
   "repository": {
@@ -45,11 +45,11 @@
     "viem": "^2.15.1"
   },
   "devDependencies": {
-    "@galacticcouncil/api-augment": "^0.3.0"
+    "@galacticcouncil/api-augment": "^0.3.1"
   },
   "peerDependencies": {
     "@galacticcouncil/sdk": "^5.7.0-pr146-35311fb",
-    "@galacticcouncil/ui": "^5.3.1",
+    "@galacticcouncil/ui": "^5.5.0",
     "@galacticcouncil/xcm-cfg": "^8.1.0",
     "@galacticcouncil/xcm-core": "^7.0.0",
     "@galacticcouncil/xcm-sdk": "^9.1.1",

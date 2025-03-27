@@ -1,5 +1,12 @@
 # @galacticcouncil/ui
 
+## 5.5.0
+
+### Minor Changes
+
+- eb59421: aToken icons
+- Support atokens
+
 ## 5.4.0
 
 ### Minor Changes
