@@ -25,6 +25,7 @@ import styles from './SelectAsset.css';
 export class SelectAsset extends LitElement {
   @property({ attribute: false }) assets: Asset[] = [];
   @property({ attribute: false }) assetsAlt: Asset[] = null;
+  @property({ attribute: false }) atokens: Map<string, string> = new Map([]);
   @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
   @property({ attribute: false }) selector: AssetSelector = null;
@@ -210,6 +211,7 @@ export class SelectAsset extends LitElement {
           .showDesc=${true}
           .asset=${asset}
           .assets=${this.getAssets()}
+          .atokens=${this.atokens}
           .ecosystem=${this.ecosystem}></gc-asset-identicon>
       </uigc-asset-list-item>
     `;

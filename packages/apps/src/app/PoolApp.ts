@@ -17,6 +17,7 @@ import {
   Asset,
   BalanceClient,
   BigNumber,
+  PoolType,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
   ZERO,
@@ -49,6 +50,7 @@ export abstract class PoolApp extends BaseApp {
   @state() assets = {
     tradeable: [] as Asset[],
     registry: new Map<string, Asset>([]),
+    atokens: new Map<string, string>([]),
     usdPrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
   };
@@ -150,9 +152,22 @@ export abstract class PoolApp extends BaseApp {
     this.timeApi = new TimeApi(api);
     this.balanceClient = new BalanceClient(api);
 
-    const tradeable = await router.getAllAssets();
+    const [pools, tradeable] = await Promise.all([
+      router.getPools(),
+      router.getAllAssets(),
+    ]);
+
+    const aTokens = pools
+      .filter((p) => p.type === PoolType.Aave)
+      .reduce((acc, p) => {
+        const [reserve, atoken] = p.tokens;
+        acc.set(atoken.id, reserve.id);
+        return acc;
+      }, new Map<string, string>());
+
     this.assets = {
       ...this.assets,
+      atokens: aTokens,
       tradeable: tradeable,
       registry: new Map(poolService.assets.map((a) => [a.id, a])),
     };

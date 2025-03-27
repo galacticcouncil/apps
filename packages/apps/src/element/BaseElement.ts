@@ -1,4 +1,5 @@
 import { LitElement } from 'lit';
+import { property } from 'lit/decorators.js';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -10,6 +11,8 @@ import {
 } from 'humanize-duration-ts';
 
 export abstract class BaseElement extends LitElement {
+  @property({ attribute: false }) atokens: Map<string, string> = new Map([]);
+
   protected _langService: HumanizeDurationLanguage = null;
   protected _humanizer: HumanizeDuration = null;
   protected _dayjs = null;

@@ -1010,6 +1010,7 @@ export class TradeApp extends PoolApp {
       <uigc-paper class=${classMap(classes)} id="default-tab">
         <gc-trade-form
           .assets=${this.assets.registry}
+          .atokens=${this.assets.atokens}
           .usdPrice=${this.assets.usdPrice}
           .inProgress=${this.trade.inProgress}
           .ecosystem=${this.ecosystem}
@@ -1160,6 +1161,7 @@ export class TradeApp extends PoolApp {
       <uigc-paper class=${classMap(classes)}>
         <gc-select-asset
           .assets=${this.assets.tradeable}
+          .atokens=${this.assets.atokens}
           .balances=${this.assets.balance}
           .ecosystem=${this.ecosystem}
           .usdPrice=${this.assets.usdPrice}

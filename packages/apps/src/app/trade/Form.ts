@@ -10,8 +10,6 @@ import { BaseElement } from 'element/BaseElement';
 import {
   Account,
   AccountCursor,
-  Chain,
-  ChainCursor,
   DatabaseController,
   Ecosystem,
   TradeConfig,
@@ -19,7 +17,6 @@ import {
 } from 'db';
 import { baseStyles, formStyles } from 'styles';
 import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
-import { isAToken } from 'utils/asset';
 
 import {
   Amount,
@@ -44,7 +41,6 @@ export class TradeForm extends BaseElement {
     this,
     TradeConfigCursor,
   );
-  private chainConfig = new DatabaseController<Chain>(this, ChainCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ attribute: false }) usdPrice: Map<string, Amount> = new Map([]);
@@ -520,6 +516,7 @@ export class TradeForm extends BaseElement {
           slot="asset"
           .asset=${asset}
           .assets=${this.assets}
+          .atokens=${this.atokens}
           .ecosystem=${this.ecosystem}></gc-asset-identicon>
       `;
     }
@@ -872,9 +869,7 @@ export class TradeForm extends BaseElement {
     const aTokenWarnClasses = {
       alert: true,
       warning: true,
-      show: this.assetIn
-        ? isAToken(this.assetIn, this.chainConfig.state.isTestnet)
-        : false,
+      show: this.assetIn ? this.atokens.get(this.assetIn.id) : false,
     };
     return html`
       <div class=${classMap(aTokenWarnClasses)}>

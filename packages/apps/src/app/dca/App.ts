@@ -503,6 +503,7 @@ export class DcaApp extends PoolApp {
       <uigc-paper class=${classMap(classes)} id="default-tab">
         <gc-dca-form
           .assets=${this.assets.registry}
+          .atokens=${this.assets.atokens}
           .inProgress=${this.dca.inProgress}
           .disabled=${this.isFormDisabled()}
           .loaded=${this.isFormLoaded()}

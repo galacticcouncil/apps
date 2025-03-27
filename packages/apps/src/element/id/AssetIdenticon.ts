@@ -12,12 +12,8 @@ import {
   SYSTEM_ASSET_ID,
 } from '@galacticcouncil/sdk';
 
-import { ChainCursor, Ecosystem } from 'db';
-import {
-  getATokenUnderlyingAssetId,
-  isAToken,
-  isExternalAssetWhitelisted,
-} from 'utils/asset';
+import { Ecosystem } from 'db';
+import { isExternalAssetWhitelisted } from 'utils/asset';
 
 import styles from './AssetIdenticon.css';
 import { MetadataStore } from '@galacticcouncil/ui';
@@ -28,6 +24,7 @@ export class AssetIdenticon extends LitElement {
   @property({ type: Boolean }) showSymbol: boolean = true;
   @property({ attribute: false }) asset: Asset = null;
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
+  @property({ attribute: false }) atokens: Map<string, string> = new Map([]);
   @property({ attribute: false }) ecosystem: Ecosystem = Ecosystem.Polkadot;
 
   static styles = styles;
@@ -79,10 +76,7 @@ export class AssetIdenticon extends LitElement {
       `;
     }
 
-    const underlyingAssetId = getATokenUnderlyingAssetId(
-      asset,
-      ChainCursor.deref().isTestnet,
-    );
+    const underlyingAssetId = this.atokens.get(asset.id);
 
     const chain =
       this.ecosystem === Ecosystem.Polkadot

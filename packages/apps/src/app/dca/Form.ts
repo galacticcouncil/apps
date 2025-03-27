@@ -10,8 +10,6 @@ import { BaseElement } from 'element/BaseElement';
 import {
   Account,
   AccountCursor,
-  Chain,
-  ChainCursor,
   DatabaseController,
   DcaConfig,
   DcaConfigCursor,
@@ -19,7 +17,6 @@ import {
 import { baseStyles, formStyles } from 'styles';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
-import { isAToken } from 'utils/asset';
 
 import { DcaOrder, FrequencyUnit, INTERVAL_DCA, IntervalDca } from './types';
 
@@ -39,7 +36,6 @@ const FREQ_UNIT_BY_INTERVAL: Record<IntervalDca, FrequencyUnit> = {
 export class DcaForm extends BaseElement {
   private account = new DatabaseController<Account>(this, AccountCursor);
   private dcaConfig = new DatabaseController<DcaConfig>(this, DcaConfigCursor);
-  private chainConfig = new DatabaseController<Chain>(this, ChainCursor);
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
   @property({ type: Boolean }) inProgress = false;
@@ -266,7 +262,8 @@ export class DcaForm extends BaseElement {
         <gc-asset-identicon
           slot=${slot}
           .asset=${asset}
-          .assets=${this.assets}></gc-asset-identicon>
+          .assets=${this.assets}
+          .atokens=${this.atokens}></gc-asset-identicon>
       `;
     }
     return this.formAssetLoadingTemplate(slot);
@@ -467,9 +464,7 @@ export class DcaForm extends BaseElement {
     const aTokenWarnClasses = {
       alert: true,
       warning: true,
-      show: this.assetIn
-        ? isAToken(this.assetIn, this.chainConfig.state.isTestnet)
-        : false,
+      show: this.assetIn ? this.atokens.get(this.assetIn.id) : false,
     };
     return html`
       <div class=${classMap(aTokenWarnClasses)}>
