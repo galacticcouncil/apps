@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 11.0.1
+
+### Patch Changes
+
+- bump deps
+
 ## 11.0.0
 
 ### Major Changes
