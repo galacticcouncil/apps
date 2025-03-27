@@ -13,6 +13,7 @@ export class AssetId extends UIGCElement {
   @property({ type: String }) ecosystem: string = null;
   @property({ type: String }) chain: string = null;
   @property({ type: String }) chainOrigin: string = null;
+  @property({ type: Boolean }) isAToken: boolean = false;
   @property({ attribute: false }) asset: string | { [key: string]: string } =
     null;
 
@@ -24,6 +25,13 @@ export class AssetId extends UIGCElement {
       logoChain.setAttribute('chain', this.chainOrigin);
     } else {
       logoChain.removeAttribute('chain');
+    }
+
+    const logoAsset = this.shadowRoot.querySelector('uigc-logo-asset');
+    if (this.isAToken) {
+      logoAsset.setAttribute('atoken', 'true');
+    } else {
+      logoAsset.removeAttribute('atoken');
     }
   }
 
