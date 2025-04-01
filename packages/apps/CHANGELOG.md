@@ -1,10 +1,16 @@
 # @galacticcouncil/apps
 
+## 12.0.0
+
+### Major Changes
+
+- Support SDK 6.x
+
 ## 11.0.1
 
 ### Patch Changes
 
-- bump deps
+- Bump deps
 
 ## 11.0.0
 
