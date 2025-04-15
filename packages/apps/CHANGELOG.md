@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.1.1
+
+### Patch Changes
+
+- Fix display sell only asset
+
 ## 12.1.0
 
 ### Minor Changes
