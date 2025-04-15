@@ -1,5 +1,14 @@
 # @galacticcouncil/apps
 
+## 12.1.0
+
+### Minor Changes
+
+- GDOT launch
+  - Hide 2-Pool-GDOT swap route
+  - Handle 69 (GDOT) as regualar asset - no blue flag
+  - Allow only 690 share sell
+
 ## 12.0.0
 
 ### Major Changes

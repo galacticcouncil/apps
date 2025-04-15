@@ -1,5 +1,12 @@
 # @galacticcouncil/ui
 
+## 5.6.0
+
+### Minor Changes
+
+- Fix asset icon sizing
+- Fix N pool word break
+
 ## 5.5.0
 
 ### Minor Changes
