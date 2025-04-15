@@ -206,9 +206,9 @@ export class TradeForm extends BaseElement {
   }
 
   private getBestRoute(): string[] {
-    return this.trade?.swaps.map(
-      (swap: Swap) => this.assets.get(swap.assetOut).symbol,
-    );
+    return this.trade?.swaps
+      .filter((swap) => swap.assetOut !== '690') // Hide 2-Pool-GDOT
+      .map((swap: Swap) => this.assets.get(swap.assetOut).symbol);
   }
 
   private calculateTwapPctDiff() {
