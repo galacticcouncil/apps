@@ -41,9 +41,18 @@ span.title {
   margin-left: -3px;
 }
 
+::slotted(*[slot='icon']) {
+  flex: none;
+}
+
 :host([multi]) ::slotted(*) {
   width: 26px;
   height: 26px;
+}
+
+:host([multi]) span.title {
+  min-width: 52px;
+  overflow-wrap: break-word;
 }
 
 :host([icon]) span.title {

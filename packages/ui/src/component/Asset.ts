@@ -32,7 +32,7 @@ export class Asset extends UIGCElement {
     return html`
       <slot name="icon"></slot>
       <span class="title">
-        <span class="code">${this.symbol}</span>
+        <span class="code">${this.symbol.replace('-Pool-', '-Pool ')}</span>
         ${when(
           this.desc,
           () =>
