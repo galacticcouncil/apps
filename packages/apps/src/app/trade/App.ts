@@ -130,7 +130,9 @@ export class TradeApp extends PoolApp {
     const assetIn = this.trade.assetIn;
     const isLrna =
       assetIn?.id === '1' && assetIn?.symbol.toLowerCase() === 'h2o';
-    return !isLrna;
+    const isGdotShare =
+      assetIn?.id === '690' && assetIn?.symbol.toLowerCase() === '2-pool-gdot';
+    return !isLrna && !isGdotShare;
   }
 
   isEmptyAmount(amount: string): boolean {

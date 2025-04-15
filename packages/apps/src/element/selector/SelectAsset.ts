@@ -135,7 +135,10 @@ export class SelectAsset extends LitElement {
 
   isDisabled(asset: Asset): boolean {
     if (this.selector?.id == 'assetOut') {
-      return asset.id === '1' && asset.symbol.toLowerCase() === 'h2o';
+      const isLrna = asset.id === '1' && asset.symbol.toLowerCase() === 'h2o';
+      const isGdotShare =
+        asset.id === '690' && asset.symbol.toLowerCase() === '2-pool-gdot';
+      return isLrna || isGdotShare;
     }
     return false;
   }
