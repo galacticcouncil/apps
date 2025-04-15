@@ -6,7 +6,7 @@ import { BaseApp } from 'app/BaseApp';
 import { Account } from 'db';
 
 import { TransferApi } from './api';
-import { Transfer, TransferStatus } from './types';
+import { Transfer, TransferStatus } from '../types';
 
 import '@galacticcouncil/ui';
 import { Operation } from '@galacticcouncil/xcm-sdk';

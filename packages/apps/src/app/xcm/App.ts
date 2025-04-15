@@ -64,7 +64,7 @@ import { PublicKey } from '@solana/web3.js';
 import 'element/selector';
 
 import './Form';
-import './transfers';
+import './monitor/transfers';
 
 import { wormhole } from './logo';
 import {

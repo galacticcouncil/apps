@@ -28,8 +28,8 @@ import {
   TransferInfo,
   TransferLog,
   TransferPayload,
-} from './types';
-import { getChainById } from './utils';
+} from '../types';
+import { getChainById } from '../utils';
 import {
   Operation,
   WormholeClient,

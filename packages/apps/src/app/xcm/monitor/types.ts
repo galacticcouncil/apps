@@ -1,5 +1,10 @@
 import { AnyChain } from '@galacticcouncil/xcm-core';
+import { Operation } from '@galacticcouncil/xcm-sdk';
 import { Log } from 'viem';
+
+export type StandartizedOperation = Operation & {
+  info: TransferInfo;
+};
 
 export type Transfer = {
   id: string;

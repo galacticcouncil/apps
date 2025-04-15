@@ -1,0 +1,46 @@
+uigc-logo-chain {
+  width: 24px;
+}
+
+tr td:last-child {
+  text-align: right;
+}
+
+td:first-of-type,
+td:last-of-type {
+  padding: 12px 14px;
+}
+
+@media (min-width: 768px) {
+  td:first-of-type,
+  td:last-of-type {
+    padding: 12px 28px;
+  }
+}
+
+td a {
+  text-decoration: underline;
+}
+
+.pair {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0 12px;
+  width: 194px;
+  min-width: max-content;
+}
+
+.pair .summary {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  display: flex;
+}
+
+div.status.processing > span {
+  color: rgb(75, 255, 187);
+}
+
+div.status.complete > span {
+  color: rgb(166, 221, 255);
+}
