@@ -28,6 +28,7 @@ import { isEvmAccount } from 'utils/evm';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
 import { updateQueryParams } from 'utils/url';
 import { EVM_NATIVE_ASSET_ID } from 'utils/account';
+import { isSellOnly } from 'utils/asset';
 
 import '@galacticcouncil/ui';
 import {
@@ -128,11 +129,7 @@ export class TradeApp extends PoolApp {
 
   isSwitchEnabled(): boolean {
     const assetIn = this.trade.assetIn;
-    const isLrna =
-      assetIn?.id === '1' && assetIn?.symbol.toLowerCase() === 'h2o';
-    const isGdotShare =
-      assetIn?.id === '690' && assetIn?.symbol.toLowerCase() === '2-pool-gdot';
-    return !isLrna && !isGdotShare;
+    return !isSellOnly(assetIn);
   }
 
   isEmptyAmount(amount: string): boolean {

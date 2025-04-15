@@ -13,6 +13,7 @@ import { Amount, Asset } from '@galacticcouncil/sdk';
 import { Ecosystem } from 'db';
 import { baseStyles, selectorStyles } from 'styles';
 import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
+import { isSellOnly } from 'utils/asset';
 
 import { AssetSelector } from './types';
 
@@ -117,14 +118,23 @@ export class SelectAsset extends LitElement {
       });
   }
 
+  private filterByTradeable(asset: Asset) {
+    if (this.selector?.id == 'assetOut') {
+      return !isSellOnly(asset);
+    }
+    return true;
+  }
+
   private filter(query: string) {
+    const tAssets = this.assets.filter((a) => this.filterByTradeable(a));
+
     if (!this.assetsAlt) {
-      return this.filterAssets(query, this.assets);
+      return this.filterAssets(query, tAssets);
     }
 
     const secondaryArr = this.assetsAlt.map(({ id }) => id);
     const secondarySet = new Set(secondaryArr);
-    const assets = this.assets.filter((a) => !secondarySet.has(a.id));
+    const assets = tAssets.filter((a) => !secondarySet.has(a.id));
     const selected = this[this.selector?.id];
     const inPrimary = assets.find((asset) => asset.id === selected?.id);
     if (inPrimary) {

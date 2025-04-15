@@ -13,6 +13,7 @@ import { Account, DatabaseController, DcaConfig, DcaConfigCursor } from 'db';
 import { TxInfo, TxMessage } from 'signer/types';
 import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
 import { exchangeNative, humanizeAmount } from 'utils/amount';
+import { isSellOnly } from 'utils/asset';
 import { MINUTE_MS } from 'utils/time';
 
 import '@galacticcouncil/ui';
@@ -129,6 +130,11 @@ export class DcaApp extends PoolApp {
 
   private switch() {
     const { assetIn, assetOut } = this.dca;
+
+    if (isSellOnly(assetIn)) {
+      return;
+    }
+
     const balanceIn = this.assets.balance.get(assetOut.id);
     this.dca = {
       ...this.dca,
@@ -594,6 +600,7 @@ export class DcaApp extends PoolApp {
           .assets=${this.assets.tradeable.filter(
             (a) => a.type !== 'Bond' && a.isSufficient,
           )}
+          .atokens=${this.assets.atokens}
           .balances=${this.assets.balance}
           .usdPrice=${this.assets.usdPrice}
           .assetIn=${this.dca.assetIn}

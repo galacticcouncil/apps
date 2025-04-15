@@ -350,7 +350,6 @@ export class DcaForm extends BaseElement {
         ?error=${error}
         .error=${error}
         asset=${this.assetIn?.symbol}
-        unit=${this.assetIn?.symbol}
         amount=${this.amountIn}>
         ${this.formAssetTemplate(this.assetIn, 'asset')}
         ${this.formAssetBalanceTemplate(this.balanceIn)}

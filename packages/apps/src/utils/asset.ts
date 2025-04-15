@@ -61,3 +61,10 @@ export function isAssetOutAllowed(
   const allowed = Array.from(unique.values()).map((asset: Asset) => asset.id);
   return new Set(allowed).has(assetOut);
 }
+
+export function isSellOnly(asset: Asset) {
+  const isLrna = asset?.id === '1' && asset?.symbol.toLowerCase() === 'h2o';
+  const isGdotShare =
+    asset?.id === '690' && asset?.symbol.toLowerCase() === '2-pool-gdot';
+  return isLrna || isGdotShare;
+}

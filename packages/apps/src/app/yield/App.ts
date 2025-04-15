@@ -564,6 +564,7 @@ export class YieldApp extends PoolApp {
               a.isSufficient &&
               !['vDOT', 'DOT'].includes(a.symbol),
           )}
+          .atokens=${this.assets.atokens}
           .balances=${this.assets.balance}
           .usdPrice=${this.assets.usdPrice}
           .assetIn=${this.dca.assetIn}
