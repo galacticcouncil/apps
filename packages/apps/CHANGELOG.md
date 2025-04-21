@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.2.0
+
+### Minor Changes
+
+- Added 1y chart interval (speed up fetch)
+
 ## 12.1.1
 
 ### Patch Changes
