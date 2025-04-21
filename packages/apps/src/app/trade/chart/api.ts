@@ -44,7 +44,7 @@ export class TradeChartApi {
       .then((response) => response.json())
       .then((data) => {
         const buckets = data.results.buckets.frames[0].data.values;
-        const bucketsNorm = this.filterOutliers(buckets);
+        const bucketsNorm = this.filterOutliers(buckets, 3.5);
         const priceDS = this.formatPriceData(bucketsNorm);
         const priceOhlcDS = [];
         const volumeDS = this.formatVolumeData(bucketsNorm);
@@ -63,26 +63,39 @@ export class TradeChartApi {
   /**
    * Filter outliers from dataset
    *
+   * Effect of changing the iqr (interquartile range) multiplier:
+   *
+   * [1.5] Standard threshold — flags typical outliers (used in box plots, common in stats)
+   * [2.0–3.0] More tolerant — only filters values that are more obviously extreme
+   * [3.5] Very loose — almost nothing gets filtered out unless it's way outside the norm
+   *
    * @param originDs - original bucket frames
-   * @param range - selected range
+   * @param iqrMultiplies - iqr multiplier (default to 1.5)
    * @returns buckets without outliers
    */
-  private filterOutliers(originDs: any) {
+  private filterOutliers(originDs: any, iqrMultiplies = 1.5) {
     const [ts, price, volume] = originDs;
-    const priceCp = price.concat();
-    priceCp.sort((a: number, b: number) => a - b);
+    const priceCp = price.slice().sort((a: number, b: number) => a - b);
 
-    /*
-     * Find a generous IQR. This is generous because if (values.length / 4)
-     * is not an int, then average the two elements on either
-     * side to find q1 is a must. Likewise for q3.
-     */
-    const q1 = priceCp[Math.floor(priceCp.length / 4)];
-    const q3 = priceCp[Math.ceil(priceCp.length * (3 / 4))];
+    const quantile = (arr: number[], q: number) => {
+      const pos = (arr.length - 1) * q;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      if (arr[base + 1] !== undefined) {
+        return arr[base] + rest * (arr[base + 1] - arr[base]);
+      } else {
+        return arr[base];
+      }
+    };
+
+    const q1 = quantile(priceCp, 0.25);
+    const q3 = quantile(priceCp, 0.75);
     const iqr = q3 - q1;
 
-    const maxValue = q3 + iqr * 1.5;
-    const minValue = q1 - iqr * 1.5;
+    const maxValue = q3 + iqr * iqrMultiplies;
+    const minValue = q1 - iqr * iqrMultiplies;
+
+    //console.log('Q1:', q1, 'Q3:', q3, 'Min:', minValue, 'Max:', maxValue);
 
     const outlierCheckFn = (x: number) => x > maxValue || x < minValue;
     const outliers = price
