@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.3.0
+
+### Minor Changes
+
+- Update outliers filtering (support custom iqr multiplier)
+
 ## 12.2.0
 
 ### Minor Changes
