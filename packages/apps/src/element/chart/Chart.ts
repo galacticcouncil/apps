@@ -153,6 +153,8 @@ export abstract class Chart extends BaseElement {
         return this._dayjs().tz(tz).subtract(1, 'week');
       case ChartRange['1m']:
         return this._dayjs().tz(tz).subtract(1, 'month');
+      case ChartRange['1y']:
+        return this._dayjs().tz(tz).subtract(1, 'year');
       default:
         return this._dayjs(INIT_DATE).tz(tz);
     }

@@ -12,5 +12,6 @@ export enum ChartRange {
   '1d' = '1d',
   '1w' = '1w',
   '1m' = '1m',
+  '1y' = '1y',
   'All' = 'All',
 }
