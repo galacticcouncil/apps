@@ -14,6 +14,8 @@ import { MINUTE_MS } from 'utils/time';
 
 import { DcaOrder } from './types';
 
+const MIN_BLOCK_PERIOD = 5;
+
 export class DcaApi extends TradeApi<DcaConfig> {
   /**
    * Get DCA sell execution info & build order tx
@@ -55,10 +57,11 @@ export class DcaApi extends TradeApi<DcaConfig> {
 
     const orderTx = (address: string, maxRetries: number): Transaction => {
       const f = freq * MINUTE_MS;
+      const blockPeriod = this.toBlockPeriod(f, blockTime);
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
         {
           owner: address,
-          period: this.toBlockPeriod(f, blockTime),
+          period: Math.max(blockPeriod, MIN_BLOCK_PERIOD),
           maxRetries,
           totalAmount: amountIn.toFixed(),
           slippage: Number(slippage) * 10000,
