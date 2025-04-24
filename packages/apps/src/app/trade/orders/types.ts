@@ -16,7 +16,6 @@ export type OrderTransaction = {
 
 export type Order = {
   id: number;
-  assets: Map<string, Asset>;
   assetIn: Asset;
   assetOut: Asset;
   nextExecution: number;

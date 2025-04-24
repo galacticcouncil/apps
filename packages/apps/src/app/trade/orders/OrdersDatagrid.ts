@@ -1,4 +1,5 @@
 import { html } from 'lit';
+import { property } from 'lit/decorators.js';
 import { choose } from 'lit/directives/choose.js';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -14,7 +15,7 @@ import { TxInfo, TxMessage } from 'signer/types';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 import { getRenderString } from 'utils/dom';
 
-import { Asset, Transaction } from '@galacticcouncil/sdk';
+import { Amount, Asset, Transaction, ZERO } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { Order } from './types';
@@ -28,6 +29,10 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
   protected account = new DatabaseController<Account>(this, AccountCursor);
 
   static styles = [Datagrid.styles, styles];
+
+  @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
+  @property({ attribute: false }) atokens: Map<string, string> = new Map([]);
+  @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
 
   notificationTemplate(mssg: string): TxMessage {
     const template = html`
@@ -79,14 +84,14 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
     const { assetIn, assetOut } = order;
     return html`
       <div class="pair">
-        ${this.assetTemplate(assetIn, order.assets)}
+        ${this.assetTemplate(assetIn)}
         <uigc-icon-arrow alt></uigc-icon-arrow>
-        ${this.assetTemplate(assetOut, order.assets)}
+        ${this.assetTemplate(assetOut)}
       </div>
     `;
   }
 
-  private assetTemplate(asset: Asset, assets: Map<string, Asset>) {
+  private assetTemplate(asset: Asset) {
     const chain = this.chain.state;
     return html`
       <gc-asset-identicon
@@ -94,7 +99,8 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
         size="small"
         .showSymbol=${false}
         .asset=${asset}
-        .assets=${assets}
+        .assets=${this.assets}
+        .atokens=${this.atokens}
         .ecosystem=${chain.ecosystem}></gc-asset-identicon>
     `;
   }
@@ -120,7 +126,15 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
   }
 
   protected getBudget(order: Order) {
-    const { decimals, symbol } = order.assetIn;
+    const { decimals, id, symbol } = order.assetIn;
+
+    if (order.total.isZero()) {
+      const balance = this.balances.get(id);
+      const remainingBudget = formatAmount(balance.amount, decimals);
+      const remainingBudgetHuman = humanizeAmount(remainingBudget);
+      return [remainingBudgetHuman, '/', '∞', symbol].join(' ');
+    }
+
     const totalBudget = formatAmount(order.total, decimals);
     const totalBudgetHuman = humanizeAmount(totalBudget);
     if (order.status?.type == 'Completed') {

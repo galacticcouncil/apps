@@ -8,7 +8,7 @@ import { BaseApp } from 'app/BaseApp';
 import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 
 import '@galacticcouncil/ui';
-import { Asset, BigNumber, bnum } from '@galacticcouncil/sdk';
+import { Amount, Asset, BigNumber, bnum } from '@galacticcouncil/sdk';
 
 import './grid';
 import './list';
@@ -37,6 +37,8 @@ export class TradeOrders extends BaseApp {
   };
 
   @property({ attribute: false }) assets: Map<string, Asset> = new Map([]);
+  @property({ attribute: false }) atokens: Map<string, string> = new Map([]);
+  @property({ attribute: false }) balances: Map<string, Amount> = new Map([]);
 
   @state() orders = {
     list: [] as Order[],
@@ -307,6 +309,9 @@ export class TradeOrders extends BaseApp {
     return html`
       <gc-orders-grid
         class="orders"
+        .assets=${this.assets}
+        .atokens=${this.atokens}
+        .balances=${this.balances}
         .defaultData=${filteredData}
         @order-click=${this.onOrderClick}>
         <slot slot="header" name="header"></slot>
@@ -321,6 +326,9 @@ export class TradeOrders extends BaseApp {
     return html`
       <gc-orders-list
         class="orders"
+        .assets=${this.assets}
+        .atokens=${this.atokens}
+        .balances=${this.balances}
         .defaultData=${filteredData}
         @order-click=${this.onOrderClick}>
         <slot slot="header" name="header"></slot>

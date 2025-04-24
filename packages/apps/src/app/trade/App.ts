@@ -1239,6 +1239,8 @@ export class TradeApp extends PoolApp {
         <gc-trade-orders
           class="orders"
           .assets=${this.assets.registry}
+          .atokens=${this.assets.atokens}
+          .balances=${this.assets.balance}
           .indexerUrl=${this.indexerUrl}
           .grafanaUrl=${this.grafanaUrl}
           .grafanaDsn=${this.grafanaDsn}
