@@ -740,32 +740,6 @@ export class TradeApp extends PoolApp {
     this.updateAmountIn(effectiveIn);
   }
 
-  private async updateMaxAmountOut(asset: Asset) {
-    const account = this.account.state;
-    const feeAssetId = await this.paymentApi.getPaymentFeeAsset(
-      account?.address,
-    );
-
-    const { assetOut, balanceOut, transactionFee } = this.trade;
-
-    if (asset.id !== feeAssetId) {
-      const { amount, decimals } = balanceOut;
-      const amountOut = formatAmount(amount, decimals);
-      this.updateAmountOut(amountOut);
-      return;
-    }
-
-    const eb = calculateEffectiveBalance(
-      this.trade.balanceOut.amount,
-      this.trade.assetOut.symbol,
-      transactionFee.amount,
-      transactionFee.asset.symbol,
-      bnum(transactionFee.asset.existentialDeposit),
-    );
-    const effectiveOut = formatAmount(eb, assetOut.decimals);
-    this.updateAmountOut(effectiveOut);
-  }
-
   notificationTemplate(trade: TradeState, tKey: string): TxMessage {
     const { amountIn, amountOut, assetIn, assetOut, type } = this.trade;
     const isSell: boolean = type == TradeType.Sell;
@@ -972,8 +946,9 @@ export class TradeApp extends PoolApp {
 
   protected onAssetMaxClick({ detail: { id, asset } }) {
     this.asset.active = asset.symbol;
-    id == 'assetIn' && this.updateMaxAmountIn(asset);
-    id == 'assetOut' && this.updateMaxAmountOut(asset);
+    if (id === 'assetIn') {
+      this.updateMaxAmountIn(asset);
+    }
   }
 
   protected onAssetSelectorClick({ detail }: CustomEvent) {

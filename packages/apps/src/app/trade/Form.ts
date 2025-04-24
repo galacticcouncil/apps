@@ -523,7 +523,7 @@ export class TradeForm extends BaseElement {
     return this.formAssetLoadingTemplate();
   }
 
-  formAssetBalanceTemplate(id: string, asset: Asset, balance: Amount) {
+  formAssetBalanceMaxTemplate(id: string, asset: Asset, balance: Amount) {
     return html`
       <uigc-asset-balance
         slot="balance"
@@ -534,6 +534,16 @@ export class TradeForm extends BaseElement {
         @asset-max-click=${() => {
           this.twapEnabled = false;
         }}></uigc-asset-balance>
+    `;
+  }
+
+  formAssetBalanceTemplate(balance: Amount) {
+    return html`
+      <uigc-asset-balance
+        slot="balance"
+        .balance=${balance && formatAmount(balance.amount, balance.decimals)}
+        .visible=${false}
+        .formatter=${humanizeAmount}></uigc-asset-balance>
     `;
   }
 
@@ -590,7 +600,7 @@ export class TradeForm extends BaseElement {
           this.twapEnabled = false;
         }}>
         ${this.formAssetTemplate(this.assetIn)}
-        ${this.formAssetBalanceTemplate(
+        ${this.formAssetBalanceMaxTemplate(
           'assetIn',
           this.assetIn,
           this.balanceIn,
@@ -628,11 +638,7 @@ export class TradeForm extends BaseElement {
           this.twapEnabled = false;
         }}>
         ${this.formAssetTemplate(this.assetOut)}
-        ${this.formAssetBalanceTemplate(
-          'assetOut',
-          this.assetOut,
-          this.balanceOut,
-        )}
+        ${this.formAssetBalanceTemplate(this.balanceOut)}
       </uigc-asset-transfer>
     `;
   }
