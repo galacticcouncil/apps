@@ -1,5 +1,15 @@
 # @galacticcouncil/apps
 
+## 12.3.1
+
+### Patch Changes
+
+- Remove MAX button from "You Get" (Buy)
+
+- Fix: Rolling DCA budget breakdown
+- Fix: Atokens order grid icons
+- Fix: Min DCA period default to 5
+
 ## 12.3.0
 
 ### Minor Changes
