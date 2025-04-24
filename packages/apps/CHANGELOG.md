@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.4.0
+
+### Minor Changes
+
+- cc60eef: Update swap form UI
+
 ## 12.3.1
 
 ### Patch Changes
