@@ -26,6 +26,7 @@ function initApi(
   ecosystem: Ecosystem,
   onReady: (api: ApiPromise, router: TradeRouter) => void,
   isTestnet = false,
+  unifiedAddressFormat = false,
 ) {
   logFmt('API ready ✅');
   info(api);
@@ -40,6 +41,7 @@ function initApi(
       api: api,
       ecosystem: ecosystem,
       isTestnet: isTestnet,
+      unifiedAddressFormat: unifiedAddressFormat,
       poolService: poolService,
       router: router,
     });
@@ -53,11 +55,12 @@ export async function createApi(
   onReady: (api: ApiPromise, router: TradeRouter) => void,
   onError: (error: unknown) => void,
   isTestnet = false,
+  unifiedAddressFormat = false,
 ) {
   try {
     const apiPool = SubstrateApis.getInstance();
     const api = await apiPool.api(apiUrl);
-    initApi(api, ecosystem, onReady, isTestnet);
+    initApi(api, ecosystem, onReady, isTestnet, unifiedAddressFormat);
   } catch (error) {
     onError(error);
   }
@@ -91,5 +94,6 @@ export async function createChainCtx(
     router: router,
     ecosystem: ecosystem,
     isTestnet: false,
+    unifiedAddressFormat: false,
   };
 }

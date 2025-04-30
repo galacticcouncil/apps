@@ -17,6 +17,7 @@ export abstract class BaseApp extends BaseElement {
   @property({ type: String }) accountName: string = null;
   @property({ type: String }) ecosystem: Ecosystem = Ecosystem.Polkadot;
   @property({ type: Boolean }) isTestnet: boolean = false;
+  @property({ type: Boolean }) unifiedAddressFormat: boolean = true;
   @property({ type: String }) grafanaUrl: string = null;
   @property({ type: Number }) grafanaDsn: number = null;
   @property({ type: String }) indexerUrl: string = null;

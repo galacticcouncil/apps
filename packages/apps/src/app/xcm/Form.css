@@ -85,3 +85,10 @@
   height: 16px;
   margin-right: 10px;
 }
+
+.switch-title {
+  font-size: 14px;
+  color: var(--hex-white);
+  line-height: 1.2;
+  font-weight: 700;
+}
