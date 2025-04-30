@@ -16,6 +16,7 @@ export interface Chain {
   api: ApiPromise;
   ecosystem: Ecosystem;
   isTestnet: boolean;
+  unifiedAddressFormat: boolean;
   poolService: PoolService;
   router: TradeRouter;
 }
