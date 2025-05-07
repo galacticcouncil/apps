@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.5.0
+
+### Minor Changes
+
+- Support 7.x sdk (aave fixes)
+
 ## 12.4.0
 
 ### Minor Changes
