@@ -3,8 +3,8 @@ import {
   Asset,
   BigNumber,
   Humanizer,
+  SubstrateTransaction,
   Trade,
-  Transaction,
 } from '@galacticcouncil/sdk';
 import { DAY_MS, HOUR_MS, WEEK_MS } from '../../utils/time';
 
@@ -62,6 +62,6 @@ export interface DcaOrder extends Humanizer {
   frequencyMin: number;
   frequencyOpt: number;
   tradesNo: number;
-  toTx(address: string, maxRetries: number): Transaction;
+  toTx(address: string, maxRetries: number): SubstrateTransaction;
   toHuman(): any;
 }

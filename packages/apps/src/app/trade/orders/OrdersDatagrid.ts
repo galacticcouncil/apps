@@ -15,7 +15,7 @@ import { TxInfo, TxMessage } from 'signer/types';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 import { getRenderString } from 'utils/dom';
 
-import { Amount, Asset, Transaction, ZERO } from '@galacticcouncil/sdk';
+import { Amount, Asset, SubstrateTransaction } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { Order } from './types';
@@ -44,7 +44,7 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
     } as TxMessage;
   }
 
-  processTx(account: Account, transaction: Transaction) {
+  processTx(account: Account, transaction: SubstrateTransaction) {
     const notification = {
       processing: this.notificationTemplate('Terminating DCA schedule'),
       success: this.notificationTemplate('DCA schedule terminated'),
@@ -76,7 +76,7 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
       get: (): SubmittableExtrinsic => {
         return tx;
       },
-    } as Transaction;
+    } as SubstrateTransaction;
     this.processTx(account, transaction);
   }
 

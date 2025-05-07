@@ -1,9 +1,8 @@
 import {
   type Asset,
   type Trade,
-  buildRoute,
   BigNumber,
-  Transaction,
+  SubstrateTransaction,
 } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -55,7 +54,10 @@ export class DcaApi extends TradeApi<DcaConfig> {
 
     const amountInPerTrade = amountIn.dividedBy(tradeNo).decimalPlaces(0, 1);
 
-    const orderTx = (address: string, maxRetries: number): Transaction => {
+    const orderTx = (
+      address: string,
+      maxRetries: number,
+    ): SubstrateTransaction => {
       const f = freq * MINUTE_MS;
       const blockPeriod = this.toBlockPeriod(f, blockTime);
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
@@ -71,7 +73,7 @@ export class DcaApi extends TradeApi<DcaConfig> {
               assetOut: assetOut.id,
               amountIn: amountInPerTrade.toFixed(),
               minAmountOut: '0',
-              route: buildRoute(swaps),
+              route: this._txUtils.buildRoute(swaps),
             },
           },
         },
@@ -83,7 +85,7 @@ export class DcaApi extends TradeApi<DcaConfig> {
         get: (): SubmittableExtrinsic => {
           return tx;
         },
-      } as Transaction;
+      } as SubstrateTransaction;
     };
 
     return {

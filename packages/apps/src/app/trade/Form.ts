@@ -6,18 +6,6 @@ import { classMap } from 'lit/directives/class-map.js';
 
 import * as i18n from 'i18next';
 
-import { BaseElement } from 'element/BaseElement';
-import {
-  Account,
-  AccountCursor,
-  DatabaseController,
-  Ecosystem,
-  TradeConfig,
-  TradeConfigCursor,
-} from 'db';
-import { baseStyles, formStyles } from 'styles';
-import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
-
 import {
   Amount,
   Asset,
@@ -29,6 +17,18 @@ import {
   bnum,
   calculateDiffToRef,
 } from '@galacticcouncil/sdk';
+
+import { BaseElement } from 'element/BaseElement';
+import {
+  Account,
+  AccountCursor,
+  DatabaseController,
+  Ecosystem,
+  TradeConfig,
+  TradeConfigCursor,
+} from 'db';
+import { baseStyles, formStyles } from 'styles';
+import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
 
 import { TransactionFee, TwapOrder, TwapError } from './types';
 

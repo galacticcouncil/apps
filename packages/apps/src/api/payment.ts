@@ -6,9 +6,9 @@ import {
   bnum,
   TradeRouter,
   ZERO,
-  Transaction,
   SYSTEM_ASSET_ID,
   SYSTEM_ASSET_DECIMALS,
+  SubstrateTransaction,
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 
@@ -41,7 +41,7 @@ export class PaymentApi {
   }
 
   async getPaymentInfo(
-    transaction: Transaction,
+    transaction: SubstrateTransaction,
     account: Account,
   ): Promise<RuntimeDispatchInfo> {
     const address = this.getSafeAddress(account?.address);

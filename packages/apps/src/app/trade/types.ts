@@ -3,9 +3,9 @@ import {
   Asset,
   BigNumber,
   Humanizer,
+  SubstrateTransaction,
   Trade,
   TradeType,
-  Transaction,
 } from '@galacticcouncil/sdk';
 
 export enum TradeTab {
@@ -79,7 +79,7 @@ export interface TwapOrder extends Humanizer {
   tradeFee: BigNumber;
   error: TwapError;
   estimateFee(txfee: BigNumber): BigNumber;
-  toTx(address: string, maxRetries: number): Transaction;
+  toTx(address: string, maxRetries: number): SubstrateTransaction;
   toHuman(): any;
 }
 

@@ -13,6 +13,7 @@ import { isApprove } from 'utils/erc20';
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
 
 import { TxInfo } from './types';
+import { Transaction } from '@galacticcouncil/sdk';
 
 export async function signAndSend(
   chain: Parachain,
@@ -98,7 +99,8 @@ export async function signAndSendEvm(
       to: DISPATCH_ADDRESS as `0x${string}`,
     });
   } else {
-    const call = transaction.get<EvmCall>();
+    const tx = transaction as Transaction<EvmCall, undefined>;
+    const call = tx.get();
     const { abi, data, from, to, value } = call;
     const payload = decodeFunctionData({
       abi: JSON.parse(abi),

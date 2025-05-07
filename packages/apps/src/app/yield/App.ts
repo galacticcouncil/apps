@@ -22,6 +22,7 @@ import {
   Transaction,
   ONE,
   SYSTEM_ASSET_ID,
+  SubstrateTransaction,
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import { Parachain } from '@galacticcouncil/xcm-core';
@@ -300,7 +301,7 @@ export class YieldApp extends PoolApp {
     } as TxMessage;
   }
 
-  private processTx(account: Account, transaction: Transaction) {
+  private processTx(account: Account, transaction: SubstrateTransaction) {
     const { amountIn, assetIn, assetOut, order } = this.dca;
     const orderHuman = order.toHuman();
 

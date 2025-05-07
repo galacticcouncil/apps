@@ -1,9 +1,8 @@
 import {
   type Asset,
   type Trade,
-  buildRoute,
   BigNumber,
-  Transaction,
+  SubstrateTransaction,
 } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -69,7 +68,10 @@ export class TwapApi extends TradeApi<TradeConfig> {
       tradeError = TwapError.OrderImpactTooBig;
     }
 
-    const orderTx = (address: string, maxRetries: number): Transaction => {
+    const orderTx = (
+      address: string,
+      maxRetries: number,
+    ): SubstrateTransaction => {
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
         {
           owner: address,
@@ -83,7 +85,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
               assetOut: assetOut.id,
               amountIn: bestSell.amountIn.toFixed(),
               minAmountOut: minAmountOut.amount.toFixed(),
-              route: buildRoute(bestSell.swaps),
+              route: this._txUtils.buildRoute(bestSell.swaps),
             },
           },
         },
@@ -95,7 +97,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
         get: (): SubmittableExtrinsic => {
           return tx;
         },
-      } as Transaction;
+      } as SubstrateTransaction;
     };
 
     const estimateFee = (fee: BigNumber) => {
@@ -186,7 +188,10 @@ export class TwapApi extends TradeApi<TradeConfig> {
       tradeError = TwapError.OrderTooBig;
     }
 
-    const orderTx = (address: string, maxRetries: number): Transaction => {
+    const orderTx = (
+      address: string,
+      maxRetries: number,
+    ): SubstrateTransaction => {
       const tx: SubmittableExtrinsic = this._api.tx.dca.schedule(
         {
           owner: address,
@@ -200,7 +205,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
               assetOut: assetOut.id,
               amountOut: bestBuy.amountOut.toString(),
               maxAmountIn: maxAmountIn.amount.toFixed(),
-              route: buildRoute(bestBuy.swaps),
+              route: this._txUtils.buildRoute(bestBuy.swaps),
             },
           },
         },
@@ -212,7 +217,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
         get: (): SubmittableExtrinsic => {
           return tx;
         },
-      } as Transaction;
+      } as SubstrateTransaction;
     };
 
     const estimateFee = (txfee: BigNumber) => {

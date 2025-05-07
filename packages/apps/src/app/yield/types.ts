@@ -2,8 +2,8 @@ import {
   Asset,
   BigNumber,
   Humanizer,
+  SubstrateTransaction,
   Trade,
-  Transaction,
 } from '@galacticcouncil/sdk';
 import { DAY_MS, MONTH_MS, WEEK_MS } from '../../utils/time';
 
@@ -70,6 +70,6 @@ export interface DcaYieldOrder extends Humanizer {
   amountIn: BigNumber;
   amountInYield: BigNumber;
   tradesNo: number;
-  toTx(address: string, maxRetries: number, trade: Trade): Transaction;
+  toTx(address: string, maxRetries: number, trade: Trade): SubstrateTransaction;
   toHuman(): any;
 }

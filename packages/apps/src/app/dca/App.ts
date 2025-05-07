@@ -27,6 +27,7 @@ import {
   ONE,
   SYSTEM_ASSET_ID,
   Trade,
+  SubstrateTransaction,
 } from '@galacticcouncil/sdk';
 
 import './Form';
@@ -353,7 +354,7 @@ export class DcaApp extends PoolApp {
     } as TxMessage;
   }
 
-  private processTx(account: Account, transaction: Transaction) {
+  private processTx(account: Account, transaction: SubstrateTransaction) {
     const notification = {
       processing: this.notificationTemplate(this.dca, 'notify.processing'),
       success: this.notificationTemplate(this.dca, 'notify.success'),

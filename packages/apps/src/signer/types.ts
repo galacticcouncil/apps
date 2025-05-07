@@ -1,5 +1,6 @@
 import { TemplateResult } from 'lit-html';
-import { Transaction } from '@galacticcouncil/sdk';
+import { SubstrateTransaction, Transaction } from '@galacticcouncil/sdk';
+import { Call, DryRunResult } from '@galacticcouncil/xcm-sdk';
 
 import { Account } from 'db';
 
@@ -33,7 +34,9 @@ export type TxNotification = {
 
 export type TxInfo<TxMeta extends object = never> = {
   account: Account;
-  transaction: Transaction;
+  transaction:
+    | SubstrateTransaction
+    | Transaction<Call, DryRunResult | undefined>;
   notification: TxNotification;
   meta?: Record<string, string> | TxMeta;
 };

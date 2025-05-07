@@ -1,7 +1,9 @@
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { Cursor } from '@thi.ng/atom';
+
 import short from 'short-uuid';
+
+import { Cursor } from '@thi.ng/atom';
 
 import {
   AccountCursor,

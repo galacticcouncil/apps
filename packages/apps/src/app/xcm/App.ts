@@ -46,6 +46,7 @@ import {
 import {
   Wallet,
   Call,
+  DryRunResult,
   EvmCall,
   TransferBuilder,
 } from '@galacticcouncil/xcm-sdk';
@@ -507,10 +508,10 @@ export class XcmApp extends PoolApp {
 
   processTx(
     account: Account,
-    transaction: Transaction,
+    transaction: Transaction<Call, DryRunResult | undefined>,
     transfer: TransferState,
   ) {
-    const call = transaction.get<Call>();
+    const call = transaction.get();
     const notification = isApprove(call)
       ? this.notificationApproveTemplate(transfer)
       : this.notificationTransferTemplate(transfer);
@@ -1444,10 +1445,9 @@ export class XcmApp extends PoolApp {
     const transaction = {
       hex: call.data,
       name: 'xcm',
-      get: (): Call => {
-        return call;
-      },
-    } as Transaction;
+      get: () => call,
+      dryRun: call.dryRun,
+    } as Transaction<Call, DryRunResult | undefined>;
     this.processTx(account, transaction, this.xtransfer);
   }
 
