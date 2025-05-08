@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.5.1
+
+### Patch Changes
+
+- Fix gdot warning & spacer
+
 ## 12.5.0
 
 ### Minor Changes
