@@ -908,7 +908,7 @@ export class TradeForm extends BaseElement {
       'confirm-swap': optionsClasses.show,
     };
     const swapBottomSpacerClasses = {
-      'swap-bottom-spacer': optionsClasses.show,
+      'swap-bottom-spacer': this.hasTradeRoute(),
     };
     return html`
       <slot name="header"></slot>

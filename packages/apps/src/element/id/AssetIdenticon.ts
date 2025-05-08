@@ -77,6 +77,7 @@ export class AssetIdenticon extends LitElement {
     }
 
     const underlyingAssetId = this.atokens.get(asset.id);
+    const isAToken = !!underlyingAssetId && asset.id !== '69';
 
     const chain =
       this.ecosystem === Ecosystem.Polkadot
@@ -90,7 +91,7 @@ export class AssetIdenticon extends LitElement {
           ecosystem=${this.ecosystem.toLowerCase()}
           chain=${chain}
           chainOrigin=${parachainEntry.parachain}
-          .isAToken=${!!underlyingAssetId}
+          .isAToken=${isAToken}
           .asset=${id}>
           ${this.iconBadgeTemplate(asset)}
         </uigc-asset-id>
@@ -102,7 +103,7 @@ export class AssetIdenticon extends LitElement {
         slot="icon"
         ecosystem=${this.ecosystem.toLowerCase()}
         chain=${chain}
-        .isAToken=${!!underlyingAssetId}
+        .isAToken=${isAToken}
         .asset=${underlyingAssetId || id}>
         ${this.iconBadgeTemplate(asset)}
       </uigc-asset-id>

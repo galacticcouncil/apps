@@ -162,10 +162,7 @@ export abstract class PoolApp extends BaseApp {
       .filter((p) => p.type === PoolType.Aave)
       .reduce((acc, p) => {
         const [reserve, atoken] = p.tokens;
-        if (atoken.id !== '69') {
-          // TODO: Blacklist
-          acc.set(atoken.id, reserve.id);
-        }
+        acc.set(atoken.id, reserve.id);
         return acc;
       }, new Map<string, string>());
 
