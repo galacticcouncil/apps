@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.6.0
+
+### Minor Changes
+
+- Signer metadata update
+
 ## 12.5.1
 
 ### Patch Changes

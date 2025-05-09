@@ -15,7 +15,7 @@ import { WatchBlockNumberReturnType } from 'viem';
 
 import { PoolApp } from 'app/PoolApp';
 import { Account, Ecosystem, XStoreUtils, XItemCursor, XItem } from 'db';
-import { TxInfo, TxMessage, TxNotification } from 'signer/types';
+import { TxInfo, TxMessage, TxNotification, XcmMetadata } from 'signer/types';
 import { baseStyles, headerStyles, basicLayoutStyles } from 'styles';
 import { convertAddressSS58, isValidAddress } from 'utils/account';
 import { useH160AddressSpace, useSs58AddressSpace } from 'utils/chain';
@@ -23,6 +23,7 @@ import { isApprove, parseSpender, parseAmount } from 'utils/erc20';
 import { convertFromH160, convertToH160, isEvmAccount } from 'utils/evm';
 import { configureExternal } from 'utils/external';
 import { convertToSol } from 'utils/solana';
+import { updateQueryParams } from 'utils/url';
 import {
   EVM_PROVIDERS,
   SOLANA_PROVIDERS,
@@ -77,7 +78,6 @@ import {
 } from './types';
 
 import styles from './App.css';
-import { updateQueryParams } from 'utils/url';
 
 const Tag = xtags.Tag;
 
@@ -537,11 +537,11 @@ export class XcmApp extends PoolApp {
             srcData.destinationFee.decimals,
           ),
           dstChainFeeSymbol: srcData.destinationFee.originSymbol,
-          tags: tags.join(','),
+          tags: tags,
         },
-      } as TxInfo,
+      } as TxInfo<XcmMetadata>,
     };
-    this.dispatchEvent(new CustomEvent<TxInfo>('gc:xcm:new', options));
+    this.dispatchEvent(new CustomEvent('gc:xcm:new', options));
   }
 
   private async validateTransfer() {

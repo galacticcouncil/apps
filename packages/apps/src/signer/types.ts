@@ -1,5 +1,5 @@
 import { TemplateResult } from 'lit-html';
-import { SubstrateTransaction, Transaction } from '@galacticcouncil/sdk';
+import { Asset, SubstrateTransaction, Transaction } from '@galacticcouncil/sdk';
 import { Call, DryRunResult } from '@galacticcouncil/xcm-sdk';
 
 import { Account } from 'db';
@@ -32,11 +32,46 @@ export type TxNotification = {
   failure: TxMessage;
 };
 
-export type TxInfo<TxMeta extends object = never> = {
+export type TxType =
+  | SubstrateTransaction
+  | Transaction<Call, DryRunResult | undefined>;
+
+export type TxDetail = {
+  assetIn: Asset;
+  assetOut: string;
+  amount: string;
+  isWithdraw: boolean;
+};
+
+export type TxMetadata = TradeMetadata | XcmMetadata;
+
+export type TxInfo<T extends TxMetadata = never> = {
   account: Account;
-  transaction:
-    | SubstrateTransaction
-    | Transaction<Call, DryRunResult | undefined>;
+  detail: TxDetail;
   notification: TxNotification;
-  meta?: Record<string, string> | TxMeta;
+  transaction: TxType;
+  meta?: T;
+};
+
+export type TradeMetadata = {
+  amountIn: string;
+  assetIn: Asset;
+  assetOut: Asset;
+  isWithdraw: boolean;
+};
+
+export type YieldMetadata = TradeMetadata & {
+  amountInYield: string;
+  amountInFrom: string;
+};
+
+export type XcmMetadata = {
+  srcChain: string;
+  srcChainFee: string;
+  srcChainFeeBalance: string;
+  srcChainFeeSymbol: string;
+  dstChain: string;
+  dstChainFee: string;
+  dstChainFeeSymbol: string;
+  tags: string[];
 };

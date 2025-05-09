@@ -8,7 +8,6 @@ import { i18n } from 'localization';
 
 import '@galacticcouncil/ui';
 import {
-  bnum,
   findNestedKey,
   scale,
   Asset,
@@ -36,7 +35,7 @@ import {
   TradeConfig,
   TradeConfigCursor,
 } from 'db';
-import { TxInfo, TxMessage } from 'signer/types';
+import { TradeMetadata, TxInfo, TxMessage } from 'signer/types';
 import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
 import {
   exchangeNative,
@@ -45,7 +44,6 @@ import {
   MIN_NATIVE_AMOUNT,
   toBn,
 } from 'utils/amount';
-import { calculateEffectiveBalance } from 'utils/balance';
 import { isEvmAccount } from 'utils/evm';
 import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
 import { updateQueryParams } from 'utils/url';
@@ -752,11 +750,15 @@ export class TradeApp extends PoolApp {
     transaction: SubstrateTransaction,
     trade: TradeState,
   ) {
+    const { amountIn, assetIn, assetOut } = trade;
+    const isWithdraw = trade.trade.swaps[0].isWithdraw();
+
     const notification = {
       processing: this.notificationTemplate(trade, 'notify.processing'),
       success: this.notificationTemplate(trade, 'notify.success'),
       failure: this.notificationTemplate(trade, 'notify.error'),
     };
+
     const options = {
       bubbles: true,
       composed: true,
@@ -764,9 +766,15 @@ export class TradeApp extends PoolApp {
         account: account,
         transaction: transaction,
         notification: notification,
-      } as TxInfo,
+        meta: {
+          amountIn: amountIn,
+          assetIn: assetIn,
+          assetOut: assetOut,
+          isWithdraw: isWithdraw,
+        },
+      } as TxInfo<TradeMetadata>,
     };
-    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:new', options));
+    this.dispatchEvent(new CustomEvent('gc:tx:new', options));
   }
 
   private async onSwapClick() {
@@ -781,6 +789,7 @@ export class TradeApp extends PoolApp {
     const [firstSwap] = swaps;
 
     const balance = this.assets.balance.get(assetIn.id);
+    const isWithdraw = firstSwap.isWithdraw();
     const isMax = trade.amountIn.isGreaterThanOrEqualTo(
       balance.amount.minus(5),
     );
@@ -803,7 +812,7 @@ export class TradeApp extends PoolApp {
     txResult = await tx.dryRun(address);
 
     const shouldWithdrawAndSell =
-      (txResult.executionResult.isErr || isMax) && firstSwap.isWithdraw();
+      isWithdraw && (txResult.executionResult.isErr || isMax);
 
     if (type === TradeType.Sell && shouldWithdrawAndSell) {
       tx = await this.txUtils.buildWithdrawAndSellReserveTx(
@@ -847,13 +856,16 @@ export class TradeApp extends PoolApp {
     account: Account,
     transaction: SubstrateTransaction,
     order: TwapOrder,
-    asset: Asset,
   ) {
+    const { amountIn, assetIn, assetOut, trade } = this.trade;
+    const isWithdraw = trade.swaps[0].isWithdraw();
+
     const notification = {
-      processing: this.twapNotificationTemplate(order, asset, 'submitted'),
-      success: this.twapNotificationTemplate(order, asset, 'placed'),
-      failure: this.twapNotificationTemplate(order, asset, 'failed'),
+      processing: this.twapNotificationTemplate(order, assetIn, 'submitted'),
+      success: this.twapNotificationTemplate(order, assetIn, 'placed'),
+      failure: this.twapNotificationTemplate(order, assetIn, 'failed'),
     };
+
     const options = {
       bubbles: true,
       composed: true,
@@ -861,9 +873,15 @@ export class TradeApp extends PoolApp {
         account: account,
         transaction: transaction,
         notification: notification,
-      } as TxInfo,
+        meta: {
+          amountIn: amountIn,
+          assetIn: assetIn,
+          assetOut: assetOut,
+          isWithdraw: isWithdraw,
+        },
+      } as TxInfo<TradeMetadata>,
     };
-    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
+    this.dispatchEvent(new CustomEvent('gc:tx:scheduleDca', options));
   }
 
   private async onTwapClick() {
@@ -871,10 +889,9 @@ export class TradeApp extends PoolApp {
     const { maxRetries } = this.tradeConfig.state;
 
     if (account) {
-      const { assetIn } = this.trade;
       const { order } = this.twap;
       const transaction = order.toTx(account.address, maxRetries);
-      this.processTwap(account, transaction, order, assetIn);
+      this.processTwap(account, transaction, order);
     }
   }
 

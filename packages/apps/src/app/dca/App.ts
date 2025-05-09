@@ -3,14 +3,13 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { cache } from 'lit/directives/cache.js';
 
 import { i18n } from 'localization';
 import { translation } from './locales';
 
 import { PoolApp } from 'app/PoolApp';
 import { Account, DatabaseController, DcaConfig, DcaConfigCursor } from 'db';
-import { TxInfo, TxMessage } from 'signer/types';
+import { TradeMetadata, TxInfo, TxMessage } from 'signer/types';
 import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
 import { exchangeNative, humanizeAmount } from 'utils/amount';
 import { isSellOnly } from 'utils/asset';
@@ -367,9 +366,9 @@ export class DcaApp extends PoolApp {
         account: account,
         transaction: transaction,
         notification: notification,
-      } as TxInfo,
+      } as TxInfo<TradeMetadata>,
     };
-    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
+    this.dispatchEvent(new CustomEvent('gc:tx:scheduleDca', options));
   }
 
   private async onSchedule() {

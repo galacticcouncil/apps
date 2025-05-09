@@ -59,7 +59,7 @@ export abstract class OrdersDatagrid extends Datagrid<Order> {
         notification: notification,
       } as TxInfo,
     };
-    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:terminateDca', options));
+    this.dispatchEvent(new CustomEvent('gc:tx:terminateDca', options));
   }
 
   private async terminate(position: Order) {

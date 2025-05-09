@@ -9,7 +9,7 @@ import { translation } from './locales';
 
 import { PoolApp } from 'app/PoolApp';
 import { Account, DatabaseController, DcaConfig, DcaConfigCursor } from 'db';
-import { TxInfo, TxMessage } from 'signer/types';
+import { TxInfo, TxMessage, YieldMetadata } from 'signer/types';
 import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
 import { exchangeNative, formatAmount, humanizeAmount } from 'utils/amount';
 
@@ -19,7 +19,6 @@ import {
   Amount,
   Asset,
   scale,
-  Transaction,
   ONE,
   SYSTEM_ASSET_ID,
   SubstrateTransaction,
@@ -322,12 +321,12 @@ export class YieldApp extends PoolApp {
           amountIn: humanizeAmount(orderHuman.amountIn),
           amountInYield: humanizeAmount(orderHuman.amountInYield),
           amountInFrom: humanizeAmount(amountIn),
-          assetIn: assetIn.symbol,
-          assetOut: assetOut.symbol,
+          assetIn: assetIn,
+          assetOut: assetOut,
         },
-      } as TxInfo,
+      } as TxInfo<YieldMetadata>,
     };
-    this.dispatchEvent(new CustomEvent<TxInfo>('gc:tx:scheduleDca', options));
+    this.dispatchEvent(new CustomEvent('gc:tx:scheduleDca', options));
   }
 
   private async onSchedule() {
