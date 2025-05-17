@@ -28,7 +28,12 @@ export class TimeApi {
     return now.toNumber();
   }
 
-  async getBlockTime(blockNumberSub = 100000): Promise<number> {
+  async getBlockTime(): Promise<number> {
+    const time = this._api.consts.aura.slotDuration;
+    return time.toNumber();
+  }
+
+  async getBlockTimeV1(blockNumberSub = 100000): Promise<number> {
     const [now, block] = await Promise.all([
       await this._api.query.timestamp.now(),
       await this._api.query.system.number(),
@@ -39,6 +44,7 @@ export class TimeApi {
     const apiAt = await this._api.at(blockHashAt);
     const apiAtTs = await apiAt.query.timestamp.now();
     const diff = now.sub(apiAtTs);
+    console.log(diff.divn(blockNumberSub).toNumber());
     return diff.divn(blockNumberSub).toNumber();
   }
 
