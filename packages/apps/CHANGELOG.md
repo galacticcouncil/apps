@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.7.0
+
+### Minor Changes
+
+- Use aura slot for block time
+
 ## 12.6.0
 
 ### Minor Changes
