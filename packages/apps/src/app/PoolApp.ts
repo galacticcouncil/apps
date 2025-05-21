@@ -111,6 +111,7 @@ export abstract class PoolApp extends BaseApp {
           () => this._init(),
           () => {},
           this.isTestnet,
+          this.unifiedAddressFormat,
         );
     }
   }

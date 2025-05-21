@@ -41,6 +41,7 @@ export class XcmForm extends LitElement {
   @property({ type: Boolean }) isProcessing = false;
   @property({ type: Boolean }) isApproving = false;
   @property({ type: Boolean }) isApprove = false;
+  @property({ type: Boolean }) cexWarningAccepted = false;
   @property({ type: Boolean }) isSupportedWallet = null;
   @property({ type: String }) address = null;
   @property({ type: String }) amount = null;
@@ -62,8 +63,23 @@ export class XcmForm extends LitElement {
   static styles = [baseStyles, formStyles, styles];
 
   private isDisabled(): boolean {
+    const cexWarningAccepted = this.isCexWarningVisible()
+      ? this.cexWarningAccepted
+      : true;
+
+    return (
+      !this.isChainConnected() ||
+      !cexWarningAccepted ||
+      this.isProcessing ||
+      this.isApproving
+    );
+  }
+
+  private isCexWarningVisible(): boolean {
     const account = this.account.state;
-    return !this.isChainConnected() || this.isProcessing || this.isApproving;
+    const isValidAddr = this.isValidAddress();
+    const isSameAddr = isSameAddress(this.address, account?.address);
+    return account && isValidAddr && !isSameAddr;
   }
 
   private isChainConnected(): boolean {
@@ -484,10 +500,11 @@ export class XcmForm extends LitElement {
     `;
   }
 
+  toggleCexSwitch() {
+    this.cexWarningAccepted = !this.cexWarningAccepted;
+  }
+
   render() {
-    const account = this.account.state;
-    const isValidAddr = this.isValidAddress();
-    const isSameAddr = isSameAddress(this.address, account?.address);
     const hasTransferError = Object.keys(this.error).some((e) =>
       e.startsWith('transfer.'),
     );
@@ -504,7 +521,12 @@ export class XcmForm extends LitElement {
     const cexWarnClasses = {
       alert: true,
       warning: true,
-      show: account && isValidAddr && !isSameAddr,
+      show: this.isCexWarningVisible(),
+    };
+    const cexSwitchClasses = {
+      alert: true,
+      info: true,
+      show: this.isCexWarningVisible(),
     };
     return html`
       <slot name="header"></slot>
@@ -548,6 +570,18 @@ export class XcmForm extends LitElement {
       <div class=${classMap(cexWarnClasses)}>
         <uigc-icon-warning></uigc-icon-warning>
         <span>${i18n.t('warning.cex')}</span>
+      </div>
+      <div class=${classMap(cexSwitchClasses)}>
+        <uigc-switch
+          size="medium"
+          .checked=${this.cexWarningAccepted}
+          @click=${this.toggleCexSwitch}></uigc-switch>
+        <div>
+          <p class="switch-title" variant="section">
+            ${i18n.t('switch.cex.title')}
+          </p>
+          <span>${i18n.t('switch.cex.description')}</span>
+        </div>
       </div>
       <div class=${classMap(errWarnClasses)}>
         <uigc-icon-error></uigc-icon-error>

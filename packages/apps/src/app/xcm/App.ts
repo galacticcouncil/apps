@@ -607,7 +607,10 @@ export class XcmApp extends PoolApp {
 
   private prefillNative(address: string, chain: AnyChain, ss58prefix?: number) {
     if (this.hasNativeSupport(chain)) {
-      return convertAddressSS58(address, ss58prefix ? ss58prefix : undefined);
+      return convertAddressSS58(
+        address,
+        Number.isFinite(ss58prefix) ? ss58prefix : undefined,
+      );
     } else {
       return null;
     }
@@ -638,7 +641,7 @@ export class XcmApp extends PoolApp {
       prefilled = this.prefillNative(
         account.address,
         destChain,
-        this.ss58Prefix,
+        this.chain.state.unifiedAddressFormat ? 0 : this.ss58Prefix,
       );
     }
 
