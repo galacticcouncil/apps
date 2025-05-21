@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 12.8.0
+
+### Minor Changes
+
+- 01effab: Unified address flag, CEX toggle in XCM app
+
 ## 12.7.0
 
 ### Minor Changes
