@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.0.0
+
+### Major Changes
+
+- Bump to latest sdk(s), pjs 16.x
+
 ## 12.8.0
 
 ### Minor Changes
