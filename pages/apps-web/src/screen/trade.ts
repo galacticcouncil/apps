@@ -64,7 +64,7 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
       <gc-trade
         chart
         twapOn
-        apiAddress="wss://rpc.hydradx.cloud"
+        apiAddress="wss://hydration-rpc.n.dwellir.com"
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
         stableCoinAssetId="10"
@@ -78,7 +78,10 @@ export class TradeScreen extends LitElement implements BeforeEnterObserver {
         style="display:none"
         @click=${() => {
           chain
-            .createChainCtx('wss://rpc.hydradx.cloud', Ecosystem.Polkadot)
+            .createChainCtx(
+              'wss://hydration-rpc.n.dwellir.com',
+              Ecosystem.Polkadot,
+            )
             .then((chain) => {
               ChainCursor.reset(chain);
               console.log('Chain ctx set');

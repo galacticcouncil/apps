@@ -27,7 +27,7 @@ export class YieldScreen extends LitElement implements BeforeEnterObserver {
         chart
         assetIn=${this.assetIn}
         assetOut=${this.assetOut}
-        apiAddress="wss://rpc.hydradx.cloud"
+        apiAddress="wss://hydration-rpc.n.dwellir.com"
         stableCoinAssetId="10"
         accountAddress=${this.account.state?.address}
         accountProvider=${this.account.state?.provider}
