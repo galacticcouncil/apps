@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.1.0
+
+### Minor Changes
+
+- Sdk context support
+
 ## 13.0.0
 
 ### Major Changes
