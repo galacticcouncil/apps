@@ -1,8 +1,4 @@
-import type {
-  ExternalAsset,
-  PoolService,
-  TradeRouter,
-} from '@galacticcouncil/sdk';
+import type { ExternalAsset, SdkCtx } from '@galacticcouncil/sdk';
 import type { ApiPromise } from '@polkadot/api';
 import type { SingleValueData, OhlcData } from 'lightweight-charts';
 
@@ -17,8 +13,7 @@ export interface Chain {
   ecosystem: Ecosystem;
   isTestnet: boolean;
   unifiedAddressFormat: boolean;
-  poolService: PoolService;
-  router: TradeRouter;
+  sdk: SdkCtx;
 }
 
 export enum Ecosystem {

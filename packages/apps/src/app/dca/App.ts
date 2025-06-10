@@ -22,7 +22,6 @@ import {
   Asset,
   BigNumber,
   scale,
-  Transaction,
   ONE,
   SYSTEM_ASSET_ID,
   Trade,
@@ -207,7 +206,9 @@ export class DcaApp extends PoolApp {
       return;
     }
 
-    const { api, router } = this.chain.state;
+    const { api, sdk } = this.chain.state;
+    const { api: sdkApi } = sdk;
+
     const { amountIn, assetIn, assetOut, interval, intervalMultiplier, trade } =
       this.dca;
 
@@ -216,7 +217,11 @@ export class DcaApp extends PoolApp {
       sellTrade = trade;
     } else {
       this.updateProgress(true);
-      sellTrade = await router.getBestSell(assetIn.id, assetOut.id, amountIn);
+      sellTrade = await sdkApi.router.getBestSell(
+        assetIn.id,
+        assetOut.id,
+        amountIn,
+      );
     }
 
     const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
@@ -409,8 +414,9 @@ export class DcaApp extends PoolApp {
   }
 
   protected onInit(): void {
-    const { api, router } = this.chain.state;
-    this.dcaApi = new DcaApi(api, router, DcaConfigCursor);
+    const { api, sdk } = this.chain.state;
+
+    this.dcaApi = new DcaApi(api, sdk, DcaConfigCursor);
     this.initAssets();
     this.recalculateSpotPrice();
     this.syncBalance();

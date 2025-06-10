@@ -2,6 +2,7 @@ import {
   type Asset,
   type Trade,
   SubstrateTransaction,
+  TradeRouteBuilder,
 } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -84,7 +85,7 @@ export class DcaYieldApi extends TradeApi<DcaConfig> {
               assetOut: assetOut.id,
               amountIn: amountInPerTradeBN.toFixed(),
               minLimit: '0',
-              route: this._txUtils.buildRoute(trade.swaps),
+              route: TradeRouteBuilder.build(trade.swaps),
             },
           },
         },

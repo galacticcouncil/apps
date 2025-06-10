@@ -15,7 +15,6 @@ import {
   PoolType,
   Trade,
   TradeType,
-  TradeUtils,
   Swap,
   ONE,
   SYSTEM_ASSET_ID,
@@ -23,8 +22,6 @@ import {
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import { Parachain } from '@galacticcouncil/xcm-core';
-
-import { CallDryRunEffects } from '@polkadot/types/interfaces';
 
 import { translation } from './locales';
 
@@ -37,6 +34,7 @@ import {
 } from 'db';
 import { TradeMetadata, TxInfo, TxMessage } from 'signer/types';
 import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
+import { TRSRY_ACC } from 'api/payment';
 import {
   exchangeNative,
   formatAmount,
@@ -80,7 +78,6 @@ export class TradeApp extends PoolApp {
   );
 
   protected tradeApi: TwapApi = null;
-  protected txUtils: TradeUtils = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) twapOn: Boolean = false;
@@ -153,9 +150,10 @@ export class TradeApp extends PoolApp {
     assetOut: Asset,
     amountIn: string,
   ): Promise<Trade> {
-    const { router } = this.chain.state;
+    const { sdk } = this.chain.state;
+    const { api } = sdk;
     try {
-      return await router.getBestSell(assetIn.id, assetOut.id, amountIn);
+      return await api.router.getBestSell(assetIn.id, assetOut.id, amountIn);
     } catch (error) {
       console.error(error);
       this.resetTrade();
@@ -245,9 +243,11 @@ export class TradeApp extends PoolApp {
     assetOut: Asset,
     amountOut: string,
   ): Promise<Trade> {
-    const { router } = this.chain.state;
+    const { sdk } = this.chain.state;
+    const { api } = sdk;
+
     try {
-      return await router.getBestBuy(assetIn.id, assetOut.id, amountOut);
+      return await api.router.getBestBuy(assetIn.id, assetOut.id, amountOut);
     } catch (error) {
       console.error(error);
       this.resetTrade();
@@ -697,15 +697,16 @@ export class TradeApp extends PoolApp {
   async syncTransactionFee() {
     const account = this.account.state;
     const { trade, assetIn, assetOut } = this.trade;
+    const { sdk } = this.chain.state;
 
     const nTrade = trade
       ? trade
       : await this.safeSell(assetIn, assetOut, ONE.toFixed()); // Dummy trade if no action was taken
 
-    const transaction =
-      nTrade.type === TradeType.Sell
-        ? this.txUtils.buildSellTx(nTrade)
-        : this.txUtils.buildBuyTx(nTrade);
+    const transaction = await sdk.tx
+      .trade(nTrade)
+      .withBeneficiary(TRSRY_ACC)
+      .build();
     const [paymentInfo, feeAssetId] = await Promise.all([
       this.paymentApi.getPaymentInfo(transaction, account),
       this.paymentApi.getPaymentFeeAsset(account?.address),
@@ -780,49 +781,17 @@ export class TradeApp extends PoolApp {
   private async onSwapClick() {
     const account = this.account.state;
 
+    const { sdk } = this.chain.state;
     const { slippage } = this.tradeConfig.state;
-    const { trade, assetIn } = this.trade;
+    const { trade } = this.trade;
 
-    const { type, swaps } = trade;
-    const { address } = account;
+    const tx = await sdk.tx
+      .trade(trade)
+      .withSlippage(Number(slippage))
+      .withBeneficiary(account.address)
+      .build();
 
-    const [firstSwap] = swaps;
-
-    const balance = this.assets.balance.get(assetIn.id);
-    const isWithdraw = firstSwap.isWithdraw();
-    const isMax = trade.amountIn.isGreaterThanOrEqualTo(
-      balance.amount.minus(5),
-    );
-
-    let tx: SubstrateTransaction;
-    let txResult: CallDryRunEffects;
-
-    if (type === TradeType.Buy) {
-      tx = this.txUtils.buildBuyTx(trade, Number(slippage));
-    }
-
-    if (type === TradeType.Sell) {
-      tx = this.txUtils.buildSellTx(trade, Number(slippage));
-    }
-
-    if (type === TradeType.Sell && isMax) {
-      tx = this.txUtils.buildSellAllTx(trade, Number(slippage));
-    }
-
-    txResult = await tx.dryRun(address);
-
-    const shouldWithdrawAndSell =
-      isWithdraw && (txResult.executionResult.isErr || isMax);
-
-    if (type === TradeType.Sell && shouldWithdrawAndSell) {
-      tx = await this.txUtils.buildWithdrawAndSellReserveTx(
-        address,
-        trade,
-        Number(slippage),
-      );
-      txResult = await tx.dryRun(address);
-    }
-
+    const txResult = await tx.dryRun(account.address);
     console.log(txResult.executionResult.toHuman());
     this.processTx(account, tx, this.trade);
   }
@@ -929,9 +898,9 @@ export class TradeApp extends PoolApp {
   }
 
   protected async onInit(): Promise<void> {
-    const { api, router } = this.chain.state;
-    this.tradeApi = new TwapApi(api, router, TradeConfigCursor);
-    this.txUtils = new TradeUtils(api);
+    const { api, sdk } = this.chain.state;
+
+    this.tradeApi = new TwapApi(api, sdk, TradeConfigCursor);
 
     this.initAssets();
     this.validatePool();

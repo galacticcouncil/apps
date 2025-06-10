@@ -331,12 +331,18 @@ export class YieldApp extends PoolApp {
 
   private async onSchedule() {
     const account = this.account.state;
-    const { router } = this.chain.state;
+    const { sdk } = this.chain.state;
     const { maxRetries } = this.dcaConfig.state;
+
+    const { api } = sdk;
 
     if (account) {
       const { amountIn, assetIn, assetOut, order } = this.dca;
-      const trade = await router.getBestSell(assetIn.id, assetOut.id, amountIn);
+      const trade = await api.router.getBestSell(
+        assetIn.id,
+        assetOut.id,
+        amountIn,
+      );
       const transaction = order.toTx(account.address, maxRetries, trade);
       this.processTx(account, transaction);
     }
@@ -374,8 +380,9 @@ export class YieldApp extends PoolApp {
   }
 
   protected onInit(): void {
-    const { api, router } = this.chain.state;
-    this.dcaApi = new DcaYieldApi(api, router, DcaConfigCursor);
+    const { api, sdk } = this.chain.state;
+
+    this.dcaApi = new DcaYieldApi(api, sdk, DcaConfigCursor);
     this.initAssets();
     this.recalculateSpotPrice();
     this.syncRate();

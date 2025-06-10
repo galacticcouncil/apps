@@ -1,18 +1,16 @@
-import { TradeRouter, TradeUtils } from '@galacticcouncil/sdk';
+import { SdkCtx } from '@galacticcouncil/sdk';
 import { ApiPromise } from '@polkadot/api';
 import { Cursor } from '@thi.ng/atom';
 
 export class TradeApi<T> {
   protected _api: ApiPromise;
-  protected _router: TradeRouter;
-  protected _txUtils: TradeUtils;
+  protected _sdk: SdkCtx;
   protected _config: Cursor<T>;
 
-  public constructor(api: ApiPromise, router: TradeRouter, config: Cursor<T>) {
+  public constructor(api: ApiPromise, sdk: SdkCtx, config: Cursor<T>) {
     this._api = api;
-    this._router = router;
+    this._sdk = sdk;
     this._config = config;
-    this._txUtils = new TradeUtils(api);
   }
 
   /**

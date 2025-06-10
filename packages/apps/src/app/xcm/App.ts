@@ -986,7 +986,7 @@ export class XcmApp extends PoolApp {
 
   protected onInit(): void {
     this.changeChain();
-    const { poolService } = this.chain.state;
+    const { sdk } = this.chain.state;
     this.wallet = new Wallet({
       configService: this.configService,
       transferValidations: validations,
@@ -997,7 +997,7 @@ export class XcmApp extends PoolApp {
     const assethub = this.configService.getChain('assethub');
 
     this.wallet.registerDex(
-      new dex.HydrationDex(hydration, poolService),
+      new dex.HydrationDex(hydration, sdk.ctx.pool),
       new dex.AssethubDex(assethub),
     );
   }

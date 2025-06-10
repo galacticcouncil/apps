@@ -108,9 +108,9 @@ export class BondsApp extends TradeApp {
   protected override async onInit(): Promise<void> {
     super.onInit();
 
-    const { api, router } = this.chain.state;
+    const { api, sdk } = this.chain.state;
 
-    this.bondsApi = new BondsApi(api, router);
+    this.bondsApi = new BondsApi(api, sdk);
     this.chartApi = new BondsChartApi(api, this.squidUrl);
 
     const [pools, pair] = await Promise.all([

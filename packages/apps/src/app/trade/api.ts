@@ -3,6 +3,7 @@ import {
   type Trade,
   BigNumber,
   SubstrateTransaction,
+  TradeRouteBuilder,
 } from '@galacticcouncil/sdk';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -39,6 +40,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     txFee: BigNumber,
     blockTime: number,
   ): Promise<TwapOrder> {
+    const { api } = this._sdk;
     const { slippageTwap } = this._config.deref();
     const { amountIn } = trade;
     const priceDifference = Math.abs(trade.priceImpactPct);
@@ -47,7 +49,8 @@ export class TwapApi extends TradeApi<TradeConfig> {
     const executionTime = this.getExecutionTime(tradesNumber, blockTime);
 
     const amountInPerTrade = amountIn.minus(txFees).dividedBy(tradesNumber);
-    const bestSell = await this._router.getBestSell(
+
+    const bestSell = await api.router.getBestSell(
       assetIn.id,
       assetOut.id,
       formatAmount(amountInPerTrade, assetIn.decimals),
@@ -85,7 +88,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
               assetOut: assetOut.id,
               amountIn: bestSell.amountIn.toFixed(),
               minAmountOut: minAmountOut.amount.toFixed(),
-              route: this._txUtils.buildRoute(bestSell.swaps),
+              route: TradeRouteBuilder.build(bestSell.swaps),
             },
           },
         },
@@ -153,6 +156,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     txFee: BigNumber,
     blockTime: number,
   ): Promise<TwapOrder> {
+    const { api } = this._sdk;
     const { slippageTwap } = this._config.deref();
     const { amountOut } = trade;
     const priceDifference = Math.abs(trade.priceImpactPct);
@@ -162,7 +166,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
     const executionTime = this.getExecutionTime(tradesNumber, blockTime);
 
     const amountOutPerTrade = amountOut.dividedBy(tradesNumber);
-    const bestBuy = await this._router.getBestBuy(
+    const bestBuy = await api.router.getBestBuy(
       assetIn.id,
       assetOut.id,
       formatAmount(amountOutPerTrade, assetOut.decimals),
@@ -205,7 +209,7 @@ export class TwapApi extends TradeApi<TradeConfig> {
               assetOut: assetOut.id,
               amountOut: bestBuy.amountOut.toString(),
               maxAmountIn: maxAmountIn.amount.toFixed(),
-              route: this._txUtils.buildRoute(bestBuy.swaps),
+              route: TradeRouteBuilder.build(bestBuy.swaps),
             },
           },
         },

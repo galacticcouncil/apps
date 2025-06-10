@@ -1,4 +1,4 @@
-import { CachingPoolService, TradeRouter } from '@galacticcouncil/sdk';
+import { createSdkContext, SdkCtx } from '@galacticcouncil/sdk';
 import { SubstrateApis } from '@galacticcouncil/xcm-core';
 import { ApiPromise } from '@polkadot/api';
 
@@ -24,35 +24,35 @@ async function info(api: ApiPromise): Promise<void> {
 function initApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
-  onReady: (api: ApiPromise, router: TradeRouter) => void,
+  onReady: (api: ApiPromise, sdk: SdkCtx) => void,
   isTestnet = false,
   unifiedAddressFormat = false,
 ) {
   logFmt('API ready ✅');
   info(api);
-  const poolService = new CachingPoolService(api);
-  const router = new TradeRouter(poolService);
-  // Get external assets
+
+  const sdk = createSdkContext(api);
+  const { ctx } = sdk;
+
   const external = readExternal(isTestnet);
   // Get pools and cache the result
-  poolService.syncRegistry(external).then(() => {
+  ctx.pool.syncRegistry(external).then(() => {
     logFmt('Router ready ✅');
     ChainCursor.reset({
       api: api,
       ecosystem: ecosystem,
       isTestnet: isTestnet,
       unifiedAddressFormat: unifiedAddressFormat,
-      poolService: poolService,
-      router: router,
+      sdk: sdk,
     });
-    onReady(api, router);
+    onReady(api, sdk);
   });
 }
 
 export async function createApi(
   apiUrl: string,
   ecosystem: Ecosystem,
-  onReady: (api: ApiPromise, router: TradeRouter) => void,
+  onReady: (api: ApiPromise, sdk: SdkCtx) => void,
   onError: (error: unknown) => void,
   isTestnet = false,
   unifiedAddressFormat = false,
@@ -69,7 +69,7 @@ export async function createApi(
 export async function useApi(
   api: ApiPromise,
   ecosystem: Ecosystem,
-  onReady: (api: ApiPromise, router: TradeRouter) => void,
+  onReady: (api: ApiPromise, sdk: SdkCtx) => void,
   onError: (error: unknown) => void,
   isTestnet = false,
 ) {
@@ -86,12 +86,10 @@ export async function createChainCtx(
 ): Promise<Chain> {
   const apiPool = SubstrateApis.getInstance();
   const api = await apiPool.api(apiUrl);
-  const poolService = new CachingPoolService(api);
-  const router = new TradeRouter(poolService);
+  const sdk = createSdkContext(api);
   return {
     api: api,
-    poolService: poolService,
-    router: router,
+    sdk: sdk,
     ecosystem: ecosystem,
     isTestnet: false,
     unifiedAddressFormat: false,

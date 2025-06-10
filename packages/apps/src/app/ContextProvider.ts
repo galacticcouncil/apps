@@ -59,9 +59,11 @@ export class ContextProvider extends LitElement {
       const chain = ChainCursor.deref();
       if (chain) {
         console.log('🔄 Syncing external tokens...');
-        const { isTestnet, poolService } = chain;
+        const { isTestnet, sdk } = chain;
+        const { ctx } = sdk;
+
         const external = readExternal(isTestnet);
-        poolService.syncRegistry(external).then(() => {
+        ctx.pool.syncRegistry(external).then(() => {
           this.channel.postMessage('external-sync');
         });
       }

@@ -10,6 +10,7 @@ import {
   PoolType,
   SYSTEM_ASSET_DECIMALS,
   SYSTEM_ASSET_ID,
+  toDecimals,
   ZERO,
 } from '@galacticcouncil/sdk';
 
@@ -24,6 +25,7 @@ import { BaseApp } from 'app/BaseApp';
 import { createApi } from 'chain';
 import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 import { SECOND_MS } from 'utils/time';
+import { humanizeAmount } from 'utils/amount';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);
@@ -49,11 +51,11 @@ export abstract class PoolApp extends BaseApp {
   @property({ type: String }) stableCoinRate: string = null;
 
   @state() assets = {
-    tradeable: [] as Asset[],
-    registry: new Map<string, Asset>([]),
     atokens: new Map<string, string>([]),
-    usdPrice: new Map<string, Amount>([]),
     balance: new Map<string, Amount>([]),
+    registry: new Map<string, Asset>([]),
+    tradeable: [] as Asset[],
+    usdPrice: new Map<string, Amount>([]),
   };
 
   constructor() {
@@ -147,16 +149,18 @@ export abstract class PoolApp extends BaseApp {
   }
 
   private async init() {
-    const { api, poolService, router } = this.chain.state;
-    this.assetApi = new AssetApi(api, router);
-    this.paymentApi = new PaymentApi(api, router);
-    this.priceApi = new PriceApi(api, router);
+    const { api, sdk } = this.chain.state;
+    const { api: sdkApi, ctx } = sdk;
+
+    this.assetApi = new AssetApi(api, sdkApi.router);
+    this.paymentApi = new PaymentApi(api, sdkApi.router);
+    this.priceApi = new PriceApi(api, sdkApi.router);
     this.timeApi = new TimeApi(api);
     this.balanceClient = new BalanceClient(api);
 
     const [pools, tradeable] = await Promise.all([
-      router.getPools(),
-      router.getAllAssets(),
+      sdkApi.router.getPools(),
+      sdkApi.router.getAllAssets(),
     ]);
 
     const aTokens = pools
@@ -171,7 +175,7 @@ export abstract class PoolApp extends BaseApp {
       ...this.assets,
       atokens: aTokens,
       tradeable: tradeable,
-      registry: new Map(poolService.assets.map((a) => [a.id, a])),
+      registry: new Map(ctx.pool.assets.map((a) => [a.id, a])),
     };
 
     this.timeApi.getBlockTime().then((time: number) => {
@@ -225,43 +229,100 @@ export abstract class PoolApp extends BaseApp {
 
   private subscribeTokensAccountBalance(): UnsubscribePromise {
     const account = this.account.state;
-    const assets = this.assets.registry;
-    const balances = this.assets.balance;
+
+    const { balance, registry } = this.assets;
+
     return this.balanceClient.subscribeTokenBalance(
       account.address,
-      Array.from(assets.values()),
       (balaces) => {
-        balaces.forEach(([token, balance]) => {
-          const asset: Asset = assets.get(token);
-          const newBalance = {
-            amount: balance,
+        balaces.forEach(([token, amount]) => {
+          const asset: Asset = registry.get(token);
+          const newAmount = {
+            amount: amount,
             decimals: asset.decimals,
           } as Amount;
-          balances.set(token, newBalance);
+          balance.set(token, newAmount);
         });
-        this.assets.balance = balances;
+        this.assets.balance = balance;
         this.onBalanceUpdate();
       },
+      Array.from(registry.values())
+        .filter((a) => a.type !== 'Erc20' && a.id !== SYSTEM_ASSET_ID)
+        .map((a) => a.id),
     );
   }
 
   private subscribeErc20AccountBalance(): UnsubscribePromise {
     const account = this.account.state;
-    const assets = this.assets.registry;
-    const balances = this.assets.balance;
+    const { sdk } = this.chain.state;
+    const { atokens, balance, registry } = this.assets;
+
+    const hasSignificantChange = (
+      current: [string, BigNumber][],
+      snapshot: Map<string, BigNumber>,
+      thresholdPercent = 0.01,
+    ) => {
+      for (const [token, amount] of current) {
+        const prevAmount = snapshot.get(token);
+
+        const asset: Asset = registry.get(token);
+        const decimals = asset.decimals;
+
+        const prevBalance = Number(toDecimals(prevAmount, decimals));
+        const currBalance = Number(toDecimals(amount, decimals));
+
+        if (prevBalance === 0 && currBalance === 0) continue;
+
+        const threshold = prevBalance * (thresholdPercent / 100);
+        const diff = Math.abs(currBalance - prevBalance);
+
+        if (diff >= threshold) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const reserves = new Map<string, Amount>([]);
+    const snapABalances = new Map<string, BigNumber>([]);
+
     return this.balanceClient.subscribeErc20Balance(
       account.address,
-      Array.from(assets.values()),
-      (balaces) => {
-        balaces.forEach(([token, balance]) => {
-          const asset: Asset = assets.get(token);
-          const newBalance = {
-            amount: balance,
-            decimals: asset.decimals,
-          } as Amount;
-          balances.set(token, newBalance);
+      async (balances) => {
+        const newAbalances = balances.filter(([t]) => atokens.has(t));
+
+        const shouldSyncReserves =
+          snapABalances.size === 0 ||
+          hasSignificantChange(newAbalances, snapABalances);
+
+        if (shouldSyncReserves) {
+          const max = await sdk.api.aave.getMaxWithdrawAll(account.address);
+          Object.entries(max).forEach(([token, amount]) => {
+            reserves.set(token, amount);
+          });
+          for (const [token, amount] of newAbalances) {
+            snapABalances.set(token, amount);
+          }
+        }
+
+        balances.forEach(([token, amount]) => {
+          const asset: Asset = registry.get(token);
+          const decimals = asset.decimals;
+
+          let newAmount: Amount;
+
+          const reserve = atokens.get(token);
+          if (reserve) {
+            newAmount = reserves.get(reserve);
+          } else {
+            newAmount = {
+              amount: amount,
+              decimals: decimals,
+            };
+          }
+          balance.set(token, newAmount);
         });
-        this.assets.balance = balances;
+        this.assets.balance = balance;
         this.onBalanceUpdate();
       },
     );
@@ -296,13 +357,14 @@ export abstract class PoolApp extends BaseApp {
   }
 
   protected async syncAssets() {
-    const { poolService, router } = this.chain.state;
-    const tradeable = await router.getAllAssets();
+    const { sdk } = this.chain.state;
+    const { api: sdkApi, ctx } = sdk;
+    const tradeable = await sdkApi.router.getAllAssets();
 
     this.assets = {
       ...this.assets,
       tradeable: tradeable,
-      registry: new Map(poolService.assets.map((a) => [a.id, a])),
+      registry: new Map(ctx.pool.assets.map((a) => [a.id, a])),
     };
   }
 

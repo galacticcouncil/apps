@@ -16,7 +16,7 @@ import { Account } from 'db';
 import { convertToH160, DISPATCH_ADDRESS } from 'utils/evm';
 import { EvmParachain } from '@galacticcouncil/xcm-core';
 
-const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
+export const TRSRY_ACC = '7L53bUTBopuwFt3mKUfmkzgGLayYa1Yvn1hAg9v5UMrQzTfh';
 
 export type PaymentFee = { amount: string; ed: string };
 
