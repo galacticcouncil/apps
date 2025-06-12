@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.2.0
+
+### Minor Changes
+
+- Bump sdk to 9.x
+
 ## 13.1.0
 
 ### Minor Changes
