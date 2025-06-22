@@ -152,9 +152,11 @@ export class OrdersApi {
       let desc: string;
       const { error, id } = event.args;
       if (error) {
-        const decoded: RegistryError = this.decodeError(error);
-        err = decoded.method;
-        desc = decoded.docs.join(' ');
+        try {
+          const decoded: RegistryError = this.decodeError(error);
+          err = decoded.method;
+          desc = decoded.docs.join(' ');
+        } catch {}
       }
       statuses.set(id, { type, err, desc } as OrderStatus);
     });

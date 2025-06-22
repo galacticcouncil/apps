@@ -13,6 +13,9 @@ import {
   ONE,
   Swap,
   Trade,
+  TradeOrder,
+  TradeOrderError,
+  TradeOrderType,
   TradeType,
   bnum,
   calculateDiffToRef,
@@ -29,8 +32,14 @@ import {
 } from 'db';
 import { baseStyles, formStyles } from 'styles';
 import { exchange, formatAmount, humanizeAmount } from 'utils/amount';
+import {
+  getMaxAmountIn,
+  getMinAmountOut,
+  getTradeMaxAmountIn,
+  getTradeMinAmountOut,
+} from 'utils/slippage';
 
-import { TransactionFee, TwapOrder, TwapError } from './types';
+import { TransactionFee } from './types';
 
 import styles from './Form.css';
 
@@ -56,13 +65,12 @@ export class TradeForm extends BaseElement {
   @property({ type: String }) amountOut = null;
   @property({ type: Object }) balanceIn: Amount = null;
   @property({ type: Object }) balanceOut: Amount = null;
-  @property({ type: Object }) maxAmountIn: Amount = null;
-  @property({ type: Object }) minAmountOut: Amount = null;
   @property({ type: String }) spotPrice = null;
   @property({ attribute: false }) trade: Trade = null;
   @property({ attribute: false }) tradeType: TradeType = TradeType.Buy;
   @property({ attribute: false }) transactionFee: TransactionFee = null;
-  @property({ attribute: false }) twap: TwapOrder = null;
+  @property({ attribute: false }) twap: TradeOrder = null;
+  @property({ type: Number }) twapDuration: number = null;
   @property({ type: Boolean }) twapAllowed = false;
   @property({ type: Boolean }) twapProgress = false;
   @property({ attribute: false }) error = {};
@@ -73,7 +81,7 @@ export class TradeForm extends BaseElement {
   static styles = [baseStyles, formStyles, styles];
 
   private isTwapError(): boolean {
-    return this.twap && !!this.twap?.error;
+    return this.twap && this.twap.errors.length > 0;
   }
 
   private isSellTwap(): boolean {
@@ -102,7 +110,7 @@ export class TradeForm extends BaseElement {
     const generalErrors = Object.assign({}, this.error);
     delete generalErrors['trade'];
     const hasError = Object.keys(generalErrors).length > 0;
-    const hasTwapError = this.twapEnabled && !!this.twap?.error;
+    const hasTwapError = this.twapEnabled && this.isTwapError();
     return hasError || hasTwapError;
   }
 
@@ -131,7 +139,7 @@ export class TradeForm extends BaseElement {
 
   private getPriceImpact() {
     if (this.twapEnabled) {
-      return this.twap?.priceImpactPct;
+      return this.twap?.tradeImpactPct;
     }
     return this.trade?.priceImpactPct;
   }
@@ -166,14 +174,27 @@ export class TradeForm extends BaseElement {
   }
 
   private getSwapSlippage(): string {
+    const { slippage } = this.tradeConfig.state;
     const out =
-      this.tradeType === TradeType.Sell ? this.minAmountOut : this.maxAmountIn;
+      this.tradeType === TradeType.Sell
+        ? getTradeMinAmountOut(this.trade, slippage)
+        : getTradeMaxAmountIn(this.trade, slippage);
     return out ? formatAmount(out.amount, out.decimals) : null;
   }
 
   private getTwapSlippage(): string {
-    const { maxAmountIn, minAmountOut } = this.twap.toHuman();
-    return this.tradeType === TradeType.Sell ? minAmountOut : maxAmountIn;
+    const { slippageTwap } = this.tradeConfig.state;
+    const { assetIn, assetOut, amountIn, amountOut, type } = this.twap;
+
+    const aIn = this.assets.get(assetIn);
+    const aOut = this.assets.get(assetOut);
+
+    const out =
+      type === TradeOrderType.TwapSell
+        ? getMinAmountOut(amountOut, aOut.decimals, slippageTwap)
+        : getMaxAmountIn(amountIn, aIn.decimals, slippageTwap);
+
+    return out ? formatAmount(out.amount, out.decimals) : null;
   }
 
   private getSwapPrice(): string {
@@ -202,7 +223,7 @@ export class TradeForm extends BaseElement {
     if (this.twapEnabled) {
       return this.getTwapSlippage();
     }
-    return this.getSwapSlippage();
+    return this.trade && this.getSwapSlippage();
   }
 
   private getBestRoute(): string[] {
@@ -386,13 +407,13 @@ export class TradeForm extends BaseElement {
 
   infoTransactionFeeTemplate() {
     let feeAsset: Asset;
-    let feeBN: BigNumber;
+    let feeNative: BigNumber;
     let fee: string;
 
     if (this.transactionFee) {
       const { amount, asset } = this.transactionFee;
       feeAsset = asset;
-      feeBN = amount;
+      feeNative = amount;
       fee = formatAmount(amount, feeAsset.decimals);
     }
 
@@ -405,7 +426,8 @@ export class TradeForm extends BaseElement {
     }
 
     if (this.twapEnabled && fee) {
-      const fee = this.twap.estimateFee(feeBN);
+      const { tradeCount } = this.twap;
+      const fee = feeNative.multipliedBy(tradeCount);
       const feeMin = formatAmount(fee, feeAsset.decimals);
       return html`
         <span class="label">${i18n.t('form.info.transactionFeeMin')}</span>
@@ -765,14 +787,13 @@ export class TradeForm extends BaseElement {
       );
     }
 
-    if (this.twap && this.twap.error === TwapError.OrderTooBig) {
+    if (this.twap && this.twap.errors.includes(TradeOrderError.OrderTooBig)) {
       return this.formTwapOptionError(assetSymbol);
     }
 
-    const { time } = this.twap.toHuman();
     const price = this.getTwapPrice();
     const priceUsd = this.getTwapUsdPrice();
-    const timeframe = this._humanizer.humanize(time, {
+    const timeframe = this._humanizer.humanize(this.twapDuration, {
       round: true,
       largest: 2,
       units: ['h', 'm'],

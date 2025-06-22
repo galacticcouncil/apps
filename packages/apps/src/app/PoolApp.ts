@@ -25,7 +25,6 @@ import { BaseApp } from 'app/BaseApp';
 import { createApi } from 'chain';
 import { Account, Chain, ChainCursor, DatabaseController } from 'db';
 import { SECOND_MS } from 'utils/time';
-import { humanizeAmount } from 'utils/amount';
 
 export abstract class PoolApp extends BaseApp {
   protected chain = new DatabaseController<Chain>(this, ChainCursor);

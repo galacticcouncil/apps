@@ -19,6 +19,7 @@ import {
   ONE,
   SYSTEM_ASSET_ID,
   SubstrateTransaction,
+  TradeOrder,
 } from '@galacticcouncil/sdk';
 import { chainsMap } from '@galacticcouncil/xcm-cfg';
 import { Parachain } from '@galacticcouncil/xcm-core';
@@ -35,15 +36,8 @@ import {
 import { TradeMetadata, TxInfo, TxMessage } from 'signer/types';
 import { baseStyles, headerStyles, tradeLayoutStyles } from 'styles';
 import { TRSRY_ACC } from 'api/payment';
-import {
-  exchangeNative,
-  formatAmount,
-  humanizeAmount,
-  MIN_NATIVE_AMOUNT,
-  toBn,
-} from 'utils/amount';
+import { formatAmount, humanizeAmount, toBn } from 'utils/amount';
 import { isEvmAccount } from 'utils/evm';
-import { getTradeMaxAmountIn, getTradeMinAmountOut } from 'utils/slippage';
 import { updateQueryParams } from 'utils/url';
 import { EVM_NATIVE_ASSET_ID } from 'utils/account';
 import { isSellOnly } from 'utils/asset';
@@ -57,12 +51,10 @@ import './orders';
 import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
-import { TwapApi } from './api';
 import {
   TradeTab,
   TradeState,
   DEFAULT_TRADE_STATE,
-  TwapOrder,
   TwapState,
   DEFAULT_TWAP_STATE,
   TransactionFee,
@@ -76,8 +68,6 @@ export class TradeApp extends PoolApp {
     this,
     TradeConfigCursor,
   );
-
-  protected tradeApi: TwapApi = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
   @property({ type: Boolean }) twapOn: Boolean = false;
@@ -161,31 +151,25 @@ export class TradeApp extends PoolApp {
   }
 
   private async calculateSellTwap() {
-    const { assetIn, assetOut, trade, transactionFee } = this.trade;
+    const { sdk } = this.chain.state;
+    const { api } = sdk;
+
+    const { amountIn, assetIn, assetOut } = this.trade;
+
     if (this.isTwapEnabled()) {
-      const spotPriceNative = await this.getNativePrice(assetIn);
-      const txFee = exchangeNative(
-        spotPriceNative,
-        assetIn,
-        transactionFee.amountNative,
+      const order = await api.scheduler.getTwapSellOrder(
+        assetIn.id,
+        assetOut.id,
+        amountIn,
       );
-      const amountInMin = exchangeNative(
-        spotPriceNative,
-        assetIn,
-        MIN_NATIVE_AMOUNT,
-      );
-      const twap = await this.tradeApi.getSellTwap(
-        amountInMin,
-        assetIn,
-        assetOut,
-        trade,
-        txFee,
-        this.blockTime,
+      const orderDuration = api.scheduler.getTwapExecutionTime(
+        order.tradeCount,
       );
       this.twap = {
         ...this.twap,
         inProgress: false,
-        order: twap,
+        order: order,
+        orderDuration: orderDuration,
       };
     }
   }
@@ -214,9 +198,6 @@ export class TradeApp extends PoolApp {
     ]);
     const tradeHuman = trade.toHuman();
 
-    const { slippage } = this.tradeConfig.state;
-    const minAmountOut = getTradeMinAmountOut(trade, slippage);
-
     const { amountOut } = Object.assign({}, tradeHuman);
     this.trade = {
       ...this.trade,
@@ -224,7 +205,6 @@ export class TradeApp extends PoolApp {
       assetIn: assetIn,
       assetOut: assetOut,
       inProgress: false,
-      minAmountOut: minAmountOut,
       spotPrice: spotPrice,
       trade: trade,
       type: TradeType.Sell,
@@ -255,31 +235,25 @@ export class TradeApp extends PoolApp {
   }
 
   private async calculateBuyTwap() {
-    const { assetIn, assetOut, trade, transactionFee } = this.trade;
+    const { sdk } = this.chain.state;
+    const { api } = sdk;
+
+    const { amountOut, assetIn, assetOut } = this.trade;
+
     if (this.isTwapEnabled()) {
-      const spotPriceNative = await this.getNativePrice(assetIn);
-      const txFee = exchangeNative(
-        spotPriceNative,
-        assetIn,
-        transactionFee.amountNative,
+      const order = await api.scheduler.getTwapBuyOrder(
+        assetIn.id,
+        assetOut.id,
+        amountOut,
       );
-      const amountInMin = exchangeNative(
-        spotPriceNative,
-        assetIn,
-        MIN_NATIVE_AMOUNT,
-      );
-      const twap = await this.tradeApi.getBuyTwap(
-        amountInMin,
-        assetIn,
-        assetOut,
-        trade,
-        txFee,
-        this.blockTime,
+      const orderDuration = api.scheduler.getTwapExecutionTime(
+        order.tradeCount,
       );
       this.twap = {
         ...this.twap,
         inProgress: false,
-        order: twap,
+        order: order,
+        orderDuration: orderDuration,
       };
     }
   }
@@ -295,9 +269,6 @@ export class TradeApp extends PoolApp {
     ]);
     const tradeHuman = trade.toHuman();
 
-    const { slippage } = this.tradeConfig.state;
-    const maxAmountIn = getTradeMaxAmountIn(trade, slippage);
-
     const { amountIn } = Object.assign({}, tradeHuman);
     this.trade = {
       ...this.trade,
@@ -305,7 +276,6 @@ export class TradeApp extends PoolApp {
       amountIn: amountIn,
       assetIn: assetIn,
       assetOut: assetOut,
-      maxAmountIn: maxAmountIn,
       spotPrice: spotPrice,
       trade: trade,
       type: TradeType.Buy,
@@ -797,7 +767,7 @@ export class TradeApp extends PoolApp {
   }
 
   twapNotificationTemplate(
-    order: TwapOrder,
+    order: TradeOrder,
     asset: Asset,
     status: string,
   ): TxMessage {
@@ -824,7 +794,7 @@ export class TradeApp extends PoolApp {
   private processTwap(
     account: Account,
     transaction: SubstrateTransaction,
-    order: TwapOrder,
+    order: TradeOrder,
   ) {
     const { amountIn, assetIn, assetOut, trade } = this.trade;
     const isWithdraw = trade.swaps[0].isWithdraw();
@@ -855,13 +825,18 @@ export class TradeApp extends PoolApp {
 
   private async onTwapClick() {
     const account = this.account.state;
-    const { maxRetries } = this.tradeConfig.state;
+    const { maxRetries, slippageTwap } = this.tradeConfig.state;
+    const { sdk } = this.chain.state;
+    const { tx } = sdk;
 
-    if (account) {
-      const { order } = this.twap;
-      const transaction = order.toTx(account.address, maxRetries);
-      this.processTwap(account, transaction, order);
-    }
+    const { order } = this.twap;
+    const transaction = await tx
+      .order(order)
+      .withBeneficiary(account.address)
+      .withMaxRetries(maxRetries)
+      .withSlippage(Number(slippageTwap))
+      .build();
+    this.processTwap(account, transaction, order);
   }
 
   protected updateQuery() {
@@ -898,10 +873,6 @@ export class TradeApp extends PoolApp {
   }
 
   protected async onInit(): Promise<void> {
-    const { api, sdk } = this.chain.state;
-
-    this.tradeApi = new TwapApi(api, sdk, TradeConfigCursor);
-
     this.initAssets();
     this.validatePool();
     this.recalculateSpotPrice();
@@ -1011,13 +982,12 @@ export class TradeApp extends PoolApp {
           .amountOut=${this.trade.amountOut}
           .balanceIn=${this.trade.balanceIn}
           .balanceOut=${this.trade.balanceOut}
-          .maxAmountIn=${this.trade.maxAmountIn}
-          .minAmountOut=${this.trade.minAmountOut}
           .spotPrice=${this.trade.spotPrice}
           .trade=${this.trade.trade}
           .tradeType=${this.trade.type}
           .transactionFee=${this.trade.transactionFee}
           .twap=${this.twap.order}
+          .twapDuration=${this.twap.orderDuration}
           .twapAllowed=${this.isTwapEnabled()}
           .twapProgress=${this.twap.inProgress}
           .error=${this.trade.error}

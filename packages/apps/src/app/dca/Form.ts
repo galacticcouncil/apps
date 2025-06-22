@@ -6,6 +6,8 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import * as i18n from 'i18next';
 
+import { Amount, Asset, TradeDcaOrder } from '@galacticcouncil/sdk';
+
 import { BaseElement } from 'element/BaseElement';
 import {
   Account,
@@ -18,9 +20,7 @@ import { baseStyles, formStyles } from 'styles';
 import { formatAmount, humanizeAmount } from 'utils/amount';
 import { MINUTE_MS } from 'utils/time';
 
-import { DcaOrder, FrequencyUnit, INTERVAL_DCA, IntervalDca } from './types';
-
-import { Amount, Asset } from '@galacticcouncil/sdk';
+import { FrequencyUnit, INTERVAL_DCA, IntervalDca } from './types';
 
 import styles from './Form.css';
 
@@ -48,7 +48,7 @@ export class DcaForm extends BaseElement {
   @property({ type: Number }) frequency: number = null;
   @property({ type: String }) amountIn = null;
   @property({ type: Object }) balanceIn: Amount = null;
-  @property({ attribute: false }) order: DcaOrder = null;
+  @property({ attribute: false }) order: TradeDcaOrder = null;
   @property({ attribute: false }) error = {};
 
   @state() frequencyUnit: FrequencyUnit = 'hour';
@@ -58,7 +58,7 @@ export class DcaForm extends BaseElement {
   private getEstDate(): string {
     const order = this.order;
     if (order) {
-      const est = order.frequency * order.tradesNo * MINUTE_MS;
+      const est = order.frequency * order.tradeCount;
       return this._dayjs().add(est, 'millisecond').format('DD-MM-YYYY HH:mm');
     }
     return null;
@@ -67,7 +67,7 @@ export class DcaForm extends BaseElement {
   private getEstTime(): string {
     const order = this.order;
     if (order) {
-      const est = order.frequency * order.tradesNo * MINUTE_MS;
+      const est = order.frequency * order.tradeCount;
       return this._humanizer.humanize(est, {
         round: true,
         largest: 2,
@@ -79,7 +79,7 @@ export class DcaForm extends BaseElement {
   private getEstFreq(): string {
     const order = this.order;
     if (order) {
-      return this._humanizer.humanize(order.frequency * MINUTE_MS, {
+      return this._humanizer.humanize(order.frequency, {
         round: true,
         largest: 2,
       });
@@ -88,15 +88,25 @@ export class DcaForm extends BaseElement {
   }
 
   get minFrequency() {
-    return this.order
+    const freq = this.order
       ? Math.min(this.order.frequencyMin, this.order.frequencyOpt)
       : 0;
+
+    if (freq > 0) {
+      return Math.round(freq / MINUTE_MS);
+    }
+    return freq;
   }
 
   get maxFrequency() {
-    return Number.isFinite(this.order?.frequencyOpt)
+    const freq = Number.isFinite(this.order?.frequencyOpt)
       ? Math.max(this.minFrequency, this.order.frequencyOpt)
       : 0;
+
+    if (freq > 0) {
+      return Math.round(freq / MINUTE_MS);
+    }
+    return freq;
   }
 
   get frequencyRanges(): Record<FrequencyUnit, number> {
@@ -196,11 +206,11 @@ export class DcaForm extends BaseElement {
     const order = this.order?.toHuman();
     const summary = i18n.t('form.summary.message', {
       amountInBudget: humanizeAmount(this.amountIn),
-      amountIn: humanizeAmount(order?.amountIn),
+      amountIn: humanizeAmount(order?.tradeAmountIn),
       assetIn: this.assetIn?.symbol,
       assetOut: this.assetOut?.symbol,
       frequency: this.getEstFreq(),
-      noOfTrades: order?.tradesNo,
+      noOfTrades: order?.tradeCount,
       time: this.getEstTime(),
     });
 

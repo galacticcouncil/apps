@@ -24,7 +24,6 @@ import {
   scale,
   ONE,
   SYSTEM_ASSET_ID,
-  Trade,
   SubstrateTransaction,
 } from '@galacticcouncil/sdk';
 
@@ -36,7 +35,6 @@ import 'app/trade/orders';
 import 'element/selector';
 import { AssetSelector } from 'element/selector/types';
 
-import { DcaApi } from './api';
 import { DcaTab, DcaState, DEFAULT_DCA_STATE, INTERVAL_DCA_MS } from './types';
 
 import styles from './App.css';
@@ -47,7 +45,6 @@ export class DcaApp extends PoolApp {
     this,
     DcaConfigCursor,
   );
-  protected dcaApi: DcaApi = null;
 
   @property({ type: Boolean }) chart: Boolean = false;
 
@@ -183,7 +180,6 @@ export class DcaApp extends PoolApp {
       ...this.dca,
       amountIn: null,
       frequency: null,
-      trade: null,
       order: null,
     };
   }
@@ -206,47 +202,27 @@ export class DcaApp extends PoolApp {
       return;
     }
 
-    const { api, sdk } = this.chain.state;
-    const { api: sdkApi } = sdk;
+    const { sdk } = this.chain.state;
+    const { api } = sdk;
 
-    const { amountIn, assetIn, assetOut, interval, intervalMultiplier, trade } =
+    const { amountIn, assetIn, assetOut, interval, intervalMultiplier } =
       this.dca;
 
-    let sellTrade: Trade;
-    if (frequency) {
-      sellTrade = trade;
-    } else {
-      this.updateProgress(true);
-      sellTrade = await sdkApi.router.getBestSell(
-        assetIn.id,
-        assetOut.id,
-        amountIn,
-      );
-    }
+    const durationInMs = intervalMultiplier * INTERVAL_DCA_MS[interval];
+    const freqInMs = frequency ? frequency * MINUTE_MS : undefined;
 
-    const minBudgetNative = api.consts.dca.minBudgetInNativeCurrency.toString();
-    const period = intervalMultiplier * INTERVAL_DCA_MS[interval];
-    const spotPriceNative = await this.getNativePrice(assetIn);
-    const amountInMin = exchangeNative(
-      spotPriceNative,
-      assetIn,
-      minBudgetNative,
-    );
-    const order = await this.dcaApi.getSellOrder(
-      amountInMin,
-      assetIn,
-      assetOut,
-      sellTrade,
-      period,
-      this.blockTime,
-      frequency,
+    const order = await api.scheduler.getDcaOrder(
+      assetIn.id,
+      assetOut.id,
+      amountIn,
+      durationInMs,
+      freqInMs,
     );
 
     this.dca = {
       ...this.dca,
       inProgress: false,
       frequency: frequency,
-      trade: sellTrade,
       order: order,
     };
     this.validateFrequency();
@@ -378,13 +354,19 @@ export class DcaApp extends PoolApp {
 
   private async onSchedule() {
     const account = this.account.state;
-    const { maxRetries } = this.dcaConfig.state;
 
-    if (account) {
-      const { order } = this.dca;
-      const transaction = order.toTx(account.address, maxRetries);
-      this.processTx(account, transaction);
-    }
+    const { maxRetries, slippage } = this.dcaConfig.state;
+    const { sdk } = this.chain.state;
+    const { tx } = sdk;
+
+    const { order } = this.dca;
+    const transaction = await tx
+      .order(order)
+      .withBeneficiary(account.address)
+      .withMaxRetries(maxRetries)
+      .withSlippage(Number(slippage))
+      .build();
+    this.processTx(account, transaction);
   }
 
   private async syncBalance() {
@@ -414,9 +396,6 @@ export class DcaApp extends PoolApp {
   }
 
   protected onInit(): void {
-    const { api, sdk } = this.chain.state;
-
-    this.dcaApi = new DcaApi(api, sdk, DcaConfigCursor);
     this.initAssets();
     this.recalculateSpotPrice();
     this.syncBalance();
@@ -586,10 +565,11 @@ export class DcaApp extends PoolApp {
 
   protected onAssetClick(e: CustomEvent) {
     const { id, asset } = this.asset.selector;
+    const { frequency } = this.dca;
     id == 'assetIn' && this.changeAssetIn(asset, e.detail);
     id == 'assetOut' && this.changeAssetOut(asset, e.detail);
     this.syncBalance();
-    this.updateTradeSize();
+    this.updateTradeSize(frequency);
     this.changeTab(DcaTab.Form);
   }
 
