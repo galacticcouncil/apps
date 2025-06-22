@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.3.0
+
+### Minor Changes
+
+- Switch to scheduler api, respect user order frequency
+
 ## 13.2.0
 
 ### Minor Changes
