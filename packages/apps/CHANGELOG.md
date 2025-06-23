@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.3.1
+
+### Patch Changes
+
+- Fix decode error if get tx
+
 ## 13.3.0
 
 ### Minor Changes
