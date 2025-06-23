@@ -94,9 +94,11 @@ export class OrdersApi {
       let err: string;
       let desc: string;
       if (error) {
-        const decoded: RegistryError = this.decodeError(error);
-        err = decoded.method;
-        desc = decoded.docs.join(' ');
+        try {
+          const decoded: RegistryError = this.decodeError(error);
+          err = decoded.method;
+          desc = decoded.docs.join(' ');
+        } catch {}
       }
 
       return {
