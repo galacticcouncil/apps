@@ -298,8 +298,9 @@ export class DcaApp extends PoolApp {
 
     const min = order.frequencyMin;
     const max = order.frequencyOpt;
+    const freqMs = frequency * MINUTE_MS;
 
-    if (frequency >= min && frequency <= max) {
+    if (freqMs >= min && freqMs <= max) {
       delete this.dca.error['frequencyOutOfRange'];
     } else {
       this.dca.error['frequencyOutOfRange'] = i18n.t(
@@ -316,7 +317,7 @@ export class DcaApp extends PoolApp {
     const { amountIn, assetIn, assetOut, order } = dca;
     const orderHuman = order.toHuman();
     const freq = order.frequency;
-    const freqHuman = this._humanizer.humanize(Number(freq) * MINUTE_MS, {
+    const freqHuman = this._humanizer.humanize(Number(freq), {
       round: true,
       largest: 2,
     });

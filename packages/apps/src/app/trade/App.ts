@@ -768,20 +768,22 @@ export class TradeApp extends PoolApp {
 
   twapNotificationTemplate(
     order: TradeOrder,
+    orderDuration: number,
     asset: Asset,
     status: string,
   ): TxMessage {
-    const { amountIn, amountInPerTrade, reps, time } = order.toHuman();
-    const timeframe = this._humanizer.humanize(time, {
+    const { tradeCount } = order;
+    const { amountIn, tradeAmountIn } = order.toHuman();
+    const timeframe = this._humanizer.humanize(orderDuration, {
       round: true,
       largest: 2,
     });
 
     const message = i18n.t('notify.twap', {
-      amountIn: humanizeAmount(amountInPerTrade),
+      amountIn: humanizeAmount(tradeAmountIn),
       amountInBudget: humanizeAmount(amountIn),
       assetIn: asset.symbol,
-      noOfTrades: reps,
+      noOfTrades: tradeCount,
       timeframe: timeframe,
       status: status,
     });
@@ -795,14 +797,30 @@ export class TradeApp extends PoolApp {
     account: Account,
     transaction: SubstrateTransaction,
     order: TradeOrder,
+    orderDuration: number,
   ) {
     const { amountIn, assetIn, assetOut, trade } = this.trade;
     const isWithdraw = trade.swaps[0].isWithdraw();
 
     const notification = {
-      processing: this.twapNotificationTemplate(order, assetIn, 'submitted'),
-      success: this.twapNotificationTemplate(order, assetIn, 'placed'),
-      failure: this.twapNotificationTemplate(order, assetIn, 'failed'),
+      processing: this.twapNotificationTemplate(
+        order,
+        orderDuration,
+        assetIn,
+        'submitted',
+      ),
+      success: this.twapNotificationTemplate(
+        order,
+        orderDuration,
+        assetIn,
+        'placed',
+      ),
+      failure: this.twapNotificationTemplate(
+        order,
+        orderDuration,
+        assetIn,
+        'failed',
+      ),
     };
 
     const options = {
@@ -829,14 +847,14 @@ export class TradeApp extends PoolApp {
     const { sdk } = this.chain.state;
     const { tx } = sdk;
 
-    const { order } = this.twap;
+    const { order, orderDuration } = this.twap;
     const transaction = await tx
       .order(order)
       .withBeneficiary(account.address)
       .withMaxRetries(maxRetries)
       .withSlippage(Number(slippageTwap))
       .build();
-    this.processTwap(account, transaction, order);
+    this.processTwap(account, transaction, order, orderDuration);
   }
 
   protected updateQuery() {
