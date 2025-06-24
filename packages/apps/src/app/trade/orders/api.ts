@@ -98,7 +98,9 @@ export class OrdersApi {
           const decoded: RegistryError = this.decodeError(error);
           err = decoded.method;
           desc = decoded.docs.join(' ');
-        } catch {}
+        } catch {
+          err = this.decodeErrorFallback(error);
+        }
       }
 
       return {
@@ -158,7 +160,9 @@ export class OrdersApi {
           const decoded: RegistryError = this.decodeError(error);
           err = decoded.method;
           desc = decoded.docs.join(' ');
-        } catch {}
+        } catch {
+          err = this.decodeErrorFallback(error);
+        }
       }
       statuses.set(id, { type, err, desc } as OrderStatus);
     });
@@ -170,5 +174,21 @@ export class OrdersApi {
     const errorU8a = hexToU8a(error.value.error);
     const indexBN = new BN(error.value.index);
     return api.registry.findMetaError({ error: errorU8a, index: indexBN });
+  }
+
+  private decodeErrorFallback(error: any): string {
+    const parts = [];
+    let current = error;
+
+    while (current && typeof current === 'object') {
+      if (!('__kind' in current)) {
+        return 'Unknown';
+      }
+
+      parts.push(current.__kind);
+      current = current.value;
+    }
+
+    return parts.join('.');
   }
 }
