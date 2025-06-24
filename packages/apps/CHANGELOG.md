@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.3.4
+
+### Patch Changes
+
+- fix dca notif trade amount
+
 ## 13.3.3
 
 ### Patch Changes
