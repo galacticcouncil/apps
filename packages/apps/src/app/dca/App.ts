@@ -315,15 +315,14 @@ export class DcaApp extends PoolApp {
 
   notificationTemplate(dca: DcaState, tKey: string): TxMessage {
     const { amountIn, assetIn, assetOut, order } = dca;
-    const orderHuman = order.toHuman();
-    const freq = order.frequency;
-    const freqHuman = this._humanizer.humanize(Number(freq), {
+    const { tradeAmountIn } = order.toHuman();
+    const freqHuman = this._humanizer.humanize(order.frequency, {
       round: true,
       largest: 2,
     });
 
     const message = i18n.t(tKey, {
-      amountIn: humanizeAmount(orderHuman.amountIn),
+      amountIn: humanizeAmount(tradeAmountIn),
       amountInBudget: amountIn,
       assetIn: assetIn?.symbol,
       assetOut: assetOut?.symbol,
