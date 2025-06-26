@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.3.5
+
+### Patch Changes
+
+- 19341ad: Fix negative free balance
+
 ## 13.3.4
 
 ### Patch Changes
