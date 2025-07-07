@@ -52,7 +52,7 @@ span.title {
 
 :host([multi]) span.title {
   min-width: 52px;
-  overflow-wrap: break-word;
+  white-space: nowrap;
 }
 
 :host([icon]) span.title {
