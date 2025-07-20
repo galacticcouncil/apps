@@ -13,6 +13,8 @@ export class Asset extends UIGCElement {
   @property({ type: String }) symbol = null;
   @property({ type: String }) desc = null;
   @property({ type: Boolean, reflect: true }) multi = false;
+  @property({ type: Number }) iconCount = 0;
+  @property({ type: Boolean }) isATokenPool = false;
 
   static styles = [UIGCElement.styles, styles];
 
@@ -21,6 +23,8 @@ export class Asset extends UIGCElement {
       this.shadowRoot.querySelector('slot[name=icon]');
     const icons = iconSlot.assignedElements();
 
+    this.iconCount = icons.length;
+
     if (icons.length > 1) {
       this.multi = true;
     } else {
@@ -28,9 +32,23 @@ export class Asset extends UIGCElement {
     }
   }
 
-  render() {
+  renderIcon() {
+    if (this.multi && this.isATokenPool) {
+      return html`
+        <span class="atoken-container" data-count=${this.iconCount}>
+          <slot name="icon"></slot>
+        </span>
+      `;
+    }
+
     return html`
       <slot name="icon"></slot>
+    `;
+  }
+
+  render() {
+    return html`
+      ${this.renderIcon()}
       <span class="title">
         <span class="code">${this.symbol.replace('-Pool-', '-Pool ')}</span>
         ${when(

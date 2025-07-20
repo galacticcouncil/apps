@@ -6,6 +6,10 @@
   height: 32px;
   border-radius: 8px;
   cursor: pointer;
+
+  --single-icon-size: 30px;
+  --multi-icon-size: 26px;
+  --icon-offset: 4px;
 }
 
 span.code {
@@ -32,13 +36,90 @@ span.title {
   margin-left: 6px;
 }
 
+span.atoken-container {
+  display: inline-flex;
+  flex-shrink: 0;
+  position: relative;
+}
+
+span.atoken-container::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  background: linear-gradient(to right, #39a5ff, #0063b5 50%, transparent);
+  padding: 2px;
+}
+
+span.atoken-container[data-count='2']::before {
+  mask-image: radial-gradient(
+      circle var(--multi-icon-size) at calc(36.5% - var(--icon-offset)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    ),
+    radial-gradient(
+      circle var(--multi-icon-size) at calc(63.5% + var(--icon-offset)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    );
+}
+
+span.atoken-container[data-count='3']::before {
+  mask-image: radial-gradient(
+      circle var(--multi-icon-size) at calc(26% - var(--icon-offset)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    ),
+    radial-gradient(
+      circle var(--multi-icon-size) at 50%,
+      black 0%,
+      black 64%,
+      transparent 66%
+    ),
+    radial-gradient(
+      circle var(--multi-icon-size) at calc(74% + var(--icon-offset)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    );
+}
+
+span.atoken-container[data-count='4']::before {
+  mask-image: radial-gradient(
+      circle var(--multi-icon-size) at calc(20% - var(--icon-offset)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    ),
+    radial-gradient(
+      circle var(--multi-icon-size) at calc(40% - calc(var(--icon-offset) / 2)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    ),
+    radial-gradient(
+      circle var(--multi-icon-size) at calc(60% + calc(var(--icon-offset) / 2)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    ),
+    radial-gradient(
+      circle var(--multi-icon-size) at calc(80% + var(--icon-offset)),
+      black 0%,
+      black 64%,
+      transparent 66%
+    );
+}
+
 ::slotted(*) {
-  width: 30px;
-  height: 30px;
+  width: var(--single-icon-size);
+  height: var(--single-icon-size);
 }
 
 ::slotted(*:not(:first-child)) {
-  margin-left: -3px;
+  margin-left: calc(var(--icon-offset) * -1);
 }
 
 ::slotted(*[slot='icon']) {
@@ -46,8 +127,8 @@ span.title {
 }
 
 :host([multi]) ::slotted(*) {
-  width: 26px;
-  height: 26px;
+  width: var(--multi-icon-size);
+  height: var(--multi-icon-size);
 }
 
 :host([multi]) span.title {

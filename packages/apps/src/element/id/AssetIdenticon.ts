@@ -18,6 +18,11 @@ import { isExternalAssetWhitelisted } from 'utils/asset';
 import styles from './AssetIdenticon.css';
 import { MetadataStore } from '@galacticcouncil/ui';
 
+const ATOKEN_DECORATION_BLACKLIST = [
+  '69', // GDOT
+  '420', // GETH
+];
+
 @customElement('gc-asset-identicon')
 export class AssetIdenticon extends LitElement {
   @property({ type: Boolean }) showDesc: boolean = false;
@@ -51,10 +56,21 @@ export class AssetIdenticon extends LitElement {
     `;
   }
 
-  iconTemplate(id: string) {
+  iconTemplate(id: string, isATokenPool: boolean = false) {
     const asset = this.assets.get(id);
 
     const ethereumNetworkEntry = findNestedKey(asset.location, 'ethereum');
+
+    const underlyingAssetId = this.atokens.get(asset.id);
+    const isAToken =
+      !!underlyingAssetId && !ATOKEN_DECORATION_BLACKLIST.includes(asset.id);
+
+    const decoration = (() => {
+      if (isATokenPool) return 'atoken-pool';
+      if (isAToken) return 'atoken';
+      return null;
+    })();
+
     if (ethereumNetworkEntry) {
       const { ethereum } = ethereumNetworkEntry;
       const ethereumChain = findNestedKey(ethereum, 'chainId');
@@ -70,14 +86,12 @@ export class AssetIdenticon extends LitElement {
           ecosystem=${'ethereum'}
           chain=${ethereumChain.chainId}
           chainOrigin=${ethereumChain.chainId}
+          .decoration=${decoration}
           .asset=${ethereumAssetId}>
           ${this.iconBadgeTemplate(asset)}
         </uigc-asset-id>
       `;
     }
-
-    const underlyingAssetId = this.atokens.get(asset.id);
-    const isAToken = !!underlyingAssetId && asset.id !== '69';
 
     const chain =
       this.ecosystem === Ecosystem.Polkadot
@@ -91,7 +105,7 @@ export class AssetIdenticon extends LitElement {
           ecosystem=${this.ecosystem.toLowerCase()}
           chain=${chain}
           chainOrigin=${parachainEntry.parachain}
-          .isAToken=${isAToken}
+          .decoration=${decoration}
           .asset=${id}>
           ${this.iconBadgeTemplate(asset)}
         </uigc-asset-id>
@@ -103,7 +117,7 @@ export class AssetIdenticon extends LitElement {
         slot="icon"
         ecosystem=${this.ecosystem.toLowerCase()}
         chain=${chain}
-        .isAToken=${isAToken}
+        .decoration=${decoration}
         .asset=${underlyingAssetId || id}>
         ${this.iconBadgeTemplate(asset)}
       </uigc-asset-id>
@@ -111,16 +125,29 @@ export class AssetIdenticon extends LitElement {
   }
 
   render() {
-    const { id, name, symbol, meta, type } = this.asset || {};
+    const { id, name, symbol, type } = this.asset || {};
+
+    const underlyingAssetId = this.atokens.get(this.asset.id);
+    const asset =
+      underlyingAssetId && !ATOKEN_DECORATION_BLACKLIST.includes(id)
+        ? this.assets.get(underlyingAssetId)
+        : this.asset;
+
+    const isAToken = !!underlyingAssetId;
+    const isATokenPool = isAToken && asset.type === 'StableSwap';
+
+    const meta = asset?.meta ? asset?.meta : this.asset?.meta;
+
     if (meta) {
       const icons = Object.entries(meta);
       return html`
         <uigc-asset
           ?icon=${!this.showSymbol}
           symbol=${symbol}
-          desc=${this.showDesc ? name : null}>
+          desc=${this.showDesc ? name : null}
+          .isATokenPool=${isATokenPool}>
           ${map(icons, ([key]) => {
-            return this.iconTemplate(key);
+            return this.iconTemplate(key, isATokenPool);
           })}
         </uigc-asset>
       `;
