@@ -1,5 +1,11 @@
 # @galacticcouncil/ui
 
+## 5.7.0
+
+### Minor Changes
+
+- c9b5539: Multi-icon aToken border
+
 ## 5.6.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.4.0
+
+### Minor Changes
+
+- c9b5539: Multi-icon aToken border
+
 ## 13.3.5
 
 ### Patch Changes

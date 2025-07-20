@@ -28,6 +28,6 @@
     "api-viewer-element": "^1.0.0-pre.8"
   },
   "dependencies": {
-    "@galacticcouncil/ui": "^5.6.0"
+    "@galacticcouncil/ui": "^5.7.0"
   }
 }

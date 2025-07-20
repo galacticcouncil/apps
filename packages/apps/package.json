@@ -1,6 +1,6 @@
 {
   "name": "@galacticcouncil/apps",
-  "version": "13.3.5",
+  "version": "13.4.0",
   "description": "Galactic Apps",
   "author": "GalacticCouncil",
   "repository": {
@@ -49,7 +49,7 @@
   },
   "peerDependencies": {
     "@galacticcouncil/sdk": "^9.5.4",
-    "@galacticcouncil/ui": "^5.5.0",
+    "@galacticcouncil/ui": "^5.7.0",
     "@galacticcouncil/xcm-cfg": "^10.3.0",
     "@galacticcouncil/xcm-core": "^8.0.0",
     "@galacticcouncil/xcm-sdk": "^10.0.0",
