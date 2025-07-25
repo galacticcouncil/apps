@@ -66,5 +66,10 @@ export function isSellOnly(asset: Asset) {
   const isLrna = asset?.id === '1' && asset?.symbol.toLowerCase() === 'h2o';
   const isGdotShare =
     asset?.id === '690' && asset?.symbol.toLowerCase() === '2-pool-gdot';
-  return isLrna || isGdotShare;
+  const isGethShare =
+    asset?.id === '4200' && asset?.symbol.toLowerCase() === '2-pool-geth';
+  const is3PoolShare =
+    asset?.id === '103' && asset?.symbol.toLowerCase() === '3-pool';
+
+  return isLrna || isGdotShare || isGethShare || is3PoolShare;
 }
