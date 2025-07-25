@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.5.0
+
+### Minor Changes
+
+- Disable 2-pools & 3-pool sell
+
 ## 13.4.0
 
 ### Minor Changes
