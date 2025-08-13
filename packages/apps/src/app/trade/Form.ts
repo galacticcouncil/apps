@@ -226,10 +226,10 @@ export class TradeForm extends BaseElement {
     return this.trade && this.getSwapSlippage();
   }
 
-  private getBestRoute(): string[] {
+  private getBestRoute(): Asset[] {
     return this.trade?.swaps
       .filter((swap) => swap.assetOut !== '690') // Hide 2-Pool-GDOT
-      .map((swap: Swap) => this.assets.get(swap.assetOut).symbol);
+      .map((swap: Swap) => this.assets.get(swap.assetOut));
   }
 
   private calculateTwapPctDiff() {
@@ -466,12 +466,24 @@ export class TradeForm extends BaseElement {
   bestRouteTemplate() {
     const bestRoute = this.getBestRoute();
     return html`
-      <span class="value">${this.assetIn.symbol}</span>
+      <gc-asset-identicon
+        size="small"
+        .asset=${this.assetIn}
+        .assets=${this.assets}
+        .atokens=${this.atokens}
+        .ecosystem=${this.ecosystem}
+        .showSymbol=${false}></gc-asset-identicon>
       ${bestRoute.map(
-        (poolAsset: string) =>
+        (poolAsset: Asset) =>
           html`
             <uigc-icon-chevron-right></uigc-icon-chevron-right>
-            <span class="value">${poolAsset}</span>
+            <gc-asset-identicon
+              size="small"
+              .asset=${poolAsset}
+              .assets=${this.assets}
+              .atokens=${this.atokens}
+              .ecosystem=${this.ecosystem}
+              .showSymbol=${false}></gc-asset-identicon>
           `,
       )}
       <uigc-icon-route></uigc-icon-route>
