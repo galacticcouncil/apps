@@ -23,6 +23,9 @@ export enum WalletProvider {
   'walletconnect',
   'walletconnect-evm',
   'external',
+  'suiet',
+  'slush',
+  'phantom-sui',
 }
 
 export const EVM_PROVIDERS: WalletProvider[] = [
@@ -59,4 +62,10 @@ export const SOLANA_PROVIDERS: WalletProvider[] = [
   WalletProvider.phantom,
   WalletProvider.solflare,
   WalletProvider['bravewallet-sol'],
+];
+
+export const SUI_PROVIDERS: WalletProvider[] = [
+  WalletProvider.suiet,
+  WalletProvider.slush,
+  WalletProvider['phantom-sui'],
 ];
