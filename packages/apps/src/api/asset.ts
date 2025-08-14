@@ -37,14 +37,4 @@ export class AssetApi {
     );
     return pairs2Map(balances);
   }
-
-  async getPairs(assets: Asset[]): Promise<Map<string, Asset[]>> {
-    const pairs: [string, Asset[]][] = await Promise.all(
-      assets.map(async (asset: Asset) => [
-        asset.id,
-        await this._router.getAssetPairs(asset.id),
-      ]),
-    );
-    return pairs2Map(pairs);
-  }
 }
