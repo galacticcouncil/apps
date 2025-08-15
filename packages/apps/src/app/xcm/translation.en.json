@@ -32,6 +32,8 @@
   "error.notEvmAddr": "The address is incorrect. Please use valid ethereum address.",
   "error.notNativeAddr": "The address is incorrect. Please use valid polkadot address.",
   "error.notSolanaAddr": "The address is incorrect. Please use valid solana address.",
+  "error.notNativeOrEvmAddr": "The address is incorrect. Please use valid polkadot or ethereum address.",
+  "error.notSuiAddr": "The address is incorrect. Please use valid sui address.",
   "error.notValidAddr": "The address is incorrect. Please review it and try again.",
   "error.balance": "Your transfer is bigger than your balance.",
   "error.maxAmount": "The maximum transferable amount is {{amount}} {{asset}}.",

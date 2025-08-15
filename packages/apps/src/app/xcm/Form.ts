@@ -366,7 +366,7 @@ export class XcmForm extends LitElement {
 
   formAssetTemplate(asset: Asset, chain: AnyChain) {
     if (this.registry.size > 0) {
-      if (chain.isEvmChain() || chain.isSolana()) {
+      if (chain.isEvmChain() || chain.isSolana() || chain.isSui()) {
         return html`
           <uigc-asset slot="asset" symbol=${asset.originSymbol}>
             <uigc-asset-id

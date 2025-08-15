@@ -15,13 +15,7 @@ export function convertToSol(ss58Addr: string) {
   return new PublicKey(decodedBytes).toBase58();
 }
 
-export function isSolanaAccount(address: string) {
-  if (!address) return false;
-
-  try {
-    convertToSol(address);
-    return true;
-  } catch {
-    return false;
-  }
+export function convertToSui(ss58Addr: string) {
+  const decodedBytes = decodeAddress(ss58Addr);
+  return '0x' + Buffer.from(decodedBytes).toString('hex');
 }

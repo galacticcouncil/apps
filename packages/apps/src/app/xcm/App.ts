@@ -17,18 +17,18 @@ import { PoolApp } from 'app/PoolApp';
 import { Account, Ecosystem, XStoreUtils, XItemCursor, XItem } from 'db';
 import { TxInfo, TxMessage, TxNotification, XcmMetadata } from 'signer/types';
 import { baseStyles, headerStyles, basicLayoutStyles } from 'styles';
-import { convertAddressSS58, isValidAddress } from 'utils/account';
+import { convertAddressSS58 } from 'utils/account';
 import { useH160AddressSpace, useSs58AddressSpace } from 'utils/chain';
 import { isApprove, parseSpender, parseAmount } from 'utils/erc20';
 import { convertFromH160, convertToH160, isEvmAccount } from 'utils/evm';
 import { configureExternal } from 'utils/external';
-import { convertToSol } from 'utils/solana';
 import { updateQueryParams } from 'utils/url';
 import {
   EVM_PROVIDERS,
   SOLANA_PROVIDERS,
   SUBSTRATE_H160_PROVIDERS,
   SUBSTRATE_PROVIDERS,
+  SUI_PROVIDERS,
   WalletProvider,
 } from 'utils/wallet';
 
@@ -61,7 +61,6 @@ import {
   ChainEcosystem,
   Parachain,
 } from '@galacticcouncil/xcm-core';
-import { PublicKey } from '@solana/web3.js';
 
 import 'element/selector';
 
@@ -76,10 +75,12 @@ import {
   DEFAULT_CHAIN_STATE,
   DEFAULT_TRANSFER_STATE,
 } from './types';
+import { convertToSol, convertToSui } from './utils';
 
 import styles from './App.css';
 
 const Tag = xtags.Tag;
+const { EvmAddr, Ss58Addr, SuiAddr, SolanaAddr } = addr;
 
 @customElement('gc-xcm')
 export class XcmApp extends PoolApp {
@@ -242,6 +243,10 @@ export class XcmApp extends PoolApp {
 
     if (chain.isSolana()) {
       return SOLANA_PROVIDERS.includes(provider);
+    }
+
+    if (chain.isSui()) {
+      return SUI_PROVIDERS.includes(provider);
     }
 
     if (isEvmAccount(account.address)) {
@@ -584,6 +589,10 @@ export class XcmApp extends PoolApp {
       return convertToSol(address);
     }
 
+    if (chain.isSui()) {
+      return convertToSui(address);
+    }
+
     if (useH160AddressSpace(chain)) {
       return convertToH160(address);
     } else {
@@ -599,7 +608,7 @@ export class XcmApp extends PoolApp {
    * @returns - valid address format for given chain
    */
   private formatDestAddress(address: string, chain: AnyChain): string {
-    if (chain.key === 'hydration' && addr.isH160(address)) {
+    if (chain.key === 'hydration' && EvmAddr.isValid(address)) {
       return convertFromH160(address);
     }
     return address;
@@ -629,8 +638,9 @@ export class XcmApp extends PoolApp {
     const { srcChain, destChain } = this.xtransfer;
 
     const isSolanaTransfer = srcChain.isSolana() || destChain.isSolana();
+    const isSuiTransfer = srcChain.isSui() || destChain.isSui();
 
-    if (!this.shouldPrefill || !account || isSolanaTransfer) {
+    if (!this.shouldPrefill || !account || isSolanaTransfer || isSuiTransfer) {
       return;
     }
 
@@ -658,45 +668,57 @@ export class XcmApp extends PoolApp {
     };
   }
 
-  private isEvmAddressError(dest: AnyChain, address: string) {
-    return useH160AddressSpace(dest) && !addr.isH160(address);
-  }
-
-  private isSubstrateAddressError(dest: AnyChain, address: string) {
-    const h160AddrSpace = useH160AddressSpace(dest) || dest.key === 'hydration';
-    return !h160AddrSpace && !isValidAddress(address);
-  }
-
-  private isSolanaAddressError(address: string) {
-    try {
-      const pubkey = new PublicKey(address);
-      const isValid = PublicKey.isOnCurve(pubkey.toBuffer());
-      return !isValid;
-    } catch (e) {
-      return true;
-    }
-  }
-
-  private isAddressError(address: string) {
-    return !isValidAddress(address) && !addr.isH160(address);
-  }
-
   private validateAddress() {
     const { address, destChain } = this.xtransfer;
+
+    const isHydration = destChain.key === 'hydration';
+    if (isHydration) {
+      this.validateHydrationAddress();
+      return;
+    }
 
     if (destChain.isSolana()) {
       this.validateSolanaAddress();
       return;
     }
 
+    if (destChain.isSui()) {
+      this.validateSuiAddress();
+      return;
+    }
+
+    // H160 chains (EVM-style) && Substrate chains with evm address space
+    const h160AddrSpace = useH160AddressSpace(destChain);
+    if (h160AddrSpace) {
+      this.validateEvmAddress();
+      return;
+    }
+
+    // Default: native Substrate-only chains
+    if (!Ss58Addr.isValid(address)) {
+      this.xtransfer.error['address'] = i18n.t('error.notNativeAddr');
+    } else {
+      delete this.xtransfer.error['address'];
+    }
+  }
+
+  private validateHydrationAddress() {
+    const { address } = this.xtransfer;
     if (address == null || address == '') {
       this.xtransfer.error['address'] = i18n.t('error.required');
-    } else if (this.isEvmAddressError(destChain, address)) {
+    } else if (!Ss58Addr.isValid(address) && !EvmAddr.isValid(address)) {
+      this.xtransfer.error['address'] = i18n.t('error.notNativeOrEvmAddr');
+    } else {
+      delete this.xtransfer.error['address'];
+    }
+  }
+
+  private validateEvmAddress() {
+    const { address } = this.xtransfer;
+    if (address == null || address == '') {
+      this.xtransfer.error['address'] = i18n.t('error.required');
+    } else if (!EvmAddr.isValid(address)) {
       this.xtransfer.error['address'] = i18n.t('error.notEvmAddr');
-    } else if (this.isSubstrateAddressError(destChain, address)) {
-      this.xtransfer.error['address'] = i18n.t('error.notNativeAddr');
-    } else if (this.isAddressError(address)) {
-      this.xtransfer.error['address'] = i18n.t('error.notValidAddr');
     } else {
       delete this.xtransfer.error['address'];
     }
@@ -706,8 +728,19 @@ export class XcmApp extends PoolApp {
     const { address } = this.xtransfer;
     if (address == null || address == '') {
       this.xtransfer.error['address'] = i18n.t('error.required');
-    } else if (this.isSolanaAddressError(address)) {
+    } else if (!SolanaAddr.isValid(address)) {
       this.xtransfer.error['address'] = i18n.t('error.notSolanaAddr');
+    } else {
+      delete this.xtransfer.error['address'];
+    }
+  }
+
+  private validateSuiAddress() {
+    const { address } = this.xtransfer;
+    if (address == null || address == '') {
+      this.xtransfer.error['address'] = i18n.t('error.required');
+    } else if (!SuiAddr.isValid(address)) {
+      this.xtransfer.error['address'] = i18n.t('error.notSuiAddr');
     } else {
       delete this.xtransfer.error['address'];
     }
@@ -1114,6 +1147,7 @@ export class XcmApp extends PoolApp {
                 c.ecosystem === ChainEcosystem.Polkadot ||
                 c.isEvmChain() ||
                 c.isSolana() ||
+                c.isSui() ||
                 (c.ecosystem === ChainEcosystem.Kusama &&
                   ['kusama', 'assethub_kusama'].includes(c.key))
               );
@@ -1407,6 +1441,23 @@ export class XcmApp extends PoolApp {
     });
   }
 
+  private updateSuiContext() {
+    const { amount, srcChain, transfer } = this.xtransfer;
+
+    if (
+      !srcChain.isSui() ||
+      !this.hasTransferData() ||
+      this.isEmptyAmount(amount)
+    ) {
+      return;
+    }
+
+    transfer.estimateFee(amount).then((fee) => {
+      this.updateSrcFee(fee.amount);
+      this.validateTransfer();
+    });
+  }
+
   protected onAssetSelectorClick({ detail }) {
     const { id } = detail;
     id == 'asset' && this.changeTab(TransferTab.SelectToken);
@@ -1418,6 +1469,7 @@ export class XcmApp extends PoolApp {
     this.validateAmount();
     this.updateEvmContext();
     this.updateSolanaContext();
+    this.updateSuiContext();
   }
 
   protected onAddressInputChange({ detail: { address } }) {

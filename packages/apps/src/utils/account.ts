@@ -6,6 +6,8 @@ import { convertFromH160 } from './evm';
 
 export const EVM_NATIVE_ASSET_ID = '20';
 
+const { EvmAddr } = addr;
+
 export function convertAddressSS58(address: string, ss58prefix = 42): string {
   try {
     return encodeAddress(decodeAddress(address), ss58prefix);
@@ -24,8 +26,12 @@ export function convertToHex(address: string): string {
 
 export function isSameAddress(address1: string, address2: string): boolean {
   try {
-    const sub1 = addr.isH160(address1) ? convertFromH160(address1) : address1;
-    const sub2 = addr.isH160(address2) ? convertFromH160(address2) : address2;
+    const sub1 = EvmAddr.isValid(address1)
+      ? convertFromH160(address1)
+      : address1;
+    const sub2 = EvmAddr.isValid(address2)
+      ? convertFromH160(address2)
+      : address2;
     const decodedAddress1 = decodeAddress(sub1)?.toString();
     const decodedAddress2 = decodeAddress(sub2)?.toString();
     return decodedAddress1 === decodedAddress2;
