@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.6.0
+
+### Minor Changes
+
+- add sui support
+
 ## 13.5.0
 
 ### Minor Changes

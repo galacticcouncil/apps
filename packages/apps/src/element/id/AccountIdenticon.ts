@@ -10,6 +10,8 @@ import { toSvg } from 'jdenticon';
 
 import styles from './AccountIdenticon.css';
 
+const { EvmAddr, SolanaAddr, SuiAddr } = addr;
+
 @customElement('gc-account-identicon')
 export class AccountIdenticon extends LitElement {
   @property({ type: String }) address: string = null;
@@ -18,7 +20,7 @@ export class AccountIdenticon extends LitElement {
   static styles = styles;
 
   render() {
-    const isH160Addr = addr.isH160(this.address);
+    const isH160Addr = EvmAddr.isValid(this.address);
     if (isH160Addr) {
       const avatarUrl = generateAvatarURL(this.address);
       return html`
@@ -26,8 +28,16 @@ export class AccountIdenticon extends LitElement {
       `;
     }
 
-    const isSolanaAddr = addr.isSolana(this.address);
+    const isSolanaAddr = SolanaAddr.isValid(this.address);
     if (isSolanaAddr) {
+      const svgString = toSvg(this.address.substring(2), 26);
+      return html`
+        ${unsafeHTML(svgString)}
+      `;
+    }
+
+    const isSuiAddr = SuiAddr.isValid(this.address);
+    if (isSuiAddr) {
       const svgString = toSvg(this.address.substring(2), 26);
       return html`
         ${unsafeHTML(svgString)}
