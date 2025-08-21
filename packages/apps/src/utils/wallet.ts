@@ -26,6 +26,7 @@ export enum WalletProvider {
   'suiet',
   'slush',
   'phantom-sui',
+  'nightly-sui',
 }
 
 export const EVM_PROVIDERS: WalletProvider[] = [
@@ -68,4 +69,5 @@ export const SUI_PROVIDERS: WalletProvider[] = [
   WalletProvider.suiet,
   WalletProvider.slush,
   WalletProvider['phantom-sui'],
+  WalletProvider['nightly-sui'],
 ];
