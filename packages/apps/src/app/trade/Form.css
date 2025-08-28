@@ -217,6 +217,39 @@
   color: var(--uigc-field__error-color);
 }
 
+.tooltip-text {
+  padding: 11px 16px;
+  border-radius: 4px;
+  background: #333750;
+  color: #fff;
+  font-family: 'Geist';
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 140%;
+  text-align: left;
+}
+
+.middle-route-tooltip {
+  position: relative;
+  white-space: nowrap;
+}
+
+.middle-route-tooltip > .text {
+  visibility: hidden;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.middle-route-tooltip:hover > .text {
+  visibility: visible;
+}
+
 .tooltip {
   position: relative;
   width: 22px;
@@ -327,4 +360,8 @@
 .swap-bottom-spacer {
   height: 22px;
   width: 100%;
+}
+
+.middle-route {
+  color: var(--hex-bright-blue-200);
 }
