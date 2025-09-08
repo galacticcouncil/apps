@@ -465,6 +465,34 @@ export class TradeForm extends BaseElement {
 
   bestRouteTemplate() {
     const bestRoute = this.getBestRoute();
+    const lastRoute = bestRoute[bestRoute.length - 1];
+    const middleRoute = bestRoute.slice(0, -1);
+
+    if (middleRoute.length > 1) {
+      return html`
+        <span class="value">${this.assetIn.symbol}</span>
+        <uigc-icon-chevron-right></uigc-icon-chevron-right>
+        <span class="middle-route-tooltip">
+          <span class="middle-route">Hydration Router</span>
+          <span class="text tooltip-text">
+            ${middleRoute.map(
+              (route, index) => html`
+                ${when(
+                  index > 0,
+                  () => html`
+                    <uigc-icon-chevron-right></uigc-icon-chevron-right>
+                  `,
+                )}
+                <span>${route}</span>
+              `,
+            )}
+          </span>
+        </span>
+        <uigc-icon-chevron-right></uigc-icon-chevron-right>
+        <span class="value">${lastRoute}</span>
+      `;
+    }
+
     return html`
       <span class="value">${this.assetIn.symbol}</span>
       ${bestRoute.map(
@@ -474,7 +502,6 @@ export class TradeForm extends BaseElement {
             <span class="value">${poolAsset}</span>
           `,
       )}
-      <uigc-icon-route></uigc-icon-route>
     `;
   }
 

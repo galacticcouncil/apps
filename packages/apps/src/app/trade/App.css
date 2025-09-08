@@ -25,3 +25,7 @@
     stroke: #ecedef;
   }
 }
+
+uigc-paper.main.form-tab {
+  overflow: inherit;
+}

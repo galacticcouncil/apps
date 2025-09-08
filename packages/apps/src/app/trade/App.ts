@@ -981,6 +981,7 @@ export class TradeApp extends PoolApp {
       tab: true,
       main: true,
       active: this.tab == TradeTab.Form,
+      'form-tab': this.tab == TradeTab.Form,
     };
     return html`
       <uigc-paper class=${classMap(classes)} id="default-tab">
