@@ -62,14 +62,21 @@ export function isAssetOutAllowed(
   return new Set(allowed).has(assetOut);
 }
 
-export function isSellOnly(asset: Asset) {
-  const isLrna = asset?.id === '1' && asset?.symbol.toLowerCase() === 'h2o';
-  const isGdotShare =
-    asset?.id === '690' && asset?.symbol.toLowerCase() === '2-pool-gdot';
-  const isGethShare =
-    asset?.id === '4200' && asset?.symbol.toLowerCase() === '2-pool-geth';
-  const is3PoolShare =
-    asset?.id === '103' && asset?.symbol.toLowerCase() === '3-pool';
+const SELL_ONLY_ASSETS = [
+  ['1', 'h2o'],
+  ['690', '2-pool-gdot'],
+  ['4200', '2-pool-geth'],
+  ['103', '3-pool'],
+  ['104', '2-pool-weth'],
+  ['110', '2-pool-husdc'],
+  ['111', '2-pool-husdt'],
+  ['112', '2-pool-husds'],
+  ['113', '2-pool-husde'],
+];
 
-  return isLrna || isGdotShare || isGethShare || is3PoolShare;
+export function isSellOnly(asset: Asset) {
+  return SELL_ONLY_ASSETS.some(
+    ([id, symbol]) =>
+      asset?.id === id && asset?.symbol.toLowerCase() === symbol,
+  );
 }
