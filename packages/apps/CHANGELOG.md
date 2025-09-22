@@ -1,5 +1,12 @@
 # @galacticcouncil/apps
 
+## 13.7.0
+
+### Minor Changes
+
+- 881a039: Update sell only assets config
+- 2f27230: shorten long swap routes
+
 ## 13.6.0
 
 ### Minor Changes
