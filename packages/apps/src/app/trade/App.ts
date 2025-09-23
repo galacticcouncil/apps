@@ -721,7 +721,7 @@ export class TradeApp extends PoolApp {
     transaction: SubstrateTransaction,
     trade: TradeState,
   ) {
-    const { amountIn, assetIn, assetOut } = trade;
+    const { amountIn, amountOut, assetIn, assetOut } = trade;
     const isWithdraw = trade.trade.swaps[0].isWithdraw();
 
     const notification = {
@@ -739,6 +739,7 @@ export class TradeApp extends PoolApp {
         notification: notification,
         meta: {
           amountIn: amountIn,
+          amountOut: amountOut,
           assetIn: assetIn,
           assetOut: assetOut,
           isWithdraw: isWithdraw,
@@ -799,7 +800,7 @@ export class TradeApp extends PoolApp {
     order: TradeOrder,
     orderDuration: number,
   ) {
-    const { amountIn, assetIn, assetOut, trade } = this.trade;
+    const { amountIn, amountOut, assetIn, assetOut, trade } = this.trade;
     const isWithdraw = trade.swaps[0].isWithdraw();
 
     const notification = {
@@ -832,6 +833,7 @@ export class TradeApp extends PoolApp {
         notification: notification,
         meta: {
           amountIn: amountIn,
+          amountOut: amountOut,
           assetIn: assetIn,
           assetOut: assetOut,
           isWithdraw: isWithdraw,
