@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.8.0
+
+### Minor Changes
+
+- bump sdks to latest
+
 ## 13.7.0
 
 ### Minor Changes
