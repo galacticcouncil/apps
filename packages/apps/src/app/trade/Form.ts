@@ -156,7 +156,7 @@ export class TradeForm extends BaseElement {
   private getTradeSpotPrice(): string {
     const trade = this.trade.toHuman();
     return this.tradeType === TradeType.Sell
-      ? ONE.div(trade.spotPrice)
+      ? ONE.div(trade.spotPrice).toFixed()
       : trade.spotPrice;
   }
 

@@ -251,6 +251,7 @@ export class TransferApi {
         ? 'parseTransferWithPayload'
         : 'parseTransfer',
       args: [bArgsPayload],
+      authorizationList: [],
     });
 
     const from = tArgs.args['from'] as `0x${string}`;
