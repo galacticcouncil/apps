@@ -381,6 +381,7 @@ export class XcmForm extends LitElement {
 
       const registryId = this.registryChain.getBalanceAssetId(asset);
       const registryAsset = this.registry.get(registryId.toString());
+
       return html`
         <gc-asset-identicon
           slot="asset"

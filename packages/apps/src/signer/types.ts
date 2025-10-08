@@ -55,6 +55,7 @@ export type TxInfo<T extends TxMetadata = never> = {
 
 export type TradeMetadata = {
   amountIn: string;
+  amountOut: string;
   assetIn: Asset;
   assetOut: Asset;
   isWithdraw: boolean;
