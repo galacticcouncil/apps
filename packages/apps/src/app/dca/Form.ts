@@ -409,7 +409,7 @@ export class DcaForm extends BaseElement {
     ].filter((u): u is FrequencyUnit => !!u);
 
     const valueMsec = value * 60 * 1000;
-    const blockTime = 12_000;
+    const blockTime = 6_000;
     const blockCount = Math.floor(valueMsec / blockTime);
     const blockHint =
       blockCount > 0
