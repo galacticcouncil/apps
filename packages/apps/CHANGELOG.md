@@ -1,5 +1,15 @@
 # @galacticcouncil/apps
 
+## 13.9.0
+
+### Minor Changes
+
+- 2da983a: Add amountOut to TradeMetadata
+
+### Patch Changes
+
+- a593ca2: Fix block time on DCA
+
 ## 13.8.0
 
 ### Minor Changes
