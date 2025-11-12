@@ -6,7 +6,6 @@ import './screen/dca';
 import './screen/yield';
 import './screen/bonds';
 import './screen/xcm';
-import './screen/transfers';
 
 const routes = [
   {
@@ -36,10 +35,6 @@ const routes = [
       {
         path: '/cross-chain',
         component: 'gc-xcm-screen',
-      },
-      {
-        path: '/transfers',
-        component: 'gc-transfers-screen',
       },
     ],
   },

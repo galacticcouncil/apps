@@ -7,8 +7,6 @@ export { YieldApp } from './app/yield';
 export { BondsApp } from './app/bonds';
 export { XcmApp } from './app/xcm';
 
-export { Redeem } from './app/xcm/monitor';
-
 /* Database */
 export * from './db';
 

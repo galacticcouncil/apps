@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.10.0
+
+### Minor Changes
+
+- drop monitor / redeem from xcm
+
 ## 13.9.0
 
 ### Minor Changes

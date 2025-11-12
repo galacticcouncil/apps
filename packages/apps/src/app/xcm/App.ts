@@ -65,7 +65,6 @@ import {
 import 'element/selector';
 
 import './Form';
-import './monitor/transfers';
 
 import { wormhole } from './logo';
 import {
