@@ -239,6 +239,7 @@ export class XcmApp extends PoolApp {
     }
 
     const provider: WalletProvider = WalletProvider[account.provider];
+    const isExternalProvider = provider === WalletProvider.external;
 
     if (chain.isSolana()) {
       return SOLANA_PROVIDERS.includes(provider);
@@ -250,12 +251,16 @@ export class XcmApp extends PoolApp {
 
     if (isEvmAccount(account.address)) {
       if (chain.isParachain()) {
-        return SUBSTRATE_H160_PROVIDERS.includes(provider);
+        return (
+          SUBSTRATE_H160_PROVIDERS.includes(provider) || isExternalProvider
+        );
       }
-      return this.hasEvmSupport(chain) && EVM_PROVIDERS.includes(provider);
+      return (
+        this.hasEvmSupport(chain) &&
+        (EVM_PROVIDERS.includes(provider) || isExternalProvider)
+      );
     }
 
-    const isExternalProvider = provider === WalletProvider.external;
     const isSubstrateProvider = SUBSTRATE_PROVIDERS.includes(provider);
 
     return (
