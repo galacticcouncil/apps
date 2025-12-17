@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.11.0
+
+### Minor Changes
+
+- 2b54493: Allow external EVM wallet in XCM
+
 ## 13.10.0
 
 ### Minor Changes
