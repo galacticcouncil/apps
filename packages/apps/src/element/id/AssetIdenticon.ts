@@ -21,6 +21,7 @@ import { MetadataStore } from '@galacticcouncil/ui';
 const ATOKEN_DECORATION_BLACKLIST = [
   '69', // GDOT
   '420', // GETH
+  '9001', // GSOL
 ];
 
 @customElement('gc-asset-identicon')
