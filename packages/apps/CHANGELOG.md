@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.11.1
+
+### Patch Changes
+
+- 99ae9e9: Adjust GSOL to sell only
+
 ## 13.11.0
 
 ### Minor Changes
