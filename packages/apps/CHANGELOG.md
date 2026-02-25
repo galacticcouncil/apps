@@ -1,5 +1,11 @@
 # @galacticcouncil/apps
 
+## 13.11.2
+
+### Patch Changes
+
+- 4c540d0: Update GSOL stableswap asset id
+
 ## 13.11.1
 
 ### Patch Changes
