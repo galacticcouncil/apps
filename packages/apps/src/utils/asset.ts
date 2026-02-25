@@ -66,7 +66,7 @@ const SELL_ONLY_ASSETS = [
   ['1', 'h2o'],
   ['690', '2-pool-gdot'],
   ['4200', '2-pool-geth'],
-  ['901', '2-pool-gsol'],
+  ['90001', '2-pool-gsol'],
   ['103', '3-pool'],
   ['104', '2-pool-weth'],
   ['110', '2-pool-husdc'],
